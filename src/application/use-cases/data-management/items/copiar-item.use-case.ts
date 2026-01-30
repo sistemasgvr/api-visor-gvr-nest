@@ -25,8 +25,8 @@ export class CopiarItemUseCase {
         if (!projectId) {
             throw new BadRequestException('El ID del proyecto es requerido');
         }
-        if (!dto.sourceItemId || !dto.sourceVersionId || !dto.targetFolderId) {
-            throw new BadRequestException('sourceItemId, sourceVersionId y targetFolderId son requeridos');
+        if (!dto.sourceItemId || !dto.sourceVersionId || !dto.targetFolderId || !dto.fileName) {
+            throw new BadRequestException('sourceItemId, sourceVersionId, targetFolderId y fileName son requeridos');
         }
 
         const token = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
@@ -45,6 +45,7 @@ export class CopiarItemUseCase {
                 projectIdNorm,
                 dto.sourceVersionId,
                 dto.targetFolderId,
+                dto.fileName,
             );
 
             const nuevoItem = resultado?.data;
