@@ -5,6 +5,7 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
 // Use cases - Grupo 1
 import { ObtenerItemPorIdUseCase } from '../../application/use-cases/data-management/items/obtener-item-por-id.use-case';
 import { DescargarItemUseCase } from '../../application/use-cases/data-management/items/descargar-item.use-case';
+import { ObtenerStorageUrlItemUseCase } from '../../application/use-cases/data-management/items/obtener-storage-url-item.use-case';
 import { ObtenerItemPadreUseCase } from '../../application/use-cases/data-management/items/obtener-item-padre.use-case';
 import { ObtenerReferenciasItemUseCase } from '../../application/use-cases/data-management/items/obtener-referencias-item.use-case';
 import { ObtenerRelacionesLinksItemUseCase } from '../../application/use-cases/data-management/items/obtener-relaciones-links-item.use-case';
@@ -37,6 +38,7 @@ import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.reposi
         // Use cases - Grupo 1
         ObtenerItemPorIdUseCase,
         DescargarItemUseCase,
+        ObtenerStorageUrlItemUseCase,
         ObtenerItemPadreUseCase,
         ObtenerReferenciasItemUseCase,
         ObtenerRelacionesLinksItemUseCase,

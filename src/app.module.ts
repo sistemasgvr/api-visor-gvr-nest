@@ -33,6 +33,7 @@ import { AccRecursosModule } from './presentation/modules/acc-recursos.module';
 import { BroadcastModule } from './presentation/modules/broadcast.module';
 import { NotificacionesModule } from './presentation/modules/notificaciones.module';
 import { HealthModule } from './presentation/modules/health.module';
+import { OfficeDocumentModule } from './presentation/modules/office-document.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { HealthModule } from './presentation/modules/health.module';
     DataManagementItemsModule,
     DataManagementVersionsModule,
     AccViewerModule,
+    OfficeDocumentModule,
   ],
 })
 export class AppModule { }
