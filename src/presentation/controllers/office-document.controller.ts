@@ -174,19 +174,21 @@ export class OfficeDocumentController {
 
             this.logger.log(`Descargando archivo de Autodesk: ${tokenData.itemId}`);
 
-            // Descargar el archivo de Autodesk
+            // Descargar el archivo de Autodesk (descargarItem devuelve { data, fileName, storageId })
             const resultado = await this.autodeskApiService.descargarItem(
                 accToken.tokenAcceso,
                 tokenData.projectId,
                 tokenData.itemId,
             );
 
-            if (!resultado.fileBuffer) {
+            const fileBuffer = resultado?.data ?? resultado?.fileBuffer;
+            if (!fileBuffer) {
                 this.logger.error('No se pudo obtener el buffer del archivo');
                 throw new NotFoundException('No se pudo obtener el archivo');
             }
 
-            this.logger.log(`Archivo descargado exitosamente, tamaño: ${resultado.fileBuffer.length} bytes`);
+            const bufferLength = Buffer.isBuffer(fileBuffer) ? fileBuffer.length : (fileBuffer as ArrayBuffer).byteLength;
+            this.logger.log(`Archivo descargado exitosamente, tamaño: ${bufferLength} bytes`);
 
             // Determinar el content-type basado en la extensión
             const contentType = this.getContentType(tokenData.fileName);
@@ -195,7 +197,7 @@ export class OfficeDocumentController {
             res.set({
                 'Content-Type': contentType,
                 'Content-Disposition': `inline; filename="${encodeURIComponent(tokenData.fileName)}"`,
-                'Content-Length': resultado.fileBuffer.length,
+                'Content-Length': bufferLength,
                 // Headers importantes para CORS con Microsoft Office
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
@@ -206,16 +208,18 @@ export class OfficeDocumentController {
 
             this.logger.log(`Enviando archivo con Content-Type: ${contentType}`);
 
-            // Enviar el archivo
-            res.status(HttpStatus.OK).send(resultado.fileBuffer);
+            // Enviar el archivo (asegurar Buffer para res.send)
+            const toSend = Buffer.isBuffer(fileBuffer) ? fileBuffer : Buffer.from(fileBuffer as ArrayBuffer);
+            res.status(HttpStatus.OK).send(toSend);
         } catch (error: any) {
-            this.logger.error(`Error sirviendo documento: ${error.message}`);
-            
-            if (error.status) {
+            this.logger.error(`Error sirviendo documento: ${error?.message}`, error?.stack);
+            if (error?.status) {
                 throw error;
             }
-            
-            throw new BadRequestException('Error al obtener el documento');
+            if (error?.message?.includes('No se pudo obtener') || error?.message?.includes('No se encontró') || error?.message?.includes('inválido')) {
+                throw new NotFoundException(error.message || 'No se pudo obtener el archivo');
+            }
+            throw new BadRequestException(error?.message || 'Error al obtener el documento');
         }
     }
 
