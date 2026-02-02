@@ -2,6 +2,8 @@ import {
     Controller,
     Get,
     Post,
+    Head,
+    Options,
     Param,
     Req,
     Res,
@@ -11,6 +13,7 @@ import {
     NotFoundException,
     BadRequestException,
     Inject,
+    Logger,
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -21,6 +24,8 @@ import type { IAccRepository } from '../../domain/repositories/acc.repository.in
 
 @Controller('office-documents')
 export class OfficeDocumentController {
+    private readonly logger = new Logger(OfficeDocumentController.name);
+
     constructor(
         private readonly documentTokenService: DocumentTokenService,
         private readonly autodeskApiService: AutodeskApiService,
@@ -84,6 +89,53 @@ export class OfficeDocumentController {
     }
 
     /**
+     * OPTIONS - Preflight para CORS
+     * OPTIONS /api/office-documents/view/:token
+     */
+    @Options('view/:token')
+    async viewDocumentOptions(
+        @Res() res: Response,
+    ) {
+        this.logger.log('OPTIONS request recibido para view document');
+        res.set({
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+            'Access-Control-Allow-Headers': '*',
+            'Access-Control-Max-Age': '86400',
+        });
+        res.status(HttpStatus.NO_CONTENT).send();
+    }
+
+    /**
+     * HEAD - Microsoft Office hace HEAD antes de GET
+     * HEAD /api/office-documents/view/:token
+     */
+    @Head('view/:token')
+    async viewDocumentHead(
+        @Param('token') token: string,
+        @Res() res: Response,
+    ) {
+        this.logger.log(`HEAD request recibido para token: ${token.substring(0, 8)}...`);
+        
+        const tokenData = this.documentTokenService.validateToken(token);
+
+        if (!tokenData) {
+            this.logger.warn('Token inválido o expirado en HEAD request');
+            throw new NotFoundException('Token inválido o expirado');
+        }
+
+        const contentType = this.getContentType(tokenData.fileName);
+
+        res.set({
+            'Content-Type': contentType,
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+            'Access-Control-Allow-Headers': '*',
+        });
+        res.status(HttpStatus.OK).send();
+    }
+
+    /**
      * GET - Sirve el documento para Microsoft Office
      * Este endpoint NO requiere autenticación JWT (es público)
      * GET /api/office-documents/view/:token
@@ -93,25 +145,34 @@ export class OfficeDocumentController {
         @Param('token') token: string,
         @Res() res: Response,
     ) {
+        this.logger.log(`GET request recibido para token: ${token.substring(0, 8)}...`);
+        
         // Validar el token
         const tokenData = this.documentTokenService.validateToken(token);
 
         if (!tokenData) {
+            this.logger.warn(`Token inválido o expirado: ${token.substring(0, 8)}...`);
             throw new NotFoundException('Token inválido o expirado');
         }
+
+        this.logger.log(`Token válido para archivo: ${tokenData.fileName}, userId: ${tokenData.userId}`);
 
         try {
             // Obtener el token de Autodesk del usuario
             const accToken = await this.accRepository.obtenerToken3LeggedPorUsuario(tokenData.userId);
 
             if (!accToken) {
+                this.logger.error('Token de Autodesk no disponible para el usuario');
                 throw new UnauthorizedException('Token de Autodesk no disponible');
             }
 
             // Verificar si el token de Autodesk expiró
             if (this.autodeskApiService.esTokenExpirado(accToken.expiraEn)) {
+                this.logger.error('Token de Autodesk expirado');
                 throw new UnauthorizedException('Token de Autodesk expirado');
             }
+
+            this.logger.log(`Descargando archivo de Autodesk: ${tokenData.itemId}`);
 
             // Descargar el archivo de Autodesk
             const resultado = await this.autodeskApiService.descargarItem(
@@ -121,8 +182,11 @@ export class OfficeDocumentController {
             );
 
             if (!resultado.fileBuffer) {
+                this.logger.error('No se pudo obtener el buffer del archivo');
                 throw new NotFoundException('No se pudo obtener el archivo');
             }
+
+            this.logger.log(`Archivo descargado exitosamente, tamaño: ${resultado.fileBuffer.length} bytes`);
 
             // Determinar el content-type basado en la extensión
             const contentType = this.getContentType(tokenData.fileName);
@@ -140,10 +204,12 @@ export class OfficeDocumentController {
                 'Cache-Control': 'private, max-age=300',
             });
 
+            this.logger.log(`Enviando archivo con Content-Type: ${contentType}`);
+
             // Enviar el archivo
             res.status(HttpStatus.OK).send(resultado.fileBuffer);
         } catch (error: any) {
-            console.error('Error sirviendo documento:', error.message);
+            this.logger.error(`Error sirviendo documento: ${error.message}`);
             
             if (error.status) {
                 throw error;
