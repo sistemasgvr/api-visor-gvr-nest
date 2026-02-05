@@ -53,6 +53,11 @@ export class EnvironmentVariables {
   @IsOptional()
   @IsString()
   FRONTEND_URLS?: string;
+
+  // WOPI: URL pública del backend para que Collabora/Office llame a los endpoints WOPI
+  @IsOptional()
+  @IsString()
+  BACKEND_PUBLIC_URL?: string;
 }
 
 export function validate(config: Record<string, unknown>) {

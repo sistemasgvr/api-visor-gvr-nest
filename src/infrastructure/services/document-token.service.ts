@@ -33,10 +33,11 @@ export class DocumentTokenService {
         projectId: string,
         itemId: string,
         fileName: string,
+        expiresInMinutes: number = this.TOKEN_EXPIRATION_MINUTES,
     ): string {
         const token = randomUUID();
         const now = new Date();
-        const expiresAt = new Date(now.getTime() + this.TOKEN_EXPIRATION_MINUTES * 60 * 1000);
+        const expiresAt = new Date(now.getTime() + expiresInMinutes * 60 * 1000);
 
         this.tokens.set(token, {
             token,

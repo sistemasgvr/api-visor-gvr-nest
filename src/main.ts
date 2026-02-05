@@ -8,7 +8,7 @@ if (!globalThis.crypto) {
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { json, urlencoded } from 'express';
+import { json, raw, urlencoded } from 'express';
 import { join } from 'path';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
@@ -19,6 +19,8 @@ import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
 async function bootstrap() {
   const logger = new Logger('Main.ts');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.use('/api/wopi/files', raw({ type: '*/*', limit: '200mb' }));
 
   // Configurar validación global
   app.use(json({ limit: '50mb' }));
