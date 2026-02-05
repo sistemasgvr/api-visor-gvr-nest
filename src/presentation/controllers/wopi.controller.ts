@@ -6,6 +6,7 @@ import {
     Req,
     Res,
     Headers,
+    Header,
     UnauthorizedException,
     NotFoundException,
     BadRequestException,
@@ -41,13 +42,25 @@ export class WopiController {
         return `${proto}://${host}`;
     }
 
+    /**
+     * Valida el token de acceso WOPI.
+     * Collabora envía: Authorization: Bearer TOKEN (correcto).
+     * También se acepta query access_token y header X-WOPI-Access-Token por compatibilidad.
+     */
     private validateAccessToken(req: Request, tokenParam: string): string {
+        const authHeader = req.headers['authorization'];
+        const bearerToken =
+            typeof authHeader === 'string' && authHeader.toLowerCase().startsWith('bearer ')
+                ? authHeader.slice(7).trim()
+                : undefined;
+
         const accessToken =
+            bearerToken ||
             (req.query['access_token'] as string | undefined) ||
             (req.headers['x-wopi-access-token'] as string | undefined);
 
         if (accessToken && accessToken !== tokenParam) {
-            throw new UnauthorizedException('Access token invÃ¡lido');
+            throw new UnauthorizedException('Access token inválido');
         }
 
         return tokenParam;
@@ -65,10 +78,11 @@ export class WopiController {
     }
 
     /**
-     * CheckFileInfo
-     * GET /api/wopi/files/:token
+     * CheckFileInfo - Collabora llama con User-Agent: COOLWSD, X-WOPI-Host.
+     * Respuesta obligatoria: 200 OK, Content-Type: application/json, sin redirecciones.
      */
     @Get(':token')
+    @Header('Content-Type', 'application/json')
     async checkFileInfo(
         @Req() req: Request,
         @Param('token') token: string,

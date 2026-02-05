@@ -39,11 +39,18 @@ async function bootstrap() {
   // Configurar filtro global de excepciones
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // Configurar CORS
+  // Configurar CORS: frontend + orígenes WOPI (Collabora). Sin origin = permitir (peticiones server-to-server)
+  const allowedOrigins = [...envs.frontendUrls, ...(envs.wopiAllowedOrigins || [])];
   app.enableCors({
-    origin: envs.frontendUrls, // <- toma del .env
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin) return callback(null, true); // Collabora server-to-server sin Origin
+      if (allowedOrigins.some((o) => origin === o || origin === o.replace(/\/$/, '')))
+        return callback(null, true);
+      callback(null, false);
+    },
     methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
-    allowedHeaders: 'Content-Type, Authorization, X-Requested-With',
+    allowedHeaders:
+      'Content-Type, Authorization, X-Requested-With, User-Agent, X-WOPI-Host, X-WOPI-Access-Token, X-WOPI-Lock, X-WOPI-OldLock, X-WOPI-Override, X-WOPI-RelativeTarget',
     exposedHeaders: 'Authorization',
     credentials: true,
     preflightContinue: false,

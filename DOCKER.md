@@ -152,7 +152,9 @@ docker exec -it <container-id> sh
 # 1. Construir nueva imagen
 docker build -t tuusuario/mi-proyecto-nestjs:latest .
 docker build -t santossjba/visor-gvr:latest .
+docker build -t sistemasgvr/visor-gvr:latest .
 
 # 2. Subir a Docker Hub
 docker push tuusuario/mi-proyecto-nestjs:latest
 docker push santossjba/visor-gvr:latest
+docker push sistemasgvr/visor-gvr:latest
