@@ -1600,9 +1600,9 @@ export class AutodeskApiService {
             const bucketKey = matches[1];
             const objectKey = matches[2];
 
-            // 4. Obtener URL firmada para descarga
+            // 4. Obtener URL firmada para descarga (con 60 minutos de expiración)
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
-            const signedUrlEndpoint = `${baseUrl}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3download`;
+            const signedUrlEndpoint = `${baseUrl}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3download?minutesExpiration=60`;
 
             const signedResponse = await this.httpClient.get<any>(signedUrlEndpoint, {
                 headers: {

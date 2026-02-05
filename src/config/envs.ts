@@ -14,8 +14,7 @@ interface EnvsVars {
   DB_LOGGING: boolean;
   DATABASE_URL?: string;
   FRONTEND_URLS: string;
-  /** Orígenes permitidos para WOPI (Collabora). Ej: https://santos-collabora.0diobd.easypanel.host */
-  WOPI_ALLOWED_ORIGINS?: string;
+  COLLABORA_URL?: string;
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
   AUTODESK_CLIENT_ID: string;
@@ -36,7 +35,7 @@ const envSchema = joi
     DB_LOGGING: joi.boolean().default(false),
     DATABASE_URL: joi.string().optional().allow(''),
     FRONTEND_URLS: joi.string().required(),
-    WOPI_ALLOWED_ORIGINS: joi.string().optional().allow(''),
+    COLLABORA_URL: joi.string().optional().allow(''),
     JWT_SECRET: joi.string().required(),
     JWT_EXPIRES_IN: joi.string().required(),
     AUTODESK_CLIENT_ID: joi.string().required(),
@@ -65,9 +64,7 @@ export const envs = {
   dbLogging: envsVars.DB_LOGGING,
   databaseUrl: envsVars.DATABASE_URL,
   frontendUrls: envsVars.FRONTEND_URLS.split(',').map((u) => u.trim()).filter(Boolean),
-  wopiAllowedOrigins: envsVars.WOPI_ALLOWED_ORIGINS
-    ? envsVars.WOPI_ALLOWED_ORIGINS.split(',').map((u) => u.trim()).filter(Boolean)
-    : [],
+  collaboraUrl: envsVars.COLLABORA_URL?.trim() || '',
   jwtSecret: envsVars.JWT_SECRET,
   jwtExpiresIn: envsVars.JWT_EXPIRES_IN,
   autodeskClientId: envsVars.AUTODESK_CLIENT_ID,

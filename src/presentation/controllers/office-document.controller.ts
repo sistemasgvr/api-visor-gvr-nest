@@ -94,65 +94,6 @@ export class OfficeDocumentController {
      * OPTIONS - Preflight para CORS
      * OPTIONS /api/office-documents/view/:token
      */
-    /**
-     * POST - Genera token WOPI para ediciÃ³n con Collabora
-     * POST /api/office-documents/generate-wopi-token/:projectId/:itemId
-     */
-    @Post('generate-wopi-token/:projectId/:itemId')
-    @UseGuards(JwtAuthGuard)
-    async generateWopiToken(
-        @Req() request: Request,
-        @Param('projectId') projectId: string,
-        @Param('itemId') itemId: string,
-    ) {
-        const user = (request as any).user;
-
-        if (!user?.sub) {
-            throw new UnauthorizedException('Usuario no autenticado');
-        }
-
-        const accToken = await this.accRepository.obtenerToken3LeggedPorUsuario(user.sub);
-        if (!accToken) {
-            throw new UnauthorizedException('No se encontrÃ³ token de Autodesk');
-        }
-
-        let fileName = 'documento';
-        try {
-            const itemInfo = await this.autodeskApiService.obtenerItemPorId(
-                accToken.tokenAcceso,
-                projectId,
-                itemId,
-            );
-            fileName = itemInfo.data?.attributes?.displayName || 'documento';
-        } catch {
-            // fallback
-        }
-
-        const token = this.documentTokenService.generateToken(
-            user.sub,
-            projectId,
-            itemId,
-            fileName,
-            120,
-        );
-
-        // Usar BACKEND_PUBLIC_URL en producción para que Collabora pueda llamar a los endpoints WOPI
-        const wopiBaseUrl =
-            this.configService.get<string>('BACKEND_PUBLIC_URL')?.replace(/\/+$/, '') ||
-            this.getBaseUrl(request);
-        const wopiSrc = `${wopiBaseUrl}/api/wopi/files/${token}`;
-
-        return {
-            status: 200,
-            data: {
-                token,
-                fileName,
-                wopiSrc,
-            },
-            message: 'Token WOPI generado exitosamente',
-        };
-    }
-
     @Options('view/:token')
     async viewDocumentOptions(
         @Res() res: Response,

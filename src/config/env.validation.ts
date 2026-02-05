@@ -54,7 +54,12 @@ export class EnvironmentVariables {
   @IsString()
   FRONTEND_URLS?: string;
 
-  // WOPI: URL pública del backend para que Collabora/Office llame a los endpoints WOPI
+  // Collabora Online Configuration
+  @IsOptional()
+  @IsString()
+  COLLABORA_URL?: string;
+
+  // Backend public URL (para callbacks y descargas)
   @IsOptional()
   @IsString()
   BACKEND_PUBLIC_URL?: string;

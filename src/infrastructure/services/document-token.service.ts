@@ -7,6 +7,7 @@ interface DocumentToken {
     projectId: string;
     itemId: string;
     fileName: string;
+    accessToken?: string; // Token de Autodesk para descargar el archivo
     createdAt: Date;
     expiresAt: Date;
     used: boolean;
@@ -34,6 +35,7 @@ export class DocumentTokenService {
         itemId: string,
         fileName: string,
         expiresInMinutes: number = this.TOKEN_EXPIRATION_MINUTES,
+        accessToken?: string,
     ): string {
         const token = randomUUID();
         const now = new Date();
@@ -45,6 +47,7 @@ export class DocumentTokenService {
             projectId,
             itemId,
             fileName,
+            accessToken,
             createdAt: now,
             expiresAt,
             used: false,

@@ -8,7 +8,7 @@ if (!globalThis.crypto) {
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { json, raw, urlencoded } from 'express';
+import { json, urlencoded } from 'express';
 import { join } from 'path';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
@@ -19,8 +19,6 @@ import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
 async function bootstrap() {
   const logger = new Logger('Main.ts');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-
-  app.use('/api/wopi/files', raw({ type: '*/*', limit: '200mb' }));
 
   // Configurar validación global
   app.use(json({ limit: '50mb' }));
@@ -39,8 +37,12 @@ async function bootstrap() {
   // Configurar filtro global de excepciones
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // Configurar CORS: frontend + orígenes WOPI (Collabora). Sin origin = permitir (peticiones server-to-server)
-  const allowedOrigins = [...envs.frontendUrls, ...(envs.wopiAllowedOrigins || [])];
+  // Configurar CORS: frontend + Collabora. Sin origin = permitir (peticiones server-to-server)
+  const allowedOrigins = [...envs.frontendUrls];
+  if (envs.collaboraUrl) {
+    allowedOrigins.push(envs.collaboraUrl);
+  }
+  
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       if (!origin) return callback(null, true); // Collabora server-to-server sin Origin
@@ -50,7 +52,7 @@ async function bootstrap() {
     },
     methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
     allowedHeaders:
-      'Content-Type, Authorization, X-Requested-With, User-Agent, X-WOPI-Host, X-WOPI-Access-Token, X-WOPI-Lock, X-WOPI-OldLock, X-WOPI-Override, X-WOPI-RelativeTarget',
+      'Content-Type, Authorization, X-Requested-With, User-Agent',
     exposedHeaders: 'Authorization',
     credentials: true,
     preflightContinue: false,

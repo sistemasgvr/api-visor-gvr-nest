@@ -34,7 +34,7 @@ import { BroadcastModule } from './presentation/modules/broadcast.module';
 import { NotificacionesModule } from './presentation/modules/notificaciones.module';
 import { HealthModule } from './presentation/modules/health.module';
 import { OfficeDocumentModule } from './presentation/modules/office-document.module';
-import { WopiModule } from './presentation/modules/wopi.module';
+import { CollaboraModule } from './presentation/modules/collabora.module';
 
 @Module({
   imports: [
@@ -81,7 +81,7 @@ import { WopiModule } from './presentation/modules/wopi.module';
     DataManagementVersionsModule,
     AccViewerModule,
     OfficeDocumentModule,
-    WopiModule,
+    CollaboraModule,
   ],
 })
 export class AppModule { }
