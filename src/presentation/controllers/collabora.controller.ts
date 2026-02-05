@@ -6,6 +6,7 @@ import {
   Res,
   UseGuards,
   Req,
+  Inject,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import axios from 'axios';
@@ -13,6 +14,7 @@ import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { CollaboraService } from '../../infrastructure/services/collabora.service';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { DocumentTokenService } from '../../infrastructure/services/document-token.service';
+import { ACC_REPOSITORY, type IAccRepository } from '../../domain/repositories/acc.repository.interface';
 
 @Controller('collabora')
 export class CollaboraController {
@@ -22,6 +24,8 @@ export class CollaboraController {
     private readonly collaboraService: CollaboraService,
     private readonly autodeskApiService: AutodeskApiService,
     private readonly documentTokenService: DocumentTokenService,
+    @Inject(ACC_REPOSITORY)
+    private readonly accRepository: IAccRepository,
   ) {}
 
   /**
@@ -38,15 +42,29 @@ export class CollaboraController {
     try {
       this.logger.log(`Generando configuración Collabora para item: ${itemId}`);
 
-      const accessToken = req.user?.autodeskAccessToken || req.headers['autodesk-access-token'];
       const userId = req.user?.sub || 0;
 
-      if (!accessToken) {
+      // Obtener el token de Autodesk desde la base de datos
+      const accToken = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
+      
+      if (!accToken) {
+        this.logger.error(`Token de Autodesk no encontrado para usuario: ${userId}`);
         return {
           status: 401,
-          message: 'Token de Autodesk no encontrado',
+          message: 'Token de Autodesk no encontrado. Por favor, reconecta tu cuenta de Autodesk.',
         };
       }
+
+      // Verificar si el token está expirado
+      if (this.autodeskApiService.esTokenExpirado(accToken.expiraEn)) {
+        this.logger.warn(`Token de Autodesk expirado para usuario: ${userId}`);
+        return {
+          status: 401,
+          message: 'Token de Autodesk expirado. Por favor, reconecta tu cuenta de Autodesk.',
+        };
+      }
+
+      const accessToken = accToken.tokenAcceso;
 
       // Obtener información del archivo desde Autodesk
       const fileInfo = await this.autodeskApiService.obtenerStorageUrl(
@@ -101,6 +119,7 @@ export class CollaboraController {
   /**
    * Endpoint para descargar el archivo (usado por Collabora)
    * GET /api/collabora/download/:token
+   * Este endpoint sirve el archivo directamente con headers CORS para Collabora
    */
   @Get('download/:token')
   async downloadFile(@Param('token') token: string, @Res() res: Response) {
@@ -168,15 +187,20 @@ export class CollaboraController {
       // Determinar el Content-Type según la extensión
       const contentType = this.getContentType(tokenData.fileName);
 
-      // Enviar el archivo a Collabora
+      // Headers CORS necesarios para Collabora
       res.setHeader('Content-Type', contentType);
       res.setHeader('Content-Length', fileBuffer.length);
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename="${encodeURIComponent(tokenData.fileName)}"`,
+        `inline; filename="${encodeURIComponent(tokenData.fileName)}"`,
       );
+      // Headers CORS permisivos para Collabora
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
+      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
+      // Cache control
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
       res.send(fileBuffer);
       this.logger.log('[Collabora Download] Archivo enviado a Collabora exitosamente');

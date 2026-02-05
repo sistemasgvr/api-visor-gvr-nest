@@ -27,12 +27,20 @@ export class CollaboraService {
       throw new Error('COLLABORA_URL no está configurada');
     }
 
-    // Collabora Online abre el archivo directamente desde la URL proporcionada
-    // Formato: https://collabora-server/loleaflet/hash/loleaflet.html?file_path=URL_ENCODED
-    // Para simplificar, usamos el discovery endpoint para obtener la URL correcta
-    // Por ahora, retornamos la URL base que el frontend usará para embeber el iframe
+    // Generar URL de Collabora usando el protocolo correcto
+    // Formato moderno: https://collabora-server/browser/<HASH>/cool.html?WOPISrc=<encoded_file_url>
+    // Para compatibilidad, también soportamos el formato file_path
     
-    return `${this.collaboraUrl}/loleaflet/loleaflet.html?file_path=${encodeURIComponent(fileUrl)}`;
+    // Usar el formato "browser" que es el más reciente en Collabora CODE
+    const encodedFileUrl = encodeURIComponent(fileUrl);
+    
+    // Primero intentar el formato moderno (browser/cool.html)
+    // Este formato funciona con Collabora CODE 23.05+
+    const browserUrl = `${this.collaboraUrl}/browser/dist/cool.html?file_path=${encodedFileUrl}&permission=${mode}`;
+    
+    this.logger.log(`URL de Collabora generada: ${browserUrl}`);
+    
+    return browserUrl;
   }
 
   /**
