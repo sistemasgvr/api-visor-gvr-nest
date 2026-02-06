@@ -80,29 +80,31 @@ export class CollaboraController {
         };
       }
 
-      // Generar token temporal para la descarga
-      const downloadToken = this.documentTokenService.generateToken(
+      // Generar token temporal para el acceso WOPI
+      const wopiToken = this.documentTokenService.generateToken(
         userId,
         projectId,
         itemId,
         fileInfo.fileName,
         60, // 60 minutos
-        accessToken, // Guardamos el accessToken para usarlo en la descarga
+        accessToken, // Guardamos el accessToken para usarlo en las peticiones WOPI
       );
 
-      // Construir URL de descarga desde nuestro backend
+      // Construir URL del endpoint WOPI CheckFileInfo
       const backendUrl = process.env.BACKEND_PUBLIC_URL || 'http://localhost:4001';
-      const fileUrl = `${backendUrl}/api/collabora/download/${downloadToken}`;
+      const wopiSrcUrl = `${backendUrl}/api/collabora/wopi/files/${wopiToken}`;
 
-      // Generar URL de Collabora
-      const collaboraUrl = this.collaboraService.generateCollaboraUrl(fileUrl, 'edit');
+      // Generar URL de Collabora con protocolo WOPI
+      const collaboraUrl = this.collaboraService.generateCollaboraUrl(wopiSrcUrl, 'edit');
+
+      this.logger.log(`[WOPI] URL generada - WOPISrc: ${wopiSrcUrl}`);
 
       return {
         status: 200,
         data: {
           collaboraUrl,
           fileName: fileInfo.fileName,
-          documentUrl: fileUrl,
+          wopiSrc: wopiSrcUrl,
         },
         message: 'Configuración de Collabora generada exitosamente',
       };
@@ -117,7 +119,202 @@ export class CollaboraController {
   }
 
   /**
-   * Endpoint para descargar el archivo (usado por Collabora)
+   * WOPI Protocol: CheckFileInfo endpoint
+   * GET /api/collabora/wopi/files/:fileId
+   * Devuelve metadatos del archivo en formato JSON (requerido por WOPI)
+   */
+  @Get('wopi/files/:fileId')
+  async wopiCheckFileInfo(@Param('fileId') fileId: string, @Res() res: Response) {
+    try {
+      this.logger.log(`[WOPI CheckFileInfo] FileId recibido: ${fileId}`);
+
+      // Validar el token
+      const tokenData = this.documentTokenService.validateToken(fileId);
+
+      if (!tokenData) {
+        this.logger.error('[WOPI CheckFileInfo] Token inválido o expirado');
+        return res.status(403).json({
+          error: 'Token inválido o expirado',
+        });
+      }
+
+      this.logger.log(
+        `[WOPI CheckFileInfo] Token válido - Archivo: ${tokenData.fileName}`,
+      );
+
+      // Validar que tenemos accessToken
+      if (!tokenData.accessToken) {
+        this.logger.error('[WOPI CheckFileInfo] Token no contiene accessToken de Autodesk');
+        return res.status(401).json({
+          error: 'Token de Autodesk no disponible',
+        });
+      }
+
+      // Obtener información del archivo desde Autodesk
+      const fileInfo = await this.autodeskApiService.obtenerStorageUrl(
+        tokenData.accessToken,
+        tokenData.projectId,
+        tokenData.itemId,
+      );
+
+      if (!fileInfo || !fileInfo.storageUrl) {
+        this.logger.error('[WOPI CheckFileInfo] No se pudo obtener info del archivo');
+        return res.status(404).json({
+          error: 'Archivo no encontrado',
+        });
+      }
+
+      // Obtener tamaño del archivo
+      let fileSize = 0;
+      try {
+        const headResponse = await axios.head(fileInfo.storageUrl);
+        fileSize = parseInt(headResponse.headers['content-length'] || '0', 10);
+      } catch (error) {
+        this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener tamaño del archivo');
+      }
+
+      // Respuesta WOPI CheckFileInfo
+      // Documentación: https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/rest/files/checkfileinfo
+      const wopiResponse = {
+        // Información básica del archivo
+        BaseFileName: tokenData.fileName,
+        OwnerId: tokenData.userId.toString(),
+        Size: fileSize,
+        UserId: tokenData.userId.toString(),
+        Version: Date.now().toString(), // Versión basada en timestamp
+        
+        // Permisos
+        UserCanWrite: true,
+        UserCanNotWriteRelative: true,
+        SupportsUpdate: true,
+        SupportsLocks: false,
+        SupportsGetLock: false,
+        
+        // Información adicional
+        UserFriendlyName: `Usuario ${tokenData.userId}`,
+        IsAnonymousUser: false,
+        IsEduUser: false,
+        LicenseCheckForEditIsEnabled: false,
+        
+        // URLs para acciones
+        CloseUrl: '',
+        DownloadUrl: '',
+        FileSharingUrl: '',
+        HostEditUrl: '',
+        HostViewUrl: '',
+        SignoutUrl: '',
+      };
+
+      this.logger.log('[WOPI CheckFileInfo] Respuesta enviada exitosamente');
+      
+      // Headers CORS para WOPI
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
+      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+      
+      return res.json(wopiResponse);
+    } catch (error) {
+      this.logger.error('[WOPI CheckFileInfo] Error:', error);
+      return res.status(500).json({
+        error: 'Error al obtener información del archivo',
+      });
+    }
+  }
+
+  /**
+   * WOPI Protocol: GetFile endpoint
+   * GET /api/collabora/wopi/files/:fileId/contents
+   * Devuelve el contenido binario del archivo (requerido por WOPI)
+   */
+  @Get('wopi/files/:fileId/contents')
+  async wopiGetFile(@Param('fileId') fileId: string, @Res() res: Response) {
+    try {
+      this.logger.log(`[WOPI GetFile] FileId recibido: ${fileId}`);
+
+      // Validar el token
+      const tokenData = this.documentTokenService.validateToken(fileId);
+
+      if (!tokenData) {
+        this.logger.error('[WOPI GetFile] Token inválido o expirado');
+        return res.status(403).json({
+          error: 'Token inválido o expirado',
+        });
+      }
+
+      this.logger.log(
+        `[WOPI GetFile] Token válido - Descargando archivo: ${tokenData.fileName}`,
+      );
+
+      // Validar que tenemos accessToken
+      if (!tokenData.accessToken) {
+        this.logger.error('[WOPI GetFile] Token no contiene accessToken de Autodesk');
+        return res.status(401).json({
+          error: 'Token de Autodesk no disponible',
+        });
+      }
+
+      // Obtener la URL firmada de AWS S3 desde Autodesk
+      const fileInfo = await this.autodeskApiService.obtenerStorageUrl(
+        tokenData.accessToken,
+        tokenData.projectId,
+        tokenData.itemId,
+      );
+
+      if (!fileInfo || !fileInfo.storageUrl) {
+        this.logger.error('[WOPI GetFile] No se pudo obtener URL de descarga de Autodesk');
+        return res.status(404).json({
+          error: 'Archivo no encontrado en Autodesk',
+        });
+      }
+
+      this.logger.log(
+        `[WOPI GetFile] Descargando desde S3: ${fileInfo.storageUrl.substring(0, 100)}...`,
+      );
+
+      // Descargar el archivo desde AWS S3
+      const fileBuffer = await this.downloadFileFromUrl(fileInfo.storageUrl);
+
+      if (!fileBuffer) {
+        this.logger.error('[WOPI GetFile] Error al descargar archivo desde S3');
+        return res.status(500).json({
+          error: 'Error al descargar archivo desde storage',
+        });
+      }
+
+      this.logger.log(
+        `[WOPI GetFile] Archivo descargado exitosamente (${fileBuffer.length} bytes)`,
+      );
+
+      // Determinar el Content-Type según la extensión
+      const contentType = this.getContentType(tokenData.fileName);
+
+      // Headers WOPI
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Length', fileBuffer.length);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${encodeURIComponent(tokenData.fileName)}"`,
+      );
+      // Headers CORS permisivos para Collabora
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
+      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
+
+      res.send(fileBuffer);
+      this.logger.log('[WOPI GetFile] Archivo enviado a Collabora exitosamente');
+    } catch (error) {
+      this.logger.error('[WOPI GetFile] Error:', error);
+      if (!res.headersSent) {
+        return res.status(500).json({
+          error: 'Error al descargar archivo',
+        });
+      }
+    }
+  }
+
+  /**
+   * Endpoint para descargar el archivo (usado por Collabora) - DEPRECADO
    * GET /api/collabora/download/:token
    * Este endpoint sirve el archivo directamente con headers CORS para Collabora
    */

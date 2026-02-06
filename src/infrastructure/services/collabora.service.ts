@@ -18,25 +18,21 @@ export class CollaboraService {
 
   /**
    * Genera la URL de Collabora para abrir un documento
-   * @param fileUrl URL del archivo a editar (debe ser accesible desde Collabora)
+   * @param wopiSrcUrl URL del endpoint WOPI (debe apuntar a /wopi/files/{fileId})
    * @param mode Modo de edición: 'edit' o 'view'
    * @returns URL completa para el iframe de Collabora
    */
-  generateCollaboraUrl(fileUrl: string, mode: 'edit' | 'view' = 'edit'): string {
+  generateCollaboraUrl(wopiSrcUrl: string, mode: 'edit' | 'view' = 'edit'): string {
     if (!this.collaboraUrl) {
       throw new Error('COLLABORA_URL no está configurada');
     }
 
-    // Generar URL de Collabora usando el protocolo correcto
-    // Formato moderno: https://collabora-server/browser/<HASH>/cool.html?WOPISrc=<encoded_file_url>
-    // Para compatibilidad, también soportamos el formato file_path
+    // Formato WOPI estándar:
+    // https://collabora-server/browser/dist/cool.html?WOPISrc=<encoded_wopi_endpoint>&permission=<edit|view>
+    // El WOPISrc debe apuntar al endpoint que implementa CheckFileInfo
     
-    // Usar el formato "browser" que es el más reciente en Collabora CODE
-    const encodedFileUrl = encodeURIComponent(fileUrl);
-    
-    // Primero intentar el formato moderno (browser/cool.html)
-    // Este formato funciona con Collabora CODE 23.05+
-    const browserUrl = `${this.collaboraUrl}/browser/dist/cool.html?file_path=${encodedFileUrl}&permission=${mode}`;
+    const encodedWopiSrc = encodeURIComponent(wopiSrcUrl);
+    const browserUrl = `${this.collaboraUrl}/browser/dist/cool.html?WOPISrc=${encodedWopiSrc}&permission=${mode}`;
     
     this.logger.log(`URL de Collabora generada: ${browserUrl}`);
     
