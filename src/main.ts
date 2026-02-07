@@ -21,7 +21,16 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Configurar validación global
-  app.use(json({ limit: '50mb' }));
+  // Para rutas WOPI (Collabora), necesitamos raw body - se maneja manualmente en el endpoint
+  app.use(json({ 
+    limit: '50mb',
+    verify: (req: any, res, buf) => {
+      // Guardar raw body para rutas WOPI
+      if (req.url && req.url.includes('/collabora/wopi/files/') && req.url.includes('/contents')) {
+        req.rawBody = buf;
+      }
+    }
+  }));
   app.use(urlencoded({ extended: true, limit: '50mb' }));
   app.useGlobalPipes(
     new ValidationPipe({
@@ -52,8 +61,8 @@ async function bootstrap() {
     },
     methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
     allowedHeaders:
-      'Content-Type, Authorization, X-Requested-With, User-Agent',
-    exposedHeaders: 'Authorization',
+      'Content-Type, Authorization, X-Requested-With, User-Agent, X-WOPI-Override, X-WOPI-Lock, X-WOPI-Editors, X-LOOL-WOPI-IsModifiedByUser, X-LOOL-WOPI-IsAutosave',
+    exposedHeaders: 'Authorization, Content-Length, Content-Type',
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204,

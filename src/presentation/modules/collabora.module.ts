@@ -9,6 +9,8 @@ import { AuthModule } from './auth.module';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { AccRepository } from '../../infrastructure/repositories/acc.repository';
 import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interface';
+import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
 
 @Module({
   imports: [
@@ -25,6 +27,10 @@ import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interfa
     {
       provide: ACC_REPOSITORY,
       useClass: AccRepository,
+    },
+    {
+      provide: AUTH_REPOSITORY,
+      useClass: AuthRepository,
     },
   ],
   exports: [CollaboraService],

@@ -1,20 +1,25 @@
 import {
   Controller,
   Get,
+  Post,
   Logger,
   Param,
   Res,
-  UseGuards,
   Req,
+  UseGuards,
   Inject,
+  Headers,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import * as express from 'express';
 import axios from 'axios';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { CollaboraService } from '../../infrastructure/services/collabora.service';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { DocumentTokenService } from '../../infrastructure/services/document-token.service';
-import { ACC_REPOSITORY, type IAccRepository } from '../../domain/repositories/acc.repository.interface';
+import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interface';
+import type { IAccRepository } from '../../domain/repositories/acc.repository.interface';
+import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
+import type { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
 
 @Controller('collabora')
 export class CollaboraController {
@@ -26,6 +31,8 @@ export class CollaboraController {
     private readonly documentTokenService: DocumentTokenService,
     @Inject(ACC_REPOSITORY)
     private readonly accRepository: IAccRepository,
+    @Inject(AUTH_REPOSITORY)
+    private readonly authRepository: IAuthRepository,
   ) {}
 
   /**
@@ -124,7 +131,7 @@ export class CollaboraController {
    * Devuelve metadatos del archivo en formato JSON (requerido por WOPI)
    */
   @Get('wopi/files/:fileId')
-  async wopiCheckFileInfo(@Param('fileId') fileId: string, @Res() res: Response) {
+  async wopiCheckFileInfo(@Param('fileId') fileId: string, @Res() res: express.Response) {
     try {
       this.logger.log(`[WOPI CheckFileInfo] FileId recibido: ${fileId}`);
 
@@ -173,6 +180,17 @@ export class CollaboraController {
         this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener tamaño del archivo');
       }
 
+      // Obtener información del usuario desde la base de datos
+      let userFriendlyName = `Usuario ${tokenData.userId}`;
+      try {
+        const usuario = await this.authRepository.obtenerPerfilUsuario(tokenData.userId);
+        if (usuario) {
+          userFriendlyName = `${usuario.nombres} ${usuario.apellidos}`.trim() || usuario.correo || userFriendlyName;
+        }
+      } catch (error) {
+        this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener información del usuario');
+      }
+
       // Respuesta WOPI CheckFileInfo
       // Documentación: https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/rest/files/checkfileinfo
       const wopiResponse = {
@@ -190,11 +208,17 @@ export class CollaboraController {
         SupportsLocks: false,
         SupportsGetLock: false,
         
-        // Información adicional
-        UserFriendlyName: `Usuario ${tokenData.userId}`,
+        // Información adicional del usuario
+        UserFriendlyName: userFriendlyName,
         IsAnonymousUser: false,
         IsEduUser: false,
         LicenseCheckForEditIsEnabled: false,
+        
+        // Idioma de la interfaz de usuario (español)
+        // Algunos sistemas usan es-ES, otros es_ES, agregamos ambos por compatibilidad
+        UserInterfaceLanguage: 'es-ES',
+        UILanguage: 'es',
+        Lang: 'es-ES',
         
         // URLs para acciones
         CloseUrl: '',
@@ -227,7 +251,7 @@ export class CollaboraController {
    * Devuelve el contenido binario del archivo (requerido por WOPI)
    */
   @Get('wopi/files/:fileId/contents')
-  async wopiGetFile(@Param('fileId') fileId: string, @Res() res: Response) {
+  async wopiGetFile(@Param('fileId') fileId: string, @Res() res: express.Response) {
     try {
       this.logger.log(`[WOPI GetFile] FileId recibido: ${fileId}`);
 
@@ -314,12 +338,212 @@ export class CollaboraController {
   }
 
   /**
+   * WOPI Protocol: PutFile endpoint
+   * POST /api/collabora/wopi/files/:fileId/contents
+   * Guarda el archivo modificado creando una nueva versión en ACC (usa la lógica existente del proyecto)
+   */
+  @Post('wopi/files/:fileId/contents')
+  async wopiPutFile(
+    @Param('fileId') fileId: string,
+    @Req() req: express.Request,
+    @Res() res: express.Response,
+    @Headers('x-wopi-override') wopiOverride: string,
+    @Headers('x-wopi-lock') wopiLock: string,
+    @Headers('x-wopi-editors') wopiEditors: string,
+    @Headers('x-lool-wopi-ismodifiedbyuser') isModifiedByUser: string,
+    @Headers('x-lool-wopi-isautosave') isAutosave: string,
+  ) {
+    try {
+      this.logger.log(`[WOPI PutFile] FileId: ${fileId}, Override: ${wopiOverride}`);
+      this.logger.log(`[WOPI PutFile] IsAutosave: ${isAutosave}, IsModified: ${isModifiedByUser}, Editors: ${wopiEditors}`);
+      
+      // Validar el token
+      const tokenData = this.documentTokenService.validateToken(fileId);
+
+      if (!tokenData) {
+        this.logger.error('[WOPI PutFile] Token inválido o expirado');
+        return res.status(403).json({
+          error: 'Token inválido o expirado',
+        });
+      }
+
+      // Validar que tenemos accessToken
+      if (!tokenData.accessToken) {
+        this.logger.error('[WOPI PutFile] Token no contiene accessToken de Autodesk');
+        return res.status(401).json({
+          error: 'Token de Autodesk no disponible',
+        });
+      }
+
+      // Obtener el contenido del archivo desde el raw body
+      const fileBuffer = (req as any).rawBody || req.body;
+
+      if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
+        this.logger.error('[WOPI PutFile] No se recibió contenido del archivo o no es un Buffer');
+        this.logger.error(`[WOPI PutFile] Tipo recibido: ${typeof fileBuffer}, isBuffer: ${Buffer.isBuffer(fileBuffer)}`);
+        return res.status(400).json({
+          error: 'Contenido del archivo no válido',
+        });
+      }
+
+      this.logger.log(`[WOPI PutFile] Archivo recibido: ${fileBuffer.length} bytes`);
+      this.logger.log(`[WOPI PutFile] ItemId: ${tokenData.itemId}, ProjectId: ${tokenData.projectId}`);
+
+      const projectIdNorm = tokenData.projectId.startsWith('b.') 
+        ? tokenData.projectId 
+        : `b.${tokenData.projectId}`;
+
+      // PASO 1: Crear storage en ACC (igual que en subir-archivo.use-case.ts)
+      this.logger.log('[WOPI PutFile] Creando storage para nueva versión...');
+      
+      // Necesitamos el folderId del item actual, pero como itemId es el URN del item,
+      // vamos a obtener información del item primero
+      const itemInfo = await this.autodeskApiService.obtenerItemPorId(
+        tokenData.accessToken,
+        projectIdNorm,
+        tokenData.itemId,
+      );
+
+      if (!itemInfo?.data) {
+        this.logger.error('[WOPI PutFile] No se pudo obtener información del item');
+        return res.status(404).json({
+          error: 'Item no encontrado en ACC',
+        });
+      }
+
+      const folderId = itemInfo.data.relationships?.parent?.data?.id;
+      
+      if (!folderId) {
+        this.logger.error('[WOPI PutFile] No se pudo obtener el folderId del item');
+        return res.status(500).json({
+          error: 'No se pudo obtener el folderId del item',
+        });
+      }
+
+      const storageResult = await this.autodeskApiService.crearStorageParaItem(
+        tokenData.accessToken,
+        projectIdNorm,
+        folderId,
+        tokenData.fileName,
+      );
+
+      if (!storageResult.data?.id) {
+        this.logger.error('[WOPI PutFile] No se pudo obtener el storage ID');
+        return res.status(500).json({
+          error: 'Error al crear storage en ACC',
+        });
+      }
+
+      const storageId = storageResult.data.id;
+      this.logger.log(`[WOPI PutFile] Storage creado: ${storageId}`);
+
+      // Extraer bucketKey y objectKey del storage ID (igual que en subir-archivo.use-case.ts)
+      const storageIdMatch = storageId.match(/urn:adsk\.objects:os\.object:([^\/]+)\/(.+)/);
+
+      if (!storageIdMatch || storageIdMatch.length !== 3) {
+        this.logger.error(`[WOPI PutFile] Formato de storage ID inválido: ${storageId}`);
+        return res.status(500).json({
+          error: 'Formato de storage ID inválido',
+        });
+      }
+
+      const bucketKey = storageIdMatch[1];
+      const objectKey = storageIdMatch[2];
+
+      // PASO 2: Obtener URL firmada de S3
+      this.logger.log('[WOPI PutFile] Obteniendo URL firmada de S3...');
+      
+      const signedResult = await this.autodeskApiService.obtenerUrlFirmadaS3(
+        tokenData.accessToken,
+        bucketKey,
+        objectKey,
+        1,
+      );
+
+      if (!signedResult.urls || !signedResult.urls[0]) {
+        this.logger.error('[WOPI PutFile] No se pudo obtener la URL firmada de S3');
+        return res.status(500).json({
+          error: 'No se pudo obtener la URL firmada de S3',
+        });
+      }
+
+      const signedUrl = signedResult.urls[0];
+      const uploadKey = signedResult.uploadKey;
+
+      // PASO 3: Subir archivo a S3
+      this.logger.log('[WOPI PutFile] Subiendo archivo a S3...');
+      
+      await this.autodeskApiService.subirArchivoAUrlFirmada(signedUrl, fileBuffer);
+
+      this.logger.log('[WOPI PutFile] Archivo subido exitosamente a S3');
+
+      // PASO 4: Completar la subida
+      this.logger.log('[WOPI PutFile] Completando subida...');
+      
+      await this.autodeskApiService.completarSubida(
+        tokenData.accessToken,
+        bucketKey,
+        objectKey,
+        uploadKey,
+      );
+
+      // PASO 5: Crear nueva versión del item existente (igual que en subir-archivo.use-case.ts líneas 128-159)
+      this.logger.log('[WOPI PutFile] Creando nueva versión en ACC...');
+      
+      const versionData = {
+        type: 'versions',
+        attributes: {
+          name: tokenData.fileName,
+          displayName: tokenData.fileName,
+          extension: {
+            type: 'versions:autodesk.bim360:File',
+            version: '1.0',
+          },
+        },
+        relationships: {
+          item: {
+            data: { type: 'items', id: tokenData.itemId },
+          },
+          storage: {
+            data: { type: 'objects', id: storageId },
+          },
+        },
+      };
+
+      await this.autodeskApiService.crearVersion(
+        tokenData.accessToken,
+        projectIdNorm,
+        versionData,
+      );
+
+      this.logger.log(`[WOPI PutFile] Nueva versión creada exitosamente para item: ${tokenData.itemId}`);
+
+      // Respuesta WOPI PutFile exitosa
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
+      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-WOPI-Override, X-WOPI-Lock');
+      
+      return res.status(200).json({
+        LastModifiedTime: new Date().toISOString(),
+      });
+    } catch (error) {
+      this.logger.error('[WOPI PutFile] Error:', error);
+      if (!res.headersSent) {
+        return res.status(500).json({
+          error: 'Error al guardar archivo',
+          details: error.message,
+        });
+      }
+    }
+  }
+
+  /**
    * Endpoint para descargar el archivo (usado por Collabora) - DEPRECADO
    * GET /api/collabora/download/:token
    * Este endpoint sirve el archivo directamente con headers CORS para Collabora
    */
   @Get('download/:token')
-  async downloadFile(@Param('token') token: string, @Res() res: Response) {
+  async downloadFile(@Param('token') token: string, @Res() res: express.Response) {
     try {
       this.logger.log(`[Collabora Download] Token recibido: ${token}`);
 

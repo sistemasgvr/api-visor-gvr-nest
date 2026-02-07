@@ -27,12 +27,12 @@ export class CollaboraService {
       throw new Error('COLLABORA_URL no está configurada');
     }
 
-    // Formato WOPI estándar:
-    // https://collabora-server/browser/dist/cool.html?WOPISrc=<encoded_wopi_endpoint>&permission=<edit|view>
+    // Formato WOPI estándar con idioma español:
+    // https://collabora-server/browser/dist/cool.html?WOPISrc=<encoded_wopi_endpoint>&permission=<edit|view>&lang=es-ES
     // El WOPISrc debe apuntar al endpoint que implementa CheckFileInfo
     
     const encodedWopiSrc = encodeURIComponent(wopiSrcUrl);
-    const browserUrl = `${this.collaboraUrl}/browser/dist/cool.html?WOPISrc=${encodedWopiSrc}&permission=${mode}`;
+    const browserUrl = `${this.collaboraUrl}/browser/dist/cool.html?WOPISrc=${encodedWopiSrc}&permission=${mode}&lang=es-ES`;
     
     this.logger.log(`URL de Collabora generada: ${browserUrl}`);
     
