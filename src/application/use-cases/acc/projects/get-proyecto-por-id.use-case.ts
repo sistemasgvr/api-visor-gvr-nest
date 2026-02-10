@@ -37,6 +37,7 @@ export class GetProyectoPorIdUseCase {
                         createdByReal: registroCreacion.usuario,
                         createdByRealId: registroCreacion.idusuario,
                         createdByRealRole: registroCreacion.rol || null,
+                        createdByRealEmpresa: registroCreacion.empresa || null,
                     };
                 }
             } catch (error) {

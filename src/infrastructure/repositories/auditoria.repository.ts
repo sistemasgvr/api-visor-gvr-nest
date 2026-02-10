@@ -79,6 +79,8 @@ export class AuditoriaRepository implements IAuditoriaRepository {
                 a.id,
                 a.idusuario,
                 u.nombre as usuario,
+                a.idempresausuario,
+                a.nombreempresausuario as empresa,
                 COALESCE(
                     (SELECT r.nombre 
                      FROM authusuariosroles ur
@@ -144,6 +146,8 @@ export class AuditoriaRepository implements IAuditoriaRepository {
                 a.id,
                 a.idusuario,
                 u.nombre as usuario,
+                a.idempresausuario,
+                a.nombreempresausuario as empresa,
                 COALESCE(
                     (SELECT r.nombre 
                      FROM authusuariosroles ur
@@ -205,6 +209,8 @@ export class AuditoriaRepository implements IAuditoriaRepository {
         ipAddress: string,
         userAgent: string,
         metadatos: any,
+        idEmpresaUsuario?: number | null,
+        nombreEmpresaUsuario?: string | null,
     ): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
             'audRegistrarAccion',
@@ -219,6 +225,8 @@ export class AuditoriaRepository implements IAuditoriaRepository {
                 ipAddress,
                 userAgent,
                 JSON.stringify(metadatos),
+                idEmpresaUsuario ?? null,
+                nombreEmpresaUsuario ?? null,
             ],
         );
 

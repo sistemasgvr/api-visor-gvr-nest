@@ -111,6 +111,7 @@ export class ObtenerContenidoCarpetaUseCase {
                                     createdByReal: registroCreacion.usuario,
                                     createdByRealId: registroCreacion.idusuario,
                                     createdByRealRole: registroCreacion.rol || null,
+                                    createdByRealEmpresa: registroCreacion.empresa || null,
                                 };
                             }
                         } else if (itemType === 'folders') {
@@ -128,6 +129,7 @@ export class ObtenerContenidoCarpetaUseCase {
                                     createdByReal: registroCreacion.usuario,
                                     createdByRealId: registroCreacion.idusuario,
                                     createdByRealRole: registroCreacion.rol || null,
+                                    createdByRealEmpresa: registroCreacion.empresa || null,
                                 };
                             }
                         }

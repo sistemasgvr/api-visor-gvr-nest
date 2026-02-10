@@ -44,6 +44,7 @@ export class ObtenerIncidenciaPorIdUseCase {
                     createdByReal: registroCreacion.usuario,
                     createdByRealId: registroCreacion.idusuario,
                     createdByRealRole: registroCreacion.rol || null,
+                    createdByRealEmpresa: registroCreacion.empresa || null,
                     createdByAcc: resultado.createdBy,
                 };
             }

@@ -32,6 +32,8 @@ export interface IAuditoriaRepository {
         ipAddress: string,
         userAgent: string,
         metadatos: any,
+        idEmpresaUsuario?: number | null,
+        nombreEmpresaUsuario?: string | null,
     ): Promise<any>;
 }
 
