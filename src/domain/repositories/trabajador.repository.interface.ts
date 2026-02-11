@@ -24,9 +24,30 @@ export interface CrearTrabajadorData {
     nroDocumento: string;
     correo: string;
     idEmpresa: number;
+    idUsuarioCreacion: number;
     idResponsable?: number;
     idRol?: number;
-    idUsuarioCreacion: number;
+    fechaNacimiento?: string;
+    celular?: string;
+    telefonoEmergencia?: string;
+    contactoEmergenciaNombre?: string;
+    contactoEmergenciaParentesco?: string;
+    direccionDomiciliaria?: string;
+    idPais?: number;
+    idDepartamento?: number;
+    idProvincia?: number;
+    idDistrito?: number;
+    nroRuc?: string;
+    idGradoInstruccion?: number;
+    idCarrera?: number;
+    idEntidadBancaria?: number;
+    nroCuentaCorriente?: string;
+    nroCci?: string;
+    remuneracion?: number;
+    idTipoContrato?: number;
+    idDuracionContrato?: number;
+    fechaInicioLabores?: string;
+    suspension4taCategoria?: string;
 }
 
 export interface EditarTrabajadorData {
@@ -37,8 +58,30 @@ export interface EditarTrabajadorData {
     nroDocumento: string;
     correo: string;
     idEmpresa: number;
-    idResponsable?: number;
     idUsuarioModificacion: number;
+    idResponsable?: number;
+    idRol?: number;
+    fechaNacimiento?: string;
+    celular?: string;
+    telefonoEmergencia?: string;
+    contactoEmergenciaNombre?: string;
+    contactoEmergenciaParentesco?: string;
+    direccionDomiciliaria?: string;
+    idPais?: number;
+    idDepartamento?: number;
+    idProvincia?: number;
+    idDistrito?: number;
+    nroRuc?: string;
+    idGradoInstruccion?: number;
+    idCarrera?: number;
+    idEntidadBancaria?: number;
+    nroCuentaCorriente?: string;
+    nroCci?: string;
+    remuneracion?: number;
+    idTipoContrato?: number;
+    idDuracionContrato?: number;
+    fechaInicioLabores?: string;
+    suspension4taCategoria?: string;
 }
 
 export interface ITrabajadorRepository {

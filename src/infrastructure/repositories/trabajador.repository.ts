@@ -85,8 +85,6 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     }
 
     async obtenerTrabajadorPorId(idTrabajador: number): Promise<any> {
-        // Call traObtenerTrabajadorPorId function
-        // SELECT * FROM traObtenerTrabajadorPorId(p_idTrabajador)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
             'traObtenerTrabajadorPorId',
             [idTrabajador],
@@ -96,7 +94,6 @@ export class TrabajadorRepository implements ITrabajadorRepository {
             return null;
         }
 
-        // Decode roles if it's a JSON string
         if (result.roles && typeof result.roles === 'string') {
             try {
                 result.roles = JSON.parse(result.roles);
@@ -105,12 +102,22 @@ export class TrabajadorRepository implements ITrabajadorRepository {
             }
         }
 
+        // Fallback: si la función no devolvió descripciones (JOIN sin match), resolver por id
+        if (result.idtipodocumento != null && result.tipodocumento == null) {
+            const opt = await this.databaseFunctionService.executeQuery<{ label: string }>(
+                'SELECT COALESCE(descripcion, nombre) AS label FROM genlistadoopciones WHERE id = $1',
+                [result.idtipodocumento],
+            );
+            if (opt?.length) result.tipodocumento = opt[0].label;
+        }
+        if (result.idempresa != null && result.nombreempresa == null && result.razonsocialempresa) {
+            result.nombreempresa = result.razonsocialempresa;
+        }
+
         return result;
     }
 
     async crearTrabajador(data: CrearTrabajadorData): Promise<any> {
-        // Call traCrearTrabajador function
-        // SELECT * FROM traCrearTrabajador(p_nombres, p_apellidos, p_idTipoDocumento, p_nroDocumento, p_correo, p_idEmpresa, p_idResponsable, p_idRol, p_idUsuarioCreacion)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
             'traCrearTrabajador',
             [
@@ -120,9 +127,30 @@ export class TrabajadorRepository implements ITrabajadorRepository {
                 data.nroDocumento,
                 data.correo,
                 data.idEmpresa,
-                data.idResponsable || null,
-                data.idRol || null,
                 data.idUsuarioCreacion,
+                data.idResponsable ?? null,
+                data.idRol ?? null,
+                data.fechaNacimiento ?? null,
+                data.celular ?? null,
+                data.telefonoEmergencia ?? null,
+                data.contactoEmergenciaNombre ?? null,
+                data.contactoEmergenciaParentesco ?? null,
+                data.direccionDomiciliaria ?? null,
+                data.idPais ?? null,
+                data.idDepartamento ?? null,
+                data.idProvincia ?? null,
+                data.idDistrito ?? null,
+                data.nroRuc ?? null,
+                data.idGradoInstruccion ?? null,
+                data.idCarrera ?? null,
+                data.idEntidadBancaria ?? null,
+                data.nroCuentaCorriente ?? null,
+                data.nroCci ?? null,
+                data.remuneracion ?? null,
+                data.idTipoContrato ?? null,
+                data.idDuracionContrato ?? null,
+                data.fechaInicioLabores ?? null,
+                data.suspension4taCategoria ?? null,
             ],
         );
 
@@ -130,8 +158,6 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     }
 
     async editarTrabajador(data: EditarTrabajadorData): Promise<any> {
-        // Call traEditarTrabajador function
-        // SELECT * FROM traEditarTrabajador(p_idTrabajador, p_nombres, p_apellidos, p_idTipoDocumento, p_nroDocumento, p_correo, p_idEmpresa, p_idResponsable, p_idUsuarioModificacion)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
             'traEditarTrabajador',
             [
@@ -142,8 +168,30 @@ export class TrabajadorRepository implements ITrabajadorRepository {
                 data.nroDocumento,
                 data.correo,
                 data.idEmpresa,
-                data.idResponsable || null,
                 data.idUsuarioModificacion,
+                data.idResponsable ?? null,
+                data.idRol ?? null,
+                data.fechaNacimiento ?? null,
+                data.celular ?? null,
+                data.telefonoEmergencia ?? null,
+                data.contactoEmergenciaNombre ?? null,
+                data.contactoEmergenciaParentesco ?? null,
+                data.direccionDomiciliaria ?? null,
+                data.idPais ?? null,
+                data.idDepartamento ?? null,
+                data.idProvincia ?? null,
+                data.idDistrito ?? null,
+                data.nroRuc ?? null,
+                data.idGradoInstruccion ?? null,
+                data.idCarrera ?? null,
+                data.idEntidadBancaria ?? null,
+                data.nroCuentaCorriente ?? null,
+                data.nroCci ?? null,
+                data.remuneracion ?? null,
+                data.idTipoContrato ?? null,
+                data.idDuracionContrato ?? null,
+                data.fechaInicioLabores ?? null,
+                data.suspension4taCategoria ?? null,
             ],
         );
 

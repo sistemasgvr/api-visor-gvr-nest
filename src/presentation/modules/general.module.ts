@@ -3,9 +3,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GeneralController } from '../controllers/general.controller';
+import { UbicacionController } from '../controllers/ubicacion.controller';
 import { ListarMenuOpcionesUseCase } from '../../application/use-cases/general/listar-menu-opciones.use-case';
 import { ObtenerMenuOpcionUseCase } from '../../application/use-cases/general/obtener-menu-opcion.use-case';
 import { ObtenerOpcionesListaUseCase } from '../../application/use-cases/general/obtener-opciones-lista.use-case';
+import { ObtenerCatalogosTrabajadorUseCase } from '../../application/use-cases/general/obtener-catalogos-trabajador.use-case';
 import { ListarMenuRecursivoUseCase } from '../../application/use-cases/general/listar-menu-recursivo.use-case';
 import { MenuRepository } from '../../infrastructure/repositories/menu.repository';
 import { MENU_REPOSITORY } from '../../domain/repositories/menu.repository.interface';
@@ -27,7 +29,7 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
             inject: [ConfigService],
         }),
     ],
-    controllers: [GeneralController],
+    controllers: [GeneralController, UbicacionController],
     providers: [
         // Repositories
         {
@@ -38,6 +40,7 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
         ListarMenuOpcionesUseCase,
         ObtenerMenuOpcionUseCase,
         ObtenerOpcionesListaUseCase,
+        ObtenerCatalogosTrabajadorUseCase,
         ListarMenuRecursivoUseCase,
         // JWT Strategy
         JwtStrategy,

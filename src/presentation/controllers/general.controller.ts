@@ -13,6 +13,7 @@ import type { Request } from 'express';
 import { ListarMenuOpcionesUseCase } from '../../application/use-cases/general/listar-menu-opciones.use-case';
 import { ObtenerMenuOpcionUseCase } from '../../application/use-cases/general/obtener-menu-opcion.use-case';
 import { ObtenerOpcionesListaUseCase } from '../../application/use-cases/general/obtener-opciones-lista.use-case';
+import { ObtenerCatalogosTrabajadorUseCase } from '../../application/use-cases/general/obtener-catalogos-trabajador.use-case';
 import { ListarMenuRecursivoUseCase } from '../../application/use-cases/general/listar-menu-recursivo.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -24,6 +25,7 @@ export class GeneralController {
         private readonly listarMenuOpcionesUseCase: ListarMenuOpcionesUseCase,
         private readonly obtenerMenuOpcionUseCase: ObtenerMenuOpcionUseCase,
         private readonly obtenerOpcionesListaUseCase: ObtenerOpcionesListaUseCase,
+        private readonly obtenerCatalogosTrabajadorUseCase: ObtenerCatalogosTrabajadorUseCase,
         private readonly listarMenuRecursivoUseCase: ListarMenuRecursivoUseCase,
     ) { }
 
@@ -57,6 +59,17 @@ export class GeneralController {
             menuOpcion,
             'Opción de menú obtenida exitosamente',
         );
+    }
+
+    /**
+     * Catálogos para formulario de trabajador (grado instrucción, carrera, entidad bancaria, tipo/duración contrato)
+     * GET /catalogos-trabajador
+     */
+    @Get('catalogos-trabajador')
+    @HttpCode(HttpStatus.OK)
+    async obtenerCatalogosTrabajador() {
+        const data = await this.obtenerCatalogosTrabajadorUseCase.execute();
+        return ApiResponseDto.success(data, 'Catálogos obtenidos exitosamente');
     }
 
     /**
