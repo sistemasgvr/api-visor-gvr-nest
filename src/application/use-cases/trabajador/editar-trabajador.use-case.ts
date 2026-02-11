@@ -11,14 +11,25 @@ export class EditarTrabajadorUseCase {
     ) { }
 
     async execute(idTrabajador: number, updateDto: UpdateTrabajadorDto, idUsuarioModificacion: number) {
+        const { adjuntos, ...rest } = updateDto as UpdateTrabajadorDto & { adjuntos?: { idTipoAdjunto: number; ruta: string }[] };
         const resultado = await this.trabajadorRepository.editarTrabajador({
             idTrabajador,
-            ...updateDto,
+            ...rest,
             idUsuarioModificacion,
         });
 
         if (!resultado || !resultado.success) {
             throw new BadRequestException(resultado?.message || 'Error al editar el trabajador');
+        }
+
+        await this.trabajadorRepository.eliminarAdjuntosPorTrabajador(idTrabajador);
+        if (adjuntos?.length) {
+            const valid = adjuntos.filter(
+                (a) => a?.idTipoAdjunto != null && a?.ruta != null && String(a.ruta).trim() !== '',
+            );
+            if (valid.length) {
+                await this.trabajadorRepository.insertarAdjuntos(idTrabajador, valid, idUsuarioModificacion);
+            }
         }
 
         return {

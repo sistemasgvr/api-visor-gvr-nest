@@ -62,13 +62,16 @@ export class GeneralController {
     }
 
     /**
-     * Catálogos para formulario de trabajador (grado instrucción, carrera, entidad bancaria, tipo/duración contrato)
-     * GET /catalogos-trabajador
+     * Catálogos para formulario de trabajador (grado instrucción, carrera, entidad bancaria, tipo/duración contrato).
+     * Los IDs de lista vienen del frontend (constants/listasOpciones). GET /catalogos-trabajador?idListas=8,9,10,11,12,13,14
      */
     @Get('catalogos-trabajador')
     @HttpCode(HttpStatus.OK)
-    async obtenerCatalogosTrabajador() {
-        const data = await this.obtenerCatalogosTrabajadorUseCase.execute();
+    async obtenerCatalogosTrabajador(@Query('idListas') idListas?: string) {
+        const ids = idListas
+            ? idListas.split(',').map((s) => parseInt(s.trim(), 10)).filter((n) => !Number.isNaN(n))
+            : undefined;
+        const data = await this.obtenerCatalogosTrabajadorUseCase.execute(ids);
         return ApiResponseDto.success(data, 'Catálogos obtenidos exitosamente');
     }
 

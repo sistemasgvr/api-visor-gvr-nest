@@ -2,12 +2,16 @@ import { Injectable, Inject } from '@nestjs/common';
 import type { IMenuRepository } from '../../../domain/repositories/menu.repository.interface';
 import { MENU_REPOSITORY } from '../../../domain/repositories/menu.repository.interface';
 
-/** IDs de listas en genListado (seeds: Grado=8, Carrera=9, EntidadBancaria=10, TipoContrato=11, DuracionContrato=12) */
-const ID_LISTA_GRADO_INSTRUCCION = 8;
-const ID_LISTA_CARRERA = 9;
-const ID_LISTA_ENTIDAD_BANCARIA = 10;
-const ID_LISTA_TIPO_CONTRATO = 11;
-const ID_LISTA_DURACION_CONTRATO = 12;
+/** Claves de respuesta por posición (orden enviado por frontend: grado, carrera, entidad, tipoContrato, duracion, tipoAdjunto, parentesco) */
+const CLAVES_CATALOGOS_TRABAJADOR = [
+    'gradoInstruccion',
+    'carrera',
+    'entidadBancaria',
+    'tipoContrato',
+    'duracionContrato',
+    'tipoAdjunto',
+    'parentesco',
+] as const;
 
 export interface CatalogosTrabajador {
     gradoInstruccion: any[];
@@ -15,6 +19,8 @@ export interface CatalogosTrabajador {
     entidadBancaria: any[];
     tipoContrato: any[];
     duracionContrato: any[];
+    tipoAdjunto: any[];
+    parentesco: any[];
 }
 
 @Injectable()
@@ -24,22 +30,32 @@ export class ObtenerCatalogosTrabajadorUseCase {
         private readonly menuRepository: IMenuRepository,
     ) {}
 
-    async execute(): Promise<CatalogosTrabajador> {
-        const [gradoInstruccion, carrera, entidadBancaria, tipoContrato, duracionContrato] =
-            await Promise.all([
-                this.menuRepository.obtenerOpcionesPorLista(ID_LISTA_GRADO_INSTRUCCION),
-                this.menuRepository.obtenerOpcionesPorLista(ID_LISTA_CARRERA),
-                this.menuRepository.obtenerOpcionesPorLista(ID_LISTA_ENTIDAD_BANCARIA),
-                this.menuRepository.obtenerOpcionesPorLista(ID_LISTA_TIPO_CONTRATO),
-                this.menuRepository.obtenerOpcionesPorLista(ID_LISTA_DURACION_CONTRATO),
-            ]);
+    /**
+     * @param idListas IDs de listas (genListado). Orden: grado, carrera, entidad, tipoContrato, duracion, tipoAdjunto, parentesco.
+     *                 Si no se envía, se usa el orden por defecto de CLAVES_CATALOGOS_TRABAJADOR (7 listas).
+     */
+    async execute(idListas?: number[]): Promise<CatalogosTrabajador> {
+        const ids = idListas && idListas.length >= CLAVES_CATALOGOS_TRABAJADOR.length
+            ? idListas.slice(0, CLAVES_CATALOGOS_TRABAJADOR.length)
+            : [8, 9, 10, 11, 12, 13, 14];
 
-        return {
-            gradoInstruccion: gradoInstruccion || [],
-            carrera: carrera || [],
-            entidadBancaria: entidadBancaria || [],
-            tipoContrato: tipoContrato || [],
-            duracionContrato: duracionContrato || [],
+        const resultados = await Promise.all(
+            ids.map((id) => this.menuRepository.obtenerOpcionesPorLista(id)),
+        );
+
+        const out: CatalogosTrabajador = {
+            gradoInstruccion: [],
+            carrera: [],
+            entidadBancaria: [],
+            tipoContrato: [],
+            duracionContrato: [],
+            tipoAdjunto: [],
+            parentesco: [],
         };
+
+        CLAVES_CATALOGOS_TRABAJADOR.forEach((key, i) => {
+            (out as any)[key] = resultados[i] || [];
+        });
+        return out;
     }
 }

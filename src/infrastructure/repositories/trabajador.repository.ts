@@ -134,7 +134,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
                 data.celular ?? null,
                 data.telefonoEmergencia ?? null,
                 data.contactoEmergenciaNombre ?? null,
-                data.contactoEmergenciaParentesco ?? null,
+                data.idContactoEmergenciaParentesco ?? null,
                 data.direccionDomiciliaria ?? null,
                 data.idPais ?? null,
                 data.idDepartamento ?? null,
@@ -150,7 +150,6 @@ export class TrabajadorRepository implements ITrabajadorRepository {
                 data.idTipoContrato ?? null,
                 data.idDuracionContrato ?? null,
                 data.fechaInicioLabores ?? null,
-                data.suspension4taCategoria ?? null,
             ],
         );
 
@@ -175,7 +174,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
                 data.celular ?? null,
                 data.telefonoEmergencia ?? null,
                 data.contactoEmergenciaNombre ?? null,
-                data.contactoEmergenciaParentesco ?? null,
+                data.idContactoEmergenciaParentesco ?? null,
                 data.direccionDomiciliaria ?? null,
                 data.idPais ?? null,
                 data.idDepartamento ?? null,
@@ -191,11 +190,31 @@ export class TrabajadorRepository implements ITrabajadorRepository {
                 data.idTipoContrato ?? null,
                 data.idDuracionContrato ?? null,
                 data.fechaInicioLabores ?? null,
-                data.suspension4taCategoria ?? null,
             ],
         );
 
         return result;
+    }
+
+    async eliminarAdjuntosPorTrabajador(idTrabajador: number): Promise<void> {
+        await this.databaseFunctionService.callFunction('traEliminarAdjuntosPorTrabajador', [idTrabajador]);
+    }
+
+    async insertarAdjuntos(
+        idTrabajador: number,
+        adjuntos: { idTipoAdjunto: number; ruta: string }[],
+        idUsuarioCreacion?: number,
+    ): Promise<void> {
+        if (!adjuntos?.length) return;
+        const filtered = adjuntos.filter(
+            (a) => a != null && Number(a.idTipoAdjunto) > 0 && a.ruta != null && String(a.ruta).trim() !== '',
+        );
+        if (filtered.length === 0) return;
+        await this.databaseFunctionService.callFunction('traInsertarAdjuntos', [
+            idTrabajador,
+            JSON.stringify(filtered),
+            idUsuarioCreacion ?? null,
+        ]);
     }
 
     async eliminarTrabajador(idTrabajador: number, idUsuarioModificacion: number): Promise<any> {

@@ -31,7 +31,7 @@ export interface CrearTrabajadorData {
     celular?: string;
     telefonoEmergencia?: string;
     contactoEmergenciaNombre?: string;
-    contactoEmergenciaParentesco?: string;
+    idContactoEmergenciaParentesco?: number;
     direccionDomiciliaria?: string;
     idPais?: number;
     idDepartamento?: number;
@@ -47,7 +47,7 @@ export interface CrearTrabajadorData {
     idTipoContrato?: number;
     idDuracionContrato?: number;
     fechaInicioLabores?: string;
-    suspension4taCategoria?: string;
+    adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 
 export interface EditarTrabajadorData {
@@ -65,7 +65,7 @@ export interface EditarTrabajadorData {
     celular?: string;
     telefonoEmergencia?: string;
     contactoEmergenciaNombre?: string;
-    contactoEmergenciaParentesco?: string;
+    idContactoEmergenciaParentesco?: number;
     direccionDomiciliaria?: string;
     idPais?: number;
     idDepartamento?: number;
@@ -81,7 +81,7 @@ export interface EditarTrabajadorData {
     idTipoContrato?: number;
     idDuracionContrato?: number;
     fechaInicioLabores?: string;
-    suspension4taCategoria?: string;
+    adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 
 export interface ITrabajadorRepository {
@@ -92,6 +92,8 @@ export interface ITrabajadorRepository {
     editarTrabajador(data: EditarTrabajadorData): Promise<any>;
     eliminarTrabajador(idTrabajador: number, idUsuarioModificacion: number): Promise<any>;
     resetearContrasena(idTrabajador: number, idUsuarioModificacion: number): Promise<any>;
+    eliminarAdjuntosPorTrabajador(idTrabajador: number): Promise<void>;
+    insertarAdjuntos(idTrabajador: number, adjuntos: { idTipoAdjunto: number; ruta: string }[], idUsuarioCreacion?: number): Promise<void>;
 }
 
 export const TRABAJADOR_REPOSITORY = 'TRABAJADOR_REPOSITORY';

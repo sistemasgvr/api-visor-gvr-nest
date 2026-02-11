@@ -1,4 +1,5 @@
-import { IsString, IsInt, IsEmail, IsOptional, MaxLength, IsNotEmpty, IsNumber, IsDateString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsInt, IsEmail, IsOptional, MaxLength, IsNotEmpty, IsNumber, IsDateString, IsArray } from 'class-validator';
 
 export class UpdateTrabajadorDto {
     @IsNotEmpty() @IsString() @MaxLength(255) nombres: string;
@@ -14,7 +15,7 @@ export class UpdateTrabajadorDto {
     @IsOptional() @IsString() @MaxLength(20) celular?: string;
     @IsOptional() @IsString() @MaxLength(20) telefonoEmergencia?: string;
     @IsOptional() @IsString() @MaxLength(255) contactoEmergenciaNombre?: string;
-    @IsOptional() @IsString() @MaxLength(100) contactoEmergenciaParentesco?: string;
+    @IsOptional() @IsInt() @Type(() => Number) idContactoEmergenciaParentesco?: number;
     @IsOptional() @IsString() direccionDomiciliaria?: string;
     @IsOptional() @IsInt() idPais?: number;
     @IsOptional() @IsInt() idDepartamento?: number;
@@ -30,5 +31,5 @@ export class UpdateTrabajadorDto {
     @IsOptional() @IsInt() idTipoContrato?: number;
     @IsOptional() @IsInt() idDuracionContrato?: number;
     @IsOptional() @IsDateString() fechaInicioLabores?: string;
-    @IsOptional() @IsString() suspension4taCategoria?: string;
+    @IsOptional() @IsArray() adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
