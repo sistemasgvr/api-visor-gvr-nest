@@ -105,6 +105,19 @@ export class ObtenerContenidoCarpetaUseCase {
                                 itemId,
                             );
 
+                            let lastModifiedByRealEmpresa: string | null = null;
+                            try {
+                                const auditoriasItem = await this.auditoriaRepository.obtenerAuditoriasPorItemId(itemId);
+                                const ultimaModificacion = auditoriasItem.find((a: any) => a.accion === 'FILE_UPDATE');
+                                if (ultimaModificacion?.empresa) {
+                                    lastModifiedByRealEmpresa = ultimaModificacion.empresa;
+                                } else if (registroCreacion?.empresa) {
+                                    lastModifiedByRealEmpresa = registroCreacion.empresa;
+                                }
+                            } catch {
+                                if (registroCreacion?.empresa) lastModifiedByRealEmpresa = registroCreacion.empresa;
+                            }
+
                             if (registroCreacion && registroCreacion.usuario) {
                                 return {
                                     ...item,
@@ -112,6 +125,13 @@ export class ObtenerContenidoCarpetaUseCase {
                                     createdByRealId: registroCreacion.idusuario,
                                     createdByRealRole: registroCreacion.rol || null,
                                     createdByRealEmpresa: registroCreacion.empresa || null,
+                                    lastModifiedByRealEmpresa: lastModifiedByRealEmpresa ?? undefined,
+                                };
+                            }
+                            if (lastModifiedByRealEmpresa) {
+                                return {
+                                    ...item,
+                                    lastModifiedByRealEmpresa,
                                 };
                             }
                         } else if (itemType === 'folders') {
@@ -123,6 +143,19 @@ export class ObtenerContenidoCarpetaUseCase {
                                 itemId,
                             );
 
+                            let lastModifiedByRealEmpresa: string | null = null;
+                            try {
+                                const auditoriasFolder = await this.auditoriaRepository.obtenerAuditoriasPorFolderId(itemId);
+                                const ultimaModificacion = auditoriasFolder.find((a: any) => a.accion === 'FOLDER_UPDATE');
+                                if (ultimaModificacion?.empresa) {
+                                    lastModifiedByRealEmpresa = ultimaModificacion.empresa;
+                                } else if (registroCreacion?.empresa) {
+                                    lastModifiedByRealEmpresa = registroCreacion.empresa;
+                                }
+                            } catch {
+                                if (registroCreacion?.empresa) lastModifiedByRealEmpresa = registroCreacion.empresa;
+                            }
+
                             if (registroCreacion && registroCreacion.usuario) {
                                 return {
                                     ...item,
@@ -130,6 +163,13 @@ export class ObtenerContenidoCarpetaUseCase {
                                     createdByRealId: registroCreacion.idusuario,
                                     createdByRealRole: registroCreacion.rol || null,
                                     createdByRealEmpresa: registroCreacion.empresa || null,
+                                    lastModifiedByRealEmpresa: lastModifiedByRealEmpresa ?? undefined,
+                                };
+                            }
+                            if (lastModifiedByRealEmpresa) {
+                                return {
+                                    ...item,
+                                    lastModifiedByRealEmpresa,
                                 };
                             }
                         }

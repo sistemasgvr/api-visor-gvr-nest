@@ -21,6 +21,8 @@ export interface IAuditoriaRepository {
 
     obtenerAuditoriasPorItemId(itemId: string): Promise<any[]>;
 
+    obtenerAuditoriasPorFolderId(folderId: string): Promise<any[]>;
+
     registrarAccion(
         idUsuario: number,
         accion: string,

@@ -198,6 +198,47 @@ export class AuditoriaRepository implements IAuditoriaRepository {
         return result || [];
     }
 
+    async obtenerAuditoriasPorFolderId(folderId: string): Promise<any[]> {
+        const query = `
+            SELECT 
+                a.id,
+                a.idusuario,
+                u.nombre as usuario,
+                a.idempresausuario,
+                a.nombreempresausuario as empresa,
+                COALESCE(
+                    (SELECT r.nombre 
+                     FROM authusuariosroles ur
+                     INNER JOIN authroles r ON ur.idrol = r.id
+                     WHERE ur.idusuario = a.idusuario 
+                       AND ur.estado = 1 
+                       AND r.estado = 1
+                     ORDER BY ur.fechacreacion DESC
+                     LIMIT 1),
+                    a.metadatos->>'rol',
+                    'Sin rol'
+                ) as rol,
+                a.accion,
+                a.descripcion,
+                a.metadatos,
+                a.fechacreacion,
+                a.entidad
+            FROM audauditoria a
+            LEFT JOIN authusuarios u ON a.idusuario = u.id
+            WHERE a.estado = 1
+                AND a.entidad = 'folder'
+                AND a.metadatos->>'accFolderId' = $1
+            ORDER BY a.fechacreacion DESC
+        `;
+
+        const result = await this.databaseFunctionService.executeQuery<any>(
+            query,
+            [folderId],
+        );
+
+        return result || [];
+    }
+
     async registrarAccion(
         idUsuario: number,
         accion: string,
