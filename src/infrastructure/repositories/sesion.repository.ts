@@ -3,13 +3,34 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ISesionRepository } from '../../domain/repositories/sesion.repository.interface';
 import { Sesion } from '../../domain/entities/sesion.entity';
+import { DatabaseFunctionService } from '../database/database-function.service';
 
 @Injectable()
 export class SesionRepository implements ISesionRepository {
     constructor(
         @InjectDataSource()
         private readonly dataSource: DataSource,
+        private readonly databaseFunctionService: DatabaseFunctionService,
     ) { }
+
+    async crearSesion(
+        idUsuario: number,
+        token: string,
+        ip?: string | null,
+        userAgent?: string | null,
+    ): Promise<void> {
+        await this.databaseFunctionService.callFunction('authCrearActualizarSesion', [
+            null,                           // p_id (null = nueva sesión)
+            idUsuario,
+            token,
+            ip ?? null,
+            userAgent ? userAgent.substring(0, 2000) : null,
+            null,                           // p_fechaFin
+            1,                              // p_estado (activa)
+            idUsuario,                      // p_idUsuarioCreacion
+            null,                           // p_idUsuarioModificacion
+        ]);
+    }
 
     async obtenerSesionPorToken(token: string): Promise<Sesion | null> {
         // Direct SQL query to authSesiones table

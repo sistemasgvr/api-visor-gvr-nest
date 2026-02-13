@@ -19,6 +19,11 @@ export interface IAuthRepository {
         idUsuarioModificacion: number
     ): Promise<any>;
     actualizarFotoPerfil(idUsuario: number, fotoPerfil: string): Promise<{ fotoPerfil: string }>;
+
+    /**
+     * Actualiza el estado de conexión del usuario (vía WebSocket).
+     */
+    setUsuarioConectado(idUsuario: number, conectado: boolean): Promise<void>;
 }
 
 export const AUTH_REPOSITORY = 'AUTH_REPOSITORY';

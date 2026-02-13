@@ -9,9 +9,11 @@ import {
   MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UnauthorizedException } from '@nestjs/common';
+import { Logger, UnauthorizedException, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import type { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
+import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
 
 interface AuthenticatedSocket extends Socket {
   userId?: number;
@@ -39,6 +41,8 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @Inject(AUTH_REPOSITORY)
+    private readonly authRepository: IAuthRepository,
   ) {
     this.logger.log('BroadcastGateway inicializado');
   }
@@ -84,6 +88,11 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
       };
 
       this.connectedClients.set(client.id, client);
+      try {
+        await this.authRepository.setUsuarioConectado(payload.sub, true);
+      } catch (err) {
+        this.logger.warn(`No se pudo actualizar isconnected para usuario ${payload.sub}:`, err?.message);
+      }
       this.logger.log(`✅ Cliente autenticado conectado: ${client.id} (Usuario: ${payload.sub})`);
     } catch (error) {
       this.logger.error(`❌ Error al autenticar cliente ${client.id}:`, error.message || error);
@@ -95,7 +104,16 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
   }
 
   handleDisconnect(client: AuthenticatedSocket) {
+    const userId = client.userId;
     this.connectedClients.delete(client.id);
+    if (userId != null) {
+      const tieneOtraConexion = Array.from(this.connectedClients.values()).some((c) => c.userId === userId);
+      if (!tieneOtraConexion) {
+        this.authRepository.setUsuarioConectado(userId, false).catch((err) => {
+          this.logger.warn(`No se pudo actualizar isconnected=false para usuario ${userId}:`, err?.message);
+        });
+      }
+    }
     this.logger.log(`Cliente desconectado: ${client.id}`);
   }
 
