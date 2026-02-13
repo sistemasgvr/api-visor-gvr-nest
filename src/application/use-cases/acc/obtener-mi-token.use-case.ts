@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import type { IAccRepository } from '../../../domain/repositories/acc.repository.interface';
 import { ACC_REPOSITORY } from '../../../domain/repositories/acc.repository.interface';
 import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
@@ -20,12 +20,15 @@ export class ObtenerMiTokenUseCase {
         private readonly autodeskApiService: AutodeskApiService,
     ) { }
 
-    async execute(idUsuario: number): Promise<ObtenerMiTokenResponse> {
-        // Get user's active token
+    /**
+     * Retorna el token 3-legged del usuario o null si no tiene (aún no autorizó Autodesk).
+     * Así el frontend no recibe 404 y no se confunde con "sesión inválida".
+     */
+    async execute(idUsuario: number): Promise<ObtenerMiTokenResponse | null> {
         const token = await this.accRepository.obtenerToken3LeggedPorUsuario(idUsuario);
 
         if (!token) {
-            throw new NotFoundException('No se encontró token activo para este usuario');
+            return null;
         }
 
         return {

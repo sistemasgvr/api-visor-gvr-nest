@@ -1,4 +1,4 @@
-import { Injectable, Inject, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
 import { ACC_REPOSITORY, type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
 import { AUDITORIA_REPOSITORY, type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
@@ -31,10 +31,10 @@ export class CopiarItemUseCase {
 
         const token = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
         if (!token) {
-            throw new UnauthorizedException('No se encontró token de acceso. Autoriza la aplicación primero.');
+            throw new ForbiddenException('No se encontró token de acceso. Autoriza la aplicación de Autodesk primero.');
         }
         if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-            throw new UnauthorizedException('El token ha expirado. Refresca tu token.');
+            throw new ForbiddenException('El token de Autodesk ha expirado. Refresca tu token.');
         }
 
         const projectIdNorm = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
@@ -78,7 +78,7 @@ export class CopiarItemUseCase {
 
             return resultado;
         } catch (error: any) {
-            if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
+            if (error instanceof BadRequestException || error instanceof ForbiddenException) {
                 throw error;
             }
             throw new BadRequestException(
