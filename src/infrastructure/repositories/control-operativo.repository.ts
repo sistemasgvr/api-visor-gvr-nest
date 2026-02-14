@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import type {
     IControlOperativoRepository,
     ListarJornadasTrabajadorParams,
+    CrearJornadaParams,
     JornadaListItem,
+    JornadaCreada,
 } from '../../domain/repositories/control-operativo.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
 
@@ -19,7 +21,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         const pFechaFin = fechaFin ?? this.getFinSemanaActual();
 
         const result = await this.databaseFunctionService.callFunction<JornadaListItem>(
-            'con_listar_jornadas_trabajador',
+            'conlistarjornadastrabajador',
             [idTrabajador, pFechaInicio, pFechaFin],
         );
 
@@ -28,6 +30,27 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         }
 
         return result;
+    }
+
+    async crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null> {
+        const {
+            idTrabajador,
+            fechaJornada,
+            idConfiguracionJornada,
+            idEstadoJornada,
+            horasEsperadas,
+        } = params;
+        const row = await this.databaseFunctionService.callFunctionSingle<JornadaCreada>(
+            'concrearjornada',
+            [
+                idTrabajador,
+                fechaJornada,
+                idConfiguracionJornada ?? null,
+                idEstadoJornada ?? null,
+                horasEsperadas ?? null,
+            ],
+        );
+        return row ?? null;
     }
 
     private getInicioSemanaActual(): string {
