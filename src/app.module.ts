@@ -35,6 +35,7 @@ import { NotificacionesModule } from './presentation/modules/notificaciones.modu
 import { HealthModule } from './presentation/modules/health.module';
 import { OfficeDocumentModule } from './presentation/modules/office-document.module';
 import { CollaboraModule } from './presentation/modules/collabora.module';
+import { ControlOperativoModule } from './presentation/modules/control-operativo.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { CollaboraModule } from './presentation/modules/collabora.module';
     AccViewerModule,
     OfficeDocumentModule,
     CollaboraModule,
+    ControlOperativoModule,
   ],
 })
 export class AppModule { }
