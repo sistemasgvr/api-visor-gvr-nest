@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Param, Query, Body, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
 import { CrearJornadaUseCase } from '../../application/use-cases/control-operativo/crear-jornada.use-case';
+import { ListarActividadesUseCase } from '../../application/use-cases/control-operativo/listar-actividades.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 
@@ -10,6 +11,7 @@ export class ControlOperativoController {
     constructor(
         private readonly listarJornadasTrabajadorUseCase: ListarJornadasTrabajadorUseCase,
         private readonly crearJornadaUseCase: CrearJornadaUseCase,
+        private readonly listarActividadesUseCase: ListarActividadesUseCase,
     ) {}
 
     /**
@@ -64,5 +66,26 @@ export class ControlOperativoController {
         }
 
         return ApiResponseDto.created(data, 'Jornada creada exitosamente');
+    }
+
+    /**
+     * Listar actividades con filtros opcionales.
+     * GET /control-operativo/actividades?idJornada=&idTrabajador=&idProyecto=&idEstadoActividad=
+     */
+    @Get('actividades')
+    async listarActividades(
+        @Query('idJornada') idJornada?: string,
+        @Query('idTrabajador') idTrabajador?: string,
+        @Query('idProyecto') idProyecto?: string,
+        @Query('idEstadoActividad') idEstadoActividad?: string,
+    ) {
+        const params = {
+            idJornada: idJornada ? parseInt(idJornada, 10) : undefined,
+            idTrabajador: idTrabajador ? parseInt(idTrabajador, 10) : undefined,
+            idProyecto: idProyecto ? parseInt(idProyecto, 10) : undefined,
+            idEstadoActividad: idEstadoActividad ? parseInt(idEstadoActividad, 10) : undefined,
+        };
+        const data = await this.listarActividadesUseCase.execute(params);
+        return ApiResponseDto.success(data, 'Actividades listadas exitosamente');
     }
 }

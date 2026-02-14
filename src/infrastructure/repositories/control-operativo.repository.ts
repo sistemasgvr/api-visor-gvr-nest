@@ -5,6 +5,8 @@ import type {
     CrearJornadaParams,
     JornadaListItem,
     JornadaCreada,
+    ListarActividadesParams,
+    ActividadListItem,
 } from '../../domain/repositories/control-operativo.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
 
@@ -51,6 +53,20 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             ],
         );
         return row ?? null;
+    }
+
+    async listarActividades(params: ListarActividadesParams): Promise<ActividadListItem[]> {
+        const { idJornada, idTrabajador, idProyecto, idEstadoActividad } = params;
+        const result = await this.databaseFunctionService.callFunction<ActividadListItem>(
+            'conlistaractividades',
+            [
+                idJornada ?? null,
+                idTrabajador ?? null,
+                idProyecto ?? null,
+                idEstadoActividad ?? null,
+            ],
+        );
+        return result ?? [];
     }
 
     private getInicioSemanaActual(): string {
