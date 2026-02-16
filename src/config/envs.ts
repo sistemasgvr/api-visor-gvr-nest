@@ -4,6 +4,7 @@ import * as joi from 'joi';
 
 interface EnvsVars {
   PORT: number;
+  HOST?: string;
   NODE_ENV: string;
   DB_HOST?: string;
   DB_PORT?: number;
@@ -25,6 +26,7 @@ interface EnvsVars {
 const envSchema = joi
   .object<EnvsVars>({
     PORT: joi.number().default(4001),
+    HOST: joi.string().default('0.0.0.0'),
     NODE_ENV: joi.string().valid('development', 'production', 'test').default('development'),
     DB_HOST: joi.string().optional().allow(''),
     DB_PORT: joi.number().optional(),
@@ -54,6 +56,7 @@ const envsVars: EnvsVars = validatedEnv;
 
 export const envs = {
   port: envsVars.PORT,
+  host: envsVars.HOST ?? '0.0.0.0',
   nodeEnv: envsVars.NODE_ENV,
   dbHost: envsVars.DB_HOST,
   dbPort: envsVars.DB_PORT,

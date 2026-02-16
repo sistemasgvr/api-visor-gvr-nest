@@ -8,6 +8,8 @@ if (!globalThis.crypto) {
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { apiReference } from '@scalar/nestjs-api-reference';
 import { json, urlencoded } from 'express';
 import { join } from 'path';
 import { DataSource } from 'typeorm';
@@ -76,7 +78,41 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  await app.listen(envs.port || 4001, '0.0.0.0');
+  // Documentación OpenAPI con Scalar (https://scalar.com)
+  const config = new DocumentBuilder()
+    .setTitle('API Visor GVR')
+    .setDescription('Documentación de la API del sistema Visor GVR. Usa **Authorize** para ingresar tu JWT Bearer token y probar las rutas protegidas.')
+    .setVersion('1.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'access-token',
+    )
+    .addSecurityRequirements('access-token') // Por defecto todas las rutas requieren autenticación
+    .addTag('auth', 'Autenticación y sesiones')
+    .addTag('health', 'Estado del servicio')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+
+  // Scalar: documentación interactiva en /api/docs
+  app.use(
+    '/api/docs',
+    apiReference({
+      content: document,
+      theme: 'elysiajs',
+    }),
+  );
+
+  // Exponer OpenAPI JSON en /api/openapi.json (para consumo externo)
+  const httpAdapter = app.getHttpAdapter();
+  if (httpAdapter.get) {
+    httpAdapter.get('/api/openapi.json', (req: any, res: any) => {
+      res.setHeader('Content-Type', 'application/json');
+      res.send(document);
+    });
+  }
+
+  await app.listen(envs.port || 4001, envs.host);
   
   // Verificar estado de la base de datos
   try {
@@ -87,6 +123,9 @@ async function bootstrap() {
     logger.log(`📊 Database: ❌ Connection check failed`);
   }
   
-  logger.log(`🚀 Application is running on: http://0.0.0.0:${envs.port || 4001}/api`);
+  const port = envs.port || 4001;
+  const host = envs.host;
+  logger.log(`🚀 Application is running on: http://${host}:${port}/api`);
+  logger.log(`📖 API Docs (Scalar): http://${host}:${port}/api/docs`);
 }
 bootstrap();
