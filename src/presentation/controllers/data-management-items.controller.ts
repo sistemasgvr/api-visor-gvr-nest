@@ -24,6 +24,7 @@ import { RequestInfoHelper } from '../../shared/helpers/request-info.helper';
 // Use cases - Grupo 1
 import { ObtenerItemPorIdUseCase } from '../../application/use-cases/data-management/items/obtener-item-por-id.use-case';
 import { DescargarItemUseCase } from '../../application/use-cases/data-management/items/descargar-item.use-case';
+import { ObtenerStorageUrlItemUseCase } from '../../application/use-cases/data-management/items/obtener-storage-url-item.use-case';
 import { ObtenerItemPadreUseCase } from '../../application/use-cases/data-management/items/obtener-item-padre.use-case';
 import { ObtenerReferenciasItemUseCase } from '../../application/use-cases/data-management/items/obtener-referencias-item.use-case';
 import { ObtenerRelacionesLinksItemUseCase } from '../../application/use-cases/data-management/items/obtener-relaciones-links-item.use-case';
@@ -56,6 +57,7 @@ export class DataManagementItemsController {
         // Grupo 1
         private readonly obtenerItemPorIdUseCase: ObtenerItemPorIdUseCase,
         private readonly descargarItemUseCase: DescargarItemUseCase,
+        private readonly obtenerStorageUrlItemUseCase: ObtenerStorageUrlItemUseCase,
         private readonly obtenerItemPadreUseCase: ObtenerItemPadreUseCase,
         private readonly obtenerReferenciasItemUseCase: ObtenerReferenciasItemUseCase,
         private readonly obtenerRelacionesLinksItemUseCase: ObtenerRelacionesLinksItemUseCase,
@@ -194,6 +196,30 @@ export class DataManagementItemsController {
         });
 
         res.send(resultado.data);
+    }
+
+    /**
+     * GET - Obtener la URL de storage (URL firmada) de un item para visualización
+     * GET /data-management/items/:projectId/:itemId/storage-url
+     */
+    @Get(':projectId/:itemId/storage-url')
+    @HttpCode(HttpStatus.OK)
+    async obtenerStorageUrl(
+        @Req() request: Request,
+        @Param('projectId') projectId: string,
+        @Param('itemId') itemId: string,
+    ) {
+        const user = (request as any).user;
+        const resultado = await this.obtenerStorageUrlItemUseCase.execute(
+            user.sub,
+            projectId,
+            itemId,
+        );
+
+        return ApiResponseDto.success(
+            resultado,
+            'URL de storage obtenida exitosamente',
+        );
     }
 
     /**

@@ -1,4 +1,4 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
 import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
 import { ACC_REPOSITORY, type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
 import { AUDITORIA_REPOSITORY, type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
@@ -21,11 +21,11 @@ export class ObtenerContenidoCarpetaUseCase {
         const token = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
         if (!token) {
-            throw new UnauthorizedException('No se encontró token de acceso. Por favor, autoriza la aplicación primero.');
+            throw new ForbiddenException('No se encontró token de acceso. Por favor, autoriza la aplicación de Autodesk primero.');
         }
 
         if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-            throw new UnauthorizedException('El token ha expirado. Por favor, refresca tu token.');
+            throw new ForbiddenException('El token de Autodesk ha expirado. Por favor, refresca tu token.');
         }
 
         // Pasar el DTO completo como filtros para que incluya filter[type], filter[extension.type], etc.
@@ -105,12 +105,33 @@ export class ObtenerContenidoCarpetaUseCase {
                                 itemId,
                             );
 
+                            let lastModifiedByRealEmpresa: string | null = null;
+                            try {
+                                const auditoriasItem = await this.auditoriaRepository.obtenerAuditoriasPorItemId(itemId);
+                                const ultimaModificacion = auditoriasItem.find((a: any) => a.accion === 'FILE_UPDATE');
+                                if (ultimaModificacion?.empresa) {
+                                    lastModifiedByRealEmpresa = ultimaModificacion.empresa;
+                                } else if (registroCreacion?.empresa) {
+                                    lastModifiedByRealEmpresa = registroCreacion.empresa;
+                                }
+                            } catch {
+                                if (registroCreacion?.empresa) lastModifiedByRealEmpresa = registroCreacion.empresa;
+                            }
+
                             if (registroCreacion && registroCreacion.usuario) {
                                 return {
                                     ...item,
                                     createdByReal: registroCreacion.usuario,
                                     createdByRealId: registroCreacion.idusuario,
                                     createdByRealRole: registroCreacion.rol || null,
+                                    createdByRealEmpresa: registroCreacion.empresa || null,
+                                    lastModifiedByRealEmpresa: lastModifiedByRealEmpresa ?? undefined,
+                                };
+                            }
+                            if (lastModifiedByRealEmpresa) {
+                                return {
+                                    ...item,
+                                    lastModifiedByRealEmpresa,
                                 };
                             }
                         } else if (itemType === 'folders') {
@@ -122,12 +143,33 @@ export class ObtenerContenidoCarpetaUseCase {
                                 itemId,
                             );
 
+                            let lastModifiedByRealEmpresa: string | null = null;
+                            try {
+                                const auditoriasFolder = await this.auditoriaRepository.obtenerAuditoriasPorFolderId(itemId);
+                                const ultimaModificacion = auditoriasFolder.find((a: any) => a.accion === 'FOLDER_UPDATE');
+                                if (ultimaModificacion?.empresa) {
+                                    lastModifiedByRealEmpresa = ultimaModificacion.empresa;
+                                } else if (registroCreacion?.empresa) {
+                                    lastModifiedByRealEmpresa = registroCreacion.empresa;
+                                }
+                            } catch {
+                                if (registroCreacion?.empresa) lastModifiedByRealEmpresa = registroCreacion.empresa;
+                            }
+
                             if (registroCreacion && registroCreacion.usuario) {
                                 return {
                                     ...item,
                                     createdByReal: registroCreacion.usuario,
                                     createdByRealId: registroCreacion.idusuario,
                                     createdByRealRole: registroCreacion.rol || null,
+                                    createdByRealEmpresa: registroCreacion.empresa || null,
+                                    lastModifiedByRealEmpresa: lastModifiedByRealEmpresa ?? undefined,
+                                };
+                            }
+                            if (lastModifiedByRealEmpresa) {
+                                return {
+                                    ...item,
+                                    lastModifiedByRealEmpresa,
                                 };
                             }
                         }

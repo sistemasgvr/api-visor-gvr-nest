@@ -53,6 +53,16 @@ export class EnvironmentVariables {
   @IsOptional()
   @IsString()
   FRONTEND_URLS?: string;
+
+  // Collabora Online Configuration
+  @IsOptional()
+  @IsString()
+  COLLABORA_URL?: string;
+
+  // Backend public URL (para callbacks y descargas)
+  @IsOptional()
+  @IsString()
+  BACKEND_PUBLIC_URL?: string;
 }
 
 export function validate(config: Record<string, unknown>) {

@@ -4,6 +4,7 @@ import * as joi from 'joi';
 
 interface EnvsVars {
   PORT: number;
+  HOST?: string;
   NODE_ENV: string;
   DB_HOST?: string;
   DB_PORT?: number;
@@ -14,6 +15,7 @@ interface EnvsVars {
   DB_LOGGING: boolean;
   DATABASE_URL?: string;
   FRONTEND_URLS: string;
+  COLLABORA_URL?: string;
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
   AUTODESK_CLIENT_ID: string;
@@ -24,6 +26,7 @@ interface EnvsVars {
 const envSchema = joi
   .object<EnvsVars>({
     PORT: joi.number().default(4001),
+    HOST: joi.string().default('0.0.0.0'),
     NODE_ENV: joi.string().valid('development', 'production', 'test').default('development'),
     DB_HOST: joi.string().optional().allow(''),
     DB_PORT: joi.number().optional(),
@@ -34,6 +37,7 @@ const envSchema = joi
     DB_LOGGING: joi.boolean().default(false),
     DATABASE_URL: joi.string().optional().allow(''),
     FRONTEND_URLS: joi.string().required(),
+    COLLABORA_URL: joi.string().optional().allow(''),
     JWT_SECRET: joi.string().required(),
     JWT_EXPIRES_IN: joi.string().required(),
     AUTODESK_CLIENT_ID: joi.string().required(),
@@ -52,6 +56,7 @@ const envsVars: EnvsVars = validatedEnv;
 
 export const envs = {
   port: envsVars.PORT,
+  host: envsVars.HOST ?? '0.0.0.0',
   nodeEnv: envsVars.NODE_ENV,
   dbHost: envsVars.DB_HOST,
   dbPort: envsVars.DB_PORT,
@@ -61,7 +66,8 @@ export const envs = {
   dbSynchronize: envsVars.DB_SYNCHRONIZE,
   dbLogging: envsVars.DB_LOGGING,
   databaseUrl: envsVars.DATABASE_URL,
-  frontendUrls: envsVars.FRONTEND_URLS.split(','),
+  frontendUrls: envsVars.FRONTEND_URLS.split(',').map((u) => u.trim()).filter(Boolean),
+  collaboraUrl: envsVars.COLLABORA_URL?.trim() || '',
   jwtSecret: envsVars.JWT_SECRET,
   jwtExpiresIn: envsVars.JWT_EXPIRES_IN,
   autodeskClientId: envsVars.AUTODESK_CLIENT_ID,

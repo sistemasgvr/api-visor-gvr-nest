@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { IAuthRepository, RegisterUserData } from '../../domain/repositories/auth.repository.interface';
 import { AuthUser } from '../../domain/entities/auth-user.entity';
 import { DatabaseFunctionService } from '../database/database-function.service';
@@ -7,6 +9,8 @@ import { DatabaseFunctionService } from '../database/database-function.service';
 export class AuthRepository implements IAuthRepository {
     constructor(
         private readonly databaseFunctionService: DatabaseFunctionService,
+        @InjectDataSource()
+        private readonly dataSource: DataSource,
     ) { }
 
     async register(data: RegisterUserData): Promise<AuthUser> {
@@ -150,5 +154,12 @@ export class AuthRepository implements IAuthRepository {
 
         const path = result.fotoperfil ?? result.fotoPerfil ?? fotoPerfil;
         return { fotoPerfil: path };
+    }
+
+    async setUsuarioConectado(idUsuario: number, conectado: boolean): Promise<void> {
+        await this.dataSource.query(
+            `UPDATE authUsuarios SET isconnected = $1, fechamodificacion = CURRENT_TIMESTAMP WHERE id = $2`,
+            [conectado, idUsuario],
+        );
     }
 }

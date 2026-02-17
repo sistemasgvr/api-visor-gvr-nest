@@ -12,4 +12,8 @@ export class CopiarItemDto {
     @IsNotEmpty()
     @IsString()
     targetFolderId: string;
+
+    @IsNotEmpty()
+    @IsString()
+    fileName: string;
 }

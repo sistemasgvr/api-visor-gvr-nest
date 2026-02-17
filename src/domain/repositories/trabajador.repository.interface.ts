@@ -24,9 +24,30 @@ export interface CrearTrabajadorData {
     nroDocumento: string;
     correo: string;
     idEmpresa: number;
+    idUsuarioCreacion: number;
     idResponsable?: number;
     idRol?: number;
-    idUsuarioCreacion: number;
+    fechaNacimiento?: string;
+    celular?: string;
+    telefonoEmergencia?: string;
+    contactoEmergenciaNombre?: string;
+    idContactoEmergenciaParentesco?: number;
+    direccionDomiciliaria?: string;
+    idPais?: number;
+    idDepartamento?: number;
+    idProvincia?: number;
+    idDistrito?: number;
+    nroRuc?: string;
+    idGradoInstruccion?: number;
+    idCarrera?: number;
+    idEntidadBancaria?: number;
+    nroCuentaCorriente?: string;
+    nroCci?: string;
+    remuneracion?: number;
+    idTipoContrato?: number;
+    idDuracionContrato?: number;
+    fechaInicioLabores?: string;
+    adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 
 export interface EditarTrabajadorData {
@@ -37,8 +58,30 @@ export interface EditarTrabajadorData {
     nroDocumento: string;
     correo: string;
     idEmpresa: number;
-    idResponsable?: number;
     idUsuarioModificacion: number;
+    idResponsable?: number;
+    idRol?: number;
+    fechaNacimiento?: string;
+    celular?: string;
+    telefonoEmergencia?: string;
+    contactoEmergenciaNombre?: string;
+    idContactoEmergenciaParentesco?: number;
+    direccionDomiciliaria?: string;
+    idPais?: number;
+    idDepartamento?: number;
+    idProvincia?: number;
+    idDistrito?: number;
+    nroRuc?: string;
+    idGradoInstruccion?: number;
+    idCarrera?: number;
+    idEntidadBancaria?: number;
+    nroCuentaCorriente?: string;
+    nroCci?: string;
+    remuneracion?: number;
+    idTipoContrato?: number;
+    idDuracionContrato?: number;
+    fechaInicioLabores?: string;
+    adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 
 export interface ITrabajadorRepository {
@@ -49,6 +92,8 @@ export interface ITrabajadorRepository {
     editarTrabajador(data: EditarTrabajadorData): Promise<any>;
     eliminarTrabajador(idTrabajador: number, idUsuarioModificacion: number): Promise<any>;
     resetearContrasena(idTrabajador: number, idUsuarioModificacion: number): Promise<any>;
+    eliminarAdjuntosPorTrabajador(idTrabajador: number): Promise<void>;
+    insertarAdjuntos(idTrabajador: number, adjuntos: { idTipoAdjunto: number; ruta: string }[], idUsuarioCreacion?: number): Promise<void>;
 }
 
 export const TRABAJADOR_REPOSITORY = 'TRABAJADOR_REPOSITORY';

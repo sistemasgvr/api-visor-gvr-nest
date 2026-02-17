@@ -25,9 +25,11 @@ import { ValidarSesionUseCase } from '../../application/use-cases/auth/validar-s
 import { CerrarTodasSesionesUseCase } from '../../application/use-cases/auth/cerrar-todas-sesiones.use-case';
 import { RegisterDto } from '../../application/dtos/register.dto';
 import { LoginDto } from '../../application/dtos/login.dto';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -43,6 +45,7 @@ export class AuthController {
 
     @Post('register')
     @HttpCode(HttpStatus.CREATED)
+    @ApiOperation({ summary: 'Registrar usuario', security: [] })
     async register(@Body() registerDto: RegisterDto) {
         const user = await this.registerUseCase.execute(registerDto);
 
@@ -57,6 +60,7 @@ export class AuthController {
 
     @Post('login')
     @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Iniciar sesión', security: [] })
     async login(@Body() loginDto: LoginDto, @Req() request: Request) {
         const ip = this.getIpAddress(request);
         const userAgent = request.headers['user-agent'];

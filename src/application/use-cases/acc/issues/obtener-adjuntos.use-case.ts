@@ -43,6 +43,7 @@ export class ObtenerAdjuntosUseCase {
                                 createdByReal: registroCreacion.usuario,
                                 createdByRealId: registroCreacion.idusuario,
                                 createdByRealRole: registroCreacion.rol || null,
+                                createdByRealEmpresa: registroCreacion.empresa || null,
                                 // Mantener createdBy original de ACC para referencia
                                 createdByAcc: attachment.createdBy,
                             };

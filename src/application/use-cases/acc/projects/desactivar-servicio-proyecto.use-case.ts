@@ -1,4 +1,4 @@
-import { Injectable, Inject, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
 import { AUDITORIA_REPOSITORY, type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
 import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
@@ -46,7 +46,7 @@ export class DesactivarServicioProyectoUseCase {
                 const token2Legged = await this.autodeskApiService.obtenerToken2Legged(['account:write', 'account:read']);
                 accessToken = token2Legged.access_token;
             } catch (error) {
-                throw new UnauthorizedException('No se pudo obtener un token de acceso válido');
+                throw new ForbiddenException('No se pudo obtener un token de acceso válido');
             }
         }
 

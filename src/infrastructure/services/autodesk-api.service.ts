@@ -1541,6 +1541,96 @@ export class AutodeskApiService {
     }
 
     /**
+     * Obtiene la URL de storage (URL firmada) de un item sin descargarlo
+     * Esta URL puede usarse para visualizar archivos de Office en visores externos
+     */
+    async obtenerStorageUrl(accessToken: string, projectId: string, itemId: string): Promise<{
+        storageUrl: string;
+        fileName: string;
+        fileType: string;
+        storageId: string;
+    }> {
+        try {
+            if (!accessToken || !projectId || !itemId) {
+                throw new Error('Token, projectId y itemId son requeridos');
+            }
+
+            // 1. Obtener información del item para conseguir el storage ID
+            const itemInfo = await this.obtenerItemPorId(accessToken, projectId, itemId);
+
+            if (!itemInfo.data) {
+                throw new Error('No se pudo obtener la información del item');
+            }
+
+            // 2. Buscar el storage ID en included o relationships
+            let storageId: string | null = null;
+
+            // Buscar en included
+            if (itemInfo.included && Array.isArray(itemInfo.included)) {
+                for (const inc of itemInfo.included) {
+                    if (inc.type === 'versions' && inc.relationships?.storage?.data?.id) {
+                        storageId = inc.relationships.storage.data.id;
+                        break;
+                    }
+                }
+            }
+
+            // Si no está en included, buscar en relationships del item
+            if (!storageId && itemInfo.data.relationships?.tip?.data?.id) {
+                const tipVersionId = itemInfo.data.relationships.tip.data.id;
+                // Obtener la versión tip para conseguir el storage
+                const versionInfo = await this.obtenerVersionPorId(accessToken, projectId, tipVersionId);
+                if (versionInfo.data?.relationships?.storage?.data?.id) {
+                    storageId = versionInfo.data.relationships.storage.data.id;
+                }
+            }
+
+            if (!storageId) {
+                throw new Error('No se encontró el storage ID del archivo');
+            }
+
+            // 3. Extraer bucketKey y objectKey
+            const regex = /urn:adsk\.objects:os\.object:([^\/]+)\/(.+)/;
+            const matches = storageId.match(regex);
+
+            if (!matches || matches.length !== 3) {
+                throw new Error(`Formato de storage ID inválido: ${storageId}`);
+            }
+
+            const bucketKey = matches[1];
+            const objectKey = matches[2];
+
+            // 4. Obtener URL firmada para descarga (con 60 minutos de expiración)
+            const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
+            const signedUrlEndpoint = `${baseUrl}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3download?minutesExpiration=60`;
+
+            const signedResponse = await this.httpClient.get<any>(signedUrlEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+            });
+
+            if (!signedResponse.data?.url) {
+                throw new Error('No se recibió URL firmada en la respuesta');
+            }
+
+            const fileName = itemInfo.data.attributes?.displayName || 'archivo';
+            const fileType = itemInfo.data.attributes?.extension?.type || '';
+
+            return {
+                storageUrl: signedResponse.data.url,
+                fileName: fileName,
+                fileType: fileType,
+                storageId: storageId,
+            };
+        } catch (error: any) {
+            throw new Error(
+                `Error al obtener URL de storage: ${error.response?.data?.message || error.message}`,
+            );
+        }
+    }
+
+    /**
      * Obtiene el padre de un item
      */
     async obtenerItemPadre(accessToken: string, projectId: string, itemId: string): Promise<any> {
@@ -5411,21 +5501,32 @@ export class AutodeskApiService {
         projectId: string,
         sourceVersionUrn: string,
         targetFolderId: string,
+        fileName: string,
     ): Promise<any> {
         try {
-            if (!accessToken || !projectId || !sourceVersionUrn || !targetFolderId) {
-                throw new Error('Token, projectId, sourceVersionUrn y targetFolderId son requeridos');
+            if (!accessToken || !projectId || !sourceVersionUrn || !targetFolderId || !fileName) {
+                throw new Error('Token, projectId, sourceVersionUrn, targetFolderId y fileName son requeridos');
             }
 
             const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
             const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/items?copyFrom=${encodeURIComponent(sourceVersionUrn)}`;
 
+            // Según la documentación de Autodesk, el body debe incluir:
+            // - tip relationship con id "1" (referencia interna)
+            // - parent relationship con el folder destino
+            // - included array con la versión y nombre del archivo
             const body = {
                 jsonapi: { version: '1.0' },
                 data: {
                     type: 'items',
                     relationships: {
+                        tip: {
+                            data: {
+                                type: 'versions',
+                                id: '1',
+                            },
+                        },
                         parent: {
                             data: {
                                 type: 'folders',
@@ -5434,6 +5535,15 @@ export class AutodeskApiService {
                         },
                     },
                 },
+                included: [
+                    {
+                        type: 'versions',
+                        id: '1',
+                        attributes: {
+                            name: fileName,
+                        },
+                    },
+                ],
             };
 
             const response = await this.httpClient.post<any>(url, body, {

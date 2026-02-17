@@ -3,14 +3,22 @@ import { AutodeskApiService } from '../../../../infrastructure/services/autodesk
 import { ACC_REPOSITORY, type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
 
 @Injectable()
-export class ObtenerItemPorIdUseCase {
+export class ObtenerStorageUrlItemUseCase {
     constructor(
         private readonly autodeskApiService: AutodeskApiService,
         @Inject(ACC_REPOSITORY)
         private readonly accRepository: IAccRepository,
     ) { }
 
-    async execute(userId: number, projectId: string, itemId: string, queryParams: any): Promise<any> {
+    async execute(
+        userId: number,
+        projectId: string,
+        itemId: string,
+    ): Promise<{
+        storageUrl: string;
+        fileName: string;
+        fileType: string;
+    }> {
         const token = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
         if (!token) {
@@ -21,6 +29,16 @@ export class ObtenerItemPorIdUseCase {
             throw new ForbiddenException('El token de Autodesk ha expirado. Por favor, refresca tu token.');
         }
 
-        return await this.autodeskApiService.obtenerItemPorId(token.tokenAcceso, projectId, itemId);
+        const resultado = await this.autodeskApiService.obtenerStorageUrl(
+            token.tokenAcceso,
+            projectId,
+            itemId,
+        );
+
+        return {
+            storageUrl: resultado.storageUrl,
+            fileName: resultado.fileName,
+            fileType: resultado.fileType,
+        };
     }
 }

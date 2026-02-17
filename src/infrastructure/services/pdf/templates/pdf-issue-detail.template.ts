@@ -407,31 +407,49 @@ export class PdfIssueDetailTemplate {
             const requiredHeight = 120;
             y = PdfLayoutHelper.ensureSpace(doc, requiredHeight, y);
 
-            const creador = comentario.createdByReal || comentario.createdBy || usuarioCreador;
+            // Obtener el texto completo del comentario
+            const textoCompleto = comentario.comment || comentario.body || '';
+            
+            // Extraer información de la firma GVR si existe
+            const firmaInfo = PdfTextHelper.extraerFirmaInfo(textoCompleto);
+            
+            // Usar la información del usuario GVR si está disponible
+            const gvrUsuario = comentario.gvrUsuario;
+            const creador = gvrUsuario?.nombre || firmaInfo.nombre || comentario.createdByReal || comentario.createdBy || usuarioCreador;
+            
             const fechaComentario = comentario.createdAt
                 ? this.formatearFecha(new Date(comentario.createdAt), true)
                 : '';
 
-            // Nombre y fecha
+            // Configuración del avatar
+            const avatarSize = 36;
+            const avatarX = PdfLayoutConfig.MARGIN_LEFT;
+            const avatarY = y;
+            const contentX = avatarX + avatarSize + 10; // Espacio después del avatar
+            const contentWidth = PdfLayoutConfig.USABLE_WIDTH - avatarSize - 10;
+
+            // Dibujar avatar (foto de perfil o círculo con iniciales)
+            this.dibujarAvatar(doc, avatarX, avatarY, avatarSize, creador, gvrUsuario?.fotoPerfilBuffer);
+
+            // Nombre del usuario (en negrita) - al lado del avatar
             PdfFontsConfig.applyTextStyle(doc, {
                 size: PdfFontsConfig.FONT_SIZE_MD,
                 color: PdfFontsConfig.COLOR_BLACK,
                 bold: true,
             });
-            doc.text(creador, PdfLayoutConfig.MARGIN_LEFT, y);
+            doc.text(creador, contentX, y);
 
+            // Fecha del comentario (en color naranja/ámbar como ACC)
             PdfFontsConfig.applyTextStyle(doc, {
                 size: PdfFontsConfig.FONT_SIZE_SM,
-                color: PdfFontsConfig.COLOR_GRAY,
+                color: PdfFontsConfig.COLOR_ORANGE,
             });
-            doc.text(fechaComentario, PdfLayoutConfig.MARGIN_LEFT, y + 12);
+            doc.text(fechaComentario, contentX, y + 14);
 
-            y += PdfLayoutConfig.SPACING_LG;
+            y += avatarSize + PdfLayoutConfig.SPACING_SM;
 
-            // Texto del comentario
-            const textoComentario = PdfTextHelper.procesarTextoComentario(
-                comentario.comment || comentario.body || '',
-            );
+            // Texto del comentario (limpio, sin la firma)
+            const textoComentario = PdfTextHelper.procesarTextoComentario(textoCompleto);
 
             PdfFontsConfig.applyTextStyle(doc, {
                 size: PdfFontsConfig.FONT_SIZE_MD,
@@ -456,6 +474,141 @@ export class PdfIssueDetailTemplate {
         });
 
         return y;
+    }
+
+    /**
+     * Dibuja el avatar del usuario (foto de perfil o círculo con iniciales)
+     */
+    private static dibujarAvatar(
+        doc: PDFDoc,
+        x: number,
+        y: number,
+        size: number,
+        nombre: string,
+        fotoBuffer?: Buffer | null,
+    ): void {
+        const centerX = x + size / 2;
+        const centerY = y + size / 2;
+        const radius = size / 2;
+
+        if (fotoBuffer) {
+            try {
+                // Guardar estado del documento
+                doc.save();
+
+                // Crear clip circular para la foto
+                doc.circle(centerX, centerY, radius).clip();
+
+                // Dibujar la imagen
+                doc.image(fotoBuffer, x, y, {
+                    width: size,
+                    height: size,
+                    fit: [size, size],
+                    align: 'center',
+                    valign: 'center',
+                });
+
+                // Restaurar estado
+                doc.restore();
+
+                // Dibujar borde circular
+                doc.circle(centerX, centerY, radius)
+                    .strokeColor(PdfFontsConfig.COLOR_GRAY_LIGHT)
+                    .lineWidth(1)
+                    .stroke();
+            } catch (error) {
+                // Si falla cargar la imagen, dibujar avatar con iniciales
+                this.dibujarAvatarConIniciales(doc, centerX, centerY, radius, nombre);
+            }
+        } else {
+            // Dibujar avatar con iniciales
+            this.dibujarAvatarConIniciales(doc, centerX, centerY, radius, nombre);
+        }
+    }
+
+    /**
+     * Dibuja un avatar circular con las iniciales del nombre
+     */
+    private static dibujarAvatarConIniciales(
+        doc: PDFDoc,
+        centerX: number,
+        centerY: number,
+        radius: number,
+        nombre: string,
+    ): void {
+        // Obtener iniciales
+        const iniciales = this.obtenerIniciales(nombre);
+
+        // Generar color de fondo basado en el nombre
+        const backgroundColor = this.generarColorAvatar(nombre);
+
+        // Dibujar círculo de fondo
+        doc.circle(centerX, centerY, radius)
+            .fillColor(backgroundColor)
+            .fill();
+
+        // Configurar fuente para las iniciales
+        const fontSize = radius * 0.9;
+        PdfFontsConfig.applyTextStyle(doc, {
+            size: fontSize,
+            color: PdfFontsConfig.COLOR_WHITE,
+            bold: true,
+        });
+
+        // Calcular dimensiones del texto para centrar correctamente
+        const textWidth = doc.widthOfString(iniciales);
+        // La altura real del texto es aproximadamente el 70-75% del fontSize en PDFKit
+        const textHeight = fontSize * 0.72;
+        
+        // Posicionar el texto centrado horizontal y verticalmente
+        const textX = centerX - textWidth / 2;
+        const textY = centerY - textHeight / 2;
+
+        // Dibujar el texto sin opciones adicionales para evitar desplazamientos
+        doc.text(iniciales, textX, textY, {
+            lineBreak: false,
+        });
+    }
+
+    /**
+     * Obtiene las iniciales de un nombre (máximo 2 caracteres)
+     */
+    private static obtenerIniciales(nombre: string): string {
+        if (!nombre) return '?';
+        
+        const palabras = nombre.trim().split(/\s+/);
+        if (palabras.length === 1) {
+            return palabras[0].substring(0, 2).toUpperCase();
+        }
+        
+        return (palabras[0].charAt(0) + palabras[palabras.length - 1].charAt(0)).toUpperCase();
+    }
+
+    /**
+     * Genera un color de fondo para el avatar basado en el nombre
+     */
+    private static generarColorAvatar(nombre: string): string {
+        const colores = [
+            '#3498db', // Azul
+            '#2ecc71', // Verde
+            '#e74c3c', // Rojo
+            '#9b59b6', // Púrpura
+            '#f39c12', // Naranja
+            '#1abc9c', // Turquesa
+            '#e91e63', // Rosa
+            '#00bcd4', // Cian
+            '#ff5722', // Naranja oscuro
+            '#795548', // Marrón
+        ];
+
+        // Generar un índice basado en el nombre
+        let hash = 0;
+        for (let i = 0; i < nombre.length; i++) {
+            hash = nombre.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        
+        const index = Math.abs(hash) % colores.length;
+        return colores[index];
     }
 
     private static obtenerCamposEstandar(

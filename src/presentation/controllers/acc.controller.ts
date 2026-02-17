@@ -7,13 +7,15 @@ import {
     HttpCode,
     HttpStatus,
     Req,
+    Res,
     Query,
     UnauthorizedException,
     UseGuards,
     Inject,
 } from '@nestjs/common';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import { ConfigService } from '@nestjs/config';
 import { ObtenerToken2LeggedUseCase } from '../../application/use-cases/acc/obtener-token-2legged.use-case';
 import { GenerarUrlAutorizacionUseCase } from '../../application/use-cases/acc/generar-url-autorizacion.use-case';
 import { ObtenerMiTokenUseCase } from '../../application/use-cases/acc/obtener-mi-token.use-case';
@@ -40,6 +42,7 @@ export class AccController {
         private readonly callbackAutorizacionUseCase: CallbackAutorizacionUseCase,
         private readonly validarExpiracionUseCase: ValidarExpiracionUseCase,
         private readonly autodeskApiService: AutodeskApiService,
+        private readonly configService: ConfigService,
         @Inject(ACC_REPOSITORY)
         private readonly accRepository: IAccRepository,
     ) { }
@@ -169,14 +172,14 @@ export class AccController {
         return ApiResponseDto.success(resultado, message);
     }
     /**
-     * Callback de OAuth - Intercambia el código por token
+     * Callback de OAuth - Intercambia el código por token y redirige al frontend
      * GET /acc/oauth/callback
      */
     @Get('oauth/callback')
-    @HttpCode(HttpStatus.OK)
     async callbackAutorizacion(
         @Query() dto: CallbackAutorizacionDto,
         @Req() request: Request,
+        @Res() res: Response,
     ) {
         // En un entorno real, obtenemos el usuario de la sesión o token.
         // Simularemos el usuario ID 1 como en el código original PHP si no hay auth
@@ -185,9 +188,20 @@ export class AccController {
 
         const resultado = await this.callbackAutorizacionUseCase.execute(dto, userId);
 
-        return ApiResponseDto.success(
-            resultado,
-            'Token 3-legged obtenido y guardado exitosamente',
+        const frontendUrls = this.configService.get<string>('FRONTEND_URLS');
+        const redirectPath = '/config-autodesk?acc_connected=1';
+        if (frontendUrls) {
+            const baseUrl = frontendUrls.split(',')[0].trim();
+            if (baseUrl) {
+                const redirectUrl = `${baseUrl.replace(/\/$/, '')}${redirectPath}`;
+                return res.redirect(302, redirectUrl);
+            }
+        }
+        return res.status(HttpStatus.OK).json(
+            ApiResponseDto.success(
+                resultado,
+                'Token 3-legged obtenido y guardado exitosamente',
+            ),
         );
     }
 

@@ -2,6 +2,8 @@ import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import archiver = require('archiver');
 import axios from 'axios';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
 import { ExportarIncidenciasDto } from '../../application/dtos/acc/issues/exportar-incidencias.dto';
 import { ObtenerIncidenciasUseCase } from '../../application/use-cases/acc/issues/obtener-incidencias.use-case';
 import { ObtenerIncidenciaPorIdUseCase } from '../../application/use-cases/acc/issues/obtener-incidencia-por-id.use-case';
@@ -12,6 +14,8 @@ import { AutodeskApiService } from './autodesk-api.service';
 import ObtenerTokenValidoHelper from '../../application/use-cases/acc/issues/obtener-token-valido.helper';
 import { USUARIOS_REPOSITORY } from '../../domain/repositories/usuarios.repository.interface';
 import type { IUsuariosRepository } from '../../domain/repositories/usuarios.repository.interface';
+import { AUDITORIA_REPOSITORY, type IAuditoriaRepository } from '../../domain/repositories/auditoria.repository.interface';
+import { AUTH_REPOSITORY, type IAuthRepository } from '../../domain/repositories/auth.repository.interface';
 import { PdfDocumentService } from './pdf/pdf-document.service';
 import { PdfCoverTemplate } from './pdf/templates/pdf-cover.template';
 import { PdfIndexTemplate } from './pdf/templates/pdf-index.template';
@@ -39,6 +43,10 @@ export class ExportacionIncidenciasService {
         private readonly configService: ConfigService,
         @Inject(USUARIOS_REPOSITORY)
         private readonly usuariosRepository: IUsuariosRepository,
+        @Inject(AUDITORIA_REPOSITORY)
+        private readonly auditoriaRepository: IAuditoriaRepository,
+        @Inject(AUTH_REPOSITORY)
+        private readonly authRepository: IAuthRepository,
     ) {}
 
     async exportarPDF(
@@ -316,9 +324,14 @@ export class ExportacionIncidenciasService {
                             .catch(() => ({ data: [] })),
                     ]);
 
+                    // Enriquecer comentarios con información del usuario de auditoría
+                    const comentariosEnriquecidos = await this.enriquecerComentariosConUsuario(
+                        comentarios?.data || [],
+                    );
+
                     return {
                         ...incidencia,
-                        comentarios: comentarios?.data || [],
+                        comentarios: comentariosEnriquecidos,
                         adjuntos: adjuntos?.data || [],
                     };
                 } catch (error) {
@@ -326,6 +339,80 @@ export class ExportacionIncidenciasService {
                 }
             }),
         );
+    }
+
+    /**
+     * Enriquece los comentarios con la información del usuario de auditoría (nombre, rol, foto de perfil)
+     */
+    private async enriquecerComentariosConUsuario(comentarios: any[]): Promise<any[]> {
+        if (!comentarios || comentarios.length === 0) {
+            return [];
+        }
+
+        const comentariosEnriquecidos = await Promise.all(
+            comentarios.map(async (comentario) => {
+                try {
+                    const commentId = comentario.id;
+                    if (!commentId) return comentario;
+
+                    // Buscar la auditoría del comentario para obtener el usuario que lo creó
+                    const auditoria = await this.auditoriaRepository.obtenerAuditoriaPorMetadatos(
+                        'issue_comment',
+                        'COMMENT_CREATE',
+                        'accCommentId',
+                        commentId,
+                    );
+
+                    if (auditoria && auditoria.idusuario) {
+                        // Obtener la foto de perfil del usuario
+                        const perfilUsuario = await this.authRepository.obtenerPerfilUsuario(auditoria.idusuario);
+                        
+                        let fotoPerfilBuffer: Buffer | null = null;
+                        if (perfilUsuario?.fotoperfil) {
+                            fotoPerfilBuffer = this.obtenerFotoPerfilBuffer(perfilUsuario.fotoperfil);
+                        }
+
+                        return {
+                            ...comentario,
+                            gvrUsuario: {
+                                id: auditoria.idusuario,
+                                nombre: auditoria.usuario || perfilUsuario?.nombre,
+                                rol: auditoria.rol,
+                                fotoPerfil: perfilUsuario?.fotoperfil,
+                                fotoPerfilBuffer,
+                            },
+                        };
+                    }
+
+                    return comentario;
+                } catch (error) {
+                    // Si hay error al enriquecer, devolver el comentario original
+                    return comentario;
+                }
+            }),
+        );
+
+        return comentariosEnriquecidos;
+    }
+
+    /**
+     * Obtiene el buffer de la foto de perfil desde el sistema de archivos
+     */
+    private obtenerFotoPerfilBuffer(fotoPerfilPath: string): Buffer | null {
+        try {
+            if (!fotoPerfilPath) return null;
+
+            // La ruta está guardada como 'profiles/1-123.jpg'
+            const absolutePath = join(process.cwd(), 'uploads', fotoPerfilPath);
+            
+            if (existsSync(absolutePath)) {
+                return readFileSync(absolutePath);
+            }
+            
+            return null;
+        } catch (error) {
+            return null;
+        }
     }
 
 
