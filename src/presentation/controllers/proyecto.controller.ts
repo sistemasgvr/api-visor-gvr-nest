@@ -3,6 +3,7 @@ import {
     Get,
     Post,
     Put,
+    Patch,
     Delete,
     Body,
     Param,
@@ -20,8 +21,14 @@ import { ObtenerProyectoUseCase } from '../../application/use-cases/proyecto/obt
 import { CrearProyectoUseCase } from '../../application/use-cases/proyecto/crear-proyecto.use-case';
 import { EditarProyectoUseCase } from '../../application/use-cases/proyecto/editar-proyecto.use-case';
 import { EliminarProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-proyecto.use-case';
+import { ListarUsuariosProyectoUseCase } from '../../application/use-cases/proyecto/listar-usuarios-proyecto.use-case';
+import { AsignarAccesoProyectoUseCase } from '../../application/use-cases/proyecto/asignar-acceso-proyecto.use-case';
+import { ActualizarNivelAccesoProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-nivel-acceso-proyecto.use-case';
+import { RemoverAccesoProyectoUseCase } from '../../application/use-cases/proyecto/remover-acceso-proyecto.use-case';
 import { CreateProyectoDto } from '../../application/dtos/proyecto/create-proyecto.dto';
 import { UpdateProyectoDto } from '../../application/dtos/proyecto/update-proyecto.dto';
+import { AsignarAccesoProyectoDto } from '../../application/dtos/proyecto/asignar-acceso-proyecto.dto';
+import { ActualizarNivelAccesoProyectoDto } from '../../application/dtos/proyecto/actualizar-nivel-acceso-proyecto.dto';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
@@ -35,8 +42,12 @@ export class ProyectoController {
         private readonly crearProyectoUseCase: CrearProyectoUseCase,
         private readonly editarProyectoUseCase: EditarProyectoUseCase,
         private readonly eliminarProyectoUseCase: EliminarProyectoUseCase,
+        private readonly listarUsuariosProyectoUseCase: ListarUsuariosProyectoUseCase,
+        private readonly asignarAccesoProyectoUseCase: AsignarAccesoProyectoUseCase,
+        private readonly actualizarNivelAccesoProyectoUseCase: ActualizarNivelAccesoProyectoUseCase,
+        private readonly removerAccesoProyectoUseCase: RemoverAccesoProyectoUseCase,
         private readonly jwtService: JwtService,
-    ) { }
+    ) {}
 
     @Get()
     @HttpCode(HttpStatus.OK)
@@ -66,6 +77,56 @@ export class ProyectoController {
         });
 
         return ApiResponseDto.success(data, 'Proyectos obtenidos exitosamente');
+    }
+
+    @Get(':id/usuarios')
+    @HttpCode(HttpStatus.OK)
+    async listarUsuariosProyecto(@Param('id', ParseIntPipe) id: number) {
+        const data = await this.listarUsuariosProyectoUseCase.execute(id);
+        return ApiResponseDto.success(data, 'Usuarios con acceso al proyecto');
+    }
+
+    @Post(':id/usuarios')
+    @HttpCode(HttpStatus.CREATED)
+    async asignarAccesoProyecto(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: AsignarAccesoProyectoDto,
+        @Req() request: Request,
+    ) {
+        const token = this.extractTokenFromHeader(request);
+        if (!token) throw new UnauthorizedException('Token no proporcionado');
+        const payload = await this.jwtService.verifyAsync(token);
+        const data = await this.asignarAccesoProyectoUseCase.execute(id, dto, payload.sub);
+        return ApiResponseDto.created(data, 'Acceso asignado exitosamente');
+    }
+
+    @Patch(':id/usuarios/:idAcceso')
+    @HttpCode(HttpStatus.OK)
+    async actualizarNivelAccesoProyecto(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('idAcceso', ParseIntPipe) idAcceso: number,
+        @Body() dto: ActualizarNivelAccesoProyectoDto,
+        @Req() request: Request,
+    ) {
+        const token = this.extractTokenFromHeader(request);
+        if (!token) throw new UnauthorizedException('Token no proporcionado');
+        const payload = await this.jwtService.verifyAsync(token);
+        const data = await this.actualizarNivelAccesoProyectoUseCase.execute(id, idAcceso, dto, payload.sub);
+        return ApiResponseDto.success(data, 'Nivel de acceso actualizado');
+    }
+
+    @Delete(':id/usuarios/:idAcceso')
+    @HttpCode(HttpStatus.OK)
+    async removerAccesoProyecto(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('idAcceso', ParseIntPipe) idAcceso: number,
+        @Req() request: Request,
+    ) {
+        const token = this.extractTokenFromHeader(request);
+        if (!token) throw new UnauthorizedException('Token no proporcionado');
+        const payload = await this.jwtService.verifyAsync(token);
+        const data = await this.removerAccesoProyectoUseCase.execute(id, idAcceso, payload.sub);
+        return ApiResponseDto.success(data, 'Acceso removido exitosamente');
     }
 
     @Get(':id')

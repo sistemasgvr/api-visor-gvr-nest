@@ -64,4 +64,28 @@ export class CreateProyectoDto {
     @IsOptional()
     @IsInt()
     idTipoMoneda?: number;
+
+    @IsOptional()
+    @IsDateString()
+    fechaValorizar?: string;
+
+    @IsOptional()
+    @IsInt()
+    idCliente?: number;
+
+    @IsOptional()
+    @IsString()
+    observaciones?: string;
+
+    @IsOptional()
+    @IsInt()
+    idModalidad?: number;
+
+    @IsOptional()
+    @IsInt()
+    idEstadoProyecto?: number;
+
+    @IsOptional()
+    @IsInt()
+    idEstadoCotizacion?: number;
 }

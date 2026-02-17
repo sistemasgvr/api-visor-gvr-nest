@@ -8,6 +8,10 @@ import { ObtenerProyectoUseCase } from '../../application/use-cases/proyecto/obt
 import { CrearProyectoUseCase } from '../../application/use-cases/proyecto/crear-proyecto.use-case';
 import { EditarProyectoUseCase } from '../../application/use-cases/proyecto/editar-proyecto.use-case';
 import { EliminarProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-proyecto.use-case';
+import { ListarUsuariosProyectoUseCase } from '../../application/use-cases/proyecto/listar-usuarios-proyecto.use-case';
+import { AsignarAccesoProyectoUseCase } from '../../application/use-cases/proyecto/asignar-acceso-proyecto.use-case';
+import { ActualizarNivelAccesoProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-nivel-acceso-proyecto.use-case';
+import { RemoverAccesoProyectoUseCase } from '../../application/use-cases/proyecto/remover-acceso-proyecto.use-case';
 import { ProyectoRepository } from '../../infrastructure/repositories/proyecto.repository';
 import { PROYECTO_REPOSITORY } from '../../domain/repositories/proyecto.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
@@ -39,6 +43,10 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
         CrearProyectoUseCase,
         EditarProyectoUseCase,
         EliminarProyectoUseCase,
+        ListarUsuariosProyectoUseCase,
+        AsignarAccesoProyectoUseCase,
+        ActualizarNivelAccesoProyectoUseCase,
+        RemoverAccesoProyectoUseCase,
         JwtStrategy,
     ],
     exports: [PROYECTO_REPOSITORY],

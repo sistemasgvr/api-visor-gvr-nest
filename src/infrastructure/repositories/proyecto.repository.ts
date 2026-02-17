@@ -76,6 +76,12 @@ export class ProyectoRepository implements IProyectoRepository {
                 data.fechaFinalizacion || null,
                 data.valorProyecto || null,
                 data.idTipoMoneda || null,
+                data.fechaValorizar || null,
+                data.idCliente ?? null,
+                data.observaciones || null,
+                data.idModalidad ?? null,
+                data.idEstadoProyecto ?? null,
+                data.idEstadoCotizacion ?? null,
                 data.idUsuarioCreacion,
             ],
         );
@@ -102,6 +108,12 @@ export class ProyectoRepository implements IProyectoRepository {
                 data.fechaFinalizacion || null,
                 data.valorProyecto || null,
                 data.idTipoMoneda || null,
+                data.fechaValorizar || null,
+                data.idCliente ?? null,
+                data.observaciones || null,
+                data.idModalidad ?? null,
+                data.idEstadoProyecto ?? null,
+                data.idEstadoCotizacion ?? null,
                 data.idUsuarioModificacion,
             ],
         );
@@ -115,6 +127,47 @@ export class ProyectoRepository implements IProyectoRepository {
             [idProyecto, idUsuarioModificacion],
         );
 
+        return result;
+    }
+
+    async listarUsuariosProyecto(idProyecto: number): Promise<any[]> {
+        const result = await this.databaseFunctionService.callFunction<any>(
+            'proListarUsuariosProyecto',
+            [idProyecto],
+        );
+        return result ?? [];
+    }
+
+    async asignarAccesoProyecto(
+        idProyecto: number,
+        idUsuario: number,
+        idNivelAcceso: number | null,
+        idUsuarioCreacion: number,
+    ): Promise<{ success: boolean; message: string; id?: number }> {
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proAsignarAccesoProyecto',
+            [idProyecto, idUsuario, idNivelAcceso, idUsuarioCreacion],
+        );
+        return result;
+    }
+
+    async actualizarNivelAccesoProyecto(
+        idAcceso: number,
+        idNivelAcceso: number,
+        idUsuarioModificacion: number,
+    ): Promise<{ success: boolean; message: string }> {
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proActualizarNivelAccesoProyecto',
+            [idAcceso, idNivelAcceso, idUsuarioModificacion],
+        );
+        return result;
+    }
+
+    async removerAccesoProyecto(idAcceso: number, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }> {
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proRemoverAccesoProyecto',
+            [idAcceso, idUsuarioModificacion],
+        );
         return result;
     }
 }
