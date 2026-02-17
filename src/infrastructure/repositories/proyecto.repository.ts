@@ -175,10 +175,10 @@ export class ProyectoRepository implements IProyectoRepository {
     }
 
     async listarUsuariosDisponiblesProyecto(params: ListarUsuariosDisponiblesParams): Promise<{ data: any[]; total: number }> {
-        const { idProyecto, busqueda = '', limit = 50, offset = 0 } = params;
+        const { idProyecto, busqueda = '', limit = 50, offset = 0, idRol = null } = params;
         const result = await this.databaseFunctionService.callFunction<any>(
             'proListarUsuariosDisponiblesProyecto',
-            [idProyecto, busqueda, limit, offset],
+            [idProyecto, busqueda, limit, offset, idRol],
         );
         const total = result?.[0]?.total_registros ?? 0;
         return { data: result ?? [], total: Number(total) };
