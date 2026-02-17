@@ -12,6 +12,11 @@ import { ListarUsuariosProyectoUseCase } from '../../application/use-cases/proye
 import { AsignarAccesoProyectoUseCase } from '../../application/use-cases/proyecto/asignar-acceso-proyecto.use-case';
 import { ActualizarNivelAccesoProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-nivel-acceso-proyecto.use-case';
 import { RemoverAccesoProyectoUseCase } from '../../application/use-cases/proyecto/remover-acceso-proyecto.use-case';
+import { ListarUsuariosDisponiblesProyectoUseCase } from '../../application/use-cases/proyecto/listar-usuarios-disponibles-proyecto.use-case';
+import { ListarDocumentosProyectoUseCase } from '../../application/use-cases/proyecto/listar-documentos-proyecto.use-case';
+import { CrearDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/crear-documento-proyecto.use-case';
+import { ActualizarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-documento-proyecto.use-case';
+import { EliminarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-documento-proyecto.use-case';
 import { ProyectoRepository } from '../../infrastructure/repositories/proyecto.repository';
 import { PROYECTO_REPOSITORY } from '../../domain/repositories/proyecto.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
@@ -47,6 +52,11 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
         AsignarAccesoProyectoUseCase,
         ActualizarNivelAccesoProyectoUseCase,
         RemoverAccesoProyectoUseCase,
+        ListarUsuariosDisponiblesProyectoUseCase,
+        ListarDocumentosProyectoUseCase,
+        CrearDocumentoProyectoUseCase,
+        ActualizarDocumentoProyectoUseCase,
+        EliminarDocumentoProyectoUseCase,
         JwtStrategy,
     ],
     exports: [PROYECTO_REPOSITORY],
