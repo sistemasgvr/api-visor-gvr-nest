@@ -22,4 +22,7 @@ export interface IAccRepository {
     ): Promise<AccToken>;
 
     revocarToken3Legged(id: number): Promise<void>;
+
+    /** Lista tokens activos con refresh token (para cron de refresh cada 55 min) */
+    listarTokensActivosParaRefresh(): Promise<{ id: number; idUsuario: number; tokenRefresco: string }[]>;
 }

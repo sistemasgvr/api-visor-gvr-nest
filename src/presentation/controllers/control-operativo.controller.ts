@@ -7,6 +7,7 @@ import { ListarActividadesUseCase } from '../../application/use-cases/control-op
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 
 @Controller('control-operativo')
@@ -23,17 +24,19 @@ export class ControlOperativoController {
 
     /**
      * Cron único de cierre de jornadas (al final del día).
-     * GET /control-operativo/cron/cierre-jornadas?fecha=YYYY-MM-DD&key=CRON_SECRET
-     * Sin fecha usa "hoy". Hace: 1) Crea jornadas en Alerta para quien no abrió ese día.
+     * GET /control-operativo/cron/cierre-jornadas?key=CRON_SECRET
+     * GET /control-operativo/cron/cierre-jornadas?key=CRON_SECRET&fecha=YYYY-MM-DD  (opcional, para ejecutar manualmente una fecha)
+     * Sin fecha usa hoy (hora Perú). Con fecha usas la indicada.
+     * Hace: 1) Crea jornadas en Alerta para quien no abrió ese día.
      * 2) Para el día anterior: Alerta sin actividades → Incompleto; con actividades → Completado.
      */
     @Get('cron/cierre-jornadas')
-    async cronCierreJornadas(@Query('fecha') fecha: string, @Query('key') key?: string) {
+    async cronCierreJornadas(@Query('key') key?: string, @Query('fecha') fecha?: string) {
         const secret = this.configService.get<string>('CRON_SECRET');
         if (secret && key !== secret) {
             throw new UnauthorizedException('Cron no autorizado');
         }
-        const f = fecha?.trim() || this.getFechaHoy();
+        const f = fecha?.trim() || getFechaHoy();
         const result = await this.cronCierreJornadasUseCase.execute(f);
         return ApiResponseDto.success(
             {
@@ -44,10 +47,6 @@ export class ControlOperativoController {
             },
             'Cierre de jornadas ejecutado',
         );
-    }
-
-    private getFechaHoy(): string {
-        return new Date().toISOString().slice(0, 10);
     }
 
     /**
