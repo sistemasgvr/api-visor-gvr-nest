@@ -38,11 +38,26 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             const { total_count: _tc, fecha: f, ...rest } = row;
             return {
                 ...rest,
-                fecha: f != null ? String(f).split('T')[0] ?? String(f) : '',
+                fecha: this.formatFechaYYYYMMDD(f),
             } as JornadaListItem;
         });
 
         return { data, totalCount };
+    }
+
+    /** Normaliza fecha a YYYY-MM-DD (la BD/driver puede devolver Date o string en distintos formatos). */
+    private formatFechaYYYYMMDD(value: unknown): string {
+        if (value == null || value === '') return '';
+        if (value instanceof Date) {
+            const iso = value.toISOString();
+            return iso.slice(0, 10);
+        }
+        const s = String(value).trim();
+        if (!s) return '';
+        if (s.includes('T')) return s.split('T')[0].slice(0, 10);
+        const d = new Date(s);
+        if (Number.isNaN(d.getTime())) return '';
+        return d.toISOString().slice(0, 10);
     }
 
     async crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null> {
