@@ -7,9 +7,11 @@ import type {
     JornadaListItem,
     JornadaCreada,
     ListarActividadesParams,
+    ListarActividadesResult,
     ActividadListItem,
     CronCierreJornadasResult,
     TrabajadorParaFiltro,
+    ProyectoAccesoTrabajador,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -64,6 +66,14 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         return result ?? [];
     }
 
+    async listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]> {
+        const result = await this.databaseFunctionService.callFunction<ProyectoAccesoTrabajador>(
+            'pro_listar_proyectos_acceso_trabajador',
+            [idTrabajador],
+        );
+        return result ?? [];
+    }
+
     /** Normaliza fecha a YYYY-MM-DD (la BD/driver puede devolver Date o string en distintos formatos). */
     private formatFechaYYYYMMDD(value: unknown): string {
         if (value == null || value === '') return '';
@@ -100,18 +110,31 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         return row ?? null;
     }
 
-    async listarActividades(params: ListarActividadesParams): Promise<ActividadListItem[]> {
-        const { idJornada, idTrabajador, idProyecto, idEstadoActividad } = params;
-        const result = await this.databaseFunctionService.callFunction<ActividadListItem>(
+    async listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult> {
+        const { idJornada, idTrabajador, idProyecto, idEstadoActividad, limit = 10, offset = 0 } = params;
+        type Row = ActividadListItem & { total_count?: number; total_horas?: number; horasesperadas?: number | null };
+        const result = await this.databaseFunctionService.callFunction<Row>(
             'conlistaractividades',
             [
                 idJornada ?? null,
                 idTrabajador ?? null,
                 idProyecto ?? null,
                 idEstadoActividad ?? null,
+                limit,
+                offset,
             ],
         );
-        return result ?? [];
+        if (!result?.length) {
+            return { data: [], totalCount: 0, totalHoras: 0, horasesperadas: null };
+        }
+        const totalCount = Number(result[0].total_count ?? result.length);
+        const totalHoras = Number(result[0].total_horas ?? 0);
+        const horasesperadas = result[0].horasesperadas != null ? Number(result[0].horasesperadas) : null;
+        const data: ActividadListItem[] = result.map((row) => {
+            const { total_count: _tc, total_horas: _th, horasesperadas: _hm, ...rest } = row;
+            return rest as ActividadListItem;
+        });
+        return { data, totalCount, totalHoras, horasesperadas };
     }
 
     private getInicioSemanaActual(): string {

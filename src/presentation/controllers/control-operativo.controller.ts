@@ -6,6 +6,7 @@ import { CrearJornadaUseCase } from '../../application/use-cases/control-operati
 import { ListarActividadesUseCase } from '../../application/use-cases/control-operativo/listar-actividades.use-case';
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
+import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -19,6 +20,7 @@ export class ControlOperativoController {
         private readonly listarActividadesUseCase: ListarActividadesUseCase,
         private readonly cronCierreJornadasUseCase: CronCierreJornadasUseCase,
         private readonly actualizarEstadoJornadaUseCase: ActualizarEstadoJornadaUseCase,
+        private readonly listarProyectosAccesoTrabajadorUseCase: ListarProyectosAccesoTrabajadorUseCase,
         private readonly configService: ConfigService,
     ) {}
 
@@ -91,6 +93,21 @@ export class ControlOperativoController {
     }
 
     /**
+     * Listar proyectos a los que tiene acceso el trabajador (para filtro en actividades).
+     * GET /control-operativo/proyectos-acceso-trabajador?idTrabajador=123
+     */
+    @Get('proyectos-acceso-trabajador')
+    @UseGuards(JwtAuthGuard)
+    async listarProyectosAccesoTrabajador(@Query('idTrabajador') idTrabajador?: string) {
+        const id = idTrabajador != null && idTrabajador !== '' ? parseInt(idTrabajador, 10) : NaN;
+        if (Number.isNaN(id) || id < 1) {
+            return ApiResponseDto.success([], 'Proyectos acceso (sin idTrabajador se devuelve vacío)');
+        }
+        const data = await this.listarProyectosAccesoTrabajadorUseCase.execute(id);
+        return ApiResponseDto.success(data, 'Proyectos con acceso listados exitosamente');
+    }
+
+    /**
      * Crear una jornada para un trabajador en una fecha (botón "Ingresar").
      * Si ya existe jornada para esa fecha, la devuelve sin duplicar.
      * POST /control-operativo/trabajadores/:idTrabajador/jornadas
@@ -153,7 +170,7 @@ export class ControlOperativoController {
 
     /**
      * Listar actividades con filtros opcionales.
-     * GET /control-operativo/actividades?idJornada=&idTrabajador=&idProyecto=&idEstadoActividad=
+     * GET /control-operativo/actividades?idJornada=&idTrabajador=&idProyecto=&idEstadoActividad=&limit=10&offset=0
      */
     @Get('actividades')
     @UseGuards(JwtAuthGuard)
@@ -162,14 +179,18 @@ export class ControlOperativoController {
         @Query('idTrabajador') idTrabajador?: string,
         @Query('idProyecto') idProyecto?: string,
         @Query('idEstadoActividad') idEstadoActividad?: string,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
     ) {
         const params = {
             idJornada: idJornada ? parseInt(idJornada, 10) : undefined,
             idTrabajador: idTrabajador ? parseInt(idTrabajador, 10) : undefined,
             idProyecto: idProyecto ? parseInt(idProyecto, 10) : undefined,
             idEstadoActividad: idEstadoActividad ? parseInt(idEstadoActividad, 10) : undefined,
+            limit: limit != null && limit !== '' ? parseInt(limit, 10) : undefined,
+            offset: offset != null && offset !== '' ? parseInt(offset, 10) : undefined,
         };
-        const data = await this.listarActividadesUseCase.execute(params);
-        return ApiResponseDto.success(data, 'Actividades listadas exitosamente');
+        const result = await this.listarActividadesUseCase.execute(params);
+        return ApiResponseDto.success(result, 'Actividades listadas exitosamente');
     }
 }

@@ -50,6 +50,8 @@ export interface ListarActividadesParams {
     idTrabajador?: number;
     idProyecto?: number;
     idEstadoActividad?: number;
+    limit?: number;
+    offset?: number;
 }
 
 export interface ActividadListItem {
@@ -70,6 +72,14 @@ export interface ActividadListItem {
     estadoactividad: string | null;
 }
 
+/** Resultado de listar actividades: filas + totales + meta de jornada (horasesperadas). */
+export interface ListarActividadesResult {
+    data: ActividadListItem[];
+    totalCount: number;
+    totalHoras: number;
+    horasesperadas?: number | null;
+}
+
 /** Retorno del cron único de cierre de jornadas (concroncierrejornadas). */
 export interface CronCierreJornadasResult {
     insertados_alerta: number;
@@ -85,11 +95,20 @@ export interface TrabajadorParaFiltro {
     nombrecompleto: string | null;
 }
 
+/** Item devuelto por pro_listar_proyectos_acceso_trabajador (proyectos a los que tiene acceso el trabajador). */
+export interface ProyectoAccesoTrabajador {
+    idproyecto: number;
+    nombreproyecto: string | null;
+    nroproyecto: string | null;
+    nombrecliente: string | null;
+}
+
 export interface IControlOperativoRepository {
     listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult>;
     listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]>;
+    listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]>;
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
-    listarActividades(params: ListarActividadesParams): Promise<ActividadListItem[]>;
+    listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
     ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
     actualizarEstadoJornada(idJornada: number, idEstadoJornada: number, idUsuarioModificacion?: number): Promise<boolean>;
 }
