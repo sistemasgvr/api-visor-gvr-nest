@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Patch, Param, Query, Body, UseGuards, ParseIntPipe, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
+import { ListarTrabajadoresParaFiltroUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-para-filtro.use-case';
 import { CrearJornadaUseCase } from '../../application/use-cases/control-operativo/crear-jornada.use-case';
 import { ListarActividadesUseCase } from '../../application/use-cases/control-operativo/listar-actividades.use-case';
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
@@ -12,6 +13,7 @@ import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 export class ControlOperativoController {
     constructor(
         private readonly listarJornadasTrabajadorUseCase: ListarJornadasTrabajadorUseCase,
+        private readonly listarTrabajadoresParaFiltroUseCase: ListarTrabajadoresParaFiltroUseCase,
         private readonly crearJornadaUseCase: CrearJornadaUseCase,
         private readonly listarActividadesUseCase: ListarActividadesUseCase,
         private readonly cronCierreJornadasUseCase: CronCierreJornadasUseCase,
@@ -72,6 +74,21 @@ export class ControlOperativoController {
         });
 
         return ApiResponseDto.success(result, 'Jornadas listadas exitosamente');
+    }
+
+    /**
+     * Listar trabajadores para el filtro de jornadas (admin: todos; no admin: jerarquía recursiva).
+     * GET /control-operativo/trabajadores-para-filtro?idTrabajador=123
+     */
+    @Get('trabajadores-para-filtro')
+    @UseGuards(JwtAuthGuard)
+    async listarTrabajadoresParaFiltro(@Query('idTrabajador') idTrabajador?: string) {
+        const id = idTrabajador != null && idTrabajador !== '' ? parseInt(idTrabajador, 10) : NaN;
+        if (Number.isNaN(id) || id < 1) {
+            return ApiResponseDto.success([], 'Trabajadores para filtro (sin id se devuelve vacío)');
+        }
+        const data = await this.listarTrabajadoresParaFiltroUseCase.execute(id);
+        return ApiResponseDto.success(data, 'Trabajadores para filtro listados exitosamente');
     }
 
     /**

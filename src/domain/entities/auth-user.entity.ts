@@ -20,6 +20,16 @@ export interface Menu {
     nivel: number;
 }
 
+export interface TrabajadorEnUsuario {
+    id: number;
+    nombres?: string;
+    apellidos?: string;
+    nrodocumento?: string;
+    correo?: string;
+    empresa?: { id: number; razonsocial?: string; nombrecomercial?: string; nrodocumento?: string };
+    responsable?: { id: number; nombres?: string; apellidos?: string } | null;
+}
+
 export class AuthUser {
     id: number;
     nombre: string;
@@ -29,6 +39,7 @@ export class AuthUser {
     fechacreacion: Date;
     fechamodificacion: Date;
     fotoPerfil?: string;
+    trabajador?: TrabajadorEnUsuario;
     roles: Role[];
     permisos: Permission[];
     menus: Menu[];

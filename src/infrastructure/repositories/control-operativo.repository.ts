@@ -9,6 +9,7 @@ import type {
     ListarActividadesParams,
     ActividadListItem,
     CronCierreJornadasResult,
+    TrabajadorParaFiltro,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -53,6 +54,14 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         });
 
         return { data, totalCount };
+    }
+
+    async listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]> {
+        const result = await this.databaseFunctionService.callFunction<TrabajadorParaFiltro>(
+            'tra_listar_trabajadores_para_filtro',
+            [idTrabajador],
+        );
+        return result ?? [];
     }
 
     /** Normaliza fecha a YYYY-MM-DD (la BD/driver puede devolver Date o string en distintos formatos). */

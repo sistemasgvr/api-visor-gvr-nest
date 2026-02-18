@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ControlOperativoController } from '../controllers/control-operativo.controller';
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
+import { ListarTrabajadoresParaFiltroUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-para-filtro.use-case';
 import { CrearJornadaUseCase } from '../../application/use-cases/control-operativo/crear-jornada.use-case';
 import { ListarActividadesUseCase } from '../../application/use-cases/control-operativo/listar-actividades.use-case';
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
@@ -35,6 +36,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             useClass: ControlOperativoRepository,
         },
         ListarJornadasTrabajadorUseCase,
+        ListarTrabajadoresParaFiltroUseCase,
         CrearJornadaUseCase,
         ListarActividadesUseCase,
         CronCierreJornadasUseCase,

@@ -15,6 +15,10 @@ export interface JornadaListItem {
     idjornada: number | null;
     idconfiguracionjornada: number;
     idestadojornada?: number | null;
+    idtrabajador?: number;
+    nombretrabajador?: string | null;
+    idcoordinador?: number | null;
+    nombrecoordinador?: string | null;
     diajornada: string;
     fecha: string;
     horasesperadas: number;
@@ -73,8 +77,17 @@ export interface CronCierreJornadasResult {
     pasados_completado: number;
 }
 
+/** Item devuelto por tra_listar_trabajadores_para_filtro (para filtro por trabajador en jornadas). */
+export interface TrabajadorParaFiltro {
+    idtrabajador: number;
+    nombres: string | null;
+    apellidos: string | null;
+    nombrecompleto: string | null;
+}
+
 export interface IControlOperativoRepository {
     listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult>;
+    listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]>;
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
     listarActividades(params: ListarActividadesParams): Promise<ActividadListItem[]>;
     ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;

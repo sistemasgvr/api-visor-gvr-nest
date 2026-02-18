@@ -57,6 +57,15 @@ export class AuthRepository implements IAuthRepository {
             return null;
         }
 
+        let trabajador = result.trabajador;
+        if (trabajador != null && typeof trabajador === 'string') {
+            try {
+                trabajador = JSON.parse(trabajador);
+            } catch {
+                trabajador = undefined;
+            }
+        }
+
         return new AuthUser({
             id: result.id,
             nombre: result.nombre,
@@ -66,6 +75,7 @@ export class AuthRepository implements IAuthRepository {
             fechacreacion: result.fechacreacion || result.fechaCreacion,
             fechamodificacion: result.fechamodificacion || result.fechaModificacion,
             fotoPerfil: result.fotoperfil ?? result.fotoPerfil ?? undefined,
+            trabajador: trabajador ?? undefined,
             roles: result.roles || [],
             permisos: result.permisos || [],
             menus: result.menus || [],
