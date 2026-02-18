@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type {
     IControlOperativoRepository,
     ListarJornadasTrabajadorParams,
+    ListarJornadasTrabajadorResult,
     CrearJornadaParams,
     JornadaListItem,
     JornadaCreada,
@@ -16,22 +17,32 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         private readonly databaseFunctionService: DatabaseFunctionService,
     ) {}
 
-    async listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<JornadaListItem[]> {
-        const { idTrabajador, fechaInicio, fechaFin } = params;
+    async listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult> {
+        const { idTrabajador, fechaInicio, fechaFin, limit = 10, offset = 0 } = params;
 
         const pFechaInicio = fechaInicio ?? this.getInicioSemanaActual();
         const pFechaFin = fechaFin ?? this.getFinSemanaActual();
 
-        const result = await this.databaseFunctionService.callFunction<JornadaListItem>(
+        type Row = JornadaListItem & { total_count?: number };
+        const result = await this.databaseFunctionService.callFunction<Row>(
             'conlistarjornadastrabajador',
-            [idTrabajador, pFechaInicio, pFechaFin],
+            [idTrabajador, pFechaInicio, pFechaFin, limit, offset],
         );
 
         if (!result || result.length === 0) {
-            return [];
+            return { data: [], totalCount: 0 };
         }
 
-        return result;
+        const totalCount = Number(result[0]?.total_count ?? result.length);
+        const data: JornadaListItem[] = result.map((row) => {
+            const { total_count: _tc, fecha: f, ...rest } = row;
+            return {
+                ...rest,
+                fecha: f != null ? String(f).split('T')[0] ?? String(f) : '',
+            } as JornadaListItem;
+        });
+
+        return { data, totalCount };
     }
 
     async crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null> {

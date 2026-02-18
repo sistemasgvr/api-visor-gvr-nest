@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsOptional, IsNumber, MaxLength, IsNotEmpty, Min, Max } from 'class-validator';
+import { IsString, IsInt, IsOptional, IsNumber, MaxLength, IsNotEmpty, Min, Max, IsDateString } from 'class-validator';
 
 export class UpdateProyectoDto {
     @IsNotEmpty({ message: 'El nombre del proyecto es requerido' })

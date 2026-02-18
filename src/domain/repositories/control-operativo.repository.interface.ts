@@ -2,6 +2,13 @@ export interface ListarJornadasTrabajadorParams {
     idTrabajador: number;
     fechaInicio?: string;
     fechaFin?: string;
+    limit?: number;
+    offset?: number;
+}
+
+export interface ListarJornadasTrabajadorResult {
+    data: JornadaListItem[];
+    totalCount: number;
 }
 
 export interface JornadaListItem {
@@ -59,7 +66,7 @@ export interface ActividadListItem {
 }
 
 export interface IControlOperativoRepository {
-    listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<JornadaListItem[]>;
+    listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult>;
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
     listarActividades(params: ListarActividadesParams): Promise<ActividadListItem[]>;
 }

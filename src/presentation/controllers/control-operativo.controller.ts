@@ -16,21 +16,27 @@ export class ControlOperativoController {
 
     /**
      * Listar jornadas de un trabajador en un rango de fechas (por defecto semana actual).
-     * GET /control-operativo/trabajadores/:idTrabajador/jornadas?fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD
+     * GET /control-operativo/trabajadores/:idTrabajador/jornadas?fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD&limit=10&offset=0
      */
     @Get('trabajadores/:idTrabajador/jornadas')
     async listarJornadasTrabajador(
         @Param('idTrabajador', ParseIntPipe) idTrabajador: number,
         @Query('fechaInicio') fechaInicio?: string,
         @Query('fechaFin') fechaFin?: string,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
     ) {
-        const data = await this.listarJornadasTrabajadorUseCase.execute({
+        const parsedLimit = limit != null && limit !== '' ? parseInt(limit, 10) : undefined;
+        const parsedOffset = offset != null && offset !== '' ? parseInt(offset, 10) : undefined;
+        const result = await this.listarJornadasTrabajadorUseCase.execute({
             idTrabajador,
             fechaInicio,
             fechaFin,
+            limit: Number.isNaN(parsedLimit) ? undefined : parsedLimit,
+            offset: Number.isNaN(parsedOffset) ? undefined : parsedOffset,
         });
 
-        return ApiResponseDto.success(data, 'Jornadas listadas exitosamente');
+        return ApiResponseDto.success(result, 'Jornadas listadas exitosamente');
     }
 
     /**
