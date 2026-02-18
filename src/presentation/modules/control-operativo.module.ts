@@ -3,6 +3,8 @@ import { ControlOperativoController } from '../controllers/control-operativo.con
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
 import { CrearJornadaUseCase } from '../../application/use-cases/control-operativo/crear-jornada.use-case';
 import { ListarActividadesUseCase } from '../../application/use-cases/control-operativo/listar-actividades.use-case';
+import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
+import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
 import { ControlOperativoRepository } from '../../infrastructure/repositories/control-operativo.repository';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../domain/repositories/control-operativo.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
@@ -35,6 +37,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         ListarJornadasTrabajadorUseCase,
         CrearJornadaUseCase,
         ListarActividadesUseCase,
+        CronCierreJornadasUseCase,
+        ActualizarEstadoJornadaUseCase,
         JwtStrategy,
     ],
     exports: [CONTROL_OPERATIVO_REPOSITORY],

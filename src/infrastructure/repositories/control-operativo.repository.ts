@@ -8,7 +8,17 @@ import type {
     JornadaCreada,
     ListarActividadesParams,
     ActividadListItem,
+    CronCierreJornadasResult,
 } from '../../domain/repositories/control-operativo.repository.interface';
+
+/** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
+function getScalarInt(row: any): number {
+    if (row == null) return 0;
+    if (typeof row === 'number') return row;
+    const keys = Object.keys(row);
+    if (keys.length > 0 && typeof row[keys[0]] === 'number') return row[keys[0]];
+    return 0;
+}
 import { DatabaseFunctionService } from '../database/database-function.service';
 
 @Injectable()
@@ -109,5 +119,30 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         const domingo = new Date(lunes);
         domingo.setDate(domingo.getDate() + 6);
         return domingo.toISOString().split('T')[0];
+    }
+
+    async ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult> {
+        const rows = await this.databaseFunctionService.callFunction<any>(
+            'concroncierrejornadas',
+            [fecha],
+        );
+        const row = rows?.[0];
+        return {
+            insertados_alerta: Number(row?.insertados_alerta ?? 0),
+            pasados_incompleto: Number(row?.pasados_incompleto ?? 0),
+            pasados_completado: Number(row?.pasados_completado ?? 0),
+        };
+    }
+
+    async actualizarEstadoJornada(
+        idJornada: number,
+        idEstadoJornada: number,
+        idUsuarioModificacion?: number,
+    ): Promise<boolean> {
+        const row = await this.databaseFunctionService.callFunctionSingle<any>(
+            'conactualizarestadojornada',
+            [idJornada, idEstadoJornada, idUsuarioModificacion ?? null],
+        );
+        return row === true || row?.conactualizarestadojornada === true;
     }
 }

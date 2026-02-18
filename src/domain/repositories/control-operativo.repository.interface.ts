@@ -14,6 +14,7 @@ export interface ListarJornadasTrabajadorResult {
 export interface JornadaListItem {
     idjornada: number | null;
     idconfiguracionjornada: number;
+    idestadojornada?: number | null;
     diajornada: string;
     fecha: string;
     horasesperadas: number;
@@ -65,10 +66,19 @@ export interface ActividadListItem {
     estadoactividad: string | null;
 }
 
+/** Retorno del cron único de cierre de jornadas (concroncierrejornadas). */
+export interface CronCierreJornadasResult {
+    insertados_alerta: number;
+    pasados_incompleto: number;
+    pasados_completado: number;
+}
+
 export interface IControlOperativoRepository {
     listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult>;
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
     listarActividades(params: ListarActividadesParams): Promise<ActividadListItem[]>;
+    ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
+    actualizarEstadoJornada(idJornada: number, idEstadoJornada: number, idUsuarioModificacion?: number): Promise<boolean>;
 }
 
 export const CONTROL_OPERATIVO_REPOSITORY = 'CONTROL_OPERATIVO_REPOSITORY';
