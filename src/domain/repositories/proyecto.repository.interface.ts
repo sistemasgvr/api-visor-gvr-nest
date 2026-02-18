@@ -33,7 +33,7 @@ export interface CrearProyectoData {
     fechaFinalizacion?: string;
     valorProyecto?: number;
     idTipoMoneda?: number;
-    fechaValorizar?: string;
+    diaValorizar?: number;
     idCliente?: number;
     observaciones?: string;
     idModalidad?: number;

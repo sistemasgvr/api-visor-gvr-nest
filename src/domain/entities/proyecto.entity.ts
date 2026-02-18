@@ -14,7 +14,7 @@ export class Proyecto {
     fechaFinalizacion?: Date;
     valorProyecto?: number;
     idTipoMoneda?: number;
-    fechaValorizar?: Date;
+    diaValorizar?: number;
     idCliente?: number;
     clienteNombre?: string;
     observaciones?: string;
