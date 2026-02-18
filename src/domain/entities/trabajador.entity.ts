@@ -8,6 +8,8 @@ export class Trabajador {
     idEmpresa: number;
     idResponsable?: number;
     idUsuario?: number;
+    idModalidad?: number;
+    modalidad?: string;
     estado: number;
     fechaCreacion?: Date;
     fechaModificacion?: Date;
