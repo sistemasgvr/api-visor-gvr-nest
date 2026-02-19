@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Query, Body, UseGuards, ParseIntPipe, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Query, Body, UseGuards, ParseIntPipe, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
 import { ListarTrabajadoresParaFiltroUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-para-filtro.use-case';
@@ -10,6 +10,7 @@ import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-ca
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
+import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -27,6 +28,7 @@ export class ControlOperativoController {
         private readonly crearActividadUseCase: CrearActividadUseCase,
         private readonly obtenerActividadUseCase: ObtenerActividadUseCase,
         private readonly actualizarActividadUseCase: ActualizarActividadUseCase,
+        private readonly eliminarActividadUseCase: EliminarActividadUseCase,
         private readonly configService: ConfigService,
     ) {}
 
@@ -292,5 +294,26 @@ export class ControlOperativoController {
             return ApiResponseDto.badRequest('No se pudo actualizar la actividad');
         }
         return ApiResponseDto.success(data, 'Actividad actualizada exitosamente');
+    }
+
+    /**
+     * Eliminar una actividad (solo si está en estado "Por aprobar").
+     * DELETE /control-operativo/actividades/:id
+     */
+    @Delete('actividades/:id')
+    @UseGuards(JwtAuthGuard)
+    async eliminarActividad(@Param('id', ParseIntPipe) id: number) {
+        try {
+            const ok = await this.eliminarActividadUseCase.execute(id);
+            if (!ok) {
+                return ApiResponseDto.badRequest(
+                    'No se puede eliminar la actividad. Solo se pueden eliminar actividades en estado "Por aprobar".',
+                );
+            }
+            return ApiResponseDto.success({ id }, 'Actividad eliminada exitosamente');
+        } catch (error: any) {
+            const message = error?.message ?? 'No se pudo eliminar la actividad';
+            return ApiResponseDto.badRequest(message);
+        }
     }
 }

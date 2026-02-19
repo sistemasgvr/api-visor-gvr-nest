@@ -194,6 +194,7 @@ export interface IControlOperativoRepository {
     obtenerActividad(idActividad: number): Promise<ActividadDetalle | null>;
     crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null>;
     actualizarActividad(params: ActualizarActividadParams): Promise<ActividadCreada | null>;
+    eliminarActividad(idActividad: number): Promise<boolean>;
     ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
     actualizarEstadoJornada(idJornada: number, idEstadoJornada: number, idUsuarioModificacion?: number): Promise<boolean>;
 }

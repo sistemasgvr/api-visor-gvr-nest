@@ -226,6 +226,16 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         return rows?.[0] ?? null;
     }
 
+    async eliminarActividad(idActividad: number): Promise<boolean> {
+        if (idActividad == null || idActividad < 1) return false;
+        const result = await this.databaseFunctionService.callFunction<{ coneliminaractividad?: boolean }>(
+            'coneliminaractividad',
+            [idActividad],
+        );
+        const row = result?.[0];
+        return row === true || row?.coneliminaractividad === true;
+    }
+
     private getInicioSemanaActual(): string {
         const now = new Date();
         const day = now.getDay();
