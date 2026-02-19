@@ -23,6 +23,8 @@ export interface JornadaListItem {
     fecha: string;
     horasesperadas: number;
     estadojornada: string;
+    /** Conteo de actividades por estado: { "Por aprobar": 2, "Aprobado": 1 }. Null si no hay jornada o no hay actividades. */
+    actividades_por_estado?: Record<string, number> | null;
 }
 
 export interface CrearJornadaParams {
