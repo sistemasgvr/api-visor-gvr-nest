@@ -233,7 +233,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             [idActividad],
         );
         const row = result?.[0];
-        return row === true || row?.coneliminaractividad === true;
+        return row?.coneliminaractividad === true;
     }
 
     private getInicioSemanaActual(): string {
