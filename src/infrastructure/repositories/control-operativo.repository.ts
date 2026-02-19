@@ -13,6 +13,7 @@ import type {
     ActividadListItem,
     ActividadDetalle,
     CrearActividadParams,
+    ActualizarActividadParams,
     ActividadCreada,
     CronCierreJornadasResult,
     TrabajadorParaFiltro,
@@ -199,6 +200,27 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
                 params.idEstadoActividad ?? null,
                 params.idModalidad ?? null,
                 params.idUsuarioCreacion ?? null,
+            ],
+        );
+        return rows?.[0] ?? null;
+    }
+
+    async actualizarActividad(params: ActualizarActividadParams): Promise<ActividadCreada | null> {
+        const rows = await this.databaseFunctionService.callFunction<ActividadCreada>(
+            'conactualizaractividad',
+            [
+                params.idActividad,
+                params.idProyecto,
+                params.idTrabajador,
+                params.idCoordinador,
+                params.idTipoActividad,
+                params.nombreActividad ?? '',
+                params.descripcionDetallada ?? null,
+                params.horaInicio ?? null,
+                params.horaFin ?? null,
+                params.linkEvidencia ?? null,
+                params.idModalidad ?? null,
+                params.idUsuarioModificacion ?? null,
             ],
         );
         return rows?.[0] ?? null;

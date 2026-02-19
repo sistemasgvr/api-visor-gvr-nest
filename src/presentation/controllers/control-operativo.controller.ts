@@ -9,6 +9,7 @@ import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/cont
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
+import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -25,6 +26,7 @@ export class ControlOperativoController {
         private readonly listarProyectosAccesoTrabajadorUseCase: ListarProyectosAccesoTrabajadorUseCase,
         private readonly crearActividadUseCase: CrearActividadUseCase,
         private readonly obtenerActividadUseCase: ObtenerActividadUseCase,
+        private readonly actualizarActividadUseCase: ActualizarActividadUseCase,
         private readonly configService: ConfigService,
     ) {}
 
@@ -252,5 +254,43 @@ export class ControlOperativoController {
             return ApiResponseDto.notFound('Actividad no encontrada');
         }
         return ApiResponseDto.success(data, 'Actividad obtenida exitosamente');
+    }
+
+    /**
+     * Actualizar una actividad.
+     * PATCH /control-operativo/actividades/:id
+     */
+    @Patch('actividades/:id')
+    @UseGuards(JwtAuthGuard)
+    async actualizarActividad(
+        @Param('id', ParseIntPipe) id: number,
+        @Body('idProyecto') idProyecto: number,
+        @Body('idTrabajador') idTrabajador: number,
+        @Body('idCoordinador') idCoordinador: number,
+        @Body('idTipoActividad') idTipoActividad: number,
+        @Body('nombreActividad') nombreActividad: string,
+        @Body('descripcionDetallada') descripcionDetallada?: string,
+        @Body('horaInicio') horaInicio?: string,
+        @Body('horaFin') horaFin?: string,
+        @Body('linkEvidencia') linkEvidencia?: string,
+        @Body('idModalidad') idModalidad?: number,
+    ) {
+        const data = await this.actualizarActividadUseCase.execute({
+            idActividad: id,
+            idProyecto: Number(idProyecto),
+            idTrabajador: Number(idTrabajador),
+            idCoordinador: Number(idCoordinador),
+            idTipoActividad: Number(idTipoActividad),
+            nombreActividad: nombreActividad?.trim() ?? '',
+            descripcionDetallada: descripcionDetallada?.trim() || null,
+            horaInicio: horaInicio?.trim() || undefined,
+            horaFin: horaFin?.trim() || undefined,
+            linkEvidencia: linkEvidencia?.trim() || null,
+            idModalidad: idModalidad ?? null,
+        });
+        if (!data) {
+            return ApiResponseDto.badRequest('No se pudo actualizar la actividad');
+        }
+        return ApiResponseDto.success(data, 'Actividad actualizada exitosamente');
     }
 }

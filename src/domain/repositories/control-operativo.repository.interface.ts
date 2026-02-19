@@ -107,6 +107,22 @@ export interface ActividadCreada {
     idmodalidad?: number | null;
 }
 
+/** Parámetros para actualizar una actividad (conactualizaractividad). */
+export interface ActualizarActividadParams {
+    idActividad: number;
+    idProyecto: number;
+    idTrabajador: number;
+    idCoordinador: number;
+    idTipoActividad: number;
+    nombreActividad: string;
+    descripcionDetallada?: string | null;
+    horaInicio?: string;
+    horaFin?: string;
+    linkEvidencia?: string | null;
+    idModalidad?: number | null;
+    idUsuarioModificacion?: number | null;
+}
+
 /** Resultado de conobteneractividad: una actividad con toda la información relacionada (para "Ver"). */
 export interface ActividadDetalle {
     id: number;
@@ -177,6 +193,7 @@ export interface IControlOperativoRepository {
     listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
     obtenerActividad(idActividad: number): Promise<ActividadDetalle | null>;
     crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null>;
+    actualizarActividad(params: ActualizarActividadParams): Promise<ActividadCreada | null>;
     ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
     actualizarEstadoJornada(idJornada: number, idEstadoJornada: number, idUsuarioModificacion?: number): Promise<boolean>;
 }
