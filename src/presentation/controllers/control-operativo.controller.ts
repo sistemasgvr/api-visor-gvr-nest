@@ -8,6 +8,7 @@ import { CronCierreJornadasUseCase } from '../../application/use-cases/control-o
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
+import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -23,6 +24,7 @@ export class ControlOperativoController {
         private readonly actualizarEstadoJornadaUseCase: ActualizarEstadoJornadaUseCase,
         private readonly listarProyectosAccesoTrabajadorUseCase: ListarProyectosAccesoTrabajadorUseCase,
         private readonly crearActividadUseCase: CrearActividadUseCase,
+        private readonly obtenerActividadUseCase: ObtenerActividadUseCase,
         private readonly configService: ConfigService,
     ) {}
 
@@ -236,5 +238,19 @@ export class ControlOperativoController {
         };
         const result = await this.listarActividadesUseCase.execute(params);
         return ApiResponseDto.success(result, 'Actividades listadas exitosamente');
+    }
+
+    /**
+     * Obtener una actividad por ID con toda la información relacionada (para "Ver").
+     * GET /control-operativo/actividades/:id
+     */
+    @Get('actividades/:id')
+    @UseGuards(JwtAuthGuard)
+    async obtenerActividad(@Param('id', ParseIntPipe) id: number) {
+        const data = await this.obtenerActividadUseCase.execute(id);
+        if (!data) {
+            return ApiResponseDto.notFound('Actividad no encontrada');
+        }
+        return ApiResponseDto.success(data, 'Actividad obtenida exitosamente');
     }
 }

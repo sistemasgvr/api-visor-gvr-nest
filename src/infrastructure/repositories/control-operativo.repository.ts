@@ -11,6 +11,7 @@ import type {
     ListarActividadesParams,
     ListarActividadesResult,
     ActividadListItem,
+    ActividadDetalle,
     CrearActividadParams,
     ActividadCreada,
     CronCierreJornadasResult,
@@ -154,6 +155,31 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             return rest as ActividadListItem;
         });
         return { data, totalCount, totalHoras, horasesperadas, diajornada };
+    }
+
+    async obtenerActividad(idActividad: number): Promise<ActividadDetalle | null> {
+        if (idActividad == null || idActividad < 1) return null;
+        const result = await this.databaseFunctionService.callFunction<Record<string, unknown>>(
+            'conobteneractividad',
+            [idActividad],
+        );
+        const row = result?.[0];
+        if (!row) return null;
+        // El driver puede devolver la columna como diajornada, diaJornada o fechajornada (minúsculas)
+        const rawDia =
+            row.diajornada ??
+            row.diaJornada ??
+            row.fechajornada ??
+            row.fechaJornada ??
+            (() => {
+                const key = Object.keys(row).find((k) => k.toLowerCase() === 'diajornada' || k.toLowerCase() === 'fechajornada');
+                return key ? row[key] : undefined;
+            })();
+        const diajornada =
+            rawDia != null && rawDia !== ''
+                ? (typeof rawDia === 'string' ? rawDia : String(rawDia)).split('T')[0].trim()
+                : null;
+        return { ...row, diajornada } as ActividadDetalle;
     }
 
     async crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null> {

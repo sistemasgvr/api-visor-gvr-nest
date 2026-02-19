@@ -107,6 +107,36 @@ export interface ActividadCreada {
     idmodalidad?: number | null;
 }
 
+/** Resultado de conobteneractividad: una actividad con toda la información relacionada (para "Ver"). */
+export interface ActividadDetalle {
+    id: number;
+    idjornada: number;
+    idproyecto: number;
+    nombreproyecto: string | null;
+    nombrecliente: string | null;
+    nroproyecto: string | null;
+    idtrabajador: number;
+    nombretrabajador: string | null;
+    idcoordinador: number;
+    nombrecoordinador: string | null;
+    idtipoactividad: number;
+    nombretipoactividad: string | null;
+    nombreactividad: string;
+    descripciondetallada: string | null;
+    horainicio: string;
+    horafin: string;
+    horasdedicadas: number;
+    linkevidencia: string | null;
+    idestadoactividad: number;
+    estadoactividad: string | null;
+    idmodalidad: number | null;
+    nombremodalidad: string | null;
+    diajornada: string | null;
+    horasesperadas: number | null;
+    fechacreacion: string | null;
+    fechamodificacion: string | null;
+}
+
 /** Resultado de listar actividades: filas + totales + meta de jornada (horasesperadas, diajornada). */
 export interface ListarActividadesResult {
     data: ActividadListItem[];
@@ -145,6 +175,7 @@ export interface IControlOperativoRepository {
     listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]>;
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
     listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
+    obtenerActividad(idActividad: number): Promise<ActividadDetalle | null>;
     crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null>;
     ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
     actualizarEstadoJornada(idJornada: number, idEstadoJornada: number, idUsuarioModificacion?: number): Promise<boolean>;
