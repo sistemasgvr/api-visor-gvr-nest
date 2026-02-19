@@ -7,6 +7,7 @@ import { ListarActividadesUseCase } from '../../application/use-cases/control-op
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
+import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -21,6 +22,7 @@ export class ControlOperativoController {
         private readonly cronCierreJornadasUseCase: CronCierreJornadasUseCase,
         private readonly actualizarEstadoJornadaUseCase: ActualizarEstadoJornadaUseCase,
         private readonly listarProyectosAccesoTrabajadorUseCase: ListarProyectosAccesoTrabajadorUseCase,
+        private readonly crearActividadUseCase: CrearActividadUseCase,
         private readonly configService: ConfigService,
     ) {}
 
@@ -166,6 +168,48 @@ export class ControlOperativoController {
             return ApiResponseDto.badRequest('No se pudo actualizar el estado de la jornada');
         }
         return ApiResponseDto.success({ idJornada, idEstadoJornada: id }, 'Estado de jornada actualizado');
+    }
+
+    /**
+     * Crear una actividad en una jornada.
+     * POST /control-operativo/actividades
+     * Body: idJornada, idProyecto, idTrabajador, idCoordinador, idTipoActividad, nombreActividad,
+     *       descripcionDetallada?, horaInicio?, horaFin?, linkEvidencia?, idEstadoActividad?, idModalidad?
+     */
+    @Post('actividades')
+    @UseGuards(JwtAuthGuard)
+    async crearActividad(
+        @Body('idJornada') idJornada: number,
+        @Body('idProyecto') idProyecto: number,
+        @Body('idTrabajador') idTrabajador: number,
+        @Body('idCoordinador') idCoordinador: number,
+        @Body('idTipoActividad') idTipoActividad: number,
+        @Body('nombreActividad') nombreActividad: string,
+        @Body('descripcionDetallada') descripcionDetallada?: string,
+        @Body('horaInicio') horaInicio?: string,
+        @Body('horaFin') horaFin?: string,
+        @Body('linkEvidencia') linkEvidencia?: string,
+        @Body('idEstadoActividad') idEstadoActividad?: number,
+        @Body('idModalidad') idModalidad?: number,
+    ) {
+        const data = await this.crearActividadUseCase.execute({
+            idJornada: Number(idJornada),
+            idProyecto: Number(idProyecto),
+            idTrabajador: Number(idTrabajador),
+            idCoordinador: Number(idCoordinador),
+            idTipoActividad: Number(idTipoActividad),
+            nombreActividad: nombreActividad?.trim() ?? '',
+            descripcionDetallada: descripcionDetallada?.trim() || null,
+            horaInicio: horaInicio?.trim() || undefined,
+            horaFin: horaFin?.trim() || undefined,
+            linkEvidencia: linkEvidencia?.trim() || null,
+            idEstadoActividad: idEstadoActividad ?? null,
+            idModalidad: idModalidad ?? null,
+        });
+        if (!data) {
+            return ApiResponseDto.badRequest('No se pudo crear la actividad');
+        }
+        return ApiResponseDto.created(data, 'Actividad creada exitosamente');
     }
 
     /**

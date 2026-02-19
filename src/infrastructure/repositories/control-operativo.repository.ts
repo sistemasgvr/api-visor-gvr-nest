@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import type {
     IControlOperativoRepository,
     ListarJornadasTrabajadorParams,
@@ -9,6 +11,8 @@ import type {
     ListarActividadesParams,
     ListarActividadesResult,
     ActividadListItem,
+    CrearActividadParams,
+    ActividadCreada,
     CronCierreJornadasResult,
     TrabajadorParaFiltro,
     ProyectoAccesoTrabajador,
@@ -28,6 +32,8 @@ import { DatabaseFunctionService } from '../database/database-function.service';
 export class ControlOperativoRepository implements IControlOperativoRepository {
     constructor(
         private readonly databaseFunctionService: DatabaseFunctionService,
+        @InjectDataSource()
+        private readonly dataSource: DataSource,
     ) {}
 
     async listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult> {
@@ -112,7 +118,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult> {
         const { idJornada, idTrabajador, idProyecto, idEstadoActividad, limit = 10, offset = 0 } = params;
-        type Row = ActividadListItem & { total_count?: number; total_horas?: number; horasesperadas?: number | null };
+        type Row = ActividadListItem & { total_count?: number; total_horas?: number; horasesperadas?: number | null; diajornada?: string | null };
         const result = await this.databaseFunctionService.callFunction<Row>(
             'conlistaractividades',
             [
@@ -125,16 +131,51 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             ],
         );
         if (!result?.length) {
-            return { data: [], totalCount: 0, totalHoras: 0, horasesperadas: null };
+            let diajornada: string | null = null;
+            let horasesperadas: number | null = null;
+            if (idJornada != null && idJornada >= 1) {
+                const meta = await this.dataSource.query<{ diajornada: string; horasesperadas: number }[]>(
+                    'SELECT fechajornada::text AS diajornada, horasesperadas FROM conjornada WHERE id = $1 AND estado = 1 LIMIT 1',
+                    [idJornada],
+                );
+                if (meta?.[0]) {
+                    diajornada = meta[0].diajornada != null ? String(meta[0].diajornada).split('T')[0] : null;
+                    horasesperadas = meta[0].horasesperadas != null ? Number(meta[0].horasesperadas) : null;
+                }
+            }
+            return { data: [], totalCount: 0, totalHoras: 0, horasesperadas, diajornada };
         }
         const totalCount = Number(result[0].total_count ?? result.length);
         const totalHoras = Number(result[0].total_horas ?? 0);
         const horasesperadas = result[0].horasesperadas != null ? Number(result[0].horasesperadas) : null;
+        const diajornada = result[0].diajornada != null ? String(result[0].diajornada).split('T')[0] : null;
         const data: ActividadListItem[] = result.map((row) => {
-            const { total_count: _tc, total_horas: _th, horasesperadas: _hm, ...rest } = row;
+            const { total_count: _tc, total_horas: _th, horasesperadas: _hm, diajornada: _dj, ...rest } = row;
             return rest as ActividadListItem;
         });
-        return { data, totalCount, totalHoras, horasesperadas };
+        return { data, totalCount, totalHoras, horasesperadas, diajornada };
+    }
+
+    async crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null> {
+        const rows = await this.databaseFunctionService.callFunction<ActividadCreada>(
+            'concrearactividad',
+            [
+                params.idJornada,
+                params.idProyecto,
+                params.idTrabajador,
+                params.idCoordinador,
+                params.idTipoActividad,
+                params.nombreActividad ?? '',
+                params.descripcionDetallada ?? null,
+                params.horaInicio ?? null,
+                params.horaFin ?? null,
+                params.linkEvidencia ?? null,
+                params.idEstadoActividad ?? null,
+                params.idModalidad ?? null,
+                params.idUsuarioCreacion ?? null,
+            ],
+        );
+        return rows?.[0] ?? null;
     }
 
     private getInicioSemanaActual(): string {

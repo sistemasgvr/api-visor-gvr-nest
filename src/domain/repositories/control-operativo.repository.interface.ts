@@ -70,14 +70,50 @@ export interface ActividadListItem {
     linkevidencia: string | null;
     idestadoactividad: number;
     estadoactividad: string | null;
+    idmodalidad?: number | null;
+    nombremodalidad?: string | null;
 }
 
-/** Resultado de listar actividades: filas + totales + meta de jornada (horasesperadas). */
+/** Parámetros para crear una actividad (concrearactividad). */
+export interface CrearActividadParams {
+    idJornada: number;
+    idProyecto: number;
+    idTrabajador: number;
+    idCoordinador: number;
+    idTipoActividad: number;
+    nombreActividad: string;
+    descripcionDetallada?: string | null;
+    horaInicio?: string; // "HH:mm" o "HH:mm:ss"
+    horaFin?: string;
+    linkEvidencia?: string | null;
+    idEstadoActividad?: number | null;
+    idModalidad?: number | null;
+    idUsuarioCreacion?: number | null;
+}
+
+/** Resultado de crear actividad (primera fila de concrearactividad). */
+export interface ActividadCreada {
+    id: number;
+    idjornada: number;
+    idproyecto: number;
+    idtrabajador: number;
+    idcoordinador: number;
+    idtipoactividad: number;
+    nombreactividad: string;
+    horainicio: string;
+    horafin: string;
+    horasdedicadas: number;
+    idestadoactividad: number;
+    idmodalidad?: number | null;
+}
+
+/** Resultado de listar actividades: filas + totales + meta de jornada (horasesperadas, diajornada). */
 export interface ListarActividadesResult {
     data: ActividadListItem[];
     totalCount: number;
     totalHoras: number;
     horasesperadas?: number | null;
+    diajornada?: string | null; // YYYY-MM-DD cuando se filtra por idJornada
 }
 
 /** Retorno del cron único de cierre de jornadas (concroncierrejornadas). */
@@ -109,6 +145,7 @@ export interface IControlOperativoRepository {
     listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]>;
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
     listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
+    crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null>;
     ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
     actualizarEstadoJornada(idJornada: number, idEstadoJornada: number, idUsuarioModificacion?: number): Promise<boolean>;
 }
