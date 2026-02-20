@@ -239,6 +239,12 @@ export interface IControlOperativoRepository {
     obtenerActividad(idActividad: number): Promise<ActividadDetalle | null>;
     listarObservacionesActividad(idActividad: number): Promise<ObservacionActividad[]>;
     obtenerIdTrabajadorPorIdUsuario(idUsuario: number): Promise<number | null>;
+    /** idUsuario del trabajador (tratrabajador.idusuario) para notificaciones. */
+    obtenerIdUsuarioPorIdTrabajador(idTrabajador: number): Promise<number | null>;
+    /** id del responsable (tratrabajador.idresponsable) del trabajador, para notificar al responsable. */
+    obtenerIdResponsablePorIdTrabajador(idTrabajador: number): Promise<number | null>;
+    /** Nombre completo del trabajador (nombres + apellidos) para mostrar en notificaciones. */
+    obtenerNombreTrabajadorPorId(idTrabajador: number): Promise<string | null>;
     crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null>;
     actualizarActividad(params: ActualizarActividadParams): Promise<ActividadCreada | null>;
     validarActividad(params: ValidarActividadParams): Promise<ActividadCreada | null>;

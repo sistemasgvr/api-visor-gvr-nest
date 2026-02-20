@@ -173,6 +173,36 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         return id != null ? Number(id) : null;
     }
 
+    async obtenerIdUsuarioPorIdTrabajador(idTrabajador: number): Promise<number | null> {
+        if (idTrabajador == null || idTrabajador < 1) return null;
+        const rows = await this.dataSource.query<{ idusuario: number }[]>(
+            'SELECT idusuario FROM tratrabajador WHERE id = $1 AND estado = 1 LIMIT 1',
+            [idTrabajador],
+        );
+        const idUsuario = rows?.[0]?.idusuario;
+        return idUsuario != null ? Number(idUsuario) : null;
+    }
+
+    async obtenerIdResponsablePorIdTrabajador(idTrabajador: number): Promise<number | null> {
+        if (idTrabajador == null || idTrabajador < 1) return null;
+        const rows = await this.dataSource.query<{ idresponsable: number | null }[]>(
+            'SELECT idresponsable FROM tratrabajador WHERE id = $1 AND estado = 1 LIMIT 1',
+            [idTrabajador],
+        );
+        const idResponsable = rows?.[0]?.idresponsable;
+        return idResponsable != null && idResponsable > 0 ? Number(idResponsable) : null;
+    }
+
+    async obtenerNombreTrabajadorPorId(idTrabajador: number): Promise<string | null> {
+        if (idTrabajador == null || idTrabajador < 1) return null;
+        const rows = await this.dataSource.query<{ nombre: string }[]>(
+            `SELECT TRIM(nombres || ' ' || COALESCE(apellidos, '')) AS nombre FROM tratrabajador WHERE id = $1 AND estado = 1 LIMIT 1`,
+            [idTrabajador],
+        );
+        const nombre = rows?.[0]?.nombre;
+        return nombre != null && String(nombre).trim() !== '' ? String(nombre).trim() : null;
+    }
+
     async listarActividadesValidacion(params: ListarActividadesValidacionParams): Promise<ListarActividadesValidacionResult> {
         const {
             idTrabajadorSesion,

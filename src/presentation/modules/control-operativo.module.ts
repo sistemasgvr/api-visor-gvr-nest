@@ -17,6 +17,7 @@ import { ValidarActividadUseCase } from '../../application/use-cases/control-ope
 import { ControlOperativoRepository } from '../../infrastructure/repositories/control-operativo.repository';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../domain/repositories/control-operativo.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { BroadcastModule } from './broadcast.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -25,6 +26,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
     imports: [
         DatabaseModule,
+        BroadcastModule,
         PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.registerAsync({
             imports: [ConfigModule],
