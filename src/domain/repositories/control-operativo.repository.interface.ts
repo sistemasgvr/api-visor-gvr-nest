@@ -76,6 +76,27 @@ export interface ActividadListItem {
     nombremodalidad?: string | null;
 }
 
+/** Item de actividad para listado Validación (incluye nombre del modelador/trabajador). */
+export interface ActividadValidacionListItem extends ActividadListItem {
+    nombretrabajador: string | null;
+}
+
+export interface ListarActividadesValidacionParams {
+    idTrabajadorSesion: number;
+    esAdmin: boolean;
+    idTrabajadorFiltro?: number | null;
+    idProyectoFiltro?: number | null;
+    idEstadoActividadFiltro?: number | null;
+    limit?: number;
+    offset?: number;
+}
+
+export interface ListarActividadesValidacionResult {
+    data: ActividadValidacionListItem[];
+    totalCount: number;
+    totalHoras: number;
+}
+
 /** Parámetros para crear una actividad (concrearactividad). */
 export interface CrearActividadParams {
     idJornada: number;
@@ -193,7 +214,9 @@ export interface IControlOperativoRepository {
     listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]>;
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
     listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
+    listarActividadesValidacion(params: ListarActividadesValidacionParams): Promise<ListarActividadesValidacionResult>;
     obtenerActividad(idActividad: number): Promise<ActividadDetalle | null>;
+    obtenerIdTrabajadorPorIdUsuario(idUsuario: number): Promise<number | null>;
     crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null>;
     actualizarActividad(params: ActualizarActividadParams): Promise<ActividadCreada | null>;
     eliminarActividad(idActividad: number): Promise<boolean>;

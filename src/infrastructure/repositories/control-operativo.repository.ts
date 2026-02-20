@@ -11,6 +11,7 @@ import type {
     ListarActividadesParams,
     ListarActividadesResult,
     ActividadListItem,
+    ActividadValidacionListItem,
     ActividadDetalle,
     CrearActividadParams,
     ActualizarActividadParams,
@@ -18,6 +19,8 @@ import type {
     CronCierreJornadasResult,
     TrabajadorParaFiltro,
     ProyectoAccesoTrabajador,
+    ListarActividadesValidacionParams,
+    ListarActividadesValidacionResult,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -156,6 +159,51 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             return rest as ActividadListItem;
         });
         return { data, totalCount, totalHoras, horasesperadas, diajornada };
+    }
+
+    async obtenerIdTrabajadorPorIdUsuario(idUsuario: number): Promise<number | null> {
+        if (idUsuario == null || idUsuario < 1) return null;
+        const rows = await this.dataSource.query<{ id: number }[]>(
+            'SELECT id FROM tratrabajador WHERE idusuario = $1 AND estado = 1 LIMIT 1',
+            [idUsuario],
+        );
+        const id = rows?.[0]?.id;
+        return id != null ? Number(id) : null;
+    }
+
+    async listarActividadesValidacion(params: ListarActividadesValidacionParams): Promise<ListarActividadesValidacionResult> {
+        const {
+            idTrabajadorSesion,
+            esAdmin,
+            idTrabajadorFiltro,
+            idProyectoFiltro,
+            idEstadoActividadFiltro,
+            limit = 50,
+            offset = 0,
+        } = params;
+        type Row = ActividadValidacionListItem & { total_count?: number; total_horas?: number };
+        const result = await this.databaseFunctionService.callFunction<Row>(
+            'conlistaractividadesvalidacion',
+            [
+                idTrabajadorSesion,
+                esAdmin,
+                idTrabajadorFiltro ?? null,
+                idProyectoFiltro ?? null,
+                idEstadoActividadFiltro ?? null,
+                limit,
+                offset,
+            ],
+        );
+        if (!result?.length) {
+            return { data: [], totalCount: 0, totalHoras: 0 };
+        }
+        const totalCount = Number(result[0].total_count ?? result.length);
+        const totalHoras = Number(result[0].total_horas ?? 0);
+        const data: ActividadValidacionListItem[] = result.map((row) => {
+            const { total_count: _tc, total_horas: _th, ...rest } = row;
+            return rest as ActividadValidacionListItem;
+        });
+        return { data, totalCount, totalHoras };
     }
 
     async obtenerActividad(idActividad: number): Promise<ActividadDetalle | null> {

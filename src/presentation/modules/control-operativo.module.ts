@@ -11,6 +11,7 @@ import { CrearActividadUseCase } from '../../application/use-cases/control-opera
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
+import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
 import { ControlOperativoRepository } from '../../infrastructure/repositories/control-operativo.repository';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../domain/repositories/control-operativo.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
@@ -51,6 +52,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         ObtenerActividadUseCase,
         ActualizarActividadUseCase,
         EliminarActividadUseCase,
+        ListarActividadesValidacionUseCase,
         JwtStrategy,
     ],
     exports: [CONTROL_OPERATIVO_REPOSITORY],

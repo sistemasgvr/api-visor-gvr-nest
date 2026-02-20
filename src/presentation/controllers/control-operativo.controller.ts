@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Param, Query, Body, UseGuards, ParseIntPipe, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Query, Body, UseGuards, ParseIntPipe, UnauthorizedException, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
 import { ListarTrabajadoresParaFiltroUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-para-filtro.use-case';
@@ -11,6 +12,7 @@ import { CrearActividadUseCase } from '../../application/use-cases/control-opera
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
+import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -29,6 +31,7 @@ export class ControlOperativoController {
         private readonly obtenerActividadUseCase: ObtenerActividadUseCase,
         private readonly actualizarActividadUseCase: ActualizarActividadUseCase,
         private readonly eliminarActividadUseCase: EliminarActividadUseCase,
+        private readonly listarActividadesValidacionUseCase: ListarActividadesValidacionUseCase,
         private readonly configService: ConfigService,
     ) {}
 
@@ -242,6 +245,39 @@ export class ControlOperativoController {
         };
         const result = await this.listarActividadesUseCase.execute(params);
         return ApiResponseDto.success(result, 'Actividades listadas exitosamente');
+    }
+
+    /**
+     * Listar actividades para la pestaña Validación (jerarquía del usuario de sesión, excluyéndose).
+     * GET /control-operativo/actividades-validacion?esAdmin=false&idTrabajador=&idProyecto=&idEstadoActividad=&limit=10&offset=0
+     * esAdmin lo envía el front (según rol del usuario). Usuario de sesión se resuelve por JWT.
+     */
+    @Get('actividades-validacion')
+    @UseGuards(JwtAuthGuard)
+    async listarActividadesValidacion(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('esAdmin') esAdmin?: string,
+        @Query('idTrabajador') idTrabajador?: string,
+        @Query('idProyecto') idProyecto?: string,
+        @Query('idEstadoActividad') idEstadoActividad?: string,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const result = await this.listarActividadesValidacionUseCase.execute({
+            idUsuario: Number(userId),
+            esAdmin: esAdmin === 'true',
+            idTrabajadorFiltro: idTrabajador != null && idTrabajador !== '' ? parseInt(idTrabajador, 10) : undefined,
+            idProyectoFiltro: idProyecto != null && idProyecto !== '' ? parseInt(idProyecto, 10) : undefined,
+            idEstadoActividadFiltro:
+                idEstadoActividad != null && idEstadoActividad !== '' ? parseInt(idEstadoActividad, 10) : undefined,
+            limit: limit != null && limit !== '' ? parseInt(limit, 10) : undefined,
+            offset: offset != null && offset !== '' ? parseInt(offset, 10) : undefined,
+        });
+        return ApiResponseDto.success(result, 'Actividades de validación listadas exitosamente');
     }
 
     /**
