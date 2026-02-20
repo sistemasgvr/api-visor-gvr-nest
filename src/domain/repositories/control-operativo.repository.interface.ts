@@ -153,6 +153,18 @@ export interface ActualizarActividadParams {
     linkEvidencia?: string | null;
     idModalidad?: number | null;
     idUsuarioModificacion?: number | null;
+    /** Si true, la actividad debe estar en Observado y ser del mismo trabajador; al guardar pasa a Por aprobar. */
+    corregirObservacion?: boolean;
+}
+
+/** Item de observación del coordinador sobre una actividad (conlistarobservacionesactividad). */
+export interface ObservacionActividad {
+    id: number;
+    idactividad: number;
+    idcoordinador: number;
+    nombrecoordinador: string | null;
+    comentario: string | null;
+    fechaobservacion: string | null;
 }
 
 /** Resultado de conobteneractividad: una actividad con toda la información relacionada (para "Ver"). */
@@ -225,6 +237,7 @@ export interface IControlOperativoRepository {
     listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
     listarActividadesValidacion(params: ListarActividadesValidacionParams): Promise<ListarActividadesValidacionResult>;
     obtenerActividad(idActividad: number): Promise<ActividadDetalle | null>;
+    listarObservacionesActividad(idActividad: number): Promise<ObservacionActividad[]>;
     obtenerIdTrabajadorPorIdUsuario(idUsuario: number): Promise<number | null>;
     crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null>;
     actualizarActividad(params: ActualizarActividadParams): Promise<ActividadCreada | null>;

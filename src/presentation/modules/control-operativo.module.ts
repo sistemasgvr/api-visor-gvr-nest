@@ -9,6 +9,7 @@ import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/cont
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
+import { ListarObservacionesActividadUseCase } from '../../application/use-cases/control-operativo/listar-observaciones-actividad.use-case';
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
 import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
@@ -51,6 +52,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         ListarProyectosAccesoTrabajadorUseCase,
         CrearActividadUseCase,
         ObtenerActividadUseCase,
+        ListarObservacionesActividadUseCase,
         ActualizarActividadUseCase,
         EliminarActividadUseCase,
         ListarActividadesValidacionUseCase,

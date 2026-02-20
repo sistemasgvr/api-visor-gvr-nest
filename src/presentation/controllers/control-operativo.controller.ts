@@ -10,6 +10,7 @@ import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/cont
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
+import { ListarObservacionesActividadUseCase } from '../../application/use-cases/control-operativo/listar-observaciones-actividad.use-case';
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
 import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
@@ -30,6 +31,7 @@ export class ControlOperativoController {
         private readonly listarProyectosAccesoTrabajadorUseCase: ListarProyectosAccesoTrabajadorUseCase,
         private readonly crearActividadUseCase: CrearActividadUseCase,
         private readonly obtenerActividadUseCase: ObtenerActividadUseCase,
+        private readonly listarObservacionesActividadUseCase: ListarObservacionesActividadUseCase,
         private readonly actualizarActividadUseCase: ActualizarActividadUseCase,
         private readonly eliminarActividadUseCase: EliminarActividadUseCase,
         private readonly listarActividadesValidacionUseCase: ListarActividadesValidacionUseCase,
@@ -283,6 +285,17 @@ export class ControlOperativoController {
     }
 
     /**
+     * Listar observaciones del coordinador sobre una actividad (para "Corregir").
+     * GET /control-operativo/actividades/:id/observaciones
+     */
+    @Get('actividades/:id/observaciones')
+    @UseGuards(JwtAuthGuard)
+    async listarObservacionesActividad(@Param('id', ParseIntPipe) id: number) {
+        const data = await this.listarObservacionesActividadUseCase.execute(id);
+        return ApiResponseDto.success(data, 'Observaciones listadas exitosamente');
+    }
+
+    /**
      * Obtener una actividad por ID con toda la información relacionada (para "Ver").
      * GET /control-operativo/actividades/:id
      */
@@ -347,6 +360,7 @@ export class ControlOperativoController {
         @Body('horaFin') horaFin?: string,
         @Body('linkEvidencia') linkEvidencia?: string,
         @Body('idModalidad') idModalidad?: number,
+        @Body('corregirObservacion') corregirObservacion?: boolean,
     ) {
         const data = await this.actualizarActividadUseCase.execute({
             idActividad: id,
@@ -360,6 +374,7 @@ export class ControlOperativoController {
             horaFin: horaFin?.trim() || undefined,
             linkEvidencia: linkEvidencia?.trim() || null,
             idModalidad: idModalidad ?? null,
+            corregirObservacion: corregirObservacion === true,
         });
         if (!data) {
             return ApiResponseDto.badRequest('No se pudo actualizar la actividad');

@@ -13,6 +13,7 @@ import type {
     ActividadListItem,
     ActividadValidacionListItem,
     ActividadDetalle,
+    ObservacionActividad,
     CrearActividadParams,
     ActualizarActividadParams,
     ValidarActividadParams,
@@ -232,6 +233,15 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         return { ...row, diajornada } as ActividadDetalle;
     }
 
+    async listarObservacionesActividad(idActividad: number): Promise<ObservacionActividad[]> {
+        if (idActividad == null || idActividad < 1) return [];
+        const rows = await this.databaseFunctionService.callFunction<ObservacionActividad>(
+            'conlistarobservacionesactividad',
+            [idActividad],
+        );
+        return Array.isArray(rows) ? rows : [];
+    }
+
     async crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null> {
         const rows = await this.databaseFunctionService.callFunction<ActividadCreada>(
             'concrearactividad',
@@ -270,6 +280,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
                 params.linkEvidencia ?? null,
                 params.idModalidad ?? null,
                 params.idUsuarioModificacion ?? null,
+                params.corregirObservacion === true,
             ],
         );
         return rows?.[0] ?? null;
