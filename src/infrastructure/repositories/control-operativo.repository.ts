@@ -15,6 +15,7 @@ import type {
     ActividadDetalle,
     CrearActividadParams,
     ActualizarActividadParams,
+    ValidarActividadParams,
     ActividadCreada,
     CronCierreJornadasResult,
     TrabajadorParaFiltro,
@@ -268,6 +269,20 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
                 params.horaFin ?? null,
                 params.linkEvidencia ?? null,
                 params.idModalidad ?? null,
+                params.idUsuarioModificacion ?? null,
+            ],
+        );
+        return rows?.[0] ?? null;
+    }
+
+    async validarActividad(params: ValidarActividadParams): Promise<ActividadCreada | null> {
+        const rows = await this.databaseFunctionService.callFunction<ActividadCreada>(
+            'convalidaractividad',
+            [
+                params.idActividad,
+                params.idEstadoActividad,
+                params.comentarioValidacion ?? null,
+                params.idCoordinadorRevisor,
                 params.idUsuarioModificacion ?? null,
             ],
         );

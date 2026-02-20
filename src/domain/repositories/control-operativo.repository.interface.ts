@@ -130,6 +130,15 @@ export interface ActividadCreada {
     idmodalidad?: number | null;
 }
 
+/** Parámetros para validar una actividad (convalidaractividad): Aprobar / Observar / Rechazar. */
+export interface ValidarActividadParams {
+    idActividad: number;
+    idEstadoActividad: number; // 375 Aprobado, 376 Observado, 377 Rechazado
+    comentarioValidacion?: string | null;
+    idCoordinadorRevisor: number; // idTrabajador del usuario que revisa
+    idUsuarioModificacion?: number | null;
+}
+
 /** Parámetros para actualizar una actividad (conactualizaractividad). */
 export interface ActualizarActividadParams {
     idActividad: number;
@@ -219,6 +228,7 @@ export interface IControlOperativoRepository {
     obtenerIdTrabajadorPorIdUsuario(idUsuario: number): Promise<number | null>;
     crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null>;
     actualizarActividad(params: ActualizarActividadParams): Promise<ActividadCreada | null>;
+    validarActividad(params: ValidarActividadParams): Promise<ActividadCreada | null>;
     eliminarActividad(idActividad: number): Promise<boolean>;
     ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
     actualizarEstadoJornada(idJornada: number, idEstadoJornada: number, idUsuarioModificacion?: number): Promise<boolean>;

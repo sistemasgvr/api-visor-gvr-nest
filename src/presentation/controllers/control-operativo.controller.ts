@@ -13,6 +13,7 @@ import { ObtenerActividadUseCase } from '../../application/use-cases/control-ope
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
 import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
+import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -32,6 +33,7 @@ export class ControlOperativoController {
         private readonly actualizarActividadUseCase: ActualizarActividadUseCase,
         private readonly eliminarActividadUseCase: EliminarActividadUseCase,
         private readonly listarActividadesValidacionUseCase: ListarActividadesValidacionUseCase,
+        private readonly validarActividadUseCase: ValidarActividadUseCase,
         private readonly configService: ConfigService,
     ) {}
 
@@ -292,6 +294,39 @@ export class ControlOperativoController {
             return ApiResponseDto.notFound('Actividad no encontrada');
         }
         return ApiResponseDto.success(data, 'Actividad obtenida exitosamente');
+    }
+
+    /**
+     * Validar una actividad (Aprobar / Observar / Rechazar). Comentario obligatorio para Observar y Rechazar.
+     * PATCH /control-operativo/actividades/:id/validar
+     * Body: { "idEstadoActividad": number, "comentarioValidacion"?: string }
+     */
+    @Patch('actividades/:id/validar')
+    @UseGuards(JwtAuthGuard)
+    async validarActividad(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Param('id', ParseIntPipe) id: number,
+        @Body('idEstadoActividad') idEstadoActividad: number,
+        @Body('comentarioValidacion') comentarioValidacion?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const idEstado = idEstadoActividad != null ? Number(idEstadoActividad) : NaN;
+        if (Number.isNaN(idEstado) || idEstado < 1) {
+            return ApiResponseDto.badRequest('idEstadoActividad es obligatorio y debe ser un número válido');
+        }
+        const data = await this.validarActividadUseCase.execute({
+            idActividad: id,
+            idEstadoActividad: idEstado,
+            comentarioValidacion: comentarioValidacion?.trim() || null,
+            idUsuario: Number(userId),
+        });
+        if (!data) {
+            return ApiResponseDto.badRequest('No se pudo validar la actividad');
+        }
+        return ApiResponseDto.success(data, 'Actividad validada exitosamente');
     }
 
     /**
