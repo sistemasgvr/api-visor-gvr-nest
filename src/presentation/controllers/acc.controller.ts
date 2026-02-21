@@ -20,6 +20,7 @@ import { ObtenerToken2LeggedUseCase } from '../../application/use-cases/acc/obte
 import { GenerarUrlAutorizacionUseCase } from '../../application/use-cases/acc/generar-url-autorizacion.use-case';
 import { ObtenerMiTokenUseCase } from '../../application/use-cases/acc/obtener-mi-token.use-case';
 import { RefrescarToken3LeggedUseCase } from '../../application/use-cases/acc/refrescar-token-3legged.use-case';
+import { CronRefrescarTokensAccUseCase } from '../../application/use-cases/acc/cron-refrescar-tokens-acc.use-case';
 import { RevocarTokenUseCase } from '../../application/use-cases/acc/revocar-token.use-case';
 import { CallbackAutorizacionUseCase } from '../../application/use-cases/acc/callback-autorizacion.use-case';
 import { ValidarExpiracionUseCase } from '../../application/use-cases/acc/validar-expiracion.use-case';
@@ -38,6 +39,7 @@ export class AccController {
         private readonly generarUrlAutorizacionUseCase: GenerarUrlAutorizacionUseCase,
         private readonly obtenerMiTokenUseCase: ObtenerMiTokenUseCase,
         private readonly refrescarToken3LeggedUseCase: RefrescarToken3LeggedUseCase,
+        private readonly cronRefrescarTokensAccUseCase: CronRefrescarTokensAccUseCase,
         private readonly revocarTokenUseCase: RevocarTokenUseCase,
         private readonly callbackAutorizacionUseCase: CallbackAutorizacionUseCase,
         private readonly validarExpiracionUseCase: ValidarExpiracionUseCase,
@@ -99,6 +101,25 @@ export class AccController {
         return ApiResponseDto.success(
             resultado,
             'Token obtenido exitosamente',
+        );
+    }
+
+    /**
+     * Cron: refrescar todos los tokens ACC (cada 55 min).
+     * GET /acc/cron/refresh-tokens?key=CRON_SECRET
+     * No requiere JWT; se autoriza con CRON_SECRET.
+     */
+    @Get('cron/refresh-tokens')
+    @HttpCode(HttpStatus.OK)
+    async cronRefrescarTokens(@Query('key') key?: string) {
+        const secret = this.configService.get<string>('CRON_SECRET');
+        if (secret && key !== secret) {
+            throw new UnauthorizedException('Cron no autorizado');
+        }
+        const result = await this.cronRefrescarTokensAccUseCase.execute();
+        return ApiResponseDto.success(
+            result,
+            `Tokens ACC: ${result.refrescados}/${result.total} refrescados`,
         );
     }
 

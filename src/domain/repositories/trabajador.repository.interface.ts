@@ -47,6 +47,7 @@ export interface CrearTrabajadorData {
     idTipoContrato?: number;
     idDuracionContrato?: number;
     fechaInicioLabores?: string;
+    idModalidad?: number;
     adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 
@@ -81,6 +82,7 @@ export interface EditarTrabajadorData {
     idTipoContrato?: number;
     idDuracionContrato?: number;
     fechaInicioLabores?: string;
+    idModalidad?: number;
     adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 

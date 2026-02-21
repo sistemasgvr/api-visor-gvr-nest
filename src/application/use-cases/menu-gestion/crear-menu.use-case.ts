@@ -22,7 +22,7 @@ export class CrearMenuUseCase {
 
         return {
             message: resultado.message,
-            id_menu: resultado.id_menu,
+            id_menu: resultado.idmenu ?? resultado.id_menu,
         };
     }
 }

@@ -150,6 +150,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
                 data.idTipoContrato ?? null,
                 data.idDuracionContrato ?? null,
                 data.fechaInicioLabores ?? null,
+                data.idModalidad ?? null,
             ],
         );
 
@@ -190,6 +191,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
                 data.idTipoContrato ?? null,
                 data.idDuracionContrato ?? null,
                 data.fechaInicioLabores ?? null,
+                data.idModalidad ?? null,
             ],
         );
 

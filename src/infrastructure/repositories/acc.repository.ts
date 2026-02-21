@@ -106,4 +106,16 @@ export class AccRepository implements IAccRepository {
             [id],
         );
     }
+
+    async listarTokensActivosParaRefresh(): Promise<{ id: number; idUsuario: number; tokenRefresco: string }[]> {
+        const rows = await this.databaseFunctionService.callFunction<any>(
+            'accListarTokensActivosParaRefresh',
+            [],
+        );
+        return (rows || []).map((r: any) => ({
+            id: r.v_id,
+            idUsuario: r.v_usuario_id ?? r.v_id_usuario,
+            tokenRefresco: r.v_token_refresco,
+        }));
+    }
 }

@@ -16,6 +16,15 @@ export class ObtenerProyectoUseCase {
             throw new NotFoundException('Proyecto no encontrado');
         }
 
-        return proyecto;
+        const [documentos, usuarios] = await Promise.all([
+            this.proyectoRepository.listarDocumentosProyecto(idProyecto),
+            this.proyectoRepository.listarUsuariosProyecto(idProyecto),
+        ]);
+
+        return {
+            ...proyecto,
+            documentos: documentos ?? [],
+            usuarios: usuarios ?? [],
+        };
     }
 }

@@ -19,6 +19,8 @@ export interface LoginResponse {
         roles: any[];
         permisos: any[];
         menus: any[];
+        /** Trabajador asociado al usuario (desde perfil), para filtros y contexto. */
+        trabajador?: { id: number; nombres?: string; apellidos?: string; [key: string]: any };
     };
 }
 
@@ -78,7 +80,7 @@ export class LoginUseCase {
         // Registrar nueva sesión en authSesiones (si falla, el login falla para poder ver el error)
         await this.sesionRepository.crearSesion(user.id, access_token, ip ?? null, userAgent ?? null);
 
-        // Return user data without password
+        // Return user data without password (trabajador viene de la BD en authLoginUsuarioV2)
         return {
             access_token,
             user: {
@@ -90,6 +92,7 @@ export class LoginUseCase {
                 roles: user.roles,
                 permisos: user.permisos,
                 menus: user.menus,
+                ...(user.trabajador && user.trabajador.id != null && { trabajador: user.trabajador }),
             },
         };
     }

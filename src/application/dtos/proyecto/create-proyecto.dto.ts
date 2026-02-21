@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsOptional, IsNumber, IsDateString, MaxLength, IsNotEmpty, Min } from 'class-validator';
+import { IsString, IsInt, IsOptional, IsNumber, MaxLength, IsNotEmpty, Min, Max, IsDateString } from 'class-validator';
 
 export class CreateProyectoDto {
     @IsNotEmpty({ message: 'El nombre del proyecto es requerido' })
@@ -64,4 +64,30 @@ export class CreateProyectoDto {
     @IsOptional()
     @IsInt()
     idTipoMoneda?: number;
+
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    @Max(31)
+    diaValorizar?: number;
+
+    @IsOptional()
+    @IsInt()
+    idCliente?: number;
+
+    @IsOptional()
+    @IsString()
+    observaciones?: string;
+
+    @IsOptional()
+    @IsInt()
+    idModalidad?: number;
+
+    @IsOptional()
+    @IsInt()
+    idEstadoProyecto?: number;
+
+    @IsOptional()
+    @IsInt()
+    idEstadoCotizacion?: number;
 }

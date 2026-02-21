@@ -6,6 +6,7 @@ import { GenerarUrlAutorizacionUseCase } from '../../application/use-cases/acc/g
 import { ObtenerMiTokenUseCase } from '../../application/use-cases/acc/obtener-mi-token.use-case';
 import { CallbackAutorizacionUseCase } from '../../application/use-cases/acc/callback-autorizacion.use-case';
 import { RefrescarToken3LeggedUseCase } from '../../application/use-cases/acc/refrescar-token-3legged.use-case';
+import { CronRefrescarTokensAccUseCase } from '../../application/use-cases/acc/cron-refrescar-tokens-acc.use-case';
 import { RevocarTokenUseCase } from '../../application/use-cases/acc/revocar-token.use-case';
 import { ValidarExpiracionUseCase } from '../../application/use-cases/acc/validar-expiracion.use-case';
 import { AccRepository } from '../../infrastructure/repositories/acc.repository';
@@ -37,6 +38,7 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
         ObtenerMiTokenUseCase,
         CallbackAutorizacionUseCase,
         RefrescarToken3LeggedUseCase,
+        CronRefrescarTokensAccUseCase,
         RevocarTokenUseCase,
         ValidarExpiracionUseCase,
     ],

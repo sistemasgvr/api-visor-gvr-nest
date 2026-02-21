@@ -5,6 +5,9 @@ import type {
     ListarProyectosResponse,
     CrearProyectoData,
     EditarProyectoData,
+    ListarUsuariosDisponiblesParams,
+    CrearDocumentoProyectoData,
+    ActualizarDocumentoProyectoData,
 } from '../../domain/repositories/proyecto.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
 
@@ -76,6 +79,12 @@ export class ProyectoRepository implements IProyectoRepository {
                 data.fechaFinalizacion || null,
                 data.valorProyecto || null,
                 data.idTipoMoneda || null,
+                data.diaValorizar ?? null,
+                data.idCliente ?? null,
+                data.observaciones || null,
+                data.idModalidad ?? null,
+                data.idEstadoProyecto ?? null,
+                data.idEstadoCotizacion ?? null,
                 data.idUsuarioCreacion,
             ],
         );
@@ -102,6 +111,12 @@ export class ProyectoRepository implements IProyectoRepository {
                 data.fechaFinalizacion || null,
                 data.valorProyecto || null,
                 data.idTipoMoneda || null,
+                data.diaValorizar ?? null,
+                data.idCliente ?? null,
+                data.observaciones || null,
+                data.idModalidad ?? null,
+                data.idEstadoProyecto ?? null,
+                data.idEstadoCotizacion ?? null,
                 data.idUsuarioModificacion,
             ],
         );
@@ -115,6 +130,97 @@ export class ProyectoRepository implements IProyectoRepository {
             [idProyecto, idUsuarioModificacion],
         );
 
+        return result;
+    }
+
+    async listarUsuariosProyecto(idProyecto: number): Promise<any[]> {
+        const result = await this.databaseFunctionService.callFunction<any>(
+            'proListarUsuariosProyecto',
+            [idProyecto],
+        );
+        return result ?? [];
+    }
+
+    async asignarAccesoProyecto(
+        idProyecto: number,
+        idUsuario: number,
+        idNivelAcceso: number | null,
+        idUsuarioCreacion: number,
+    ): Promise<{ success: boolean; message: string; id?: number }> {
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proAsignarAccesoProyecto',
+            [idProyecto, idUsuario, idNivelAcceso, idUsuarioCreacion],
+        );
+        return result;
+    }
+
+    async actualizarNivelAccesoProyecto(
+        idAcceso: number,
+        idNivelAcceso: number,
+        idUsuarioModificacion: number,
+    ): Promise<{ success: boolean; message: string }> {
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proActualizarNivelAccesoProyecto',
+            [idAcceso, idNivelAcceso, idUsuarioModificacion],
+        );
+        return result;
+    }
+
+    async removerAccesoProyecto(idAcceso: number, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }> {
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proRemoverAccesoProyecto',
+            [idAcceso, idUsuarioModificacion],
+        );
+        return result;
+    }
+
+    async listarUsuariosDisponiblesProyecto(params: ListarUsuariosDisponiblesParams): Promise<{ data: any[]; total: number }> {
+        const { idProyecto, busqueda = '', limit = 50, offset = 0, idRol = null } = params;
+        const result = await this.databaseFunctionService.callFunction<any>(
+            'proListarUsuariosDisponiblesProyecto',
+            [idProyecto, busqueda, limit, offset, idRol],
+        );
+        const total = result?.[0]?.total_registros ?? 0;
+        return { data: result ?? [], total: Number(total) };
+    }
+
+    async listarDocumentosProyecto(idProyecto: number): Promise<any[]> {
+        const result = await this.databaseFunctionService.callFunction<any>(
+            'proListarDocumentosProyecto',
+            [idProyecto],
+        );
+        return result ?? [];
+    }
+
+    async crearDocumentoProyecto(
+        idProyecto: number,
+        data: CrearDocumentoProyectoData,
+        idUsuarioCreacion: number,
+    ): Promise<{ success: boolean; message: string; id?: number }> {
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proCrearDocumentoProyecto',
+            [idProyecto, data.idTipoDocumento, data.nombre, data.linkDocumento ?? null, idUsuarioCreacion],
+        );
+        return result;
+    }
+
+    async actualizarDocumentoProyecto(
+        idDocumento: number,
+        data: ActualizarDocumentoProyectoData,
+        idUsuarioModificacion: number,
+    ): Promise<{ success: boolean; message: string }> {
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proActualizarDocumentoProyecto',
+            [idDocumento, data.idTipoDocumento, data.nombre, data.linkDocumento ?? null, idUsuarioModificacion],
+        );
+        return result;
+    }
+
+    async eliminarDocumentoProyecto(idDocumento: number, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }> {
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proEliminarDocumentoProyecto',
+            [idDocumento, idUsuarioModificacion],
+        );
         return result;
     }
 }
