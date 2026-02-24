@@ -23,6 +23,9 @@ import type {
     ProyectoAccesoTrabajador,
     ListarActividadesValidacionParams,
     ListarActividadesValidacionResult,
+    ListarValorizacionParams,
+    ListarValorizacionResult,
+    ValorizacionGrupo,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -236,6 +239,17 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             return rest as ActividadValidacionListItem;
         });
         return { data, totalCount, totalHoras };
+    }
+
+    async listarValorizacion(params: ListarValorizacionParams): Promise<ListarValorizacionResult> {
+        const { idProyecto, fechaInicio, fechaFin } = params;
+        const result = await this.databaseFunctionService.callFunction<ValorizacionGrupo>(
+            'conlistarvalorizacion',
+            [idProyecto, fechaInicio, fechaFin],
+        );
+        const grupos: ValorizacionGrupo[] = Array.isArray(result) ? result : [];
+        const totalGeneralHoras = grupos.reduce((sum, g) => sum + Number(g.total_horas ?? 0), 0);
+        return { grupos, totalGeneralHoras };
     }
 
     async obtenerActividad(idActividad: number): Promise<ActividadDetalle | null> {

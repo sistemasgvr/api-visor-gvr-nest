@@ -14,6 +14,7 @@ import { ListarObservacionesActividadUseCase } from '../../application/use-cases
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
 import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
+import { ListarValorizacionUseCase } from '../../application/use-cases/control-operativo/listar-valorizacion.use-case';
 import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
@@ -35,6 +36,7 @@ export class ControlOperativoController {
         private readonly actualizarActividadUseCase: ActualizarActividadUseCase,
         private readonly eliminarActividadUseCase: EliminarActividadUseCase,
         private readonly listarActividadesValidacionUseCase: ListarActividadesValidacionUseCase,
+        private readonly listarValorizacionUseCase: ListarValorizacionUseCase,
         private readonly validarActividadUseCase: ValidarActividadUseCase,
         private readonly configService: ConfigService,
     ) {}
@@ -282,6 +284,40 @@ export class ControlOperativoController {
             offset: offset != null && offset !== '' ? parseInt(offset, 10) : undefined,
         });
         return ApiResponseDto.success(result, 'Actividades de validación listadas exitosamente');
+    }
+
+    /**
+     * Valorización: actividades aprobadas por proyecto y rango de fechas, agrupadas por modelador y coordinador.
+     * Solo administradores. GET /control-operativo/valorizacion?idProyecto=1&fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD
+     */
+    @Get('valorizacion')
+    @UseGuards(JwtAuthGuard)
+    async listarValorizacion(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('idProyecto') idProyecto?: string,
+        @Query('fechaInicio') fechaInicio?: string,
+        @Query('fechaFin') fechaFin?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const idProy = idProyecto != null && idProyecto !== '' ? parseInt(idProyecto, 10) : NaN;
+        if (Number.isNaN(idProy) || idProy < 1) {
+            return ApiResponseDto.success({ grupos: [], totalGeneralHoras: 0 }, 'Valorización (proyecto y fechas requeridos)');
+        }
+        const fInicio = (fechaInicio ?? '').trim() || undefined;
+        const fFin = (fechaFin ?? '').trim() || undefined;
+        if (!fInicio || !fFin) {
+            return ApiResponseDto.success({ grupos: [], totalGeneralHoras: 0 }, 'Valorización (fechaInicio y fechaFin requeridos)');
+        }
+        const result = await this.listarValorizacionUseCase.execute({
+            idUsuario: Number(userId),
+            idProyecto: idProy,
+            fechaInicio: fInicio,
+            fechaFin: fFin,
+        });
+        return ApiResponseDto.success(result, 'Valorización listada exitosamente');
     }
 
     /**

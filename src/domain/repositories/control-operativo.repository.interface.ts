@@ -97,6 +97,36 @@ export interface ListarActividadesValidacionResult {
     totalHoras: number;
 }
 
+/** Item de detalle de actividad dentro de un grupo de valorización (sustento cliente). */
+export interface ValorizacionDetalleActividad {
+    id: number;
+    nombreactividad: string;
+    horasdedicadas: number;
+    diajornada: string;
+    descripciondetallada?: string | null;
+}
+
+/** Grupo de valorización: por modelador y coordinador (solo actividades aprobadas). */
+export interface ValorizacionGrupo {
+    idtrabajador: number;
+    nombremodelador: string | null;
+    idcoordinador: number;
+    nombrecoordinador: string | null;
+    total_horas: number;
+    detalle_actividades: ValorizacionDetalleActividad[];
+}
+
+export interface ListarValorizacionParams {
+    idProyecto: number;
+    fechaInicio: string; // YYYY-MM-DD
+    fechaFin: string;   // YYYY-MM-DD
+}
+
+export interface ListarValorizacionResult {
+    grupos: ValorizacionGrupo[];
+    totalGeneralHoras: number;
+}
+
 /** Parámetros para crear una actividad (concrearactividad). */
 export interface CrearActividadParams {
     idJornada: number;
@@ -236,6 +266,7 @@ export interface IControlOperativoRepository {
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
     listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
     listarActividadesValidacion(params: ListarActividadesValidacionParams): Promise<ListarActividadesValidacionResult>;
+    listarValorizacion(params: ListarValorizacionParams): Promise<ListarValorizacionResult>;
     obtenerActividad(idActividad: number): Promise<ActividadDetalle | null>;
     listarObservacionesActividad(idActividad: number): Promise<ObservacionActividad[]>;
     obtenerIdTrabajadorPorIdUsuario(idUsuario: number): Promise<number | null>;

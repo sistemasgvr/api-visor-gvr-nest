@@ -13,9 +13,12 @@ import { ListarObservacionesActividadUseCase } from '../../application/use-cases
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
 import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
+import { ListarValorizacionUseCase } from '../../application/use-cases/control-operativo/listar-valorizacion.use-case';
 import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
 import { ControlOperativoRepository } from '../../infrastructure/repositories/control-operativo.repository';
+import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../domain/repositories/control-operativo.repository.interface';
+import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { BroadcastModule } from './broadcast.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
@@ -45,6 +48,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             provide: CONTROL_OPERATIVO_REPOSITORY,
             useClass: ControlOperativoRepository,
         },
+        {
+            provide: AUTH_REPOSITORY,
+            useClass: AuthRepository,
+        },
         ListarJornadasTrabajadorUseCase,
         ListarTrabajadoresParaFiltroUseCase,
         CrearJornadaUseCase,
@@ -58,6 +65,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         ActualizarActividadUseCase,
         EliminarActividadUseCase,
         ListarActividadesValidacionUseCase,
+        ListarValorizacionUseCase,
         ValidarActividadUseCase,
         JwtStrategy,
     ],
