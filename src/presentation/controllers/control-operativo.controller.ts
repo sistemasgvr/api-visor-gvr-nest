@@ -8,6 +8,8 @@ import { ListarActividadesUseCase } from '../../application/use-cases/control-op
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
+import { ListarTrabajadoresSinJornadaHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-jornada-hoy.use-case';
+import { ListarTrabajadoresSinActividadesHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-actividades-hoy.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ListarObservacionesActividadUseCase } from '../../application/use-cases/control-operativo/listar-observaciones-actividad.use-case';
@@ -31,6 +33,8 @@ export class ControlOperativoController {
         private readonly cronCierreJornadasUseCase: CronCierreJornadasUseCase,
         private readonly actualizarEstadoJornadaUseCase: ActualizarEstadoJornadaUseCase,
         private readonly listarProyectosAccesoTrabajadorUseCase: ListarProyectosAccesoTrabajadorUseCase,
+        private readonly listarTrabajadoresSinJornadaHoyUseCase: ListarTrabajadoresSinJornadaHoyUseCase,
+        private readonly listarTrabajadoresSinActividadesHoyUseCase: ListarTrabajadoresSinActividadesHoyUseCase,
         private readonly crearActividadUseCase: CrearActividadUseCase,
         private readonly obtenerActividadUseCase: ObtenerActividadUseCase,
         private readonly listarObservacionesActividadUseCase: ListarObservacionesActividadUseCase,
@@ -124,6 +128,44 @@ export class ControlOperativoController {
         }
         const data = await this.listarProyectosAccesoTrabajadorUseCase.execute(id);
         return ApiResponseDto.success(data, 'Proyectos con acceso listados exitosamente');
+    }
+
+    /**
+     * Dashboard: trabajadores que tienen jornada abierta hoy pero no han registrado ninguna actividad. Solo administradores.
+     * GET /control-operativo/trabajadores-sin-actividades-hoy?fecha=YYYY-MM-DD
+     */
+    @Get('trabajadores-sin-actividades-hoy')
+    @UseGuards(JwtAuthGuard)
+    async listarTrabajadoresSinActividadesHoy(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('fecha') fecha?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const f = (fecha ?? '').trim() || getFechaHoy();
+        const data = await this.listarTrabajadoresSinActividadesHoyUseCase.execute(Number(userId), f);
+        return ApiResponseDto.success(data, 'Trabajadores sin actividades hoy listados exitosamente');
+    }
+
+    /**
+     * Dashboard: trabajadores que no han registrado (abierto) jornada en la fecha (ej. hoy). Solo administradores.
+     * GET /control-operativo/trabajadores-sin-jornada-hoy?fecha=YYYY-MM-DD
+     */
+    @Get('trabajadores-sin-jornada-hoy')
+    @UseGuards(JwtAuthGuard)
+    async listarTrabajadoresSinJornadaHoy(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('fecha') fecha?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const f = (fecha ?? '').trim() || getFechaHoy();
+        const data = await this.listarTrabajadoresSinJornadaHoyUseCase.execute(Number(userId), f);
+        return ApiResponseDto.success(data, 'Trabajadores sin jornada listados exitosamente');
     }
 
     /**

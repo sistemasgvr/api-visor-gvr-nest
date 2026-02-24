@@ -7,6 +7,8 @@ import { ListarActividadesUseCase } from '../../application/use-cases/control-op
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
+import { ListarTrabajadoresSinJornadaHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-jornada-hoy.use-case';
+import { ListarTrabajadoresSinActividadesHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-actividades-hoy.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ListarObservacionesActividadUseCase } from '../../application/use-cases/control-operativo/listar-observaciones-actividad.use-case';
@@ -60,6 +62,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         CronCierreJornadasUseCase,
         ActualizarEstadoJornadaUseCase,
         ListarProyectosAccesoTrabajadorUseCase,
+        ListarTrabajadoresSinJornadaHoyUseCase,
+        ListarTrabajadoresSinActividadesHoyUseCase,
         CrearActividadUseCase,
         ObtenerActividadUseCase,
         ListarObservacionesActividadUseCase,

@@ -28,6 +28,8 @@ import type {
     ValorizacionGrupo,
     ListarDesempenoParams,
     ListarDesempenoResult,
+    TrabajadorSinJornadaHoyItem,
+    TrabajadorSinActividadesHoyItem,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -90,6 +92,22 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             [idTrabajador],
         );
         return result ?? [];
+    }
+
+    async listarTrabajadoresSinJornadaHoy(fecha: string): Promise<TrabajadorSinJornadaHoyItem[]> {
+        const result = await this.databaseFunctionService.callFunction<TrabajadorSinJornadaHoyItem>(
+            'conlistartrabajadoressinjornadahoy',
+            [fecha],
+        );
+        return Array.isArray(result) ? result : [];
+    }
+
+    async listarTrabajadoresSinActividadesHoy(fecha: string): Promise<TrabajadorSinActividadesHoyItem[]> {
+        const result = await this.databaseFunctionService.callFunction<TrabajadorSinActividadesHoyItem>(
+            'conlistartrabajadoressinactividadeshoy',
+            [fecha],
+        );
+        return Array.isArray(result) ? result : [];
     }
 
     /** Normaliza fecha a YYYY-MM-DD (la BD/driver puede devolver Date o string en distintos formatos). */

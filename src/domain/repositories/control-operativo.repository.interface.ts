@@ -295,10 +295,24 @@ export interface ProyectoAccesoTrabajador {
     nombrecliente: string | null;
 }
 
+/** Item de trabajador que no ha registrado jornada en la fecha (para dashboard). */
+export interface TrabajadorSinJornadaHoyItem {
+    idtrabajador: number;
+    nombrecompleto: string | null;
+}
+
+/** Item de trabajador que tiene jornada hoy pero no ha registrado actividades (para dashboard). */
+export interface TrabajadorSinActividadesHoyItem {
+    idtrabajador: number;
+    nombrecompleto: string | null;
+}
+
 export interface IControlOperativoRepository {
     listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult>;
     listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]>;
     listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]>;
+    listarTrabajadoresSinJornadaHoy(fecha: string): Promise<TrabajadorSinJornadaHoyItem[]>;
+    listarTrabajadoresSinActividadesHoy(fecha: string): Promise<TrabajadorSinActividadesHoyItem[]>;
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
     listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
     listarActividadesValidacion(params: ListarActividadesValidacionParams): Promise<ListarActividadesValidacionResult>;
