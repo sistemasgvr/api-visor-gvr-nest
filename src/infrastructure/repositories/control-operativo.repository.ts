@@ -26,6 +26,8 @@ import type {
     ListarValorizacionParams,
     ListarValorizacionResult,
     ValorizacionGrupo,
+    ListarDesempenoParams,
+    ListarDesempenoResult,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -250,6 +252,40 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         const grupos: ValorizacionGrupo[] = Array.isArray(result) ? result : [];
         const totalGeneralHoras = grupos.reduce((sum, g) => sum + Number(g.total_horas ?? 0), 0);
         return { grupos, totalGeneralHoras };
+    }
+
+    async listarDesempeno(params: ListarDesempenoParams): Promise<ListarDesempenoResult> {
+        const { idProyecto, fechaInicio, fechaFin } = params;
+        const rows = await this.databaseFunctionService.callFunction<{
+            total_actividades_rechazadas?: number;
+            total_observaciones?: number;
+            total_horas_no_justificadas?: number;
+            detalle_actividades_rechazadas?: unknown;
+            detalle_observaciones?: unknown;
+        }>('conlistardesempeno', [idProyecto, fechaInicio, fechaFin]);
+        const row = rows?.[0];
+        if (!row) {
+            return {
+                totalActividadesRechazadas: 0,
+                totalObservaciones: 0,
+                totalHorasNoJustificadas: 0,
+                detalleActividadesRechazadas: [],
+                detalleObservaciones: [],
+            };
+        }
+        const detalleRechazadas = Array.isArray(row.detalle_actividades_rechazadas)
+            ? row.detalle_actividades_rechazadas
+            : [];
+        const detalleObs = Array.isArray(row.detalle_observaciones)
+            ? row.detalle_observaciones
+            : [];
+        return {
+            totalActividadesRechazadas: Number(row.total_actividades_rechazadas ?? 0),
+            totalObservaciones: Number(row.total_observaciones ?? 0),
+            totalHorasNoJustificadas: Number(row.total_horas_no_justificadas ?? 0),
+            detalleActividadesRechazadas: detalleRechazadas as ListarDesempenoResult['detalleActividadesRechazadas'],
+            detalleObservaciones: detalleObs as ListarDesempenoResult['detalleObservaciones'],
+        };
     }
 
     async obtenerActividad(idActividad: number): Promise<ActividadDetalle | null> {
