@@ -125,7 +125,7 @@ async function bootstrap() {
   
   const port = envs.port || 4001;
   const host = envs.host;
-  logger.log(`🚀 Application is running on: http://${host}:${port}/api`);
+  logger.log(`🚀⭐ Application is running on: http://${host}:${port}/api`);
   logger.log(`📖 API Docs (Scalar): http://${host}:${port}/api/docs`);
 }
 bootstrap();
