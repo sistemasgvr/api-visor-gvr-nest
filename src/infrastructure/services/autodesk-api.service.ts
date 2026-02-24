@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpClientService } from '../../shared/services/http-client.service';
 
@@ -20,6 +20,7 @@ export interface Token3LeggedResponse {
 
 @Injectable()
 export class AutodeskApiService {
+    private readonly logger = new Logger(AutodeskApiService.name);
     private readonly clientId: string;
     private readonly clientSecret: string;
     private readonly callbackUrl: string;
@@ -138,6 +139,13 @@ export class AutodeskApiService {
      * Refresca un token 3-legged usando el refresh token
      */
     async refrescarToken(refreshToken: string): Promise<Token3LeggedResponse> {
+        const token = typeof refreshToken === 'string' ? refreshToken.trim() : '';
+        if (!token) {
+            throw new Error(
+                'REFRESH_TOKEN_EXPIRED: No se recibió refresh token (vacío o inválido). Reautorice ACC.',
+            );
+        }
+
         try {
             // Encode credentials for Basic Auth
             const credentials = `${this.clientId}:${this.clientSecret}`;
@@ -147,7 +155,7 @@ export class AutodeskApiService {
                 this.authUrl,
                 new URLSearchParams({
                     grant_type: 'refresh_token',
-                    refresh_token: refreshToken,
+                    refresh_token: token,
                 }).toString(),
                 {
                     headers: {
@@ -160,9 +168,18 @@ export class AutodeskApiService {
             const expiresAt = new Date();
             expiresAt.setSeconds(expiresAt.getSeconds() + response.data.expires_in);
 
+            // Autodesk rotates refresh tokens: each use invalidates the old one and returns a new one.
+            // We must persist only the NEW refresh_token; never re-use the old one after refresh.
+            const newRefreshToken = response.data?.refresh_token?.trim?.() || undefined;
+            if (!newRefreshToken) {
+                this.logger.warn(
+                    'Autodesk refresh: response did not include refresh_token. Stored token will be cleared; user may need to re-authorize.',
+                );
+            }
+
             return {
                 access_token: response.data.access_token,
-                refresh_token: response.data.refresh_token || refreshToken,
+                refresh_token: newRefreshToken,
                 token_type: response.data.token_type,
                 expires_in: response.data.expires_in,
                 expires_at: expiresAt,

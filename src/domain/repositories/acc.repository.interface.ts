@@ -17,7 +17,7 @@ export interface IAccRepository {
     actualizarToken3Legged(
         id: number,
         tokenAcceso: string,
-        tokenRefresco: string,
+        tokenRefresco: string | null,
         expiraEn: Date,
     ): Promise<AccToken>;
 

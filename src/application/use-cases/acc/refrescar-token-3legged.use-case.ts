@@ -34,11 +34,14 @@ export class RefrescarToken3LeggedUseCase {
             // Refresh the token
             const nuevoToken = await this.autodeskApiService.refrescarToken(tokenActual.tokenRefresco);
 
+            // Autodesk rotates refresh tokens: save only the NEW one; never re-save the old one (it's already invalid).
+            const nuevoRefresh = nuevoToken.refresh_token?.trim() || null;
+
             // Update token in database
             const tokenActualizado = await this.accRepository.actualizarToken3Legged(
                 tokenActual.id!,
                 nuevoToken.access_token,
-                nuevoToken.refresh_token || tokenActual.tokenRefresco,
+                nuevoRefresh,
                 nuevoToken.expires_at,
             );
 

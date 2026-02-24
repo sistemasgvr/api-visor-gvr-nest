@@ -33,11 +33,20 @@ export class CronRefrescarTokensAccUseCase {
 
         for (const t of tokens) {
             try {
+                if (!t.tokenRefresco || t.tokenRefresco.length === 0) {
+                    this.logger.warn(`Cron refresh ACC: usuario ${t.idUsuario} sin refresh token en BD, omitido`);
+                    detalles.push({ idUsuario: t.idUsuario, ok: false, error: 'Sin refresh token en BD' });
+                    errores++;
+                    continue;
+                }
+                this.logger.debug(`Cron refresh ACC: refrescando usuario ${t.idUsuario}, token length=${t.tokenRefresco.length}`);
                 const nuevoToken = await this.autodeskApiService.refrescarToken(t.tokenRefresco);
+                // Autodesk rotates refresh tokens: we must save only the NEW one; never re-save the old one (it's already invalid).
+                const nuevoRefresh = nuevoToken.refresh_token?.trim() || null;
                 await this.accRepository.actualizarToken3Legged(
                     t.id,
                     nuevoToken.access_token,
-                    nuevoToken.refresh_token ?? t.tokenRefresco,
+                    nuevoRefresh,
                     nuevoToken.expires_at,
                 );
                 detalles.push({ idUsuario: t.idUsuario, ok: true });
