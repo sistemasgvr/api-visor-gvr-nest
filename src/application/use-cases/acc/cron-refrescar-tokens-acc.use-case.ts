@@ -1,7 +1,7 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import type { IAccRepository } from '../../../domain/repositories/acc.repository.interface';
 import { ACC_REPOSITORY } from '../../../domain/repositories/acc.repository.interface';
-import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
+import { RefrescarToken3LeggedUseCase } from './refrescar-token-3legged.use-case';
 
 export interface CronRefrescarTokensAccResult {
     total: number;
@@ -12,7 +12,9 @@ export interface CronRefrescarTokensAccResult {
 
 /**
  * Use case para el cron que refresca todos los tokens ACC cada 55 minutos.
- * Lista tokens activos con refresh_token y refresca cada uno contra Autodesk.
+ * Usa la misma lógica que POST /acc/oauth/refresh: por cada usuario con token activo (estado=1),
+ * llama a RefrescarToken3LeggedUseCase.execute(idUsuario), que obtiene el token con
+ * obtenerToken3LeggedPorUsuario, refresca contra Autodesk y actualiza en BD.
  */
 @Injectable()
 export class CronRefrescarTokensAccUseCase {
@@ -21,46 +23,31 @@ export class CronRefrescarTokensAccUseCase {
     constructor(
         @Inject(ACC_REPOSITORY)
         private readonly accRepository: IAccRepository,
-        @Inject(AutodeskApiService)
-        private readonly autodeskApiService: AutodeskApiService,
+        private readonly refrescarToken3LeggedUseCase: RefrescarToken3LeggedUseCase,
     ) {}
 
     async execute(): Promise<CronRefrescarTokensAccResult> {
         const tokens = await this.accRepository.listarTokensActivosParaRefresh();
+        const userIds = [...new Set(tokens.map((t) => t.idUsuario))];
         const detalles: { idUsuario: number; ok: boolean; error?: string }[] = [];
         let refrescados = 0;
         let errores = 0;
 
-        for (const t of tokens) {
+        for (const idUsuario of userIds) {
             try {
-                if (!t.tokenRefresco || t.tokenRefresco.length === 0) {
-                    this.logger.warn(`Cron refresh ACC: usuario ${t.idUsuario} sin refresh token en BD, omitido`);
-                    detalles.push({ idUsuario: t.idUsuario, ok: false, error: 'Sin refresh token en BD' });
-                    errores++;
-                    continue;
-                }
-                this.logger.debug(`Cron refresh ACC: refrescando usuario ${t.idUsuario}, token length=${t.tokenRefresco.length}`);
-                const nuevoToken = await this.autodeskApiService.refrescarToken(t.tokenRefresco);
-                // Autodesk rotates refresh tokens: we must save only the NEW one; never re-save the old one (it's already invalid).
-                const nuevoRefresh = nuevoToken.refresh_token?.trim() || null;
-                await this.accRepository.actualizarToken3Legged(
-                    t.id,
-                    nuevoToken.access_token,
-                    nuevoRefresh,
-                    nuevoToken.expires_at,
-                );
-                detalles.push({ idUsuario: t.idUsuario, ok: true });
+                await this.refrescarToken3LeggedUseCase.execute(idUsuario);
+                detalles.push({ idUsuario, ok: true });
                 refrescados++;
             } catch (err: any) {
                 const msg = err?.message ?? String(err);
-                this.logger.warn(`Cron refresh ACC: fallo usuario ${t.idUsuario}: ${msg}`);
-                detalles.push({ idUsuario: t.idUsuario, ok: false, error: msg });
+                this.logger.warn(`Cron refresh ACC: fallo usuario ${idUsuario}: ${msg}`);
+                detalles.push({ idUsuario, ok: false, error: msg });
                 errores++;
             }
         }
 
         return {
-            total: tokens.length,
+            total: userIds.length,
             refrescados,
             errores,
             detalles,
