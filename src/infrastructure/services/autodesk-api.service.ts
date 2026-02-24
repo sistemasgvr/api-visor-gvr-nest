@@ -169,11 +169,13 @@ export class AutodeskApiService {
             expiresAt.setSeconds(expiresAt.getSeconds() + response.data.expires_in);
 
             // Autodesk rotates refresh tokens: each use invalidates the old one and returns a new one.
-            // We must persist only the NEW refresh_token; never re-use the old one after refresh.
-            const newRefreshToken = response.data?.refresh_token?.trim?.() || undefined;
+            // Read new refresh_token (Autodesk may use snake_case or camelCase in response).
+            const rawRefresh = response.data?.refresh_token ?? response.data?.refreshToken;
+            const newRefreshToken = (typeof rawRefresh === 'string' && rawRefresh.trim()) ? rawRefresh.trim() : undefined;
             if (!newRefreshToken) {
                 this.logger.warn(
-                    'Autodesk refresh: response did not include refresh_token. Stored token will be cleared; user may need to re-authorize.',
+                    'Autodesk refresh: response did not include refresh_token. Caller will keep existing value in DB.',
+                    { keys: response.data ? Object.keys(response.data) : [] },
                 );
             }
 
