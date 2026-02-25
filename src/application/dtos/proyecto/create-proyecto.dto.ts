@@ -90,4 +90,8 @@ export class CreateProyectoDto {
     @IsOptional()
     @IsInt()
     idEstadoCotizacion?: number;
+
+    @IsOptional()
+    @IsInt()
+    idCoordinador?: number | null;
 }

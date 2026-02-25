@@ -86,6 +86,7 @@ export class ProyectoRepository implements IProyectoRepository {
                 data.idEstadoProyecto ?? null,
                 data.idEstadoCotizacion ?? null,
                 data.idUsuarioCreacion,
+                data.idCoordinador ?? null,
             ],
         );
 
@@ -118,6 +119,7 @@ export class ProyectoRepository implements IProyectoRepository {
                 data.idEstadoProyecto ?? null,
                 data.idEstadoCotizacion ?? null,
                 data.idUsuarioModificacion,
+                data.idCoordinador ?? null,
             ],
         );
 

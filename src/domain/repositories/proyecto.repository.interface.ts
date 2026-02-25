@@ -40,6 +40,7 @@ export interface CrearProyectoData {
     idEstadoProyecto?: number;
     idEstadoCotizacion?: number;
     idUsuarioCreacion: number;
+    idCoordinador?: number | null;
 }
 
 export interface EditarProyectoData extends CrearProyectoData {

@@ -15,13 +15,13 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     ) { }
 
     async listarTrabajadores(params: ListarTrabajadoresParams): Promise<ListarTrabajadoresResponse> {
-        const { idUsuario, idEmpresa = null, busqueda = '', limit = 10, offset = 0 } = params;
+        const { idUsuario, idEmpresa = null, busqueda = '', limit = 10, offset = 0, idRol = null } = params;
 
         // Call traListarTrabajadores function
-        // SELECT * FROM traListarTrabajadores(p_idUsuario, p_idEmpresa, p_busqueda, p_limit, p_offset)
+        // SELECT * FROM traListarTrabajadores(p_idUsuario, p_idEmpresa, p_busqueda, p_limit, p_offset, p_idRol)
         const result = await this.databaseFunctionService.callFunction<any>(
             'traListarTrabajadores',
-            [idUsuario, idEmpresa, busqueda, limit, offset],
+            [idUsuario, idEmpresa, busqueda, limit, offset, idRol],
         );
 
         if (!result || result.length === 0) {
