@@ -433,7 +433,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         return {
             insertados_alerta: Number(row?.insertados_alerta ?? 0),
             actualizados_alerta: Number(row?.actualizados_alerta ?? 0),
-            pasados_cerrado: Number(row?.pasados_cerrado ?? 0),
+            pasados_culminado: Number(row?.pasados_culminado ?? 0),
             pasados_incompleto: Number(row?.pasados_incompleto ?? 0),
         };
     }

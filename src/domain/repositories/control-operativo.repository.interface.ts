@@ -277,7 +277,7 @@ export interface ListarActividadesResult {
 export interface CronCierreJornadasResult {
     insertados_alerta: number;
     actualizados_alerta: number;
-    pasados_cerrado: number;
+    pasados_culminado: number;
     pasados_incompleto: number;
 }
 

@@ -68,7 +68,7 @@ export class ControlOperativoController {
                 fecha: f,
                 insertados_alerta: result.insertados_alerta,
                 actualizados_alerta: result.actualizados_alerta,
-                pasados_cerrado: result.pasados_cerrado,
+                pasados_culminado: result.pasados_culminado,
                 pasados_incompleto: result.pasados_incompleto,
             },
             'Cierre de jornadas ejecutado',
