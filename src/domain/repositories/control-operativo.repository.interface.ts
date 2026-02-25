@@ -163,12 +163,13 @@ export interface ListarDesempenoResult {
     detalleObservaciones: DesempenoObservacion[];
 }
 
-/** Parámetros para crear una actividad (concrearactividad). */
+/** Parámetros para crear una actividad (concrearactividad). idCoordinador se resuelve desde el proyecto si no se envía. */
 export interface CrearActividadParams {
     idJornada: number;
     idProyecto: number;
     idTrabajador: number;
-    idCoordinador: number;
+    /** Coordinador del proyecto (proProyecto.idcoordinador). Opcional: el use case lo obtiene del proyecto si no se envía. */
+    idCoordinador: number | null;
     idTipoActividad: number;
     nombreActividad: string;
     descripcionDetallada?: string | null;
@@ -186,7 +187,7 @@ export interface ActividadCreada {
     idjornada: number;
     idproyecto: number;
     idtrabajador: number;
-    idcoordinador: number;
+    idcoordinador: number | null;
     idtipoactividad: number;
     nombreactividad: string;
     horainicio: string;
@@ -287,12 +288,14 @@ export interface TrabajadorParaFiltro {
     nombrecompleto: string | null;
 }
 
-/** Item devuelto por pro_listar_proyectos_acceso_trabajador (proyectos a los que tiene acceso el trabajador). */
+/** Item devuelto por proListarProyectosAccesoTrabajador (proyectos a los que tiene acceso el trabajador). */
 export interface ProyectoAccesoTrabajador {
     idproyecto: number;
     nombreproyecto: string | null;
     nroproyecto: string | null;
     nombrecliente: string | null;
+    idcoordinador: number | null;
+    nombrecoordinador: string | null;
 }
 
 /** Item de trabajador que no ha registrado jornada en la fecha (para dashboard). */

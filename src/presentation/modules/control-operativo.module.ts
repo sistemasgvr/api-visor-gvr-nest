@@ -28,11 +28,13 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ProyectoModule } from './proyecto.module';
 
 @Module({
     imports: [
         DatabaseModule,
         BroadcastModule,
+        ProyectoModule,
         PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.registerAsync({
             imports: [ConfigModule],

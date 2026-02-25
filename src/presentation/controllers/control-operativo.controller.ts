@@ -232,8 +232,8 @@ export class ControlOperativoController {
     /**
      * Crear una actividad en una jornada.
      * POST /control-operativo/actividades
-     * Body: idJornada, idProyecto, idTrabajador, idCoordinador, idTipoActividad, nombreActividad,
-     *       descripcionDetallada?, horaInicio?, horaFin?, linkEvidencia?, idEstadoActividad?, idModalidad?
+     * Body: idJornada, idProyecto, idTrabajador, idTipoActividad, nombreActividad, ...
+     * idCoordinador se obtiene del proyecto (proProyecto.idcoordinador); opcional en body.
      */
     @Post('actividades')
     @UseGuards(JwtAuthGuard)
@@ -241,9 +241,9 @@ export class ControlOperativoController {
         @Body('idJornada') idJornada: number,
         @Body('idProyecto') idProyecto: number,
         @Body('idTrabajador') idTrabajador: number,
-        @Body('idCoordinador') idCoordinador: number,
         @Body('idTipoActividad') idTipoActividad: number,
         @Body('nombreActividad') nombreActividad: string,
+        @Body('idCoordinador') idCoordinador?: number,
         @Body('descripcionDetallada') descripcionDetallada?: string,
         @Body('horaInicio') horaInicio?: string,
         @Body('horaFin') horaFin?: string,
@@ -255,7 +255,7 @@ export class ControlOperativoController {
             idJornada: Number(idJornada),
             idProyecto: Number(idProyecto),
             idTrabajador: Number(idTrabajador),
-            idCoordinador: Number(idCoordinador),
+            idCoordinador: idCoordinador != null && idCoordinador > 0 ? Number(idCoordinador) : null,
             idTipoActividad: Number(idTipoActividad),
             nombreActividad: nombreActividad?.trim() ?? '',
             descripcionDetallada: descripcionDetallada?.trim() || null,

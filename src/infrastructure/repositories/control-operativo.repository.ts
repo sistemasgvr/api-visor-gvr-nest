@@ -88,7 +88,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]> {
         const result = await this.databaseFunctionService.callFunction<ProyectoAccesoTrabajador>(
-            'pro_listar_proyectos_acceso_trabajador',
+            'proListarProyectosAccesoTrabajador',
             [idTrabajador],
         );
         return result ?? [];
