@@ -52,8 +52,8 @@ export class ControlOperativoController {
      * GET /control-operativo/cron/cierre-jornadas?key=CRON_SECRET
      * GET /control-operativo/cron/cierre-jornadas?key=CRON_SECRET&fecha=YYYY-MM-DD  (opcional, para ejecutar manualmente una fecha)
      * Sin fecha usa hoy (hora Perú). Con fecha usas la indicada.
-     * Hace: 1) Crea jornadas en Alerta para quien no abrió ese día.
-     * 2) Para el día anterior: Alerta sin actividades → Incompleto; con actividades → Completado.
+     * Crea Alertas para quien no abrió ese día; pone en Alerta las de ese día sin actividades;
+     * jornadas pasados los días de tolerancia: con actividades → Cerrado, sin actividades → Incompleto.
      */
     @Get('cron/cierre-jornadas')
     async cronCierreJornadas(@Query('key') key?: string, @Query('fecha') fecha?: string) {
@@ -67,8 +67,9 @@ export class ControlOperativoController {
             {
                 fecha: f,
                 insertados_alerta: result.insertados_alerta,
+                actualizados_alerta: result.actualizados_alerta,
+                pasados_cerrado: result.pasados_cerrado,
                 pasados_incompleto: result.pasados_incompleto,
-                pasados_completado: result.pasados_completado,
             },
             'Cierre de jornadas ejecutado',
         );

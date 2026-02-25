@@ -276,8 +276,9 @@ export interface ListarActividadesResult {
 /** Retorno del cron único de cierre de jornadas (concroncierrejornadas). */
 export interface CronCierreJornadasResult {
     insertados_alerta: number;
+    actualizados_alerta: number;
+    pasados_cerrado: number;
     pasados_incompleto: number;
-    pasados_completado: number;
 }
 
 /** Item devuelto por tra_listar_trabajadores_para_filtro (para filtro por trabajador en jornadas). */
