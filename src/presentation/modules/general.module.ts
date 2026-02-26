@@ -7,6 +7,7 @@ import { UbicacionController } from '../controllers/ubicacion.controller';
 import { ListarMenuOpcionesUseCase } from '../../application/use-cases/general/listar-menu-opciones.use-case';
 import { ObtenerMenuOpcionUseCase } from '../../application/use-cases/general/obtener-menu-opcion.use-case';
 import { ObtenerOpcionesListaUseCase } from '../../application/use-cases/general/obtener-opciones-lista.use-case';
+import { CrearOpcionListaUseCase } from '../../application/use-cases/general/crear-opcion-lista.use-case';
 import { ObtenerCatalogosTrabajadorUseCase } from '../../application/use-cases/general/obtener-catalogos-trabajador.use-case';
 import { ListarMenuRecursivoUseCase } from '../../application/use-cases/general/listar-menu-recursivo.use-case';
 import { MenuRepository } from '../../infrastructure/repositories/menu.repository';
@@ -40,6 +41,7 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
         ListarMenuOpcionesUseCase,
         ObtenerMenuOpcionUseCase,
         ObtenerOpcionesListaUseCase,
+        CrearOpcionListaUseCase,
         ObtenerCatalogosTrabajadorUseCase,
         ListarMenuRecursivoUseCase,
         // JWT Strategy
