@@ -132,40 +132,44 @@ export class ControlOperativoController {
     }
 
     /**
-     * Dashboard: trabajadores que tienen jornada abierta hoy pero no han registrado ninguna actividad. Solo administradores.
-     * GET /control-operativo/trabajadores-sin-actividades-hoy?fecha=YYYY-MM-DD
+     * Dashboard: trabajadores que tienen jornada abierta hoy pero no han registrado ninguna actividad.
+     * Roles permitidos enviados por el front (rolesAdmin). GET .../trabajadores-sin-actividades-hoy?fecha=YYYY-MM-DD&rolesAdmin=1,5,11
      */
     @Get('trabajadores-sin-actividades-hoy')
     @UseGuards(JwtAuthGuard)
     async listarTrabajadoresSinActividadesHoy(
         @Req() req: Request & { user?: { id?: number; sub?: number } },
         @Query('fecha') fecha?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
     ) {
         const userId = req.user?.sub ?? req.user?.id;
         if (userId == null) {
             throw new UnauthorizedException('Usuario no identificado');
         }
         const f = (fecha ?? '').trim() || getFechaHoy();
-        const data = await this.listarTrabajadoresSinActividadesHoyUseCase.execute(Number(userId), f);
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const data = await this.listarTrabajadoresSinActividadesHoyUseCase.execute(Number(userId), f, rolesAdminIds);
         return ApiResponseDto.success(data, 'Trabajadores sin actividades hoy listados exitosamente');
     }
 
     /**
-     * Dashboard: trabajadores que no han registrado (abierto) jornada en la fecha (ej. hoy). Solo administradores.
-     * GET /control-operativo/trabajadores-sin-jornada-hoy?fecha=YYYY-MM-DD
+     * Dashboard: trabajadores que no han registrado (abierto) jornada en la fecha (ej. hoy).
+     * Roles permitidos enviados por el front (rolesAdmin). GET .../trabajadores-sin-jornada-hoy?fecha=YYYY-MM-DD&rolesAdmin=1,5,11
      */
     @Get('trabajadores-sin-jornada-hoy')
     @UseGuards(JwtAuthGuard)
     async listarTrabajadoresSinJornadaHoy(
         @Req() req: Request & { user?: { id?: number; sub?: number } },
         @Query('fecha') fecha?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
     ) {
         const userId = req.user?.sub ?? req.user?.id;
         if (userId == null) {
             throw new UnauthorizedException('Usuario no identificado');
         }
         const f = (fecha ?? '').trim() || getFechaHoy();
-        const data = await this.listarTrabajadoresSinJornadaHoyUseCase.execute(Number(userId), f);
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const data = await this.listarTrabajadoresSinJornadaHoyUseCase.execute(Number(userId), f, rolesAdminIds);
         return ApiResponseDto.success(data, 'Trabajadores sin jornada listados exitosamente');
     }
 
