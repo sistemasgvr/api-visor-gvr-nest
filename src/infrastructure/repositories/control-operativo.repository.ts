@@ -80,7 +80,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]> {
         const result = await this.databaseFunctionService.callFunction<TrabajadorParaFiltro>(
-            'tra_listar_trabajadores_para_filtro',
+            'traListarTrabajadoresParaFiltro',
             [idTrabajador],
         );
         return result ?? [];

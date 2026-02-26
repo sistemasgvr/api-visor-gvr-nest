@@ -281,7 +281,7 @@ export interface CronCierreJornadasResult {
     pasados_incompleto: number;
 }
 
-/** Item devuelto por tra_listar_trabajadores_para_filtro (para filtro por trabajador en jornadas). */
+/** Item devuelto por traListarTrabajadoresParaFiltro (para filtro por trabajador en jornadas). */
 export interface TrabajadorParaFiltro {
     idtrabajador: number;
     nombres: string | null;
