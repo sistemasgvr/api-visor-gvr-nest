@@ -47,21 +47,41 @@ export class CrearActividadUseCase {
                                   : Promise.resolve(null),
                           );
 
+            const notification = {
+                type: 'actividad_registrada',
+                title: 'Nueva actividad registrada',
+                message: `ha registrado una nueva actividad pendiente de revisión: "${data.nombreactividad}"`,
+                createdBy: { id: data.idtrabajador, name: nombreAutor, fotoPerfil: null as string | null },
+                idActividad: data.id,
+                idTrabajador: data.idtrabajador,
+                nombreActividad: data.nombreactividad,
+                horainicio: data.horainicio,
+                horafin: data.horafin,
+                horasdedicadas: data.horasdedicadas,
+                timestamp: new Date().toISOString(),
+            };
+
             if (idUsuarioANotificar != null) {
-                const notification = {
-                    type: 'actividad_registrada',
-                    title: 'Nueva actividad registrada',
-                    message: `ha registrado una nueva actividad pendiente de revisión: "${data.nombreactividad}"`,
-                    createdBy: { id: data.idtrabajador, name: nombreAutor, fotoPerfil: null as string | null },
-                    idActividad: data.id,
-                    idTrabajador: data.idtrabajador,
-                    nombreActividad: data.nombreactividad,
-                    horainicio: data.horainicio,
-                    horafin: data.horafin,
-                    horasdedicadas: data.horasdedicadas,
-                    timestamp: new Date().toISOString(),
-                };
                 await this.broadcastService.emitNotificationToUser(idUsuarioANotificar, notification);
+            }
+
+            // Notificar también al responsable del coordinador del proyecto (idresponsable de ese coordinador)
+            if (data.idcoordinador != null) {
+                const idResponsableCoordinador =
+                    await this.controlOperativoRepository.obtenerIdResponsablePorIdTrabajador(data.idcoordinador);
+                if (idResponsableCoordinador != null) {
+                    const idUsuarioResponsableCoordinador =
+                        await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(idResponsableCoordinador);
+                    if (
+                        idUsuarioResponsableCoordinador != null &&
+                        idUsuarioResponsableCoordinador !== idUsuarioANotificar
+                    ) {
+                        await this.broadcastService.emitNotificationToUser(
+                            idUsuarioResponsableCoordinador,
+                            notification,
+                        );
+                    }
+                }
             }
         } catch (error) {
             console.error('Error al emitir notificación de actividad registrada:', error);
