@@ -238,7 +238,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         } = params;
         type Row = ActividadValidacionListItem & { total_count?: number; total_horas?: number };
         const result = await this.databaseFunctionService.callFunction<Row>(
-            'conlistaractividadesvalidacion',
+            'conListarActividadesValidacion',
             [
                 idTrabajadorSesion,
                 esAdmin,
