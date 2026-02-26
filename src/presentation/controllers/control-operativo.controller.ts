@@ -333,7 +333,8 @@ export class ControlOperativoController {
 
     /**
      * Valorización: actividades aprobadas por proyecto y rango de fechas, agrupadas por modelador y coordinador.
-     * Solo administradores. GET /control-operativo/valorizacion?idProyecto=1&fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD
+     * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
+     * GET /control-operativo/valorizacion?idProyecto=1&fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD&rolesAdmin=1,5,11
      */
     @Get('valorizacion')
     @UseGuards(JwtAuthGuard)
@@ -342,6 +343,7 @@ export class ControlOperativoController {
         @Query('idProyecto') idProyecto?: string,
         @Query('fechaInicio') fechaInicio?: string,
         @Query('fechaFin') fechaFin?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
     ) {
         const userId = req.user?.sub ?? req.user?.id;
         if (userId == null) {
@@ -356,18 +358,21 @@ export class ControlOperativoController {
         if (!fInicio || !fFin) {
             return ApiResponseDto.success({ grupos: [], totalGeneralHoras: 0 }, 'Valorización (fechaInicio y fechaFin requeridos)');
         }
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
         const result = await this.listarValorizacionUseCase.execute({
             idUsuario: Number(userId),
             idProyecto: idProy,
             fechaInicio: fInicio,
             fechaFin: fFin,
+            rolesAdminPermitidos: rolesAdminIds,
         });
         return ApiResponseDto.success(result, 'Valorización listada exitosamente');
     }
 
     /**
      * Evaluación de desempeño: actividades rechazadas, observaciones, horas no justificadas, comentarios coordinador.
-     * Solo administradores. GET /control-operativo/desempeno?idProyecto=1&fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD
+     * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
+     * GET /control-operativo/desempeno?idProyecto=1&fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD&rolesAdmin=1,5,11
      */
     @Get('desempeno')
     @UseGuards(JwtAuthGuard)
@@ -376,6 +381,7 @@ export class ControlOperativoController {
         @Query('idProyecto') idProyecto?: string,
         @Query('fechaInicio') fechaInicio?: string,
         @Query('fechaFin') fechaFin?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
     ) {
         const userId = req.user?.sub ?? req.user?.id;
         if (userId == null) {
@@ -408,13 +414,27 @@ export class ControlOperativoController {
                 'Evaluación de desempeño (fechaInicio y fechaFin requeridos)',
             );
         }
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
         const result = await this.listarDesempenoUseCase.execute({
             idUsuario: Number(userId),
             idProyecto: idProy,
             fechaInicio: fInicio,
             fechaFin: fFin,
+            rolesAdminPermitidos: rolesAdminIds,
         });
         return ApiResponseDto.success(result, 'Evaluación de desempeño listada exitosamente');
+    }
+
+    /** Parsea query rolesAdmin (ej. "1,5,11") a número[]. Si viene vacío, devuelve [1, 5, 11] por compatibilidad. */
+    private parseRolesAdminQuery(rolesAdmin?: string): number[] {
+        if (rolesAdmin == null || (rolesAdmin = rolesAdmin.trim()) === '') {
+            return [1, 5, 11];
+        }
+        const ids = rolesAdmin
+            .split(',')
+            .map((s) => parseInt(s.trim(), 10))
+            .filter((n) => !Number.isNaN(n) && n >= 1);
+        return ids.length > 0 ? ids : [1, 5, 11];
     }
 
     /**
