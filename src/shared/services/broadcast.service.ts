@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { BroadcastGateway } from '../../presentation/gateways/broadcast.gateway';
 import { NOTIFICACIONES_REPOSITORY } from '../../domain/repositories/notificaciones.repository.interface';
 import type { INotificacionesRepository } from '../../domain/repositories/notificaciones.repository.interface';
@@ -9,6 +9,8 @@ import type { INotificacionesRepository } from '../../domain/repositories/notifi
  */
 @Injectable()
 export class BroadcastService {
+  private readonly logger = new Logger(BroadcastService.name);
+
   constructor(
     private readonly broadcastGateway: BroadcastGateway,
     @Inject(NOTIFICACIONES_REPOSITORY)
@@ -65,20 +67,32 @@ export class BroadcastService {
     const titulo = notification.title || 'Notificación';
     const mensaje = notification.message ?? null;
 
-    // 1) Siempre guardar en BD para que aparezca en el sistema y al cargar pendientes
-    await this.notificacionesRepository.guardarNotificacionPendiente(
-      userId,
-      tipo,
-      titulo,
-      mensaje,
-      notification, // datos completos en JSONB para compatibilidad (incidencias, control operativo, etc.)
+    this.logger.log(
+      `[NOTIF] Emitir notificación → userId=${userId} type=${tipo} title="${titulo?.substring(0, 40) ?? ''}"`,
     );
 
-    // 2) Si está conectado, enviar también por WebSocket (tiempo real + notificación navegador)
+    try {
+      // 1) Siempre guardar en BD para que aparezca en el sistema y al cargar pendientes
+      const saved = await this.notificacionesRepository.guardarNotificacionPendiente(
+        userId,
+        tipo,
+        titulo,
+        mensaje,
+        notification,
+      );
+      this.logger.log(`[NOTIF] Guardada en BD para userId=${userId} → id=${saved?.id ?? 'N/A'}`);
+    } catch (err: any) {
+      this.logger.error(`[NOTIF] Error al guardar en BD userId=${userId}: ${err?.message ?? err}`);
+      throw err;
+    }
+
+    // 2) Si está conectado, enviar también por WebSocket
     const isConnected = this.broadcastGateway.isUserConnected(userId);
+    this.logger.log(`[NOTIF] Usuario userId=${userId} conectado por socket: ${isConnected}`);
     if (isConnected) {
       const channel = `App.Models.User.${userId}`;
       this.broadcastGateway.emitToChannel(channel, 'notification', notification);
+      this.logger.log(`[NOTIF] Emitido por socket al canal ${channel}`);
     }
   }
 }

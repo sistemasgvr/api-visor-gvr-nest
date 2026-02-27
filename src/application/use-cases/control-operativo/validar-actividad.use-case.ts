@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import type {
     IControlOperativoRepository,
     ValidarActividadParams,
@@ -21,6 +21,8 @@ export interface ValidarActividadInput {
 
 @Injectable()
 export class ValidarActividadUseCase {
+    private readonly logger = new Logger(ValidarActividadUseCase.name);
+
     constructor(
         @Inject(CONTROL_OPERATIVO_REPOSITORY)
         private readonly controlOperativoRepository: IControlOperativoRepository,
@@ -50,6 +52,9 @@ export class ValidarActividadUseCase {
             const nombreRevisorDisplay = nombreRevisor?.trim() || 'El responsable';
             const idUsuarioTrabajador =
                 await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(data.idtrabajador);
+            this.logger.log(
+                `[NOTIF] ValidarActividad: idActividad=${data.id} idEstadoActividad=${input.idEstadoActividad} idUsuarioTrabajador=${idUsuarioTrabajador ?? 'null'}`,
+            );
             if (idUsuarioTrabajador != null) {
                 let type: string;
                 let title: string;
@@ -83,10 +88,11 @@ export class ValidarActividadUseCase {
                     idEstadoActividad: input.idEstadoActividad,
                     timestamp: new Date().toISOString(),
                 };
+                this.logger.log(`[NOTIF] ValidarActividad: notificando al trabajador userId=${idUsuarioTrabajador} type=${type}`);
                 await this.broadcastService.emitNotificationToUser(idUsuarioTrabajador, notification);
             }
         } catch (error) {
-            console.error('Error al emitir notificación de validación:', error);
+            this.logger.error('Error al emitir notificación de validación:', error);
         }
 
         return data;

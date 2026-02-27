@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import type {
     IControlOperativoRepository,
     CrearActividadParams,
@@ -11,6 +11,8 @@ import { BroadcastService } from '../../../shared/services/broadcast.service';
 
 @Injectable()
 export class CrearActividadUseCase {
+    private readonly logger = new Logger(CrearActividadUseCase.name);
+
     constructor(
         @Inject(CONTROL_OPERATIVO_REPOSITORY)
         private readonly controlOperativoRepository: IControlOperativoRepository,
@@ -50,9 +52,11 @@ export class CrearActividadUseCase {
                 timestamp: new Date().toISOString(),
             };
 
-            // Quién recibe: si registra otro usuario → coordinador del proyecto; si registra el coordinador → responsable del coordinador
             const esCoordinadorQuienRegistra =
                 data.idcoordinador != null && data.idtrabajador === data.idcoordinador;
+            this.logger.log(
+                `[NOTIF] CrearActividad: idActividad=${data.id} esCoordinadorQuienRegistra=${esCoordinadorQuienRegistra} idcoordinador=${data.idcoordinador ?? 'N/A'}`,
+            );
 
             if (esCoordinadorQuienRegistra && data.idcoordinador != null) {
                 const idResponsableCoordinador =
@@ -61,7 +65,10 @@ export class CrearActividadUseCase {
                     const idUsuarioResponsable =
                         await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(idResponsableCoordinador);
                     if (idUsuarioResponsable != null) {
+                        this.logger.log(`[NOTIF] CrearActividad: notificando a responsable del coordinador userId=${idUsuarioResponsable}`);
                         await this.broadcastService.emitNotificationToUser(idUsuarioResponsable, notification);
+                    } else {
+                        this.logger.warn(`[NOTIF] CrearActividad: idUsuarioResponsable es null (coordinador sin responsable)`);
                     }
                 }
             } else {
@@ -69,7 +76,10 @@ export class CrearActividadUseCase {
                     const idUsuarioCoordinador =
                         await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(data.idcoordinador);
                     if (idUsuarioCoordinador != null) {
+                        this.logger.log(`[NOTIF] CrearActividad: notificando a coordinador del proyecto userId=${idUsuarioCoordinador}`);
                         await this.broadcastService.emitNotificationToUser(idUsuarioCoordinador, notification);
+                    } else {
+                        this.logger.warn(`[NOTIF] CrearActividad: idUsuarioCoordinador es null (coordinador sin idusuario en tratrabajador)`);
                     }
                 }
             }
