@@ -11,6 +11,7 @@ import { ObtenerPerfilUseCase } from '../../application/use-cases/auth/obtener-p
 import { SubirFotoPerfilUseCase } from '../../application/use-cases/auth/subir-foto-perfil.use-case';
 import { ValidarSesionUseCase } from '../../application/use-cases/auth/validar-sesion.use-case';
 import { CerrarTodasSesionesUseCase } from '../../application/use-cases/auth/cerrar-todas-sesiones.use-case';
+import { ObtenerEstadisticasUsuariosUseCase } from '../../application/use-cases/auth/obtener-estadisticas-usuarios.use-case';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { SesionRepository } from '../../infrastructure/repositories/sesion.repository';
 import { ProfilePhotoStorageService } from '../../infrastructure/services/profile-photo-storage.service';
@@ -56,6 +57,7 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
         SubirFotoPerfilUseCase,
         ValidarSesionUseCase,
         CerrarTodasSesionesUseCase,
+        ObtenerEstadisticasUsuariosUseCase,
         // JWT Strategy
         JwtStrategy,
     ],

@@ -172,4 +172,22 @@ export class AuthRepository implements IAuthRepository {
             [conectado, idUsuario],
         );
     }
+
+    async getEstadisticasUsuarios(): Promise<{ total: number; conectados: number }> {
+        const rows = await this.dataSource.query<{ total: string; conectados: string }>(
+            `SELECT
+                COUNT(*)::int AS total,
+                COUNT(*) FILTER (WHERE isconnected = true)::int AS conectados
+             FROM authusuarios
+             WHERE estado = 1`,
+        );
+        const row = rows?.[0];
+        if (!row) {
+            return { total: 0, conectados: 0 };
+        }
+        return {
+            total: parseInt(String(row.total), 10) || 0,
+            conectados: parseInt(String(row.conectados), 10) || 0,
+        };
+    }
 }

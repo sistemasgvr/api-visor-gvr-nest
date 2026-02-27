@@ -24,6 +24,11 @@ export interface IAuthRepository {
      * Actualiza el estado de conexión del usuario (vía WebSocket).
      */
     setUsuarioConectado(idUsuario: number, conectado: boolean): Promise<void>;
+
+    /**
+     * Obtiene total de usuarios activos y cuántos están conectados (isconnected).
+     */
+    getEstadisticasUsuarios(): Promise<{ total: number; conectados: number }>;
 }
 
 export const AUTH_REPOSITORY = 'AUTH_REPOSITORY';
