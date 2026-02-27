@@ -18,11 +18,11 @@ export class ProyectoRepository implements IProyectoRepository {
     ) { }
 
     async listarProyectos(params: ListarProyectosParams): Promise<ListarProyectosResponse> {
-        const { idUsuario, idTipoProyecto = null, idPais = null, busqueda = '', limit = 10, offset = 0 } = params;
+        const { idUsuario, idTipoProyecto = null, idPais = null, idCliente = null, busqueda = '', limit = 10, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
             'proListarProyectos',
-            [idUsuario, idTipoProyecto, idPais, busqueda, limit, offset],
+            [idUsuario, idTipoProyecto, idPais, idCliente, busqueda, limit, offset],
         );
 
         if (!result || result.length === 0) {

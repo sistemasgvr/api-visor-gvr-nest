@@ -2,6 +2,7 @@ export interface ListarProyectosParams {
     idUsuario: number;
     idTipoProyecto?: number;
     idPais?: number;
+    idCliente?: number;
     busqueda?: string;
     limit?: number;
     offset?: number;
