@@ -28,6 +28,7 @@ import type {
     ValorizacionGrupo,
     ListarDesempenoParams,
     ListarDesempenoResult,
+    TrabajadorPorProyectoItem,
     TrabajadorSinJornadaHoyItem,
     TrabajadorSinActividadesHoyItem,
 } from '../../domain/repositories/control-operativo.repository.interface';
@@ -272,15 +273,24 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         return { grupos, totalGeneralHoras };
     }
 
+    async listarTrabajadoresPorProyecto(idProyecto: number): Promise<TrabajadorPorProyectoItem[]> {
+        if (idProyecto == null || idProyecto < 1) return [];
+        const result = await this.databaseFunctionService.callFunction<TrabajadorPorProyectoItem>(
+            'conlistartrabajadoresporproyecto',
+            [idProyecto],
+        );
+        return Array.isArray(result) ? result : [];
+    }
+
     async listarDesempeno(params: ListarDesempenoParams): Promise<ListarDesempenoResult> {
-        const { idProyecto, fechaInicio, fechaFin } = params;
+        const { idProyecto, fechaInicio, fechaFin, idTrabajador } = params;
         const rows = await this.databaseFunctionService.callFunction<{
             total_actividades_rechazadas?: number;
             total_observaciones?: number;
             total_horas_no_justificadas?: number;
             detalle_actividades_rechazadas?: unknown;
             detalle_observaciones?: unknown;
-        }>('conlistardesempeno', [idProyecto, fechaInicio, fechaFin]);
+        }>('conlistardesempeno', [idProyecto, fechaInicio, fechaFin, idTrabajador ?? null]);
         const row = rows?.[0];
         if (!row) {
             return {

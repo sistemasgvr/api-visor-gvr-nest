@@ -17,6 +17,7 @@ import { EliminarActividadUseCase } from '../../application/use-cases/control-op
 import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
 import { ListarValorizacionUseCase } from '../../application/use-cases/control-operativo/listar-valorizacion.use-case';
 import { ListarDesempenoUseCase } from '../../application/use-cases/control-operativo/listar-desempeno.use-case';
+import { ListarTrabajadoresPorProyectoUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-por-proyecto.use-case';
 import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
 import { ControlOperativoRepository } from '../../infrastructure/repositories/control-operativo.repository';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
@@ -74,6 +75,7 @@ import { ProyectoModule } from './proyecto.module';
         ListarActividadesValidacionUseCase,
         ListarValorizacionUseCase,
         ListarDesempenoUseCase,
+        ListarTrabajadoresPorProyectoUseCase,
         ValidarActividadUseCase,
         JwtStrategy,
     ],

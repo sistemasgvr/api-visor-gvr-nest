@@ -18,6 +18,7 @@ import { EliminarActividadUseCase } from '../../application/use-cases/control-op
 import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
 import { ListarValorizacionUseCase } from '../../application/use-cases/control-operativo/listar-valorizacion.use-case';
 import { ListarDesempenoUseCase } from '../../application/use-cases/control-operativo/listar-desempeno.use-case';
+import { ListarTrabajadoresPorProyectoUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-por-proyecto.use-case';
 import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
@@ -43,6 +44,7 @@ export class ControlOperativoController {
         private readonly listarActividadesValidacionUseCase: ListarActividadesValidacionUseCase,
         private readonly listarValorizacionUseCase: ListarValorizacionUseCase,
         private readonly listarDesempenoUseCase: ListarDesempenoUseCase,
+        private readonly listarTrabajadoresPorProyectoUseCase: ListarTrabajadoresPorProyectoUseCase,
         private readonly validarActividadUseCase: ValidarActividadUseCase,
         private readonly configService: ConfigService,
     ) {}
@@ -376,7 +378,7 @@ export class ControlOperativoController {
     /**
      * Evaluación de desempeño: actividades rechazadas, observaciones, horas no justificadas, comentarios coordinador.
      * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
-     * GET /control-operativo/desempeno?idProyecto=1&fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD&rolesAdmin=1,5,11
+     * GET /control-operativo/desempeno?idProyecto=1&fechaInicio=...&fechaFin=...&idTrabajador=1&rolesAdmin=1,5,11
      */
     @Get('desempeno')
     @UseGuards(JwtAuthGuard)
@@ -385,6 +387,7 @@ export class ControlOperativoController {
         @Query('idProyecto') idProyecto?: string,
         @Query('fechaInicio') fechaInicio?: string,
         @Query('fechaFin') fechaFin?: string,
+        @Query('idTrabajador') idTrabajador?: string,
         @Query('rolesAdmin') rolesAdmin?: string,
     ) {
         const userId = req.user?.sub ?? req.user?.id;
@@ -419,14 +422,44 @@ export class ControlOperativoController {
             );
         }
         const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const idTrab = idTrabajador != null && idTrabajador !== '' ? parseInt(idTrabajador, 10) : undefined;
         const result = await this.listarDesempenoUseCase.execute({
             idUsuario: Number(userId),
             idProyecto: idProy,
             fechaInicio: fInicio,
             fechaFin: fFin,
             rolesAdminPermitidos: rolesAdminIds,
+            idTrabajador: idTrab !== undefined && !Number.isNaN(idTrab) && idTrab >= 1 ? idTrab : undefined,
         });
         return ApiResponseDto.success(result, 'Evaluación de desempeño listada exitosamente');
+    }
+
+    /**
+     * Lista trabajadores con al menos una actividad en el proyecto (para filtro Desempeño).
+     * GET /control-operativo/trabajadores-por-proyecto?idProyecto=1&rolesAdmin=1,5,11
+     */
+    @Get('trabajadores-por-proyecto')
+    @UseGuards(JwtAuthGuard)
+    async listarTrabajadoresPorProyecto(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('idProyecto') idProyecto?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const idProy = idProyecto != null && idProyecto !== '' ? parseInt(idProyecto, 10) : NaN;
+        if (Number.isNaN(idProy) || idProy < 1) {
+            return ApiResponseDto.success([], 'Proyecto requerido');
+        }
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const result = await this.listarTrabajadoresPorProyectoUseCase.execute({
+            idUsuario: Number(userId),
+            idProyecto: idProy,
+            rolesAdminPermitidos: rolesAdminIds,
+        });
+        return ApiResponseDto.success(result, 'Trabajadores del proyecto listados exitosamente');
     }
 
     /** Parsea query rolesAdmin (ej. "1,5,11") a número[]. Si viene vacío, devuelve [1, 5, 11] por compatibilidad. */

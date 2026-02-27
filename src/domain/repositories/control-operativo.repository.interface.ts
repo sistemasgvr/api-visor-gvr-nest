@@ -130,6 +130,7 @@ export interface ListarValorizacionResult {
 /** Item de actividad rechazada para evaluación de desempeño. */
 export interface DesempenoActividadRechazada {
     id: number;
+    idtrabajador?: number | null;
     nombretrabajador: string | null;
     nombrecoordinador: string | null;
     diajornada: string;
@@ -142,6 +143,7 @@ export interface DesempenoActividadRechazada {
 export interface DesempenoObservacion {
     id: number;
     idactividad: number;
+    idtrabajador?: number | null;
     nombretrabajador: string | null;
     nombrecoordinador: string | null;
     comentario: string | null;
@@ -149,10 +151,18 @@ export interface DesempenoObservacion {
     nombreactividad: string | null;
 }
 
+/** Item para filtro de trabajadores por proyecto (Desempeño). */
+export interface TrabajadorPorProyectoItem {
+    idtrabajador: number;
+    nombretrabajador: string | null;
+}
+
 export interface ListarDesempenoParams {
     idProyecto: number;
     fechaInicio: string;
     fechaFin: string;
+    /** Opcional: filtrar por un solo trabajador. */
+    idTrabajador?: number | null;
 }
 
 export interface ListarDesempenoResult {
@@ -321,6 +331,7 @@ export interface IControlOperativoRepository {
     listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
     listarActividadesValidacion(params: ListarActividadesValidacionParams): Promise<ListarActividadesValidacionResult>;
     listarValorizacion(params: ListarValorizacionParams): Promise<ListarValorizacionResult>;
+    listarTrabajadoresPorProyecto(idProyecto: number): Promise<TrabajadorPorProyectoItem[]>;
     listarDesempeno(params: ListarDesempenoParams): Promise<ListarDesempenoResult>;
     obtenerActividad(idActividad: number): Promise<ActividadDetalle | null>;
     listarObservacionesActividad(idActividad: number): Promise<ObservacionActividad[]>;
