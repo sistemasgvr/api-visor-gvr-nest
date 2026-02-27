@@ -55,29 +55,30 @@ export class BroadcastService {
   }
 
   /**
-   * Emite una notificación a un usuario específico
-   * Si el usuario no está conectado, guarda la notificación en la base de datos
-   * @param userId ID del usuario que recibirá la notificación
-   * @param notification Datos de la notificación
+   * Emite una notificación a un usuario específico.
+   * Siempre persiste en BD (historial y entrega al abrir la app) y además emite por WebSocket si está conectado.
+   * @param userId ID del usuario que recibirá la notificación (idusuario / auth)
+   * @param notification Datos de la notificación (type, title, message, ...)
    */
   async emitNotificationToUser(userId: number, notification: any) {
-    // Verificar si el usuario está conectado
+    const tipo = notification.type || 'info';
+    const titulo = notification.title || 'Notificación';
+    const mensaje = notification.message ?? null;
+
+    // 1) Siempre guardar en BD para que aparezca en el sistema y al cargar pendientes
+    await this.notificacionesRepository.guardarNotificacionPendiente(
+      userId,
+      tipo,
+      titulo,
+      mensaje,
+      notification, // datos completos en JSONB para compatibilidad (incidencias, control operativo, etc.)
+    );
+
+    // 2) Si está conectado, enviar también por WebSocket (tiempo real + notificación navegador)
     const isConnected = this.broadcastGateway.isUserConnected(userId);
-    
     if (isConnected) {
-      // Usuario conectado: enviar por WebSocket
       const channel = `App.Models.User.${userId}`;
       this.broadcastGateway.emitToChannel(channel, 'notification', notification);
-    } else {
-      // Usuario no conectado: guardar en base de datos
-      // Toda la información específica se almacena en el campo 'datos'
-      await this.notificacionesRepository.guardarNotificacionPendiente(
-        userId,
-        notification.type || 'info',
-        notification.title || 'Notificación',
-        notification.message || null,
-        notification, // Toda la notificación se guarda en datos para mantener compatibilidad
-      );
     }
   }
 }

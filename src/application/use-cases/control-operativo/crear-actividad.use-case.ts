@@ -36,17 +36,6 @@ export class CrearActividadUseCase {
                 await this.controlOperativoRepository.obtenerNombreTrabajadorPorId(data.idtrabajador);
             const nombreAutor = nombreTrabajador?.trim() || 'Un usuario';
 
-            const idUsuarioANotificar =
-                data.idcoordinador != null
-                    ? await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(data.idcoordinador)
-                    : await this.controlOperativoRepository
-                          .obtenerIdResponsablePorIdTrabajador(data.idtrabajador)
-                          .then((idResp) =>
-                              idResp != null
-                                  ? this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(idResp)
-                                  : Promise.resolve(null),
-                          );
-
             const notification = {
                 type: 'actividad_registrada',
                 title: 'Nueva actividad registrada',
@@ -61,25 +50,26 @@ export class CrearActividadUseCase {
                 timestamp: new Date().toISOString(),
             };
 
-            if (idUsuarioANotificar != null) {
-                await this.broadcastService.emitNotificationToUser(idUsuarioANotificar, notification);
-            }
+            // Quién recibe: si registra otro usuario → coordinador del proyecto; si registra el coordinador → responsable del coordinador
+            const esCoordinadorQuienRegistra =
+                data.idcoordinador != null && data.idtrabajador === data.idcoordinador;
 
-            // Notificar también al responsable del coordinador del proyecto (idresponsable de ese coordinador)
-            if (data.idcoordinador != null) {
+            if (esCoordinadorQuienRegistra && data.idcoordinador != null) {
                 const idResponsableCoordinador =
                     await this.controlOperativoRepository.obtenerIdResponsablePorIdTrabajador(data.idcoordinador);
                 if (idResponsableCoordinador != null) {
-                    const idUsuarioResponsableCoordinador =
+                    const idUsuarioResponsable =
                         await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(idResponsableCoordinador);
-                    if (
-                        idUsuarioResponsableCoordinador != null &&
-                        idUsuarioResponsableCoordinador !== idUsuarioANotificar
-                    ) {
-                        await this.broadcastService.emitNotificationToUser(
-                            idUsuarioResponsableCoordinador,
-                            notification,
-                        );
+                    if (idUsuarioResponsable != null) {
+                        await this.broadcastService.emitNotificationToUser(idUsuarioResponsable, notification);
+                    }
+                }
+            } else {
+                if (data.idcoordinador != null) {
+                    const idUsuarioCoordinador =
+                        await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(data.idcoordinador);
+                    if (idUsuarioCoordinador != null) {
+                        await this.broadcastService.emitNotificationToUser(idUsuarioCoordinador, notification);
                     }
                 }
             }
