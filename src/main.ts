@@ -49,21 +49,23 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   // Configurar CORS: frontend + Collabora. Sin origin = permitir (peticiones server-to-server)
+  // Safari/iOS: credentials: true + origin exacto; si en el futuro se usan cookies, deben ser SameSite=None; Secure.
   const allowedOrigins = [...envs.frontendUrls];
   if (envs.collaboraUrl) {
     allowedOrigins.push(envs.collaboraUrl);
   }
-  
+
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       if (!origin) return callback(null, true); // Collabora server-to-server sin Origin
-      if (allowedOrigins.some((o) => origin === o || origin === o.replace(/\/$/, '')))
+      const normalized = origin.replace(/\/$/, '');
+      if (allowedOrigins.some((o) => origin === o || normalized === o.replace(/\/$/, '')))
         return callback(null, true);
       callback(null, false);
     },
     methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
     allowedHeaders:
-      'Content-Type, Authorization, X-Requested-With, User-Agent, X-WOPI-Override, X-WOPI-Lock, X-WOPI-Editors, X-LOOL-WOPI-IsModifiedByUser, X-LOOL-WOPI-IsAutosave',
+      'Content-Type, Accept, Accept-Language, Authorization, X-Requested-With, User-Agent, X-WOPI-Override, X-WOPI-Lock, X-WOPI-Editors, X-LOOL-WOPI-IsModifiedByUser, X-LOOL-WOPI-IsAutosave',
     exposedHeaders: 'Authorization, Content-Length, Content-Type',
     credentials: true,
     preflightContinue: false,

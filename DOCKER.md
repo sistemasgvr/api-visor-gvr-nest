@@ -147,6 +147,11 @@ docker exec -it <container-id> sh
 - Configura `ALLOWED_ORIGINS` con los dominios correctos
 - No uses `*` en producción
 
+### Login falla solo en iPhone / Safari ("credenciales inválidas")
+- **Cookies**: Si en el futuro la API o un proxy (p. ej. Easypanel) envía cookies, en Safari/iOS deben usar `SameSite=None` y `Secure`, o Safari las bloquea y puede afectar la sesión.
+- **CORS**: La API ya envía `credentials: true` y cabeceras compatibles con Safari (`Accept`, `Accept-Language`). Comprueba que la URL del frontend en iPhone esté incluida en `FRONTEND_URLS` (sin diferencias de protocolo o barra final).
+- **Espacios en credenciales**: La API y el frontend hacen `trim()` de correo y contraseña para evitar fallos por espacios/autocompletado en iOS.
+
 ## Comandos para crear y subir imagen a Docker
 
 # 1. Construir nueva imagen
