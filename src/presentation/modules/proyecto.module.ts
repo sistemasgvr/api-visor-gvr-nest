@@ -19,6 +19,7 @@ import { ActualizarDocumentoProyectoUseCase } from '../../application/use-cases/
 import { EliminarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-documento-proyecto.use-case';
 import { ListarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/listar-coordinadores-proyecto.use-case';
 import { GuardarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/guardar-coordinadores-proyecto.use-case';
+import { ListarEstadisticasProyectosPorEstadoUseCase } from '../../application/use-cases/proyecto/listar-estadisticas-proyectos-por-estado.use-case';
 import { ProyectoRepository } from '../../infrastructure/repositories/proyecto.repository';
 import { PROYECTO_REPOSITORY } from '../../domain/repositories/proyecto.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
@@ -61,6 +62,7 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
         EliminarDocumentoProyectoUseCase,
         ListarCoordinadoresProyectoUseCase,
         GuardarCoordinadoresProyectoUseCase,
+        ListarEstadisticasProyectosPorEstadoUseCase,
         JwtStrategy,
     ],
     exports: [PROYECTO_REPOSITORY],

@@ -3,6 +3,7 @@ import type {
     IProyectoRepository,
     ListarProyectosParams,
     ListarProyectosResponse,
+    ProyectoPorEstadoItem,
     CrearProyectoData,
     EditarProyectoData,
     ListarUsuariosDisponiblesParams,
@@ -50,6 +51,18 @@ export class ProyectoRepository implements IProyectoRepository {
                 current_page: limit > 0 ? Math.floor(offset / limit) + 1 : 1,
             },
         };
+    }
+
+    async contarProyectosPorEstado(): Promise<ProyectoPorEstadoItem[]> {
+        const result = await this.databaseFunctionService.callFunction<{ nombre_estado: string; cantidad: number | string }>(
+            'proContarProyectosPorEstado',
+            [],
+        );
+        if (!Array.isArray(result)) return [];
+        return result.map((row) => ({
+            nombre_estado: row.nombre_estado ?? 'Sin estado',
+            cantidad: typeof row.cantidad === 'number' ? row.cantidad : Number(row.cantidad) || 0,
+        }));
     }
 
     async obtenerProyectoPorId(idProyecto: number): Promise<any> {

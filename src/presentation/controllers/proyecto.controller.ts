@@ -32,6 +32,7 @@ import { ActualizarDocumentoProyectoUseCase } from '../../application/use-cases/
 import { EliminarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-documento-proyecto.use-case';
 import { ListarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/listar-coordinadores-proyecto.use-case';
 import { GuardarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/guardar-coordinadores-proyecto.use-case';
+import { ListarEstadisticasProyectosPorEstadoUseCase } from '../../application/use-cases/proyecto/listar-estadisticas-proyectos-por-estado.use-case';
 import { CreateProyectoDto } from '../../application/dtos/proyecto/create-proyecto.dto';
 import { UpdateProyectoDto } from '../../application/dtos/proyecto/update-proyecto.dto';
 import { AsignarAccesoProyectoDto } from '../../application/dtos/proyecto/asignar-acceso-proyecto.dto';
@@ -63,8 +64,16 @@ export class ProyectoController {
         private readonly eliminarDocumentoProyectoUseCase: EliminarDocumentoProyectoUseCase,
         private readonly listarCoordinadoresProyectoUseCase: ListarCoordinadoresProyectoUseCase,
         private readonly guardarCoordinadoresProyectoUseCase: GuardarCoordinadoresProyectoUseCase,
+        private readonly listarEstadisticasProyectosPorEstadoUseCase: ListarEstadisticasProyectosPorEstadoUseCase,
         private readonly jwtService: JwtService,
     ) {}
+
+    @Get('estadisticas-por-estado')
+    @HttpCode(HttpStatus.OK)
+    async listarEstadisticasProyectosPorEstado() {
+        const data = await this.listarEstadisticasProyectosPorEstadoUseCase.execute();
+        return ApiResponseDto.success(data, 'Estadísticas de proyectos por estado');
+    }
 
     @Get()
     @HttpCode(HttpStatus.OK)

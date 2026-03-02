@@ -88,8 +88,14 @@ export interface GuardarCoordinadoresProyectoPayload {
     subordinados: number[];
 }
 
+export interface ProyectoPorEstadoItem {
+    nombre_estado: string;
+    cantidad: number;
+}
+
 export interface IProyectoRepository {
     listarProyectos(params: ListarProyectosParams): Promise<ListarProyectosResponse>;
+    contarProyectosPorEstado(): Promise<ProyectoPorEstadoItem[]>;
     obtenerProyectoPorId(idProyecto: number): Promise<any>;
     crearProyecto(data: CrearProyectoData): Promise<any>;
     editarProyecto(data: EditarProyectoData): Promise<any>;
