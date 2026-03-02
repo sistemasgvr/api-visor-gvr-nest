@@ -119,7 +119,9 @@ export class ControlOperativoController {
     }
 
     /**
-     * Listar proyectos a los que tiene acceso el trabajador (para filtro en actividades).
+     * Listar proyectos para filtros en actividades, valorización, desempeño y validación.
+     * idTrabajador = tratrabajador.id (ID del trabajador), NO idUsuario (auth). Proyectos se filtran por proaccesoproyecto.idtrabajador.
+     * Por rol: admins ven todos; coordinador BIM los que coordina; resto por acceso.
      * GET /control-operativo/proyectos-acceso-trabajador?idTrabajador=123
      */
     @Get('proyectos-acceso-trabajador')
@@ -127,7 +129,7 @@ export class ControlOperativoController {
     async listarProyectosAccesoTrabajador(@Query('idTrabajador') idTrabajador?: string) {
         const id = idTrabajador != null && idTrabajador !== '' ? parseInt(idTrabajador, 10) : NaN;
         if (Number.isNaN(id) || id < 1) {
-            return ApiResponseDto.success([], 'Proyectos acceso (sin idTrabajador se devuelve vacío)');
+            return ApiResponseDto.success([], 'Proyectos acceso (idTrabajador = tratrabajador.id requerido)');
         }
         const data = await this.listarProyectosAccesoTrabajadorUseCase.execute(id);
         return ApiResponseDto.success(data, 'Proyectos con acceso listados exitosamente');

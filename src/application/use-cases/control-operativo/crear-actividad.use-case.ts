@@ -22,6 +22,7 @@ export class CrearActividadUseCase {
     ) {}
 
     async execute(params: CrearActividadParams): Promise<ActividadCreada | null> {
+        // Coordinador: el asignado al subordinado en el proyecto o el primer coordinador del proyecto
         const idCoordinador =
             params.idCoordinador != null
                 ? params.idCoordinador
