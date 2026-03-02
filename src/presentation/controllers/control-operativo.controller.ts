@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Query, Body, UseGuards, ParseIntPipe, UnauthorizedException, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Query, Body, UseGuards, ParseIntPipe, UnauthorizedException, Req, Header, HttpCode, HttpStatus } from '@nestjs/common';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
@@ -125,6 +125,8 @@ export class ControlOperativoController {
      * GET /control-operativo/proyectos-acceso-trabajador?idTrabajador=123
      */
     @Get('proyectos-acceso-trabajador')
+    @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
     @UseGuards(JwtAuthGuard)
     async listarProyectosAccesoTrabajador(@Query('idTrabajador') idTrabajador?: string) {
         const id = idTrabajador != null && idTrabajador !== '' ? parseInt(idTrabajador, 10) : NaN;
@@ -132,7 +134,7 @@ export class ControlOperativoController {
             return ApiResponseDto.success([], 'Proyectos acceso (idTrabajador = tratrabajador.id requerido)');
         }
         const data = await this.listarProyectosAccesoTrabajadorUseCase.execute(id);
-        return ApiResponseDto.success(data, 'Proyectos con acceso listados exitosamente');
+        return ApiResponseDto.success(Array.isArray(data) ? data : [], 'Proyectos con acceso listados exitosamente');
     }
 
     /**

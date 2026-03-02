@@ -92,7 +92,9 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             'proListarProyectosAccesoTrabajador',
             [idTrabajador],
         );
-        return result ?? [];
+        if (Array.isArray(result)) return result;
+        if (result != null && typeof result === 'object') return [result as ProyectoAccesoTrabajador];
+        return [];
     }
 
     async listarTrabajadoresSinJornadaHoy(fecha: string): Promise<TrabajadorSinJornadaHoyItem[]> {
