@@ -327,6 +327,10 @@ export interface IControlOperativoRepository {
     listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]>;
     listarTrabajadoresSinJornadaHoy(fecha: string): Promise<TrabajadorSinJornadaHoyItem[]>;
     listarTrabajadoresSinActividadesHoy(fecha: string): Promise<TrabajadorSinActividadesHoyItem[]>;
+    /** Total de trabajadores que deben tener jornada en la fecha (para dashboard). */
+    contarTrabajadoresEsperadosJornadaHoy(fecha: string): Promise<number>;
+    /** Total de trabajadores con jornada en la fecha (para dashboard sin actividades). */
+    contarTrabajadoresConJornadaHoy(fecha: string): Promise<number>;
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
     listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
     listarActividadesValidacion(params: ListarActividadesValidacionParams): Promise<ListarActividadesValidacionResult>;

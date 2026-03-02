@@ -5,6 +5,11 @@ import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/contr
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
 import type { TrabajadorSinActividadesHoyItem } from '../../../domain/repositories/control-operativo.repository.interface';
 
+export interface ListarTrabajadoresSinActividadesHoyResult {
+    data: TrabajadorSinActividadesHoyItem[];
+    total: number;
+}
+
 @Injectable()
 export class ListarTrabajadoresSinActividadesHoyUseCase {
     constructor(
@@ -14,7 +19,7 @@ export class ListarTrabajadoresSinActividadesHoyUseCase {
         private readonly authRepository: IAuthRepository,
     ) {}
 
-    async execute(idUsuario: number, fecha: string, rolesAdminPermitidos: number[]): Promise<TrabajadorSinActividadesHoyItem[]> {
+    async execute(idUsuario: number, fecha: string, rolesAdminPermitidos: number[]): Promise<ListarTrabajadoresSinActividadesHoyResult> {
         const perfil = await this.authRepository.obtenerPerfilUsuario(idUsuario);
         if (!perfil?.roles || !Array.isArray(perfil.roles)) {
             throw new UnauthorizedException('Solo administradores pueden ver quién no ha registrado actividades hoy');
@@ -25,6 +30,10 @@ export class ListarTrabajadoresSinActividadesHoyUseCase {
         if (!esAdmin) {
             throw new UnauthorizedException('Solo administradores pueden ver quién no ha registrado actividades hoy');
         }
-        return this.controlOperativoRepository.listarTrabajadoresSinActividadesHoy(fecha);
+        const [data, total] = await Promise.all([
+            this.controlOperativoRepository.listarTrabajadoresSinActividadesHoy(fecha),
+            this.controlOperativoRepository.contarTrabajadoresConJornadaHoy(fecha),
+        ]);
+        return { data, total };
     }
 }

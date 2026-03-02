@@ -113,6 +113,22 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         return Array.isArray(result) ? result : [];
     }
 
+    async contarTrabajadoresEsperadosJornadaHoy(fecha: string): Promise<number> {
+        const row = await this.databaseFunctionService.callFunctionSingle<Record<string, unknown>>(
+            'concontartrabajadoresesperadosjornadahoy',
+            [fecha],
+        );
+        return getScalarInt(row);
+    }
+
+    async contarTrabajadoresConJornadaHoy(fecha: string): Promise<number> {
+        const row = await this.databaseFunctionService.callFunctionSingle<Record<string, unknown>>(
+            'concontartrabajadoresconjornadahoy',
+            [fecha],
+        );
+        return getScalarInt(row);
+    }
+
     /** Normaliza fecha a YYYY-MM-DD (la BD/driver puede devolver Date o string en distintos formatos). */
     private formatFechaYYYYMMDD(value: unknown): string {
         if (value == null || value === '') return '';

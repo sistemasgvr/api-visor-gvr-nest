@@ -154,8 +154,8 @@ export class ControlOperativoController {
         }
         const f = (fecha ?? '').trim() || getFechaHoy();
         const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
-        const data = await this.listarTrabajadoresSinActividadesHoyUseCase.execute(Number(userId), f, rolesAdminIds);
-        return ApiResponseDto.success(data, 'Trabajadores sin actividades hoy listados exitosamente');
+        const result = await this.listarTrabajadoresSinActividadesHoyUseCase.execute(Number(userId), f, rolesAdminIds);
+        return ApiResponseDto.success(result, 'Trabajadores sin actividades hoy listados exitosamente');
     }
 
     /**
@@ -175,8 +175,8 @@ export class ControlOperativoController {
         }
         const f = (fecha ?? '').trim() || getFechaHoy();
         const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
-        const data = await this.listarTrabajadoresSinJornadaHoyUseCase.execute(Number(userId), f, rolesAdminIds);
-        return ApiResponseDto.success(data, 'Trabajadores sin jornada listados exitosamente');
+        const result = await this.listarTrabajadoresSinJornadaHoyUseCase.execute(Number(userId), f, rolesAdminIds);
+        return ApiResponseDto.success(result, 'Trabajadores sin jornada listados exitosamente');
     }
 
     /**
