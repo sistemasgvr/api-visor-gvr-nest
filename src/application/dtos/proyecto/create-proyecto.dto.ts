@@ -90,8 +90,4 @@ export class CreateProyectoDto {
     @IsOptional()
     @IsInt()
     idEstadoCotizacion?: number;
-
-    @IsNotEmpty({ message: 'Debe seleccionar un coordinador' })
-    @IsInt()
-    idCoordinador: number;
 }

@@ -41,7 +41,6 @@ export interface CrearProyectoData {
     idEstadoProyecto?: number;
     idEstadoCotizacion?: number;
     idUsuarioCreacion: number;
-    idCoordinador?: number | null;
 }
 
 export interface EditarProyectoData extends CrearProyectoData {
@@ -75,6 +74,20 @@ export interface ActualizarDocumentoProyectoData {
     linkDocumento?: string;
 }
 
+/** Coordinador con sus subordinados (proListarCoordinadoresProyecto) */
+export interface CoordinadorProyectoItem {
+    id_proyectocoordinador: number;
+    idtrabajador: number;
+    nombrecoordinador: string;
+    subordinados: { id: number; idtrabajador: number; nombretrabajador: string }[];
+}
+
+/** Payload para guardar coordinadores (proGuardarCoordinadoresProyecto) */
+export interface GuardarCoordinadoresProyectoPayload {
+    idtrabajador: number;
+    subordinados: number[];
+}
+
 export interface IProyectoRepository {
     listarProyectos(params: ListarProyectosParams): Promise<ListarProyectosResponse>;
     obtenerProyectoPorId(idProyecto: number): Promise<any>;
@@ -90,6 +103,10 @@ export interface IProyectoRepository {
     crearDocumentoProyecto(idProyecto: number, data: CrearDocumentoProyectoData, idUsuarioCreacion: number): Promise<AsignarAccesoProyectoResult>;
     actualizarDocumentoProyecto(idDocumento: number, data: ActualizarDocumentoProyectoData, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }>;
     eliminarDocumentoProyecto(idDocumento: number, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }>;
+    listarCoordinadoresProyecto(idProyecto: number): Promise<CoordinadorProyectoItem[]>;
+    guardarCoordinadoresProyecto(idProyecto: number, coordinadores: GuardarCoordinadoresProyectoPayload[], idUsuario: number): Promise<{ success: boolean; message: string }>;
+    obtenerCoordinadorParaTrabajadorEnProyecto(idProyecto: number, idTrabajador: number): Promise<number | null>;
+    obtenerPrimerCoordinadorProyecto(idProyecto: number): Promise<number | null>;
 }
 
 export const PROYECTO_REPOSITORY = 'PROYECTO_REPOSITORY';

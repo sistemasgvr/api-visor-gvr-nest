@@ -86,7 +86,6 @@ export class ProyectoRepository implements IProyectoRepository {
                 data.idEstadoProyecto ?? null,
                 data.idEstadoCotizacion ?? null,
                 data.idUsuarioCreacion,
-                data.idCoordinador ?? null,
             ],
         );
 
@@ -119,7 +118,6 @@ export class ProyectoRepository implements IProyectoRepository {
                 data.idEstadoProyecto ?? null,
                 data.idEstadoCotizacion ?? null,
                 data.idUsuarioModificacion,
-                data.idCoordinador ?? null,
             ],
         );
 
@@ -224,5 +222,45 @@ export class ProyectoRepository implements IProyectoRepository {
             [idDocumento, idUsuarioModificacion],
         );
         return result;
+    }
+
+    async listarCoordinadoresProyecto(idProyecto: number): Promise<import('../../domain/repositories/proyecto.repository.interface').CoordinadorProyectoItem[]> {
+        const result = await this.databaseFunctionService.callFunction<any>(
+            'proListarCoordinadoresProyecto',
+            [idProyecto],
+        );
+        return result ?? [];
+    }
+
+    async guardarCoordinadoresProyecto(
+        idProyecto: number,
+        coordinadores: import('../../domain/repositories/proyecto.repository.interface').GuardarCoordinadoresProyectoPayload[],
+        idUsuario: number,
+    ): Promise<{ success: boolean; message: string }> {
+        const payload = coordinadores.map((c) => ({
+            idtrabajador: c.idtrabajador,
+            subordinados: c.subordinados ?? [],
+        }));
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proGuardarCoordinadoresProyecto',
+            [idProyecto, JSON.stringify(payload), idUsuario],
+        );
+        return result;
+    }
+
+    async obtenerCoordinadorParaTrabajadorEnProyecto(idProyecto: number, idTrabajador: number): Promise<number | null> {
+        const result = await this.databaseFunctionService.callFunctionSingle<number | null>(
+            'proObtenerCoordinadorParaTrabajadorEnProyecto',
+            [idProyecto, idTrabajador],
+        );
+        return result != null && Number(result) > 0 ? Number(result) : null;
+    }
+
+    async obtenerPrimerCoordinadorProyecto(idProyecto: number): Promise<number | null> {
+        const result = await this.databaseFunctionService.callFunctionSingle<number | null>(
+            'proObtenerPrimerCoordinadorProyecto',
+            [idProyecto],
+        );
+        return result != null && Number(result) > 0 ? Number(result) : null;
     }
 }

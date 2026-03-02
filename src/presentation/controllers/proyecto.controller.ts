@@ -30,12 +30,15 @@ import { ListarDocumentosProyectoUseCase } from '../../application/use-cases/pro
 import { CrearDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/crear-documento-proyecto.use-case';
 import { ActualizarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-documento-proyecto.use-case';
 import { EliminarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-documento-proyecto.use-case';
+import { ListarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/listar-coordinadores-proyecto.use-case';
+import { GuardarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/guardar-coordinadores-proyecto.use-case';
 import { CreateProyectoDto } from '../../application/dtos/proyecto/create-proyecto.dto';
 import { UpdateProyectoDto } from '../../application/dtos/proyecto/update-proyecto.dto';
 import { AsignarAccesoProyectoDto } from '../../application/dtos/proyecto/asignar-acceso-proyecto.dto';
 import { ActualizarNivelAccesoProyectoDto } from '../../application/dtos/proyecto/actualizar-nivel-acceso-proyecto.dto';
 import { CreateDocumentoProyectoDto } from '../../application/dtos/proyecto/create-documento-proyecto.dto';
 import { UpdateDocumentoProyectoDto } from '../../application/dtos/proyecto/update-documento-proyecto.dto';
+import { GuardarCoordinadoresProyectoDto } from '../../application/dtos/proyecto/guardar-coordinadores-proyecto.dto';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
@@ -58,6 +61,8 @@ export class ProyectoController {
         private readonly crearDocumentoProyectoUseCase: CrearDocumentoProyectoUseCase,
         private readonly actualizarDocumentoProyectoUseCase: ActualizarDocumentoProyectoUseCase,
         private readonly eliminarDocumentoProyectoUseCase: EliminarDocumentoProyectoUseCase,
+        private readonly listarCoordinadoresProyectoUseCase: ListarCoordinadoresProyectoUseCase,
+        private readonly guardarCoordinadoresProyectoUseCase: GuardarCoordinadoresProyectoUseCase,
         private readonly jwtService: JwtService,
     ) {}
 
@@ -160,6 +165,27 @@ export class ProyectoController {
         const payload = await this.jwtService.verifyAsync(token);
         const data = await this.removerAccesoProyectoUseCase.execute(id, idAcceso, payload.sub);
         return ApiResponseDto.success(data, 'Acceso removido exitosamente');
+    }
+
+    @Get(':id/coordinadores')
+    @HttpCode(HttpStatus.OK)
+    async listarCoordinadoresProyecto(@Param('id', ParseIntPipe) id: number) {
+        const data = await this.listarCoordinadoresProyectoUseCase.execute(id);
+        return ApiResponseDto.success(data, 'Coordinadores del proyecto');
+    }
+
+    @Put(':id/coordinadores')
+    @HttpCode(HttpStatus.OK)
+    async guardarCoordinadoresProyecto(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: GuardarCoordinadoresProyectoDto,
+        @Req() request: Request,
+    ) {
+        const token = this.extractTokenFromHeader(request);
+        if (!token) throw new UnauthorizedException('Token no proporcionado');
+        const payload = await this.jwtService.verifyAsync(token);
+        const data = await this.guardarCoordinadoresProyectoUseCase.execute(id, dto, payload.sub);
+        return ApiResponseDto.success(data, 'Coordinadores actualizados');
     }
 
     @Get(':id/documentos')

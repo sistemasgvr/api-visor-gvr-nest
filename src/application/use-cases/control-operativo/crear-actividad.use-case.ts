@@ -25,7 +25,7 @@ export class CrearActividadUseCase {
         const idCoordinador =
             params.idCoordinador != null
                 ? params.idCoordinador
-                : await this.obtenerIdCoordinadorDelProyecto(params.idProyecto);
+                : await this.obtenerIdCoordinadorParaTrabajadorEnProyecto(params.idProyecto, params.idTrabajador);
 
         const data = await this.controlOperativoRepository.crearActividad({
             ...params,
@@ -90,9 +90,10 @@ export class CrearActividadUseCase {
         return data;
     }
 
-    private async obtenerIdCoordinadorDelProyecto(idProyecto: number): Promise<number | null> {
-        const proyecto = await this.proyectoRepository.obtenerProyectoPorId(idProyecto);
-        const id = proyecto?.idcoordinador;
-        return id != null && Number(id) > 0 ? Number(id) : null;
+    /** Coordinador asignado al trabajador en el proyecto; si no tiene, el primer coordinador del proyecto. */
+    private async obtenerIdCoordinadorParaTrabajadorEnProyecto(idProyecto: number, idTrabajador: number): Promise<number | null> {
+        const asignado = await this.proyectoRepository.obtenerCoordinadorParaTrabajadorEnProyecto(idProyecto, idTrabajador);
+        if (asignado != null) return asignado;
+        return this.proyectoRepository.obtenerPrimerCoordinadorProyecto(idProyecto);
     }
 }
