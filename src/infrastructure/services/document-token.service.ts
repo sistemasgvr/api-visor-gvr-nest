@@ -105,16 +105,22 @@ export class DocumentTokenService {
     /** Almacén de sesiones de usuario por access_token (para WOPI con mismo docId) */
     private userSessions: Map<string, UserSessionTokenData & { token: string }> = new Map();
 
+    /** Duración base de la sesión WOPI: 8 horas (evita que al cambiar de pestaña caduque pronto) */
+    private readonly WOPI_SESSION_EXPIRATION_MINUTES = 8 * 60;
+    /** Al cada validación se prorroga la sesión este tiempo (sliding expiration) */
+    private readonly WOPI_SESSION_SLIDE_MINUTES = 60;
+
     /**
      * Crea un token de sesión de usuario para WOPI. Se usa como access_token en la URL
      * para que CheckFileInfo/GetFile/PutFile sepan qué usuario es sin cambiar el docId.
+     * Expira en 8h por defecto; cada uso prorroga la sesión (sliding).
      */
     createUserSessionToken(
         userId: number,
         projectId: string,
         itemId: string,
         fileName: string,
-        expiresInMinutes: number,
+        expiresInMinutes: number = this.WOPI_SESSION_EXPIRATION_MINUTES,
         accessToken?: string,
     ): string {
         const token = randomUUID();
@@ -134,6 +140,8 @@ export class DocumentTokenService {
 
     /**
      * Valida el access_token de sesión y devuelve los datos si es válido.
+     * Si la sesión es válida, se prorroga la expiración (sliding) para que al volver
+     * a la pestaña o al reconectar Collabora no se invalide.
      * Comprobar además que generateStableDocId(projectId, itemId) === docId del path.
      */
     validateUserSessionToken(accessToken: string): UserSessionTokenData | null {
@@ -142,13 +150,16 @@ export class DocumentTokenService {
             if (session) this.userSessions.delete(accessToken);
             return null;
         }
+        const now = new Date();
+        const newExpiresAt = new Date(now.getTime() + this.WOPI_SESSION_SLIDE_MINUTES * 60 * 1000);
+        session.expiresAt = newExpiresAt;
         return {
             userId: session.userId,
             projectId: session.projectId,
             itemId: session.itemId,
             fileName: session.fileName,
             accessToken: session.accessToken,
-            expiresAt: session.expiresAt,
+            expiresAt: newExpiresAt,
         };
     }
 

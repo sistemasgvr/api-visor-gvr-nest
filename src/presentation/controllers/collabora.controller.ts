@@ -94,7 +94,7 @@ export class CollaboraController {
         projectId,
         itemId,
         fileInfo.fileName,
-        60,
+        8 * 60,
         accessToken,
       );
 
