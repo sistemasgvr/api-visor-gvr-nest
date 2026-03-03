@@ -605,8 +605,10 @@ export class CollaboraController {
         this.logger.warn(`[WOPI PutFile] userId inválido para auditoría: ${tokenData.userId}`);
       } else {
         try {
-          this.logger.log(`[WOPI PutFile] Registrando auditoría para idUsuario=${auditUserId}`);
-          await this.auditoriaRepository.registrarAccion(
+          const ip = typeof (req as any).ip === 'string' ? (req as any).ip : (req as any).socket?.remoteAddress ?? '';
+          const userAgent = typeof (req as any).get === 'function' ? (req as any).get('user-agent') : (req as any).headers?.['user-agent'] ?? '';
+          this.logger.log(`[WOPI PutFile] Registrando auditoría idUsuario=${auditUserId}, ip=${ip || '(vacío)'}, userAgent=${userAgent ? 'present' : '(vacío)'}`);
+          const auditResult = await this.auditoriaRepository.registrarAccion(
             auditUserId,
             'FILE_VERSION_SAVE',
             'file',
@@ -619,14 +621,19 @@ export class CollaboraController {
               fileName: tokenData.fileName,
               source: 'collabora',
             },
-            (req as any).ip || (req as any).socket?.remoteAddress || '',
-            (req as any).get?.('user-agent') || (req as any).headers?.['user-agent'] || '',
+            ip || ' ',
+            userAgent || ' ',
             {
               projectId: tokenData.projectId,
               accItemId: tokenData.itemId,
             },
           );
-          this.logger.log(`[WOPI PutFile] Auditoría registrada correctamente (idusuario=${auditUserId})`);
+          const success = auditResult && (auditResult as any).success !== false;
+          if (!success) {
+            this.logger.warn('[WOPI PutFile] Auditoría devolvió error:', (auditResult as any)?.message ?? auditResult);
+          } else {
+            this.logger.log(`[WOPI PutFile] Auditoría registrada (id_auditoria=${(auditResult as any)?.id_auditoria ?? 'ok'})`);
+          }
         } catch (e) {
           this.logger.warn('[WOPI PutFile] Error registrando auditoría:', e);
         }
