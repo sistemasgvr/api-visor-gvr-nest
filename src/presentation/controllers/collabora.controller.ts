@@ -55,7 +55,7 @@ export class CollaboraController {
     try {
       this.logger.log(`Generando configuración Collabora para item: ${itemId}`);
 
-      const userId = req.user?.sub || 0;
+      const userId = Number(req.user?.sub) || 0;
 
       // Obtener el token de Autodesk desde la base de datos
       const accToken = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
@@ -600,29 +600,36 @@ export class CollaboraController {
 
       this.logger.log(`[WOPI PutFile] Nueva versión creada exitosamente para item: ${tokenData.itemId}`);
 
-      try {
-        await this.auditoriaRepository.registrarAccion(
-          tokenData.userId,
-          'FILE_VERSION_SAVE',
-          'file',
-          null,
-          `Versión guardada desde Collabora: ${tokenData.fileName}`,
-          null,
-          {
-            projectId: tokenData.projectId,
-            itemId: tokenData.itemId,
-            fileName: tokenData.fileName,
-            source: 'collabora',
-          },
-          (req as any).ip || (req as any).socket?.remoteAddress || '',
-          (req as any).get?.('user-agent') || (req as any).headers?.['user-agent'] || '',
-          {
-            projectId: tokenData.projectId,
-            accItemId: tokenData.itemId,
-          },
-        );
-      } catch (e) {
-        this.logger.warn('[WOPI PutFile] Error registrando auditoría:', e);
+      const auditUserId = Number(tokenData.userId);
+      if (!Number.isInteger(auditUserId) || auditUserId < 1) {
+        this.logger.warn(`[WOPI PutFile] userId inválido para auditoría: ${tokenData.userId}`);
+      } else {
+        try {
+          this.logger.log(`[WOPI PutFile] Registrando auditoría para idUsuario=${auditUserId}`);
+          await this.auditoriaRepository.registrarAccion(
+            auditUserId,
+            'FILE_VERSION_SAVE',
+            'file',
+            null,
+            `Versión guardada desde Collabora: ${tokenData.fileName}`,
+            null,
+            {
+              projectId: tokenData.projectId,
+              itemId: tokenData.itemId,
+              fileName: tokenData.fileName,
+              source: 'collabora',
+            },
+            (req as any).ip || (req as any).socket?.remoteAddress || '',
+            (req as any).get?.('user-agent') || (req as any).headers?.['user-agent'] || '',
+            {
+              projectId: tokenData.projectId,
+              accItemId: tokenData.itemId,
+            },
+          );
+          this.logger.log(`[WOPI PutFile] Auditoría registrada correctamente (idusuario=${auditUserId})`);
+        } catch (e) {
+          this.logger.warn('[WOPI PutFile] Error registrando auditoría:', e);
+        }
       }
 
       try {
