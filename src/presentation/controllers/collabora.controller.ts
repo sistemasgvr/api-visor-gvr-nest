@@ -119,7 +119,7 @@ export class CollaboraController {
       return {
         status: 500,
         message: 'Error al generar configuración de Collabora',
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -203,7 +203,11 @@ export class CollaboraController {
       try {
         const usuario = await this.authRepository.obtenerPerfilUsuario(tokenData.userId);
         if (usuario) {
-          userFriendlyName = `${usuario.nombres} ${usuario.apellidos}`.trim() || usuario.correo || userFriendlyName;
+          const trabajador = usuario.trabajador && typeof usuario.trabajador === 'object' ? usuario.trabajador : null;
+          const nombres = trabajador?.nombres ?? '';
+          const apellidos = trabajador?.apellidos ?? '';
+          const nombreCompleto = [nombres, apellidos].filter(Boolean).join(' ').trim();
+          userFriendlyName = nombreCompleto || usuario.nombre || usuario.correo || userFriendlyName;
         }
       } catch (error) {
         this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener información del usuario');
@@ -551,7 +555,7 @@ export class CollaboraController {
       if (!res.headersSent) {
         return res.status(500).json({
           error: 'Error al guardar archivo',
-          details: error.message,
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     }
@@ -651,7 +655,7 @@ export class CollaboraController {
         return res.status(500).json({
           status: 500,
           message: 'Error al descargar archivo',
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
         });
       }
     }
