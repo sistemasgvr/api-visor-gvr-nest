@@ -168,6 +168,8 @@ docker push sistemasgvr/visor-gvr:latest
 
 ## 📄 Collabora Online: Integración para edición de documentos
 
+> **Diagnóstico y alternativa:** Si Collabora no te funciona al 100% o quieres valorar OnlyOffice, ver **[docs/COLLABORA-ONLYOFFICE.md](docs/COLLABORA-ONLYOFFICE.md)** (checklist de troubleshooting y guía de integración con OnlyOffice).
+
 ### **Descripción**
 Collabora Online es el servidor de edición de documentos Office integrado en este proyecto. Permite editar documentos Word, Excel y PowerPoint directamente en el navegador.
 

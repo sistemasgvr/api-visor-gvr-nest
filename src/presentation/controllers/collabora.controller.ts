@@ -87,24 +87,23 @@ export class CollaboraController {
         };
       }
 
-      // Generar token temporal para el acceso WOPI
-      const wopiToken = this.documentTokenService.generateToken(
+      // ID estable por documento: mismo (projectId, itemId) = mismo docId = misma sesión en Collabora (coautoría)
+      const stableDocId = this.documentTokenService.generateStableDocId(projectId, itemId);
+      const userSessionToken = this.documentTokenService.createUserSessionToken(
         userId,
         projectId,
         itemId,
         fileInfo.fileName,
-        60, // 60 minutos
-        accessToken, // Guardamos el accessToken para usarlo en las peticiones WOPI
+        60,
+        accessToken,
       );
 
-      // Construir URL del endpoint WOPI CheckFileInfo
       const backendUrl = process.env.BACKEND_PUBLIC_URL || 'http://localhost:4001';
-      const wopiSrcUrl = `${backendUrl}/api/collabora/wopi/files/${wopiToken}`;
+      const wopiSrcUrl = `${backendUrl}/api/collabora/wopi/files/${stableDocId}?access_token=${encodeURIComponent(userSessionToken)}`;
 
-      // Generar URL de Collabora con protocolo WOPI
       const collaboraUrl = this.collaboraService.generateCollaboraUrl(wopiSrcUrl, 'edit');
 
-      this.logger.log(`[WOPI] URL generada - WOPISrc: ${wopiSrcUrl}`);
+      this.logger.log(`[WOPI] URL generada (coautoría) - docId: ${stableDocId}`);
 
       return {
         status: 200,
@@ -126,38 +125,59 @@ export class CollaboraController {
   }
 
   /**
+   * Obtiene el access_token de la petición (query o header Authorization).
+   * Collabora puede enviarlo en la URL o en el header.
+   */
+  private getWopiAccessToken(req: express.Request): string | null {
+    const fromQuery = req.query?.access_token;
+    if (typeof fromQuery === 'string' && fromQuery) return fromQuery;
+    const auth = req.headers?.authorization;
+    if (typeof auth === 'string' && auth.startsWith('Bearer ')) return auth.slice(7);
+    return null;
+  }
+
+  /**
    * WOPI Protocol: CheckFileInfo endpoint
    * GET /api/collabora/wopi/files/:fileId
-   * Devuelve metadatos del archivo en formato JSON (requerido por WOPI)
+   * fileId = stableDocId (mismo documento para todos los usuarios = coautoría).
+   * access_token = sesión del usuario (query o Authorization).
    */
   @Get('wopi/files/:fileId')
-  async wopiCheckFileInfo(@Param('fileId') fileId: string, @Res() res: express.Response) {
+  async wopiCheckFileInfo(
+    @Param('fileId') fileId: string,
+    @Req() req: express.Request,
+    @Res() res: express.Response,
+  ) {
     try {
-      this.logger.log(`[WOPI CheckFileInfo] FileId recibido: ${fileId}`);
+      const stableDocId = fileId;
+      const accessToken = this.getWopiAccessToken(req);
 
-      // Validar el token
-      const tokenData = this.documentTokenService.validateToken(fileId);
+      this.logger.log(`[WOPI CheckFileInfo] docId: ${stableDocId}, access_token: ${accessToken ? 'present' : 'missing'}`);
 
+      if (!accessToken) {
+        return res.status(401).json({ error: 'access_token requerido' });
+      }
+
+      const tokenData = this.documentTokenService.validateUserSessionToken(accessToken);
       if (!tokenData) {
-        this.logger.error('[WOPI CheckFileInfo] Token inválido o expirado');
+        this.logger.error('[WOPI CheckFileInfo] Sesión inválida o expirada');
         return res.status(403).json({
           error: 'Token inválido o expirado',
         });
       }
 
-      this.logger.log(
-        `[WOPI CheckFileInfo] Token válido - Archivo: ${tokenData.fileName}`,
-      );
-
-      // Validar que tenemos accessToken
-      if (!tokenData.accessToken) {
-        this.logger.error('[WOPI CheckFileInfo] Token no contiene accessToken de Autodesk');
-        return res.status(401).json({
-          error: 'Token de Autodesk no disponible',
-        });
+      const expectedDocId = this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
+      if (expectedDocId !== stableDocId) {
+        this.logger.error('[WOPI CheckFileInfo] docId no coincide con la sesión');
+        return res.status(403).json({ error: 'Documento no autorizado' });
       }
 
-      // Obtener información del archivo desde Autodesk
+      if (!tokenData.accessToken) {
+        return res.status(401).json({ error: 'Token de Autodesk no disponible' });
+      }
+
+      this.logger.log(`[WOPI CheckFileInfo] Sesión válida - Archivo: ${tokenData.fileName}, UserId: ${tokenData.userId}`);
+
       const fileInfo = await this.autodeskApiService.obtenerStorageUrl(
         tokenData.accessToken,
         tokenData.projectId,
@@ -171,7 +191,6 @@ export class CollaboraController {
         });
       }
 
-      // Obtener tamaño del archivo
       let fileSize = 0;
       try {
         const headResponse = await axios.head(fileInfo.storageUrl);
@@ -180,7 +199,6 @@ export class CollaboraController {
         this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener tamaño del archivo');
       }
 
-      // Obtener información del usuario desde la base de datos
       let userFriendlyName = `Usuario ${tokenData.userId}`;
       try {
         const usuario = await this.authRepository.obtenerPerfilUsuario(tokenData.userId);
@@ -191,20 +209,17 @@ export class CollaboraController {
         this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener información del usuario');
       }
 
-      // Respuesta WOPI CheckFileInfo
-      // Documentación: https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/rest/files/checkfileinfo
       const wopiResponse = {
-        // Información básica del archivo
         BaseFileName: tokenData.fileName,
         OwnerId: tokenData.userId.toString(),
         Size: fileSize,
         UserId: tokenData.userId.toString(),
-        Version: Date.now().toString(), // Versión basada en timestamp
-        
-        // Permisos
+        Version: Date.now().toString(),
+
         UserCanWrite: true,
         UserCanNotWriteRelative: true,
         SupportsUpdate: true,
+        SupportsCoauth: true,
         SupportsLocks: false,
         SupportsGetLock: false,
         
@@ -248,34 +263,37 @@ export class CollaboraController {
   /**
    * WOPI Protocol: GetFile endpoint
    * GET /api/collabora/wopi/files/:fileId/contents
-   * Devuelve el contenido binario del archivo (requerido por WOPI)
+   * fileId = stableDocId; usuario desde access_token (query o header).
    */
   @Get('wopi/files/:fileId/contents')
-  async wopiGetFile(@Param('fileId') fileId: string, @Res() res: express.Response) {
+  async wopiGetFile(
+    @Param('fileId') fileId: string,
+    @Req() req: express.Request,
+    @Res() res: express.Response,
+  ) {
     try {
-      this.logger.log(`[WOPI GetFile] FileId recibido: ${fileId}`);
+      const stableDocId = fileId;
+      const accessToken = this.getWopiAccessToken(req);
+      if (!accessToken) {
+        return res.status(401).json({ error: 'access_token requerido' });
+      }
 
-      // Validar el token
-      const tokenData = this.documentTokenService.validateToken(fileId);
-
+      const tokenData = this.documentTokenService.validateUserSessionToken(accessToken);
       if (!tokenData) {
-        this.logger.error('[WOPI GetFile] Token inválido o expirado');
-        return res.status(403).json({
-          error: 'Token inválido o expirado',
-        });
+        this.logger.error('[WOPI GetFile] Sesión inválida o expirada');
+        return res.status(403).json({ error: 'Token inválido o expirado' });
       }
 
-      this.logger.log(
-        `[WOPI GetFile] Token válido - Descargando archivo: ${tokenData.fileName}`,
-      );
+      const expectedDocId = this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
+      if (expectedDocId !== stableDocId) {
+        return res.status(403).json({ error: 'Documento no autorizado' });
+      }
 
-      // Validar que tenemos accessToken
       if (!tokenData.accessToken) {
-        this.logger.error('[WOPI GetFile] Token no contiene accessToken de Autodesk');
-        return res.status(401).json({
-          error: 'Token de Autodesk no disponible',
-        });
+        return res.status(401).json({ error: 'Token de Autodesk no disponible' });
       }
+
+      this.logger.log(`[WOPI GetFile] Descargando archivo: ${tokenData.fileName}`);
 
       // Obtener la URL firmada de AWS S3 desde Autodesk
       const fileInfo = await this.autodeskApiService.obtenerStorageUrl(
@@ -340,7 +358,7 @@ export class CollaboraController {
   /**
    * WOPI Protocol: PutFile endpoint
    * POST /api/collabora/wopi/files/:fileId/contents
-   * Guarda el archivo modificado creando una nueva versión en ACC (usa la lógica existente del proyecto)
+   * fileId = stableDocId; usuario desde access_token (query o header).
    */
   @Post('wopi/files/:fileId/contents')
   async wopiPutFile(
@@ -354,26 +372,28 @@ export class CollaboraController {
     @Headers('x-lool-wopi-isautosave') isAutosave: string,
   ) {
     try {
-      this.logger.log(`[WOPI PutFile] FileId: ${fileId}, Override: ${wopiOverride}`);
-      this.logger.log(`[WOPI PutFile] IsAutosave: ${isAutosave}, IsModified: ${isModifiedByUser}, Editors: ${wopiEditors}`);
-      
-      // Validar el token
-      const tokenData = this.documentTokenService.validateToken(fileId);
+      const stableDocId = fileId;
+      const accessToken = this.getWopiAccessToken(req);
+      if (!accessToken) {
+        return res.status(401).json({ error: 'access_token requerido' });
+      }
 
+      const tokenData = this.documentTokenService.validateUserSessionToken(accessToken);
       if (!tokenData) {
-        this.logger.error('[WOPI PutFile] Token inválido o expirado');
-        return res.status(403).json({
-          error: 'Token inválido o expirado',
-        });
+        this.logger.error('[WOPI PutFile] Sesión inválida o expirada');
+        return res.status(403).json({ error: 'Token inválido o expirado' });
       }
 
-      // Validar que tenemos accessToken
-      if (!tokenData.accessToken) {
-        this.logger.error('[WOPI PutFile] Token no contiene accessToken de Autodesk');
-        return res.status(401).json({
-          error: 'Token de Autodesk no disponible',
-        });
+      const expectedDocId = this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
+      if (expectedDocId !== stableDocId) {
+        return res.status(403).json({ error: 'Documento no autorizado' });
       }
+
+      if (!tokenData.accessToken) {
+        return res.status(401).json({ error: 'Token de Autodesk no disponible' });
+      }
+
+      this.logger.log(`[WOPI PutFile] FileId: ${fileId}, Override: ${wopiOverride}, IsAutosave: ${isAutosave}`);
 
       // Obtener el contenido del archivo desde el raw body
       const fileBuffer = (req as any).rawBody || req.body;
