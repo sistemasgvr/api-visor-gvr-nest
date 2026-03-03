@@ -178,6 +178,23 @@ export class CollaboraController {
 
       this.logger.log(`[WOPI CheckFileInfo] Sesión válida - Archivo: ${tokenData.fileName}, UserId: ${tokenData.userId}`);
 
+      const projectIdNorm = tokenData.projectId.startsWith('b.') ? tokenData.projectId : `b.${tokenData.projectId}`;
+
+      let wopiVersion = stableDocId;
+      try {
+        const itemInfo = await this.autodeskApiService.obtenerItemPorId(
+          tokenData.accessToken,
+          projectIdNorm,
+          tokenData.itemId,
+        );
+        const tipVersionId = itemInfo?.data?.relationships?.tip?.data?.id;
+        if (tipVersionId) {
+          wopiVersion = tipVersionId;
+        }
+      } catch (error) {
+        this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener tip version, usando docId como versión estable');
+      }
+
       const fileInfo = await this.autodeskApiService.obtenerStorageUrl(
         tokenData.accessToken,
         tokenData.projectId,
@@ -218,7 +235,7 @@ export class CollaboraController {
         OwnerId: tokenData.userId.toString(),
         Size: fileSize,
         UserId: tokenData.userId.toString(),
-        Version: Date.now().toString(),
+        Version: wopiVersion,
 
         UserCanWrite: true,
         UserCanNotWriteRelative: true,
@@ -397,20 +414,30 @@ export class CollaboraController {
         return res.status(401).json({ error: 'Token de Autodesk no disponible' });
       }
 
-      this.logger.log(`[WOPI PutFile] FileId: ${fileId}, Override: ${wopiOverride}, IsAutosave: ${isAutosave}`);
+      const isAutosaveRequest = (isAutosave && String(isAutosave).toLowerCase() === 'true');
+      this.logger.log(`[WOPI PutFile] FileId: ${fileId}, Override: ${wopiOverride}, IsAutosave: ${isAutosave} (solo guardado manual crea versión en ACC)`);
 
-      // Obtener el contenido del archivo desde el raw body
       const fileBuffer = (req as any).rawBody || req.body;
 
       if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
         this.logger.error('[WOPI PutFile] No se recibió contenido del archivo o no es un Buffer');
-        this.logger.error(`[WOPI PutFile] Tipo recibido: ${typeof fileBuffer}, isBuffer: ${Buffer.isBuffer(fileBuffer)}`);
         return res.status(400).json({
           error: 'Contenido del archivo no válido',
         });
       }
 
       this.logger.log(`[WOPI PutFile] Archivo recibido: ${fileBuffer.length} bytes`);
+
+      if (isAutosaveRequest) {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-WOPI-Override, X-WOPI-Lock');
+        return res.status(200).json({
+          LastModifiedTime: new Date().toISOString(),
+        });
+      }
+
+      this.logger.log(`[WOPI PutFile] Guardado manual: creando nueva versión en ACC...`);
       this.logger.log(`[WOPI PutFile] ItemId: ${tokenData.itemId}, ProjectId: ${tokenData.projectId}`);
 
       const projectIdNorm = tokenData.projectId.startsWith('b.') 

@@ -8,6 +8,7 @@ Este documento describe cómo está integrada la edición colaborativa con **Col
 
 - **Backend (NestJS)**: Implementa el protocolo WOPI (CheckFileInfo, GetFile, PutFile). El archivo se obtiene de Autodesk ACC (URL firmada S3) y se sirve a Collabora; al guardar, se sube una nueva versión a ACC.
 - **Edición colaborativa**: Para que varios usuarios compartan la misma sesión (ver quién está conectado y ver las ediciones en vivo), el backend usa un **ID de documento estable** por `(projectId, itemId)` y un **access_token** por usuario en la URL WOPI. Así todos abren el mismo documento en Collabora y Collabora muestra la lista de coeditores y sincroniza los cambios en tiempo real.
+- **Guardado en bloque**: Solo se crea una **nueva versión en ACC** cuando el usuario hace **Guardar** (guardado manual). Los autosaves (cada X segundos o al cambiar de celda) no suben a ACC, así se evitan muchas versiones. La propiedad **Version** en CheckFileInfo viene del ítem en ACC (tip version), no de `Date.now()`, para que no aparezca “El documento se ha modificado en el almacenamiento” ni el bucle al pulsar **Descartar**.
 - **Frontend (Vue)**: `OfficeViewer.vue` obtiene la config desde `GET /api/collabora/config/:projectId/:itemId` y carga la URL de Collabora en un iframe. La lista de usuarios conectados y los cambios en vivo se ven **dentro del editor** (barra de Collabora).
 - **Collabora**: Se despliega en un contenedor (ej. en EasyPanel) y se comunica con el backend mediante WOPI usando `BACKEND_PUBLIC_URL`.
 

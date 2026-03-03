@@ -10,7 +10,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
-import { json, urlencoded } from 'express';
+import { json, urlencoded, raw } from 'express';
 import { join } from 'path';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
@@ -22,16 +22,31 @@ async function bootstrap() {
   const logger = new Logger('Main.ts');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Configurar validación global
-  // Para rutas WOPI (Collabora), necesitamos raw body - se maneja manualmente en el endpoint
-  app.use(json({ 
+  // WOPI PutFile: Collabora envía el archivo como body binario (no JSON). Hay que leerlo como raw ANTES de json().
+  app.use((req: any, res, next) => {
+    if (
+      req.method === 'POST' &&
+      req.url &&
+      req.url.includes('/collabora/wopi/files/') &&
+      req.url.includes('/contents')
+    ) {
+      return raw({ type: () => true, limit: '50mb' })(req, res, (err: any) => {
+        if (err) return next(err);
+        req.rawBody = req.body;
+        next();
+      });
+    }
+    next();
+  });
+
+  // Configurar validación global (json solo aplica a application/json; WOPI PutFile ya tiene req.rawBody)
+  app.use(json({
     limit: '50mb',
     verify: (req: any, res, buf) => {
-      // Guardar raw body para rutas WOPI
       if (req.url && req.url.includes('/collabora/wopi/files/') && req.url.includes('/contents')) {
-        req.rawBody = buf;
+        req.rawBody = req.rawBody || buf;
       }
-    }
+    },
   }));
   app.use(urlencoded({ extended: true, limit: '50mb' }));
   app.useGlobalPipes(
