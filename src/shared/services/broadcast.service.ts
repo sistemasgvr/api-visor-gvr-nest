@@ -57,6 +57,18 @@ export class BroadcastService {
   }
 
   /**
+   * Notifica a un usuario que su documento se guardó en ACC (Collabora PutFile exitoso).
+   * El frontend (OfficeViewer) escucha el evento 'document.saved' y muestra un toast.
+   */
+  emitDocumentSaved(
+    userId: number,
+    data: { projectId: string; itemId: string; fileName: string },
+  ) {
+    this.broadcastGateway.emitToUser(userId, 'document.saved', data);
+    this.logger.log(`[DOC] document.saved emitido a usuario ${userId} para ${data.fileName}`);
+  }
+
+  /**
    * Emite una notificación a un usuario específico.
    * Siempre persiste en BD (historial y entrega al abrir la app) y además emite por WebSocket si está conectado.
    * @param userId ID del usuario que recibirá la notificación (idusuario / auth)

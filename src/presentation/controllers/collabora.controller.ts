@@ -16,10 +16,13 @@ import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { CollaboraService } from '../../infrastructure/services/collabora.service';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { DocumentTokenService } from '../../infrastructure/services/document-token.service';
+import { BroadcastService } from '../../shared/services/broadcast.service';
 import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interface';
 import type { IAccRepository } from '../../domain/repositories/acc.repository.interface';
 import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
 import type { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
+import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.repository.interface';
+import type { IAuditoriaRepository } from '../../domain/repositories/auditoria.repository.interface';
 
 @Controller('collabora')
 export class CollaboraController {
@@ -29,10 +32,13 @@ export class CollaboraController {
     private readonly collaboraService: CollaboraService,
     private readonly autodeskApiService: AutodeskApiService,
     private readonly documentTokenService: DocumentTokenService,
+    private readonly broadcastService: BroadcastService,
     @Inject(ACC_REPOSITORY)
     private readonly accRepository: IAccRepository,
     @Inject(AUTH_REPOSITORY)
     private readonly authRepository: IAuthRepository,
+    @Inject(AUDITORIA_REPOSITORY)
+    private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 
   /**
@@ -125,12 +131,23 @@ export class CollaboraController {
   }
 
   /**
-   * Obtiene el access_token de la petición (query o header Authorization).
-   * Collabora puede enviarlo en la URL o en el header.
+   * Obtiene el access_token de la petición (query, URL o header Authorization).
+   * Collabora suele enviarlo en la URL; en POST el query puede no estar parseado, por eso se lee también de req.url.
    */
   private getWopiAccessToken(req: express.Request): string | null {
     const fromQuery = req.query?.access_token;
     if (typeof fromQuery === 'string' && fromQuery) return fromQuery;
+    if (req.url && req.url.includes('access_token=')) {
+      try {
+        const start = req.url.indexOf('access_token=') + 13;
+        let end = req.url.indexOf('&', start);
+        if (end === -1) end = req.url.length;
+        const token = req.url.slice(start, end);
+        if (token) return decodeURIComponent(token);
+      } catch {
+        // ignore
+      }
+    }
     const auth = req.headers?.authorization;
     if (typeof auth === 'string' && auth.startsWith('Bearer ')) return auth.slice(7);
     return null;
@@ -395,22 +412,35 @@ export class CollaboraController {
     try {
       const stableDocId = fileId;
       const accessToken = this.getWopiAccessToken(req);
+      this.logger.log(`[WOPI PutFile] access_token: ${accessToken ? 'present' : 'MISSING'}, query: ${!!req.query?.access_token}, url: ${req.url?.substring(0, 80)}...`);
+
+      const setWopiCors = () => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-WOPI-Override, X-WOPI-Lock');
+      };
+
       if (!accessToken) {
+        this.logger.warn('[WOPI PutFile] Rechazado: access_token requerido (Collabora debe enviarlo en la URL del POST)');
+        setWopiCors();
         return res.status(401).json({ error: 'access_token requerido' });
       }
 
       const tokenData = this.documentTokenService.validateUserSessionToken(accessToken);
       if (!tokenData) {
-        this.logger.error('[WOPI PutFile] Sesión inválida o expirada');
+        this.logger.error('[WOPI PutFile] Sesión inválida o expirada - el usuario debe volver a abrir el documento');
+        setWopiCors();
         return res.status(403).json({ error: 'Token inválido o expirado' });
       }
 
       const expectedDocId = this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
       if (expectedDocId !== stableDocId) {
+        setWopiCors();
         return res.status(403).json({ error: 'Documento no autorizado' });
       }
 
       if (!tokenData.accessToken) {
+        setWopiCors();
         return res.status(401).json({ error: 'Token de Autodesk no disponible' });
       }
 
@@ -421,6 +451,7 @@ export class CollaboraController {
 
       if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
         this.logger.error('[WOPI PutFile] No se recibió contenido del archivo o no es un Buffer');
+        setWopiCors();
         return res.status(400).json({
           error: 'Contenido del archivo no válido',
         });
@@ -569,7 +600,41 @@ export class CollaboraController {
 
       this.logger.log(`[WOPI PutFile] Nueva versión creada exitosamente para item: ${tokenData.itemId}`);
 
-      // Respuesta WOPI PutFile exitosa
+      try {
+        await this.auditoriaRepository.registrarAccion(
+          tokenData.userId,
+          'FILE_VERSION_SAVE',
+          'file',
+          null,
+          `Versión guardada desde Collabora: ${tokenData.fileName}`,
+          null,
+          {
+            projectId: tokenData.projectId,
+            itemId: tokenData.itemId,
+            fileName: tokenData.fileName,
+            source: 'collabora',
+          },
+          (req as any).ip || (req as any).socket?.remoteAddress || '',
+          (req as any).get?.('user-agent') || (req as any).headers?.['user-agent'] || '',
+          {
+            projectId: tokenData.projectId,
+            accItemId: tokenData.itemId,
+          },
+        );
+      } catch (e) {
+        this.logger.warn('[WOPI PutFile] Error registrando auditoría:', e);
+      }
+
+      try {
+        this.broadcastService.emitDocumentSaved(tokenData.userId, {
+          projectId: tokenData.projectId,
+          itemId: tokenData.itemId,
+          fileName: tokenData.fileName,
+        });
+      } catch (e) {
+        this.logger.warn('[WOPI PutFile] No se pudo emitir document.saved por WebSocket', e);
+      }
+
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
       res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-WOPI-Override, X-WOPI-Lock');
@@ -577,14 +642,32 @@ export class CollaboraController {
       return res.status(200).json({
         LastModifiedTime: new Date().toISOString(),
       });
-    } catch (error) {
-      this.logger.error('[WOPI PutFile] Error:', error);
-      if (!res.headersSent) {
-        return res.status(500).json({
-          error: 'Error al guardar archivo',
-          details: error instanceof Error ? error.message : String(error),
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number; data?: unknown }; message?: string };
+      const status = err.response?.status;
+      const details = err.response?.data;
+
+      this.logger.error('[WOPI PutFile] Error:', err.message ?? error);
+      if (status) this.logger.error(`[WOPI PutFile] ACC/HTTP status: ${status}`);
+      if (details) this.logger.error(`[WOPI PutFile] Detalles: ${JSON.stringify(details)}`);
+
+      if (res.headersSent) return;
+
+      if (status === 403) {
+        return res.status(403).json({
+          error: 'Sin permiso en el proyecto de ACC para crear versión. Verifica que tu usuario tenga permiso de edición/subida en el proyecto.',
         });
       }
+      if (status === 401) {
+        return res.status(401).json({
+          error: 'Token de Autodesk expirado o inválido. Reconecta tu cuenta de Autodesk.',
+        });
+      }
+
+      return res.status(500).json({
+        error: 'Error al guardar archivo',
+        details: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

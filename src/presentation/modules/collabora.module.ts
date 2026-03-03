@@ -7,16 +7,20 @@ import { DocumentTokenService } from '../../infrastructure/services/document-tok
 import { HttpClientService } from '../../shared/services/http-client.service';
 import { AuthModule } from './auth.module';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { BroadcastModule } from './broadcast.module';
 import { AccRepository } from '../../infrastructure/repositories/acc.repository';
 import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interface';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
+import { AuditoriaRepository } from '../../infrastructure/repositories/auditoria.repository';
+import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.repository.interface';
 
 @Module({
   imports: [
-    ConfigModule, 
+    ConfigModule,
     AuthModule,
     DatabaseModule,
+    BroadcastModule,
   ],
   controllers: [CollaboraController],
   providers: [
@@ -31,6 +35,10 @@ import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.inter
     {
       provide: AUTH_REPOSITORY,
       useClass: AuthRepository,
+    },
+    {
+      provide: AUDITORIA_REPOSITORY,
+      useClass: AuditoriaRepository,
     },
   ],
   exports: [CollaboraService],
