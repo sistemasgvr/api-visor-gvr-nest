@@ -468,6 +468,16 @@ export class CollaboraController {
         });
       }
 
+      try {
+        this.broadcastService.emitDocumentSaveStarted(tokenData.userId, {
+          projectId: tokenData.projectId,
+          itemId: tokenData.itemId,
+          fileName: tokenData.fileName,
+        });
+      } catch (e) {
+        this.logger.warn('[WOPI PutFile] No se pudo emitir document.save_started', e);
+      }
+
       this.logger.log(`[WOPI PutFile] Guardado manual: creando nueva versión en ACC...`);
       this.logger.log(`[WOPI PutFile] ItemId: ${tokenData.itemId}, ProjectId: ${tokenData.projectId}`);
 

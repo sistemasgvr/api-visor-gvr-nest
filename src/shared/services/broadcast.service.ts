@@ -57,6 +57,18 @@ export class BroadcastService {
   }
 
   /**
+   * Notifica que el guardado del documento ha comenzado (Collabora acaba de llamar a PutFile).
+   * El frontend muestra "Guardando..." hasta recibir document.saved.
+   */
+  emitDocumentSaveStarted(
+    userId: number,
+    data: { projectId: string; itemId: string; fileName: string },
+  ) {
+    this.broadcastGateway.emitToUser(userId, 'document.save_started', data);
+    this.logger.log(`[DOC] document.save_started emitido a usuario ${userId} para ${data.fileName}`);
+  }
+
+  /**
    * Notifica a un usuario que su documento se guardó en ACC (Collabora PutFile exitoso).
    * El frontend (OfficeViewer) escucha el evento 'document.saved' y muestra un toast.
    */
