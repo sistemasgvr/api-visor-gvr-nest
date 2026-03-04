@@ -19,6 +19,8 @@ export interface UserSessionTokenData {
     projectId: string;
     itemId: string;
     fileName: string;
+    /** Si se abre una versión concreta (historial), se guarda para WOPI GetFile/CheckFileInfo */
+    versionId?: string;
     accessToken?: string;
     expiresAt: Date;
 }
@@ -102,6 +104,15 @@ export class DocumentTokenService {
         return createHash('sha256').update(payload).digest('base64url').substring(0, 32);
     }
 
+    /**
+     * ID estable por versión concreta (abrir desde historial de versiones).
+     * Cada versión tiene su propio docId para que Collabora abra ese archivo concreto.
+     */
+    generateStableDocIdForVersion(projectId: string, versionId: string): string {
+        const payload = `v|${projectId}|${versionId}`;
+        return createHash('sha256').update(payload).digest('base64url').substring(0, 32);
+    }
+
     /** Almacén de sesiones de usuario por access_token (para WOPI con mismo docId) */
     private userSessions: Map<string, UserSessionTokenData & { token: string }> = new Map();
 
@@ -114,6 +125,7 @@ export class DocumentTokenService {
      * Crea un token de sesión de usuario para WOPI. Se usa como access_token en la URL
      * para que CheckFileInfo/GetFile/PutFile sepan qué usuario es sin cambiar el docId.
      * Expira en 8h por defecto; cada uso prorroga la sesión (sliding).
+     * Si se pasa versionId, WOPI usará esa versión concreta del archivo.
      */
     createUserSessionToken(
         userId: number,
@@ -122,6 +134,7 @@ export class DocumentTokenService {
         fileName: string,
         expiresInMinutes: number = this.WOPI_SESSION_EXPIRATION_MINUTES,
         accessToken?: string,
+        versionId?: string,
     ): string {
         const token = randomUUID();
         const now = new Date();
@@ -133,6 +146,7 @@ export class DocumentTokenService {
             itemId,
             fileName,
             accessToken,
+            versionId,
             expiresAt,
         });
         return token;
@@ -159,6 +173,7 @@ export class DocumentTokenService {
             itemId: session.itemId,
             fileName: session.fileName,
             accessToken: session.accessToken,
+            versionId: session.versionId,
             expiresAt: newExpiresAt,
         };
     }

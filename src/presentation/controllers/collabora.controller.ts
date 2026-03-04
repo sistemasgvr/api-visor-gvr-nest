@@ -4,6 +4,7 @@ import {
   Post,
   Logger,
   Param,
+  Query,
   Res,
   Req,
   UseGuards,
@@ -44,22 +45,22 @@ export class CollaboraController {
   /**
    * Endpoint para obtener la URL de Collabora para abrir un documento
    * GET /api/collabora/config/:projectId/:itemId
+   * Query opcional: versionId — si se envía, se abre esa versión concreta (desde historial de versiones).
    */
   @Get('config/:projectId/:itemId')
   @UseGuards(JwtAuthGuard)
   async getCollaboraConfig(
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
+    @Query('versionId') versionId: string | undefined,
     @Req() req: any,
   ) {
     try {
-      this.logger.log(`Generando configuración Collabora para item: ${itemId}`);
+      this.logger.log(`Generando configuración Collabora para item: ${itemId}${versionId ? `, versión: ${versionId}` : ''}`);
 
       const userId = Number(req.user?.sub) || 0;
 
-      // Obtener el token de Autodesk desde la base de datos
       const accToken = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
-      
       if (!accToken) {
         this.logger.error(`Token de Autodesk no encontrado para usuario: ${userId}`);
         return {
@@ -68,7 +69,6 @@ export class CollaboraController {
         };
       }
 
-      // Verificar si el token está expirado
       if (this.autodeskApiService.esTokenExpirado(accToken.expiraEn)) {
         this.logger.warn(`Token de Autodesk expirado para usuario: ${userId}`);
         return {
@@ -79,29 +79,50 @@ export class CollaboraController {
 
       const accessToken = accToken.tokenAcceso;
 
-      // Obtener información del archivo desde Autodesk
-      const fileInfo = await this.autodeskApiService.obtenerStorageUrl(
-        accessToken,
-        projectId,
-        itemId,
-      );
+      let fileInfo: { storageUrl: string; fileName: string; itemId?: string };
+      let stableDocId: string;
+      let effectiveItemId: string;
 
-      if (!fileInfo || !fileInfo.storageUrl) {
-        return {
-          status: 404,
-          message: 'Archivo no encontrado en Autodesk',
-        };
+      if (versionId) {
+        const versionFileInfo = await this.autodeskApiService.obtenerStorageUrlPorVersion(
+          accessToken,
+          projectId,
+          versionId,
+        );
+        if (!versionFileInfo?.storageUrl) {
+          return {
+            status: 404,
+            message: 'Versión no encontrada en Autodesk',
+          };
+        }
+        fileInfo = versionFileInfo;
+        effectiveItemId = versionFileInfo.itemId || itemId;
+        stableDocId = this.documentTokenService.generateStableDocIdForVersion(projectId, versionId);
+      } else {
+        const itemFileInfo = await this.autodeskApiService.obtenerStorageUrl(
+          accessToken,
+          projectId,
+          itemId,
+        );
+        if (!itemFileInfo?.storageUrl) {
+          return {
+            status: 404,
+            message: 'Archivo no encontrado en Autodesk',
+          };
+        }
+        fileInfo = itemFileInfo;
+        effectiveItemId = itemId;
+        stableDocId = this.documentTokenService.generateStableDocId(projectId, itemId);
       }
 
-      // ID estable por documento: mismo (projectId, itemId) = mismo docId = misma sesión en Collabora (coautoría)
-      const stableDocId = this.documentTokenService.generateStableDocId(projectId, itemId);
       const userSessionToken = this.documentTokenService.createUserSessionToken(
         userId,
         projectId,
-        itemId,
+        effectiveItemId,
         fileInfo.fileName,
         8 * 60,
         accessToken,
+        versionId,
       );
 
       const backendUrl = process.env.BACKEND_PUBLIC_URL || 'http://localhost:4001';
@@ -109,7 +130,7 @@ export class CollaboraController {
 
       const collaboraUrl = this.collaboraService.generateCollaboraUrl(wopiSrcUrl, 'edit');
 
-      this.logger.log(`[WOPI] URL generada (coautoría) - docId: ${stableDocId}`);
+      this.logger.log(`[WOPI] URL generada - docId: ${stableDocId}`);
 
       return {
         status: 200,
@@ -183,7 +204,9 @@ export class CollaboraController {
         });
       }
 
-      const expectedDocId = this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
+      const expectedDocId = tokenData.versionId
+        ? this.documentTokenService.generateStableDocIdForVersion(tokenData.projectId, tokenData.versionId)
+        : this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
       if (expectedDocId !== stableDocId) {
         this.logger.error('[WOPI CheckFileInfo] docId no coincide con la sesión');
         return res.status(403).json({ error: 'Documento no autorizado' });
@@ -198,25 +221,35 @@ export class CollaboraController {
       const projectIdNorm = tokenData.projectId.startsWith('b.') ? tokenData.projectId : `b.${tokenData.projectId}`;
 
       let wopiVersion = stableDocId;
-      try {
-        const itemInfo = await this.autodeskApiService.obtenerItemPorId(
-          tokenData.accessToken,
-          projectIdNorm,
-          tokenData.itemId,
-        );
-        const tipVersionId = itemInfo?.data?.relationships?.tip?.data?.id;
-        if (tipVersionId) {
-          wopiVersion = tipVersionId;
+      if (tokenData.versionId) {
+        wopiVersion = tokenData.versionId;
+      } else {
+        try {
+          const itemInfo = await this.autodeskApiService.obtenerItemPorId(
+            tokenData.accessToken,
+            projectIdNorm,
+            tokenData.itemId,
+          );
+          const tipVersionId = itemInfo?.data?.relationships?.tip?.data?.id;
+          if (tipVersionId) {
+            wopiVersion = tipVersionId;
+          }
+        } catch (error) {
+          this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener tip version, usando docId como versión estable');
         }
-      } catch (error) {
-        this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener tip version, usando docId como versión estable');
       }
 
-      const fileInfo = await this.autodeskApiService.obtenerStorageUrl(
-        tokenData.accessToken,
-        tokenData.projectId,
-        tokenData.itemId,
-      );
+      const fileInfo = tokenData.versionId
+        ? await this.autodeskApiService.obtenerStorageUrlPorVersion(
+            tokenData.accessToken,
+            tokenData.projectId,
+            tokenData.versionId,
+          )
+        : await this.autodeskApiService.obtenerStorageUrl(
+            tokenData.accessToken,
+            tokenData.projectId,
+            tokenData.itemId,
+          );
 
       if (!fileInfo || !fileInfo.storageUrl) {
         this.logger.error('[WOPI CheckFileInfo] No se pudo obtener info del archivo');
@@ -322,7 +355,9 @@ export class CollaboraController {
         return res.status(403).json({ error: 'Token inválido o expirado' });
       }
 
-      const expectedDocId = this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
+      const expectedDocId = tokenData.versionId
+        ? this.documentTokenService.generateStableDocIdForVersion(tokenData.projectId, tokenData.versionId)
+        : this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
       if (expectedDocId !== stableDocId) {
         return res.status(403).json({ error: 'Documento no autorizado' });
       }
@@ -333,12 +368,17 @@ export class CollaboraController {
 
       this.logger.log(`[WOPI GetFile] Descargando archivo: ${tokenData.fileName}`);
 
-      // Obtener la URL firmada de AWS S3 desde Autodesk
-      const fileInfo = await this.autodeskApiService.obtenerStorageUrl(
-        tokenData.accessToken,
-        tokenData.projectId,
-        tokenData.itemId,
-      );
+      const fileInfo = tokenData.versionId
+        ? await this.autodeskApiService.obtenerStorageUrlPorVersion(
+            tokenData.accessToken,
+            tokenData.projectId,
+            tokenData.versionId,
+          )
+        : await this.autodeskApiService.obtenerStorageUrl(
+            tokenData.accessToken,
+            tokenData.projectId,
+            tokenData.itemId,
+          );
 
       if (!fileInfo || !fileInfo.storageUrl) {
         this.logger.error('[WOPI GetFile] No se pudo obtener URL de descarga de Autodesk');

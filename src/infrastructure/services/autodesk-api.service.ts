@@ -1560,6 +1560,37 @@ export class AutodeskApiService {
     }
 
     /**
+     * Descargar una versión concreta de un item (para descarga desde historial de versiones).
+     */
+    async descargarItemPorVersion(accessToken: string, projectId: string, versionId: string): Promise<any> {
+        try {
+            if (!accessToken || !projectId || !versionId) {
+                throw new Error('Token, projectId y versionId son requeridos');
+            }
+
+            const { storageUrl, fileName, storageId } = await this.obtenerStorageUrlPorVersion(
+                accessToken,
+                projectId,
+                versionId,
+            );
+
+            const fileResponse = await this.httpClient.get<any>(storageUrl, {
+                responseType: 'arraybuffer',
+            });
+
+            return {
+                data: fileResponse.data,
+                fileName: fileName,
+                storageId: storageId,
+            };
+        } catch (error: any) {
+            throw new Error(
+                `Error al descargar versión del item: ${error.response?.data?.message || error.message}`,
+            );
+        }
+    }
+
+    /**
      * Obtiene la URL de storage (URL firmada) de un item sin descargarlo
      * Esta URL puede usarse para visualizar archivos de Office en visores externos
      */
@@ -1645,6 +1676,82 @@ export class AutodeskApiService {
         } catch (error: any) {
             throw new Error(
                 `Error al obtener URL de storage: ${error.response?.data?.message || error.message}`,
+            );
+        }
+    }
+
+    /**
+     * Obtiene la URL de storage de una versión concreta (para abrir por versionId desde el historial).
+     */
+    async obtenerStorageUrlPorVersion(accessToken: string, projectId: string, versionId: string): Promise<{
+        storageUrl: string;
+        fileName: string;
+        fileType: string;
+        storageId: string;
+        itemId: string;
+    }> {
+        try {
+            if (!accessToken || !projectId || !versionId) {
+                throw new Error('Token, projectId y versionId son requeridos');
+            }
+
+            const versionInfo = await this.obtenerVersionPorId(accessToken, projectId, versionId);
+            const versionData = versionInfo.data;
+
+            if (!versionData) {
+                throw new Error('No se pudo obtener la información de la versión');
+            }
+
+            const storageData = versionData.relationships?.storage?.data;
+            if (!storageData?.id) {
+                throw new Error('No se encontró el storage de la versión');
+            }
+
+            const storageId = storageData.id;
+            const regex = /urn:adsk\.objects:os\.object:([^\/]+)\/(.+)/;
+            const matches = storageId.match(regex);
+
+            if (!matches || matches.length !== 3) {
+                throw new Error(`Formato de storage ID inválido: ${storageId}`);
+            }
+
+            const bucketKey = matches[1];
+            const objectKey = matches[2];
+            const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
+            const signedUrlEndpoint = `${baseUrl}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3download?minutesExpiration=60`;
+
+            const signedResponse = await this.httpClient.get<any>(signedUrlEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+            });
+
+            if (!signedResponse.data?.url) {
+                throw new Error('No se recibió URL firmada en la respuesta');
+            }
+
+            const fileName = versionData.attributes?.displayName || versionData.attributes?.name || 'archivo';
+            const fileType = versionData.attributes?.extension?.type || '';
+            let itemId = '';
+            try {
+                const itemRes = await this.obtenerItemVersion(accessToken, projectId, versionId);
+                if (itemRes.data?.id) {
+                    itemId = itemRes.data.id;
+                }
+            } catch {
+                // Si falla, el controlador puede usar versionId como referencia
+            }
+
+            return {
+                storageUrl: signedResponse.data.url,
+                fileName,
+                fileType,
+                storageId,
+                itemId,
+            };
+        } catch (error: any) {
+            throw new Error(
+                `Error al obtener URL de storage de la versión: ${error.response?.data?.message || error.message}`,
             );
         }
     }
