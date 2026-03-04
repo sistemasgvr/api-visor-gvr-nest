@@ -59,6 +59,13 @@ export class CollaboraController {
       this.logger.log(`Generando configuración Collabora para item: ${itemId}${versionId ? `, versión: ${versionId}` : ''}`);
 
       const userId = Number(req.user?.sub) || 0;
+      if (!userId || userId < 1) {
+        this.logger.error(`[Collabora] userId inválido o ausente (sub=${req.user?.sub}). Necesario para auditoría al guardar.`);
+        return {
+          status: 401,
+          message: 'Identificación de usuario no disponible. No se puede abrir el documento.',
+        };
+      }
 
       const accToken = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
       if (!accToken) {
@@ -473,7 +480,9 @@ export class CollaboraController {
         return res.status(403).json({ error: 'Token inválido o expirado' });
       }
 
-      const expectedDocId = this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
+      const expectedDocId = tokenData.versionId
+        ? this.documentTokenService.generateStableDocIdForVersion(tokenData.projectId, tokenData.versionId)
+        : this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
       if (expectedDocId !== stableDocId) {
         setWopiCors();
         return res.status(403).json({ error: 'Documento no autorizado' });
@@ -650,9 +659,11 @@ export class CollaboraController {
 
       this.logger.log(`[WOPI PutFile] Nueva versión creada exitosamente para item: ${tokenData.itemId}`);
 
+      // Collabora no envía identificador de usuario en PutFile; el userId viene de nuestra sesión
+      // (creada al abrir el documento con JWT req.user.sub). Sin eso no podríamos auditar quién guardó.
       const auditUserId = Number(tokenData.userId);
       if (!Number.isInteger(auditUserId) || auditUserId < 1) {
-        this.logger.warn(`[WOPI PutFile] userId inválido para auditoría: ${tokenData.userId}`);
+        this.logger.warn(`[WOPI PutFile] userId inválido para auditoría: ${tokenData.userId} (no se registrará auditoría)`);
       } else {
         try {
           const ip = typeof (req as any).ip === 'string' ? (req as any).ip : (req as any).socket?.remoteAddress ?? '';
@@ -666,6 +677,7 @@ export class CollaboraController {
             `Versión guardada desde Collabora: ${tokenData.fileName}`,
             null,
             {
+              idUsuario: auditUserId,
               projectId: tokenData.projectId,
               itemId: tokenData.itemId,
               fileName: tokenData.fileName,
