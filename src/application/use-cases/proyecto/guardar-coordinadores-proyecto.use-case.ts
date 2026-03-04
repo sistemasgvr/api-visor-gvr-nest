@@ -13,7 +13,7 @@ export class GuardarCoordinadoresProyectoUseCase {
     async execute(idProyecto: number, dto: GuardarCoordinadoresProyectoDto, idUsuario: number) {
         const payload: GuardarCoordinadoresProyectoPayload[] = (dto.coordinadores ?? []).map((c) => ({
             idtrabajador: c.idtrabajador,
-            subordinados: c.subordinados ?? [],
+            miembrosEquipo: c.miembrosEquipo ?? [],
         }));
         return this.proyectoRepository.guardarCoordinadoresProyecto(idProyecto, payload, idUsuario);
     }

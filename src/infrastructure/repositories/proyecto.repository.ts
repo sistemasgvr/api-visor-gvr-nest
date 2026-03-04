@@ -70,7 +70,12 @@ export class ProyectoRepository implements IProyectoRepository {
             'proObtenerProyectoPorId',
             [idProyecto],
         );
-
+        if (result?.coordinadores && Array.isArray(result.coordinadores)) {
+            result.coordinadores = result.coordinadores.map((c: { miembros_equipo?: unknown }) => {
+                const { miembros_equipo, ...rest } = c as { miembros_equipo?: unknown; [k: string]: unknown };
+                return { ...rest, miembrosEquipo: miembros_equipo ?? [] };
+            });
+        }
         return result;
     }
 
@@ -242,7 +247,14 @@ export class ProyectoRepository implements IProyectoRepository {
             'proListarCoordinadoresProyecto',
             [idProyecto],
         );
-        return result ?? [];
+        const rows = result ?? [];
+        return rows.map((r: Record<string, unknown>) => {
+            const { miembros_equipo, ...rest } = r;
+            return {
+                ...rest,
+                miembrosEquipo: (miembros_equipo as unknown[] | undefined) ?? [],
+            } as import('../../domain/repositories/proyecto.repository.interface').CoordinadorProyectoItem;
+        });
     }
 
     async guardarCoordinadoresProyecto(
@@ -252,7 +264,7 @@ export class ProyectoRepository implements IProyectoRepository {
     ): Promise<{ success: boolean; message: string }> {
         const payload = coordinadores.map((c) => ({
             idtrabajador: c.idtrabajador,
-            subordinados: c.subordinados ?? [],
+            miembros_equipo: c.miembrosEquipo ?? [],
         }));
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
             'proGuardarCoordinadoresProyecto',

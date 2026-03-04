@@ -8,7 +8,7 @@ export class CoordinadorItemDto {
 
     @IsArray()
     @IsInt({ each: true })
-    subordinados: number[] = [];
+    miembrosEquipo: number[] = [];
 }
 
 export class GuardarCoordinadoresProyectoDto {

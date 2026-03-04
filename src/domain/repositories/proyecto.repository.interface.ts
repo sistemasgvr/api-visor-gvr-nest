@@ -74,18 +74,18 @@ export interface ActualizarDocumentoProyectoData {
     linkDocumento?: string;
 }
 
-/** Coordinador con sus subordinados (proListarCoordinadoresProyecto) */
+/** Coordinador con sus miembros del equipo (proListarCoordinadoresProyecto) */
 export interface CoordinadorProyectoItem {
     id_proyectocoordinador: number;
     idtrabajador: number;
     nombrecoordinador: string;
-    subordinados: { id: number; idtrabajador: number; nombretrabajador: string }[];
+    miembrosEquipo: { id: number; idtrabajador: number; nombretrabajador: string }[];
 }
 
 /** Payload para guardar coordinadores (proGuardarCoordinadoresProyecto) */
 export interface GuardarCoordinadoresProyectoPayload {
     idtrabajador: number;
-    subordinados: number[];
+    miembrosEquipo: number[];
 }
 
 export interface ProyectoPorEstadoItem {
