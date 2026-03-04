@@ -3306,8 +3306,9 @@ export class AutodeskApiService {
                 throw new Error('El ID de la versión es requerido');
             }
 
+            const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
-            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}`;
+            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/versions/${encodeURIComponent(versionId)}`;
 
             const response = await this.httpClient.get<any>(url, {
                 headers: {
@@ -3342,8 +3343,9 @@ export class AutodeskApiService {
                 throw new Error('El ID de la versión es requerido');
             }
 
+            const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
-            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}/downloadFormats`;
+            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/versions/${encodeURIComponent(versionId)}/downloadFormats`;
 
             const response = await this.httpClient.get<any>(url, {
                 headers: {
@@ -3378,8 +3380,9 @@ export class AutodeskApiService {
                 throw new Error('El ID de la versión es requerido');
             }
 
+            const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
-            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}/downloads`;
+            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/versions/${encodeURIComponent(versionId)}/downloads`;
 
             const response = await this.httpClient.get<any>(url, {
                 headers: {
@@ -3414,8 +3417,9 @@ export class AutodeskApiService {
                 throw new Error('El ID de la versión es requerido');
             }
 
+            const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
-            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}/item`;
+            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/versions/${encodeURIComponent(versionId)}/item`;
 
             const response = await this.httpClient.get<any>(url, {
                 headers: {
