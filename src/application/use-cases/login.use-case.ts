@@ -35,8 +35,14 @@ export class LoginUseCase {
     ) { }
 
     async execute(loginDto: LoginDto, ip?: string, userAgent?: string): Promise<LoginResponse> {
+        // Normalizar para evitar espacios/autocompletado de iOS que provocan "credenciales inválidas"
+        const correo = (loginDto.correo ?? '').trim();
+        const contrasena = (loginDto.contrasena ?? '').trim();
+        if (!correo || !contrasena) {
+            throw new UnauthorizedException('Credenciales inválidas');
+        }
         // Get user from database
-        const user = await this.authRepository.login(loginDto.correo);
+        const user = await this.authRepository.login(correo);
 
         if (!user) {
             throw new UnauthorizedException('Credenciales inválidas');
@@ -51,7 +57,7 @@ export class LoginUseCase {
 
         // Verify password
         const isPasswordValid = await bcrypt.compare(
-            loginDto.contrasena,
+            contrasena,
             passwordHash,
         );
 

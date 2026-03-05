@@ -23,6 +23,14 @@ import type {
     ProyectoAccesoTrabajador,
     ListarActividadesValidacionParams,
     ListarActividadesValidacionResult,
+    ListarValorizacionParams,
+    ListarValorizacionResult,
+    ValorizacionGrupo,
+    ListarDesempenoParams,
+    ListarDesempenoResult,
+    TrabajadorPorProyectoItem,
+    TrabajadorSinJornadaHoyItem,
+    TrabajadorSinActividadesHoyItem,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -73,7 +81,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]> {
         const result = await this.databaseFunctionService.callFunction<TrabajadorParaFiltro>(
-            'tra_listar_trabajadores_para_filtro',
+            'traListarTrabajadoresParaFiltro',
             [idTrabajador],
         );
         return result ?? [];
@@ -81,10 +89,44 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]> {
         const result = await this.databaseFunctionService.callFunction<ProyectoAccesoTrabajador>(
-            'pro_listar_proyectos_acceso_trabajador',
+            'proListarProyectosAccesoTrabajador',
             [idTrabajador],
         );
-        return result ?? [];
+        if (Array.isArray(result)) return result;
+        if (result != null && typeof result === 'object') return [result as ProyectoAccesoTrabajador];
+        return [];
+    }
+
+    async listarTrabajadoresSinJornadaHoy(fecha: string): Promise<TrabajadorSinJornadaHoyItem[]> {
+        const result = await this.databaseFunctionService.callFunction<TrabajadorSinJornadaHoyItem>(
+            'conlistartrabajadoressinjornadahoy',
+            [fecha],
+        );
+        return Array.isArray(result) ? result : [];
+    }
+
+    async listarTrabajadoresSinActividadesHoy(fecha: string): Promise<TrabajadorSinActividadesHoyItem[]> {
+        const result = await this.databaseFunctionService.callFunction<TrabajadorSinActividadesHoyItem>(
+            'conlistartrabajadoressinactividadeshoy',
+            [fecha],
+        );
+        return Array.isArray(result) ? result : [];
+    }
+
+    async contarTrabajadoresEsperadosJornadaHoy(fecha: string): Promise<number> {
+        const row = await this.databaseFunctionService.callFunctionSingle<Record<string, unknown>>(
+            'concontartrabajadoresesperadosjornadahoy',
+            [fecha],
+        );
+        return getScalarInt(row);
+    }
+
+    async contarTrabajadoresConJornadaHoy(fecha: string): Promise<number> {
+        const row = await this.databaseFunctionService.callFunctionSingle<Record<string, unknown>>(
+            'concontartrabajadoresconjornadahoy',
+            [fecha],
+        );
+        return getScalarInt(row);
     }
 
     /** Normaliza fecha a YYYY-MM-DD (la BD/driver puede devolver Date o string en distintos formatos). */
@@ -215,7 +257,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         } = params;
         type Row = ActividadValidacionListItem & { total_count?: number; total_horas?: number };
         const result = await this.databaseFunctionService.callFunction<Row>(
-            'conlistaractividadesvalidacion',
+            'conListarActividadesValidacion',
             [
                 idTrabajadorSesion,
                 esAdmin,
@@ -236,6 +278,60 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             return rest as ActividadValidacionListItem;
         });
         return { data, totalCount, totalHoras };
+    }
+
+    async listarValorizacion(params: ListarValorizacionParams): Promise<ListarValorizacionResult> {
+        const { idProyecto, fechaInicio, fechaFin } = params;
+        const result = await this.databaseFunctionService.callFunction<ValorizacionGrupo>(
+            'conlistarvalorizacion',
+            [idProyecto, fechaInicio, fechaFin],
+        );
+        const grupos: ValorizacionGrupo[] = Array.isArray(result) ? result : [];
+        const totalGeneralHoras = grupos.reduce((sum, g) => sum + Number(g.total_horas ?? 0), 0);
+        return { grupos, totalGeneralHoras };
+    }
+
+    async listarTrabajadoresPorProyecto(idProyecto: number): Promise<TrabajadorPorProyectoItem[]> {
+        if (idProyecto == null || idProyecto < 1) return [];
+        const result = await this.databaseFunctionService.callFunction<TrabajadorPorProyectoItem>(
+            'conlistartrabajadoresporproyecto',
+            [idProyecto],
+        );
+        return Array.isArray(result) ? result : [];
+    }
+
+    async listarDesempeno(params: ListarDesempenoParams): Promise<ListarDesempenoResult> {
+        const { idProyecto, fechaInicio, fechaFin, idTrabajador } = params;
+        const rows = await this.databaseFunctionService.callFunction<{
+            total_actividades_rechazadas?: number;
+            total_observaciones?: number;
+            total_horas_no_justificadas?: number;
+            detalle_actividades_rechazadas?: unknown;
+            detalle_observaciones?: unknown;
+        }>('conlistardesempeno', [idProyecto, fechaInicio, fechaFin, idTrabajador ?? null]);
+        const row = rows?.[0];
+        if (!row) {
+            return {
+                totalActividadesRechazadas: 0,
+                totalObservaciones: 0,
+                totalHorasNoJustificadas: 0,
+                detalleActividadesRechazadas: [],
+                detalleObservaciones: [],
+            };
+        }
+        const detalleRechazadas = Array.isArray(row.detalle_actividades_rechazadas)
+            ? row.detalle_actividades_rechazadas
+            : [];
+        const detalleObs = Array.isArray(row.detalle_observaciones)
+            ? row.detalle_observaciones
+            : [];
+        return {
+            totalActividadesRechazadas: Number(row.total_actividades_rechazadas ?? 0),
+            totalObservaciones: Number(row.total_observaciones ?? 0),
+            totalHorasNoJustificadas: Number(row.total_horas_no_justificadas ?? 0),
+            detalleActividadesRechazadas: detalleRechazadas as ListarDesempenoResult['detalleActividadesRechazadas'],
+            detalleObservaciones: detalleObs as ListarDesempenoResult['detalleObservaciones'],
+        };
     }
 
     async obtenerActividad(idActividad: number): Promise<ActividadDetalle | null> {
@@ -364,8 +460,9 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         const row = rows?.[0];
         return {
             insertados_alerta: Number(row?.insertados_alerta ?? 0),
+            actualizados_alerta: Number(row?.actualizados_alerta ?? 0),
+            pasados_culminado: Number(row?.pasados_culminado ?? 0),
             pasados_incompleto: Number(row?.pasados_incompleto ?? 0),
-            pasados_completado: Number(row?.pasados_completado ?? 0),
         };
     }
 

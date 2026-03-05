@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { BroadcastGateway } from '../../presentation/gateways/broadcast.gateway';
 import { NOTIFICACIONES_REPOSITORY } from '../../domain/repositories/notificaciones.repository.interface';
 import type { INotificacionesRepository } from '../../domain/repositories/notificaciones.repository.interface';
@@ -9,6 +9,8 @@ import type { INotificacionesRepository } from '../../domain/repositories/notifi
  */
 @Injectable()
 export class BroadcastService {
+  private readonly logger = new Logger(BroadcastService.name);
+
   constructor(
     private readonly broadcastGateway: BroadcastGateway,
     @Inject(NOTIFICACIONES_REPOSITORY)
@@ -55,29 +57,66 @@ export class BroadcastService {
   }
 
   /**
-   * Emite una notificación a un usuario específico
-   * Si el usuario no está conectado, guarda la notificación en la base de datos
-   * @param userId ID del usuario que recibirá la notificación
-   * @param notification Datos de la notificación
+   * Notifica que el guardado del documento ha comenzado (Collabora acaba de llamar a PutFile).
+   * El frontend muestra "Guardando..." hasta recibir document.saved.
+   */
+  emitDocumentSaveStarted(
+    userId: number,
+    data: { projectId: string; itemId: string; fileName: string },
+  ) {
+    this.broadcastGateway.emitToUser(userId, 'document.save_started', data);
+    this.logger.log(`[DOC] document.save_started emitido a usuario ${userId} para ${data.fileName}`);
+  }
+
+  /**
+   * Notifica a un usuario que su documento se guardó en ACC (Collabora PutFile exitoso).
+   * El frontend (OfficeViewer) escucha el evento 'document.saved' y muestra un toast.
+   */
+  emitDocumentSaved(
+    userId: number,
+    data: { projectId: string; itemId: string; fileName: string },
+  ) {
+    this.broadcastGateway.emitToUser(userId, 'document.saved', data);
+    this.logger.log(`[DOC] document.saved emitido a usuario ${userId} para ${data.fileName}`);
+  }
+
+  /**
+   * Emite una notificación a un usuario específico.
+   * Siempre persiste en BD (historial y entrega al abrir la app) y además emite por WebSocket si está conectado.
+   * @param userId ID del usuario que recibirá la notificación (idusuario / auth)
+   * @param notification Datos de la notificación (type, title, message, ...)
    */
   async emitNotificationToUser(userId: number, notification: any) {
-    // Verificar si el usuario está conectado
+    const tipo = notification.type || 'info';
+    const titulo = notification.title || 'Notificación';
+    const mensaje = notification.message ?? null;
+
+    this.logger.log(
+      `[NOTIF] Emitir notificación → userId=${userId} type=${tipo} title="${titulo?.substring(0, 40) ?? ''}"`,
+    );
+
+    try {
+      // 1) Siempre guardar en BD para que aparezca en el sistema y al cargar pendientes
+      const saved = await this.notificacionesRepository.guardarNotificacionPendiente(
+        userId,
+        tipo,
+        titulo,
+        mensaje,
+        notification,
+      );
+      this.logger.log(`[NOTIF] Guardada en BD para userId=${userId} → id=${saved?.id ?? 'N/A'}`);
+    } catch (err: any) {
+      this.logger.error(`[NOTIF] Error al guardar en BD userId=${userId}: ${err?.message ?? err}`);
+      throw err;
+    }
+
+    // 2) Si está conectado, enviar también por WebSocket
     const isConnected = this.broadcastGateway.isUserConnected(userId);
-    
+    this.logger.log(`[NOTIF] Usuario userId=${userId} conectado por socket: ${isConnected}`);
     if (isConnected) {
-      // Usuario conectado: enviar por WebSocket
       const channel = `App.Models.User.${userId}`;
       this.broadcastGateway.emitToChannel(channel, 'notification', notification);
-    } else {
-      // Usuario no conectado: guardar en base de datos
-      // Toda la información específica se almacena en el campo 'datos'
-      await this.notificacionesRepository.guardarNotificacionPendiente(
-        userId,
-        notification.type || 'info',
-        notification.title || 'Notificación',
-        notification.message || null,
-        notification, // Toda la notificación se guarda en datos para mantener compatibilidad
-      );
+      this.logger.log(`[NOTIF] Emitido por socket al canal ${channel}`);
     }
   }
 }

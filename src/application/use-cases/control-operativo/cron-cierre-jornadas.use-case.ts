@@ -13,8 +13,8 @@ export class CronCierreJornadasUseCase {
     ) {}
 
     /**
-     * Ejecuta el cron único de cierre de jornadas: crea Alertas para quien no abrió,
-     * y para el día anterior pasa Alertas a Incompleto o Completado según actividades.
+     * Ejecuta el cron de cierre: Alertas para quien no abrió; jornadas pasados días de tolerancia
+     * con actividades → Cerrado, sin actividades → Incompleto.
      */
     async execute(fecha: string): Promise<CronCierreJornadasResult> {
         const f = fecha?.trim();

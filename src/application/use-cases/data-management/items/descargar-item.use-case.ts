@@ -32,7 +32,15 @@ export class DescargarItemUseCase {
             throw new UnauthorizedException('El token ha expirado. Por favor, refresca tu token.');
         }
 
-        const resultado = await this.autodeskApiService.descargarItem(token.tokenAcceso, projectId, itemId);
+        const rawVersionId = queryParams?.versionId;
+        const versionId =
+            rawVersionId != null && rawVersionId !== ''
+                ? (Array.isArray(rawVersionId) ? String(rawVersionId[0]) : String(rawVersionId)).trim()
+                : undefined;
+        const resultado =
+            versionId
+                ? await this.autodeskApiService.descargarItemPorVersion(token.tokenAcceso, projectId, versionId)
+                : await this.autodeskApiService.descargarItem(token.tokenAcceso, projectId, itemId);
 
         // Registrar auditoría de descarga
         if (ipAddress && userAgent) {

@@ -4,6 +4,7 @@ export interface ListarTrabajadoresParams {
     busqueda?: string;
     limit?: number;
     offset?: number;
+    idRol?: number;
 }
 
 export interface ListarTrabajadoresResponse {

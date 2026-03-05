@@ -147,6 +147,11 @@ docker exec -it <container-id> sh
 - Configura `ALLOWED_ORIGINS` con los dominios correctos
 - No uses `*` en producción
 
+### Login falla solo en iPhone / Safari ("credenciales inválidas")
+- **Cookies**: Si en el futuro la API o un proxy (p. ej. Easypanel) envía cookies, en Safari/iOS deben usar `SameSite=None` y `Secure`, o Safari las bloquea y puede afectar la sesión.
+- **CORS**: La API ya envía `credentials: true` y cabeceras compatibles con Safari (`Accept`, `Accept-Language`). Comprueba que la URL del frontend en iPhone esté incluida en `FRONTEND_URLS` (sin diferencias de protocolo o barra final).
+- **Espacios en credenciales**: La API y el frontend hacen `trim()` de correo y contraseña para evitar fallos por espacios/autocompletado en iOS.
+
 ## Comandos para crear y subir imagen a Docker
 ## Limpiar cache de BuildKit
 docker builder prune -af
@@ -164,6 +169,8 @@ docker push sistemasgvr/visor-gvr:latest
 ---
 
 ## 📄 Collabora Online: Integración para edición de documentos
+
+> **Diagnóstico y alternativa:** Si Collabora no te funciona al 100% o quieres valorar OnlyOffice, ver **[docs/COLLABORA-ONLYOFFICE.md](docs/COLLABORA-ONLYOFFICE.md)** (checklist de troubleshooting y guía de integración con OnlyOffice).
 
 ### **Descripción**
 Collabora Online es el servidor de edición de documentos Office integrado en este proyecto. Permite editar documentos Word, Excel y PowerPoint directamente en el navegador.

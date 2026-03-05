@@ -26,10 +26,14 @@ export class LoggingInterceptor implements NestInterceptor {
             `📥 ${method} ${url} - IP: ${ip} - User-Agent: ${userAgent}`,
         );
 
-        // Log del body si existe (excepto passwords)
-        if (body && Object.keys(body).length > 0) {
-            const sanitizedBody = this.sanitizeBody(body);
-            this.logger.log(`   Body: ${JSON.stringify(sanitizedBody)}`);
+        // Log del body si existe (excepto buffers binarios y passwords)
+        if (body && !Buffer.isBuffer(body) && typeof body === 'object' && Object.keys(body).length > 0) {
+            try {
+                const sanitizedBody = this.sanitizeBody(body);
+                this.logger.log(`   Body: ${JSON.stringify(sanitizedBody)}`);
+            } catch {
+                this.logger.log('   Body: [no serializable]');
+            }
         }
 
         // Log de query params si existen
@@ -52,9 +56,14 @@ export class LoggingInterceptor implements NestInterceptor {
                     `${statusEmoji} ${method} ${url} - ${statusCode} - ${duration}ms`,
                 );
 
-                // Log de la respuesta
-                if (data) {
-                    this.logger.log(`   Response: ${JSON.stringify(data)}`);
+                // Log de la respuesta (evitar circular refs: Response, Request, Socket)
+                if (data !== undefined && data !== null) {
+                    try {
+                        const safe = this.safeStringify(data);
+                        if (safe !== undefined) this.logger.log(`   Response: ${safe}`);
+                    } catch {
+                        this.logger.log('   Response: [no serializable]');
+                    }
                 }
             }),
             catchError((error) => {
@@ -90,6 +99,19 @@ export class LoggingInterceptor implements NestInterceptor {
         }
 
         return sanitized;
+    }
+
+    /**
+     * Serializa de forma segura evitando referencias circulares (Socket, Request, Response)
+     */
+    private safeStringify(value: any): string | undefined {
+        if (value === undefined || value === null) return undefined;
+        if (typeof value === 'function' || (typeof value === 'object' && 'socket' in value)) return undefined;
+        try {
+            return JSON.stringify(value);
+        } catch {
+            return undefined;
+        }
     }
 
     /**

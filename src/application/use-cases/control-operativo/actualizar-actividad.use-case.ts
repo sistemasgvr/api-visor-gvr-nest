@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import type {
     IControlOperativoRepository,
     ActualizarActividadParams,
@@ -9,6 +9,8 @@ import { BroadcastService } from '../../../shared/services/broadcast.service';
 
 @Injectable()
 export class ActualizarActividadUseCase {
+    private readonly logger = new Logger(ActualizarActividadUseCase.name);
+
     constructor(
         @Inject(CONTROL_OPERATIVO_REPOSITORY)
         private readonly controlOperativoRepository: IControlOperativoRepository,
@@ -24,30 +26,53 @@ export class ActualizarActividadUseCase {
                 const nombreTrabajador =
                     await this.controlOperativoRepository.obtenerNombreTrabajadorPorId(params.idTrabajador);
                 const nombreAutor = nombreTrabajador?.trim() || 'Un usuario';
-                const idResponsable =
-                    await this.controlOperativoRepository.obtenerIdResponsablePorIdTrabajador(params.idTrabajador);
-                if (idResponsable != null) {
-                    const idUsuarioResponsable =
-                        await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(idResponsable);
-                    if (idUsuarioResponsable != null) {
-                        const notification = {
-                            type: 'actividad_corregida',
-                            title: 'Actividad corregida',
-                            message: `ha corregido las observaciones de la actividad "${data.nombreactividad}". Pendiente de revisión.`,
-                            createdBy: { id: data.idtrabajador, name: nombreAutor, fotoPerfil: null as string | null },
-                            idActividad: data.id,
-                            idTrabajador: data.idtrabajador,
-                            nombreActividad: data.nombreactividad,
-                            horainicio: data.horainicio,
-                            horafin: data.horafin,
-                            horasdedicadas: data.horasdedicadas,
-                            timestamp: new Date().toISOString(),
-                        };
-                        await this.broadcastService.emitNotificationToUser(idUsuarioResponsable, notification);
+                const notification = {
+                    type: 'actividad_corregida',
+                    title: 'Actividad corregida',
+                    message: `ha corregido las observaciones de la actividad "${data.nombreactividad}". Pendiente de revisión.`,
+                    createdBy: { id: data.idtrabajador, name: nombreAutor, fotoPerfil: null as string | null },
+                    idActividad: data.id,
+                    idTrabajador: data.idtrabajador,
+                    nombreActividad: data.nombreactividad,
+                    horainicio: data.horainicio,
+                    horafin: data.horafin,
+                    horasdedicadas: data.horasdedicadas,
+                    timestamp: new Date().toISOString(),
+                };
+
+                // Notificar al que revisa: coordinador del proyecto (quien dejó la observación) o, si no hay, responsable del trabajador
+                let idUsuarioANotificar: number | null = null;
+                if (data.idcoordinador != null) {
+                    idUsuarioANotificar =
+                        await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(data.idcoordinador);
+                    if (idUsuarioANotificar != null) {
+                        this.logger.log(
+                            `[NOTIF] ActualizarActividad: notificando al coordinador del proyecto userId=${idUsuarioANotificar} (idActividad=${data.id})`,
+                        );
                     }
                 }
+                if (idUsuarioANotificar == null) {
+                    const idResponsable =
+                        await this.controlOperativoRepository.obtenerIdResponsablePorIdTrabajador(params.idTrabajador);
+                    if (idResponsable != null) {
+                        idUsuarioANotificar =
+                            await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(idResponsable);
+                        if (idUsuarioANotificar != null) {
+                            this.logger.log(
+                                `[NOTIF] ActualizarActividad: notificando al responsable del trabajador userId=${idUsuarioANotificar} (idActividad=${data.id})`,
+                            );
+                        }
+                    }
+                }
+                if (idUsuarioANotificar != null) {
+                    await this.broadcastService.emitNotificationToUser(idUsuarioANotificar, notification);
+                } else {
+                    this.logger.warn(
+                        `[NOTIF] ActualizarActividad: no se pudo obtener idUsuario para notificar corrección (idActividad=${data.id})`,
+                    );
+                }
             } catch (error) {
-                console.error('Error al emitir notificación de actividad corregida:', error);
+                this.logger.error('Error al emitir notificación de actividad corregida:', error);
             }
         }
 

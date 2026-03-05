@@ -72,15 +72,21 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
 
       this.logger.debug(`Token extraído para cliente ${client.id}`);
 
-      // Verificar token
+      // Verificar token (sub = idUsuario de auth, no idTrabajador)
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
       });
 
-      // Asignar información del usuario al socket
-      client.userId = payload.sub;
+      const idUsuario = typeof payload.sub === 'number' ? payload.sub : Number(payload.sub);
+      if (!Number.isInteger(idUsuario) || idUsuario < 1) {
+        this.logger.warn(`JWT sub inválido para cliente ${client.id}: ${payload.sub}`);
+        client.disconnect();
+        return;
+      }
+
+      client.userId = idUsuario;
       client.user = {
-        id: payload.sub,
+        id: idUsuario,
         correo: payload.correo,
         nombre: payload.nombre,
         roles: payload.roles,
@@ -88,12 +94,17 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
       };
 
       this.connectedClients.set(client.id, client);
+
+      // Unir al canal privado del usuario por idUsuario (sesión) para que reciba notificaciones sin depender del "subscribe" del front
+      const userChannel = `App.Models.User.${idUsuario}`;
+      client.join(userChannel);
+      this.logger.log(`✅ Cliente autenticado conectado: ${client.id} (idUsuario=${idUsuario}) → unido a ${userChannel}`);
+
       try {
-        await this.authRepository.setUsuarioConectado(payload.sub, true);
+        await this.authRepository.setUsuarioConectado(idUsuario, true);
       } catch (err) {
-        this.logger.warn(`No se pudo actualizar isconnected para usuario ${payload.sub}:`, err?.message);
+        this.logger.warn(`No se pudo actualizar isconnected para usuario ${idUsuario}:`, err?.message);
       }
-      this.logger.log(`✅ Cliente autenticado conectado: ${client.id} (Usuario: ${payload.sub})`);
     } catch (error) {
       this.logger.error(`❌ Error al autenticar cliente ${client.id}:`, error.message || error);
       if (error.stack) {

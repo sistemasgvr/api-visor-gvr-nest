@@ -3,6 +3,7 @@ import type {
     IProyectoRepository,
     ListarProyectosParams,
     ListarProyectosResponse,
+    ProyectoPorEstadoItem,
     CrearProyectoData,
     EditarProyectoData,
     ListarUsuariosDisponiblesParams,
@@ -18,11 +19,11 @@ export class ProyectoRepository implements IProyectoRepository {
     ) { }
 
     async listarProyectos(params: ListarProyectosParams): Promise<ListarProyectosResponse> {
-        const { idUsuario, idTipoProyecto = null, idPais = null, busqueda = '', limit = 10, offset = 0 } = params;
+        const { idUsuario, idTipoProyecto = null, idPais = null, idCliente = null, busqueda = '', limit = 10, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
             'proListarProyectos',
-            [idUsuario, idTipoProyecto, idPais, busqueda, limit, offset],
+            [idUsuario, idTipoProyecto, idPais, idCliente, busqueda, limit, offset],
         );
 
         if (!result || result.length === 0) {
@@ -52,12 +53,29 @@ export class ProyectoRepository implements IProyectoRepository {
         };
     }
 
+    async contarProyectosPorEstado(): Promise<ProyectoPorEstadoItem[]> {
+        const result = await this.databaseFunctionService.callFunction<{ nombre_estado: string; cantidad: number | string }>(
+            'proContarProyectosPorEstado',
+            [],
+        );
+        if (!Array.isArray(result)) return [];
+        return result.map((row) => ({
+            nombre_estado: row.nombre_estado ?? 'Sin estado',
+            cantidad: typeof row.cantidad === 'number' ? row.cantidad : Number(row.cantidad) || 0,
+        }));
+    }
+
     async obtenerProyectoPorId(idProyecto: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
             'proObtenerProyectoPorId',
             [idProyecto],
         );
-
+        if (result?.coordinadores && Array.isArray(result.coordinadores)) {
+            result.coordinadores = result.coordinadores.map((c: { miembros_equipo?: unknown }) => {
+                const { miembros_equipo, ...rest } = c as { miembros_equipo?: unknown; [k: string]: unknown };
+                return { ...rest, miembrosEquipo: miembros_equipo ?? [] };
+            });
+        }
         return result;
     }
 
@@ -222,5 +240,52 @@ export class ProyectoRepository implements IProyectoRepository {
             [idDocumento, idUsuarioModificacion],
         );
         return result;
+    }
+
+    async listarCoordinadoresProyecto(idProyecto: number): Promise<import('../../domain/repositories/proyecto.repository.interface').CoordinadorProyectoItem[]> {
+        const result = await this.databaseFunctionService.callFunction<any>(
+            'proListarCoordinadoresProyecto',
+            [idProyecto],
+        );
+        const rows = result ?? [];
+        return rows.map((r: Record<string, unknown>) => {
+            const { miembros_equipo, ...rest } = r;
+            return {
+                ...rest,
+                miembrosEquipo: (miembros_equipo as unknown[] | undefined) ?? [],
+            } as import('../../domain/repositories/proyecto.repository.interface').CoordinadorProyectoItem;
+        });
+    }
+
+    async guardarCoordinadoresProyecto(
+        idProyecto: number,
+        coordinadores: import('../../domain/repositories/proyecto.repository.interface').GuardarCoordinadoresProyectoPayload[],
+        idUsuario: number,
+    ): Promise<{ success: boolean; message: string }> {
+        const payload = coordinadores.map((c) => ({
+            idtrabajador: c.idtrabajador,
+            miembros_equipo: c.miembrosEquipo ?? [],
+        }));
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'proGuardarCoordinadoresProyecto',
+            [idProyecto, JSON.stringify(payload), idUsuario],
+        );
+        return result;
+    }
+
+    async obtenerCoordinadorParaTrabajadorEnProyecto(idProyecto: number, idTrabajador: number): Promise<number | null> {
+        const result = await this.databaseFunctionService.callFunctionSingle<number | null>(
+            'proObtenerCoordinadorParaTrabajadorEnProyecto',
+            [idProyecto, idTrabajador],
+        );
+        return result != null && Number(result) > 0 ? Number(result) : null;
+    }
+
+    async obtenerPrimerCoordinadorProyecto(idProyecto: number): Promise<number | null> {
+        const result = await this.databaseFunctionService.callFunctionSingle<number | null>(
+            'proObtenerPrimerCoordinadorProyecto',
+            [idProyecto],
+        );
+        return result != null && Number(result) > 0 ? Number(result) : null;
     }
 }

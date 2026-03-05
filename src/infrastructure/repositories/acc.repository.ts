@@ -72,11 +72,10 @@ export class AccRepository implements IAccRepository {
     async actualizarToken3Legged(
         id: number,
         tokenAcceso: string,
-        tokenRefresco: string,
+        tokenRefresco: string | null,
         expiraEn: Date,
     ): Promise<AccToken> {
-        // Call accActualizarToken3Legged function
-        // SELECT * FROM accActualizarToken3Legged(p_id, p_token_acceso, p_token_refresco, p_expira_en)
+        // Call accActualizarToken3Legged function. Pass null when no new refresh token (e.g. after rotation the old one is invalid).
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
             'accActualizarToken3Legged',
             [id, tokenAcceso, tokenRefresco, expiraEn],
@@ -112,10 +111,15 @@ export class AccRepository implements IAccRepository {
             'accListarTokensActivosParaRefresh',
             [],
         );
-        return (rows || []).map((r: any) => ({
-            id: r.v_id,
-            idUsuario: r.v_usuario_id ?? r.v_id_usuario,
-            tokenRefresco: r.v_token_refresco,
-        }));
+        return (rows || [])
+            .map((r: any) => {
+                const tokenRefresco = (r.v_token_refresco ?? r.token_refresco ?? '').toString().trim();
+                return {
+                    id: r.v_id ?? r.id,
+                    idUsuario: r.v_usuario_id ?? r.v_id_usuario ?? r.usuario_id,
+                    tokenRefresco,
+                };
+            })
+            .filter((t) => t.tokenRefresco.length > 0);
     }
 }

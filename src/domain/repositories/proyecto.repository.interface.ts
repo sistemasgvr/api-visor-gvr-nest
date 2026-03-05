@@ -2,6 +2,7 @@ export interface ListarProyectosParams {
     idUsuario: number;
     idTipoProyecto?: number;
     idPais?: number;
+    idCliente?: number;
     busqueda?: string;
     limit?: number;
     offset?: number;
@@ -73,8 +74,28 @@ export interface ActualizarDocumentoProyectoData {
     linkDocumento?: string;
 }
 
+/** Coordinador con sus miembros del equipo (proListarCoordinadoresProyecto) */
+export interface CoordinadorProyectoItem {
+    id_proyectocoordinador: number;
+    idtrabajador: number;
+    nombrecoordinador: string;
+    miembrosEquipo: { id: number; idtrabajador: number; nombretrabajador: string }[];
+}
+
+/** Payload para guardar coordinadores (proGuardarCoordinadoresProyecto) */
+export interface GuardarCoordinadoresProyectoPayload {
+    idtrabajador: number;
+    miembrosEquipo: number[];
+}
+
+export interface ProyectoPorEstadoItem {
+    nombre_estado: string;
+    cantidad: number;
+}
+
 export interface IProyectoRepository {
     listarProyectos(params: ListarProyectosParams): Promise<ListarProyectosResponse>;
+    contarProyectosPorEstado(): Promise<ProyectoPorEstadoItem[]>;
     obtenerProyectoPorId(idProyecto: number): Promise<any>;
     crearProyecto(data: CrearProyectoData): Promise<any>;
     editarProyecto(data: EditarProyectoData): Promise<any>;
@@ -88,6 +109,10 @@ export interface IProyectoRepository {
     crearDocumentoProyecto(idProyecto: number, data: CrearDocumentoProyectoData, idUsuarioCreacion: number): Promise<AsignarAccesoProyectoResult>;
     actualizarDocumentoProyecto(idDocumento: number, data: ActualizarDocumentoProyectoData, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }>;
     eliminarDocumentoProyecto(idDocumento: number, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }>;
+    listarCoordinadoresProyecto(idProyecto: number): Promise<CoordinadorProyectoItem[]>;
+    guardarCoordinadoresProyecto(idProyecto: number, coordinadores: GuardarCoordinadoresProyectoPayload[], idUsuario: number): Promise<{ success: boolean; message: string }>;
+    obtenerCoordinadorParaTrabajadorEnProyecto(idProyecto: number, idTrabajador: number): Promise<number | null>;
+    obtenerPrimerCoordinadorProyecto(idProyecto: number): Promise<number | null>;
 }
 
 export const PROYECTO_REPOSITORY = 'PROYECTO_REPOSITORY';

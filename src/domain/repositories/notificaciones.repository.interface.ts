@@ -16,11 +16,16 @@ export interface INotificacionesRepository {
     ): Promise<any>;
 
     /**
-     * Obtiene las notificaciones pendientes de un usuario
+     * Obtiene las notificaciones pendientes de un usuario (entregada = false, estado = 1)
      * @param idUsuario ID del usuario
      * @param tipo Tipo de notificación opcional para filtrar
      */
     obtenerNotificacionesPendientes(idUsuario: number, tipo?: string): Promise<any[]>;
+
+    /**
+     * Obtiene todas las notificaciones del usuario (pendientes y entregadas), estado = 1
+     */
+    obtenerNotificaciones(idUsuario: number, tipo?: string): Promise<any[]>;
 
     /**
      * Marca una notificación como entregada
@@ -31,6 +36,16 @@ export interface INotificacionesRepository {
      * Marca todas las notificaciones de un usuario como entregadas
      */
     marcarTodasComoEntregadas(idUsuario: number): Promise<void>;
+
+    /**
+     * Soft delete: pone estado = 0. Solo si idUsuario es el dueño.
+     */
+    eliminarNotificacion(id: number, idUsuario: number): Promise<boolean>;
+
+    /**
+     * Soft delete de todas las notificaciones del usuario (estado = 0)
+     */
+    eliminarTodasNotificaciones(idUsuario: number): Promise<void>;
 }
 
 export const NOTIFICACIONES_REPOSITORY = Symbol('NOTIFICACIONES_REPOSITORY');

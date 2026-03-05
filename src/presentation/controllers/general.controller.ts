@@ -1,6 +1,8 @@
 import {
     Controller,
     Get,
+    Post,
+    Body,
     Query,
     HttpCode,
     HttpStatus,
@@ -13,6 +15,7 @@ import type { Request } from 'express';
 import { ListarMenuOpcionesUseCase } from '../../application/use-cases/general/listar-menu-opciones.use-case';
 import { ObtenerMenuOpcionUseCase } from '../../application/use-cases/general/obtener-menu-opcion.use-case';
 import { ObtenerOpcionesListaUseCase } from '../../application/use-cases/general/obtener-opciones-lista.use-case';
+import { CrearOpcionListaUseCase } from '../../application/use-cases/general/crear-opcion-lista.use-case';
 import { ObtenerCatalogosTrabajadorUseCase } from '../../application/use-cases/general/obtener-catalogos-trabajador.use-case';
 import { ListarMenuRecursivoUseCase } from '../../application/use-cases/general/listar-menu-recursivo.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
@@ -25,6 +28,7 @@ export class GeneralController {
         private readonly listarMenuOpcionesUseCase: ListarMenuOpcionesUseCase,
         private readonly obtenerMenuOpcionUseCase: ObtenerMenuOpcionUseCase,
         private readonly obtenerOpcionesListaUseCase: ObtenerOpcionesListaUseCase,
+        private readonly crearOpcionListaUseCase: CrearOpcionListaUseCase,
         private readonly obtenerCatalogosTrabajadorUseCase: ObtenerCatalogosTrabajadorUseCase,
         private readonly listarMenuRecursivoUseCase: ListarMenuRecursivoUseCase,
     ) { }
@@ -89,6 +93,23 @@ export class GeneralController {
         return ApiResponseDto.success(
             listaOpciones,
             'Listado de opciones obtenido exitosamente',
+        );
+    }
+
+    /**
+     * Crear una nueva opción en una lista (ej. tipo de actividad "Otros")
+     * POST /listado-opciones body: { idLista: number, nombre: string }
+     */
+    @Post('listado-opciones')
+    @HttpCode(HttpStatus.CREATED)
+    async crearOpcionLista(
+        @Body('idLista', new ParseIntPipe({ optional: false })) idLista: number,
+        @Body('nombre') nombre: string
+    ) {
+        const created = await this.crearOpcionListaUseCase.execute(idLista, (nombre ?? '').trim());
+        return ApiResponseDto.success(
+            created,
+            'Opción creada exitosamente',
         );
     }
 

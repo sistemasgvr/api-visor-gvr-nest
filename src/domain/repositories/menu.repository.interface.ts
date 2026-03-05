@@ -3,6 +3,7 @@ export interface IMenuRepository {
     obtenerMenuOpcionPorId(id: number): Promise<any>;
     obtenerOpcionesPorLista(idLista: number): Promise<any[]>;
     listarMenuRecursivo(idUsuario: number): Promise<any>;
+    crearOpcionLista(idLista: number, nombre: string): Promise<any>;
 }
 
 export const MENU_REPOSITORY = 'MENU_REPOSITORY';

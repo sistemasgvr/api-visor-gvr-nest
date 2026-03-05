@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Query, Body, UseGuards, ParseIntPipe, UnauthorizedException, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Query, Body, UseGuards, ParseIntPipe, UnauthorizedException, Req, Header, HttpCode, HttpStatus } from '@nestjs/common';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
@@ -8,12 +8,17 @@ import { ListarActividadesUseCase } from '../../application/use-cases/control-op
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
+import { ListarTrabajadoresSinJornadaHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-jornada-hoy.use-case';
+import { ListarTrabajadoresSinActividadesHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-actividades-hoy.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ListarObservacionesActividadUseCase } from '../../application/use-cases/control-operativo/listar-observaciones-actividad.use-case';
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
 import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
+import { ListarValorizacionUseCase } from '../../application/use-cases/control-operativo/listar-valorizacion.use-case';
+import { ListarDesempenoUseCase } from '../../application/use-cases/control-operativo/listar-desempeno.use-case';
+import { ListarTrabajadoresPorProyectoUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-por-proyecto.use-case';
 import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
@@ -29,12 +34,17 @@ export class ControlOperativoController {
         private readonly cronCierreJornadasUseCase: CronCierreJornadasUseCase,
         private readonly actualizarEstadoJornadaUseCase: ActualizarEstadoJornadaUseCase,
         private readonly listarProyectosAccesoTrabajadorUseCase: ListarProyectosAccesoTrabajadorUseCase,
+        private readonly listarTrabajadoresSinJornadaHoyUseCase: ListarTrabajadoresSinJornadaHoyUseCase,
+        private readonly listarTrabajadoresSinActividadesHoyUseCase: ListarTrabajadoresSinActividadesHoyUseCase,
         private readonly crearActividadUseCase: CrearActividadUseCase,
         private readonly obtenerActividadUseCase: ObtenerActividadUseCase,
         private readonly listarObservacionesActividadUseCase: ListarObservacionesActividadUseCase,
         private readonly actualizarActividadUseCase: ActualizarActividadUseCase,
         private readonly eliminarActividadUseCase: EliminarActividadUseCase,
         private readonly listarActividadesValidacionUseCase: ListarActividadesValidacionUseCase,
+        private readonly listarValorizacionUseCase: ListarValorizacionUseCase,
+        private readonly listarDesempenoUseCase: ListarDesempenoUseCase,
+        private readonly listarTrabajadoresPorProyectoUseCase: ListarTrabajadoresPorProyectoUseCase,
         private readonly validarActividadUseCase: ValidarActividadUseCase,
         private readonly configService: ConfigService,
     ) {}
@@ -44,8 +54,8 @@ export class ControlOperativoController {
      * GET /control-operativo/cron/cierre-jornadas?key=CRON_SECRET
      * GET /control-operativo/cron/cierre-jornadas?key=CRON_SECRET&fecha=YYYY-MM-DD  (opcional, para ejecutar manualmente una fecha)
      * Sin fecha usa hoy (hora Perú). Con fecha usas la indicada.
-     * Hace: 1) Crea jornadas en Alerta para quien no abrió ese día.
-     * 2) Para el día anterior: Alerta sin actividades → Incompleto; con actividades → Completado.
+     * Crea Alertas para quien no abrió ese día; pone en Alerta las de ese día sin actividades;
+     * jornadas pasados los días de tolerancia: con actividades → Cerrado, sin actividades → Incompleto.
      */
     @Get('cron/cierre-jornadas')
     async cronCierreJornadas(@Query('key') key?: string, @Query('fecha') fecha?: string) {
@@ -59,8 +69,9 @@ export class ControlOperativoController {
             {
                 fecha: f,
                 insertados_alerta: result.insertados_alerta,
+                actualizados_alerta: result.actualizados_alerta,
+                pasados_culminado: result.pasados_culminado,
                 pasados_incompleto: result.pasados_incompleto,
-                pasados_completado: result.pasados_completado,
             },
             'Cierre de jornadas ejecutado',
         );
@@ -108,18 +119,64 @@ export class ControlOperativoController {
     }
 
     /**
-     * Listar proyectos a los que tiene acceso el trabajador (para filtro en actividades).
+     * Listar proyectos para filtros en actividades, valorización, desempeño y validación.
+     * idTrabajador = tratrabajador.id (ID del trabajador), NO idUsuario (auth). Proyectos se filtran por proaccesoproyecto.idtrabajador.
+     * Por rol: admins ven todos; coordinador BIM los que coordina; resto por acceso.
      * GET /control-operativo/proyectos-acceso-trabajador?idTrabajador=123
      */
     @Get('proyectos-acceso-trabajador')
+    @HttpCode(HttpStatus.OK)
+    @Header('Cache-Control', 'no-store')
     @UseGuards(JwtAuthGuard)
     async listarProyectosAccesoTrabajador(@Query('idTrabajador') idTrabajador?: string) {
         const id = idTrabajador != null && idTrabajador !== '' ? parseInt(idTrabajador, 10) : NaN;
         if (Number.isNaN(id) || id < 1) {
-            return ApiResponseDto.success([], 'Proyectos acceso (sin idTrabajador se devuelve vacío)');
+            return ApiResponseDto.success([], 'Proyectos acceso (idTrabajador = tratrabajador.id requerido)');
         }
         const data = await this.listarProyectosAccesoTrabajadorUseCase.execute(id);
-        return ApiResponseDto.success(data, 'Proyectos con acceso listados exitosamente');
+        return ApiResponseDto.success(Array.isArray(data) ? data : [], 'Proyectos con acceso listados exitosamente');
+    }
+
+    /**
+     * Dashboard: trabajadores que tienen jornada abierta hoy pero no han registrado ninguna actividad.
+     * Roles permitidos enviados por el front (rolesAdmin). GET .../trabajadores-sin-actividades-hoy?fecha=YYYY-MM-DD&rolesAdmin=1,5,11
+     */
+    @Get('trabajadores-sin-actividades-hoy')
+    @UseGuards(JwtAuthGuard)
+    async listarTrabajadoresSinActividadesHoy(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('fecha') fecha?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const f = (fecha ?? '').trim() || getFechaHoy();
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const result = await this.listarTrabajadoresSinActividadesHoyUseCase.execute(Number(userId), f, rolesAdminIds);
+        return ApiResponseDto.success(result, 'Trabajadores sin actividades hoy listados exitosamente');
+    }
+
+    /**
+     * Dashboard: trabajadores que no han registrado (abierto) jornada en la fecha (ej. hoy).
+     * Roles permitidos enviados por el front (rolesAdmin). GET .../trabajadores-sin-jornada-hoy?fecha=YYYY-MM-DD&rolesAdmin=1,5,11
+     */
+    @Get('trabajadores-sin-jornada-hoy')
+    @UseGuards(JwtAuthGuard)
+    async listarTrabajadoresSinJornadaHoy(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('fecha') fecha?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const f = (fecha ?? '').trim() || getFechaHoy();
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const result = await this.listarTrabajadoresSinJornadaHoyUseCase.execute(Number(userId), f, rolesAdminIds);
+        return ApiResponseDto.success(result, 'Trabajadores sin jornada listados exitosamente');
     }
 
     /**
@@ -186,8 +243,8 @@ export class ControlOperativoController {
     /**
      * Crear una actividad en una jornada.
      * POST /control-operativo/actividades
-     * Body: idJornada, idProyecto, idTrabajador, idCoordinador, idTipoActividad, nombreActividad,
-     *       descripcionDetallada?, horaInicio?, horaFin?, linkEvidencia?, idEstadoActividad?, idModalidad?
+     * Body: idJornada, idProyecto, idTrabajador, idTipoActividad, nombreActividad, ...
+     * idCoordinador se obtiene del proyecto (proProyecto.idcoordinador); opcional en body.
      */
     @Post('actividades')
     @UseGuards(JwtAuthGuard)
@@ -195,9 +252,9 @@ export class ControlOperativoController {
         @Body('idJornada') idJornada: number,
         @Body('idProyecto') idProyecto: number,
         @Body('idTrabajador') idTrabajador: number,
-        @Body('idCoordinador') idCoordinador: number,
         @Body('idTipoActividad') idTipoActividad: number,
         @Body('nombreActividad') nombreActividad: string,
+        @Body('idCoordinador') idCoordinador?: number,
         @Body('descripcionDetallada') descripcionDetallada?: string,
         @Body('horaInicio') horaInicio?: string,
         @Body('horaFin') horaFin?: string,
@@ -209,7 +266,7 @@ export class ControlOperativoController {
             idJornada: Number(idJornada),
             idProyecto: Number(idProyecto),
             idTrabajador: Number(idTrabajador),
-            idCoordinador: Number(idCoordinador),
+            idCoordinador: idCoordinador != null && idCoordinador > 0 ? Number(idCoordinador) : null,
             idTipoActividad: Number(idTipoActividad),
             nombreActividad: nombreActividad?.trim() ?? '',
             descripcionDetallada: descripcionDetallada?.trim() || null,
@@ -282,6 +339,143 @@ export class ControlOperativoController {
             offset: offset != null && offset !== '' ? parseInt(offset, 10) : undefined,
         });
         return ApiResponseDto.success(result, 'Actividades de validación listadas exitosamente');
+    }
+
+    /**
+     * Valorización: actividades aprobadas por proyecto y rango de fechas, agrupadas por modelador y coordinador.
+     * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
+     * GET /control-operativo/valorizacion?idProyecto=1&fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD&rolesAdmin=1,5,11
+     */
+    @Get('valorizacion')
+    @UseGuards(JwtAuthGuard)
+    async listarValorizacion(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('idProyecto') idProyecto?: string,
+        @Query('fechaInicio') fechaInicio?: string,
+        @Query('fechaFin') fechaFin?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const idProy = idProyecto != null && idProyecto !== '' ? parseInt(idProyecto, 10) : NaN;
+        if (Number.isNaN(idProy) || idProy < 1) {
+            return ApiResponseDto.success({ grupos: [], totalGeneralHoras: 0 }, 'Valorización (proyecto y fechas requeridos)');
+        }
+        const fInicio = (fechaInicio ?? '').trim() || undefined;
+        const fFin = (fechaFin ?? '').trim() || undefined;
+        if (!fInicio || !fFin) {
+            return ApiResponseDto.success({ grupos: [], totalGeneralHoras: 0 }, 'Valorización (fechaInicio y fechaFin requeridos)');
+        }
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const result = await this.listarValorizacionUseCase.execute({
+            idUsuario: Number(userId),
+            idProyecto: idProy,
+            fechaInicio: fInicio,
+            fechaFin: fFin,
+            rolesAdminPermitidos: rolesAdminIds,
+        });
+        return ApiResponseDto.success(result, 'Valorización listada exitosamente');
+    }
+
+    /**
+     * Evaluación de desempeño: actividades rechazadas, observaciones, horas no justificadas, comentarios coordinador.
+     * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
+     * GET /control-operativo/desempeno?idProyecto=1&fechaInicio=...&fechaFin=...&idTrabajador=1&rolesAdmin=1,5,11
+     */
+    @Get('desempeno')
+    @UseGuards(JwtAuthGuard)
+    async listarDesempeno(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('idProyecto') idProyecto?: string,
+        @Query('fechaInicio') fechaInicio?: string,
+        @Query('fechaFin') fechaFin?: string,
+        @Query('idTrabajador') idTrabajador?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const idProy = idProyecto != null && idProyecto !== '' ? parseInt(idProyecto, 10) : NaN;
+        if (Number.isNaN(idProy) || idProy < 1) {
+            return ApiResponseDto.success(
+                {
+                    totalActividadesRechazadas: 0,
+                    totalObservaciones: 0,
+                    totalHorasNoJustificadas: 0,
+                    detalleActividadesRechazadas: [],
+                    detalleObservaciones: [],
+                },
+                'Evaluación de desempeño (proyecto y fechas requeridos)',
+            );
+        }
+        const fInicio = (fechaInicio ?? '').trim() || undefined;
+        const fFin = (fechaFin ?? '').trim() || undefined;
+        if (!fInicio || !fFin) {
+            return ApiResponseDto.success(
+                {
+                    totalActividadesRechazadas: 0,
+                    totalObservaciones: 0,
+                    totalHorasNoJustificadas: 0,
+                    detalleActividadesRechazadas: [],
+                    detalleObservaciones: [],
+                },
+                'Evaluación de desempeño (fechaInicio y fechaFin requeridos)',
+            );
+        }
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const idTrab = idTrabajador != null && idTrabajador !== '' ? parseInt(idTrabajador, 10) : undefined;
+        const result = await this.listarDesempenoUseCase.execute({
+            idUsuario: Number(userId),
+            idProyecto: idProy,
+            fechaInicio: fInicio,
+            fechaFin: fFin,
+            rolesAdminPermitidos: rolesAdminIds,
+            idTrabajador: idTrab !== undefined && !Number.isNaN(idTrab) && idTrab >= 1 ? idTrab : undefined,
+        });
+        return ApiResponseDto.success(result, 'Evaluación de desempeño listada exitosamente');
+    }
+
+    /**
+     * Lista trabajadores con al menos una actividad en el proyecto (para filtro Desempeño).
+     * GET /control-operativo/trabajadores-por-proyecto?idProyecto=1&rolesAdmin=1,5,11
+     */
+    @Get('trabajadores-por-proyecto')
+    @UseGuards(JwtAuthGuard)
+    async listarTrabajadoresPorProyecto(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('idProyecto') idProyecto?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const idProy = idProyecto != null && idProyecto !== '' ? parseInt(idProyecto, 10) : NaN;
+        if (Number.isNaN(idProy) || idProy < 1) {
+            return ApiResponseDto.success([], 'Proyecto requerido');
+        }
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const result = await this.listarTrabajadoresPorProyectoUseCase.execute({
+            idUsuario: Number(userId),
+            idProyecto: idProy,
+            rolesAdminPermitidos: rolesAdminIds,
+        });
+        return ApiResponseDto.success(result, 'Trabajadores del proyecto listados exitosamente');
+    }
+
+    /** Parsea query rolesAdmin (ej. "1,5,11") a número[]. Si viene vacío, devuelve [1, 5, 11] por compatibilidad. */
+    private parseRolesAdminQuery(rolesAdmin?: string): number[] {
+        if (rolesAdmin == null || (rolesAdmin = rolesAdmin.trim()) === '') {
+            return [1, 5, 11];
+        }
+        const ids = rolesAdmin
+            .split(',')
+            .map((s) => parseInt(s.trim(), 10))
+            .filter((n) => !Number.isNaN(n) && n >= 1);
+        return ids.length > 0 ? ids : [1, 5, 11];
     }
 
     /**

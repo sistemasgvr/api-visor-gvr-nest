@@ -97,12 +97,89 @@ export interface ListarActividadesValidacionResult {
     totalHoras: number;
 }
 
-/** Parámetros para crear una actividad (concrearactividad). */
+/** Item de detalle de actividad dentro de un grupo de valorización (sustento cliente). */
+export interface ValorizacionDetalleActividad {
+    id: number;
+    nombreactividad: string;
+    horasdedicadas: number;
+    diajornada: string;
+    descripciondetallada?: string | null;
+}
+
+/** Grupo de valorización: por modelador y coordinador (solo actividades aprobadas). */
+export interface ValorizacionGrupo {
+    idtrabajador: number;
+    nombremodelador: string | null;
+    idcoordinador: number;
+    nombrecoordinador: string | null;
+    total_horas: number;
+    detalle_actividades: ValorizacionDetalleActividad[];
+}
+
+export interface ListarValorizacionParams {
+    idProyecto: number;
+    fechaInicio: string; // YYYY-MM-DD
+    fechaFin: string;   // YYYY-MM-DD
+}
+
+export interface ListarValorizacionResult {
+    grupos: ValorizacionGrupo[];
+    totalGeneralHoras: number;
+}
+
+/** Item de actividad rechazada para evaluación de desempeño. */
+export interface DesempenoActividadRechazada {
+    id: number;
+    idtrabajador?: number | null;
+    nombretrabajador: string | null;
+    nombrecoordinador: string | null;
+    diajornada: string;
+    nombreactividad: string;
+    horasdedicadas: number;
+    comentario: string | null;
+}
+
+/** Item de observación (comentario coordinador) para evaluación de desempeño. */
+export interface DesempenoObservacion {
+    id: number;
+    idactividad: number;
+    idtrabajador?: number | null;
+    nombretrabajador: string | null;
+    nombrecoordinador: string | null;
+    comentario: string | null;
+    fechaobservacion: string | null;
+    nombreactividad: string | null;
+}
+
+/** Item para filtro de trabajadores por proyecto (Desempeño). */
+export interface TrabajadorPorProyectoItem {
+    idtrabajador: number;
+    nombretrabajador: string | null;
+}
+
+export interface ListarDesempenoParams {
+    idProyecto: number;
+    fechaInicio: string;
+    fechaFin: string;
+    /** Opcional: filtrar por un solo trabajador. */
+    idTrabajador?: number | null;
+}
+
+export interface ListarDesempenoResult {
+    totalActividadesRechazadas: number;
+    totalObservaciones: number;
+    totalHorasNoJustificadas: number;
+    detalleActividadesRechazadas: DesempenoActividadRechazada[];
+    detalleObservaciones: DesempenoObservacion[];
+}
+
+/** Parámetros para crear una actividad (concrearactividad). idCoordinador se resuelve desde el proyecto si no se envía. */
 export interface CrearActividadParams {
     idJornada: number;
     idProyecto: number;
     idTrabajador: number;
-    idCoordinador: number;
+    /** Coordinador del proyecto (proProyecto.idcoordinador). Opcional: el use case lo obtiene del proyecto si no se envía. */
+    idCoordinador: number | null;
     idTipoActividad: number;
     nombreActividad: string;
     descripcionDetallada?: string | null;
@@ -120,7 +197,7 @@ export interface ActividadCreada {
     idjornada: number;
     idproyecto: number;
     idtrabajador: number;
-    idcoordinador: number;
+    idcoordinador: number | null;
     idtipoactividad: number;
     nombreactividad: string;
     horainicio: string;
@@ -209,11 +286,12 @@ export interface ListarActividadesResult {
 /** Retorno del cron único de cierre de jornadas (concroncierrejornadas). */
 export interface CronCierreJornadasResult {
     insertados_alerta: number;
+    actualizados_alerta: number;
+    pasados_culminado: number;
     pasados_incompleto: number;
-    pasados_completado: number;
 }
 
-/** Item devuelto por tra_listar_trabajadores_para_filtro (para filtro por trabajador en jornadas). */
+/** Item devuelto por traListarTrabajadoresParaFiltro (para filtro por trabajador en jornadas). */
 export interface TrabajadorParaFiltro {
     idtrabajador: number;
     nombres: string | null;
@@ -221,21 +299,44 @@ export interface TrabajadorParaFiltro {
     nombrecompleto: string | null;
 }
 
-/** Item devuelto por pro_listar_proyectos_acceso_trabajador (proyectos a los que tiene acceso el trabajador). */
+/** Item devuelto por proListarProyectosAccesoTrabajador (proyectos a los que tiene acceso el trabajador). */
 export interface ProyectoAccesoTrabajador {
     idproyecto: number;
     nombreproyecto: string | null;
     nroproyecto: string | null;
     nombrecliente: string | null;
+    idcoordinador: number | null;
+    nombrecoordinador: string | null;
+}
+
+/** Item de trabajador que no ha registrado jornada en la fecha (para dashboard). */
+export interface TrabajadorSinJornadaHoyItem {
+    idtrabajador: number;
+    nombrecompleto: string | null;
+}
+
+/** Item de trabajador que tiene jornada hoy pero no ha registrado actividades (para dashboard). */
+export interface TrabajadorSinActividadesHoyItem {
+    idtrabajador: number;
+    nombrecompleto: string | null;
 }
 
 export interface IControlOperativoRepository {
     listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult>;
     listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]>;
     listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]>;
+    listarTrabajadoresSinJornadaHoy(fecha: string): Promise<TrabajadorSinJornadaHoyItem[]>;
+    listarTrabajadoresSinActividadesHoy(fecha: string): Promise<TrabajadorSinActividadesHoyItem[]>;
+    /** Total de trabajadores que deben tener jornada en la fecha (para dashboard). */
+    contarTrabajadoresEsperadosJornadaHoy(fecha: string): Promise<number>;
+    /** Total de trabajadores con jornada en la fecha (para dashboard sin actividades). */
+    contarTrabajadoresConJornadaHoy(fecha: string): Promise<number>;
     crearJornada(params: CrearJornadaParams): Promise<JornadaCreada | null>;
     listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult>;
     listarActividadesValidacion(params: ListarActividadesValidacionParams): Promise<ListarActividadesValidacionResult>;
+    listarValorizacion(params: ListarValorizacionParams): Promise<ListarValorizacionResult>;
+    listarTrabajadoresPorProyecto(idProyecto: number): Promise<TrabajadorPorProyectoItem[]>;
+    listarDesempeno(params: ListarDesempenoParams): Promise<ListarDesempenoResult>;
     obtenerActividad(idActividad: number): Promise<ActividadDetalle | null>;
     listarObservacionesActividad(idActividad: number): Promise<ObservacionActividad[]>;
     obtenerIdTrabajadorPorIdUsuario(idUsuario: number): Promise<number | null>;

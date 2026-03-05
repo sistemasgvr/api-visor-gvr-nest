@@ -41,6 +41,14 @@ export class MenuRepository implements IMenuRepository {
         return result || [];
     }
 
+    async crearOpcionLista(idLista: number, nombre: string): Promise<any> {
+        const result = await this.databaseFunctionService.callFunctionSingle<any>(
+            'genCrearOpcionLista',
+            [idLista, nombre],
+        );
+        return result;
+    }
+
     async listarMenuRecursivo(idUsuario: number): Promise<any> {
         // Call genListarMenuRecursivoPorUsuarioV2 function
         // SELECT * FROM genListarMenuRecursivoPorUsuarioV2(p_idUsuario)

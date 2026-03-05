@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpClientService } from '../../shared/services/http-client.service';
 
@@ -20,6 +20,7 @@ export interface Token3LeggedResponse {
 
 @Injectable()
 export class AutodeskApiService {
+    private readonly logger = new Logger(AutodeskApiService.name);
     private readonly clientId: string;
     private readonly clientSecret: string;
     private readonly callbackUrl: string;
@@ -138,6 +139,13 @@ export class AutodeskApiService {
      * Refresca un token 3-legged usando el refresh token
      */
     async refrescarToken(refreshToken: string): Promise<Token3LeggedResponse> {
+        const token = typeof refreshToken === 'string' ? refreshToken.trim() : '';
+        if (!token) {
+            throw new Error(
+                'REFRESH_TOKEN_EXPIRED: No se recibió refresh token (vacío o inválido). Reautorice ACC.',
+            );
+        }
+
         try {
             // Encode credentials for Basic Auth
             const credentials = `${this.clientId}:${this.clientSecret}`;
@@ -147,7 +155,7 @@ export class AutodeskApiService {
                 this.authUrl,
                 new URLSearchParams({
                     grant_type: 'refresh_token',
-                    refresh_token: refreshToken,
+                    refresh_token: token,
                 }).toString(),
                 {
                     headers: {
@@ -160,9 +168,20 @@ export class AutodeskApiService {
             const expiresAt = new Date();
             expiresAt.setSeconds(expiresAt.getSeconds() + response.data.expires_in);
 
+            // Autodesk rotates refresh tokens: each use invalidates the old one and returns a new one.
+            // Read new refresh_token (Autodesk may use snake_case or camelCase in response).
+            const rawRefresh = response.data?.refresh_token ?? response.data?.refreshToken;
+            const newRefreshToken = (typeof rawRefresh === 'string' && rawRefresh.trim()) ? rawRefresh.trim() : undefined;
+            if (!newRefreshToken) {
+                this.logger.warn(
+                    'Autodesk refresh: response did not include refresh_token. Caller will keep existing value in DB.',
+                    { keys: response.data ? Object.keys(response.data) : [] },
+                );
+            }
+
             return {
                 access_token: response.data.access_token,
-                refresh_token: response.data.refresh_token || refreshToken,
+                refresh_token: newRefreshToken,
                 token_type: response.data.token_type,
                 expires_in: response.data.expires_in,
                 expires_at: expiresAt,
@@ -1541,6 +1560,37 @@ export class AutodeskApiService {
     }
 
     /**
+     * Descargar una versión concreta de un item (para descarga desde historial de versiones).
+     */
+    async descargarItemPorVersion(accessToken: string, projectId: string, versionId: string): Promise<any> {
+        try {
+            if (!accessToken || !projectId || !versionId) {
+                throw new Error('Token, projectId y versionId son requeridos');
+            }
+
+            const { storageUrl, fileName, storageId } = await this.obtenerStorageUrlPorVersion(
+                accessToken,
+                projectId,
+                versionId,
+            );
+
+            const fileResponse = await this.httpClient.get<any>(storageUrl, {
+                responseType: 'arraybuffer',
+            });
+
+            return {
+                data: fileResponse.data,
+                fileName: fileName,
+                storageId: storageId,
+            };
+        } catch (error: any) {
+            throw new Error(
+                `Error al descargar versión del item: ${error.response?.data?.message || error.message}`,
+            );
+        }
+    }
+
+    /**
      * Obtiene la URL de storage (URL firmada) de un item sin descargarlo
      * Esta URL puede usarse para visualizar archivos de Office en visores externos
      */
@@ -1626,6 +1676,82 @@ export class AutodeskApiService {
         } catch (error: any) {
             throw new Error(
                 `Error al obtener URL de storage: ${error.response?.data?.message || error.message}`,
+            );
+        }
+    }
+
+    /**
+     * Obtiene la URL de storage de una versión concreta (para abrir por versionId desde el historial).
+     */
+    async obtenerStorageUrlPorVersion(accessToken: string, projectId: string, versionId: string): Promise<{
+        storageUrl: string;
+        fileName: string;
+        fileType: string;
+        storageId: string;
+        itemId: string;
+    }> {
+        try {
+            if (!accessToken || !projectId || !versionId) {
+                throw new Error('Token, projectId y versionId son requeridos');
+            }
+
+            const versionInfo = await this.obtenerVersionPorId(accessToken, projectId, versionId);
+            const versionData = versionInfo.data;
+
+            if (!versionData) {
+                throw new Error('No se pudo obtener la información de la versión');
+            }
+
+            const storageData = versionData.relationships?.storage?.data;
+            if (!storageData?.id) {
+                throw new Error('No se encontró el storage de la versión');
+            }
+
+            const storageId = storageData.id;
+            const regex = /urn:adsk\.objects:os\.object:([^\/]+)\/(.+)/;
+            const matches = storageId.match(regex);
+
+            if (!matches || matches.length !== 3) {
+                throw new Error(`Formato de storage ID inválido: ${storageId}`);
+            }
+
+            const bucketKey = matches[1];
+            const objectKey = matches[2];
+            const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
+            const signedUrlEndpoint = `${baseUrl}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3download?minutesExpiration=60`;
+
+            const signedResponse = await this.httpClient.get<any>(signedUrlEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+            });
+
+            if (!signedResponse.data?.url) {
+                throw new Error('No se recibió URL firmada en la respuesta');
+            }
+
+            const fileName = versionData.attributes?.displayName || versionData.attributes?.name || 'archivo';
+            const fileType = versionData.attributes?.extension?.type || '';
+            let itemId = '';
+            try {
+                const itemRes = await this.obtenerItemVersion(accessToken, projectId, versionId);
+                if (itemRes.data?.id) {
+                    itemId = itemRes.data.id;
+                }
+            } catch {
+                // Si falla, el controlador puede usar versionId como referencia
+            }
+
+            return {
+                storageUrl: signedResponse.data.url,
+                fileName,
+                fileType,
+                storageId,
+                itemId,
+            };
+        } catch (error: any) {
+            throw new Error(
+                `Error al obtener URL de storage de la versión: ${error.response?.data?.message || error.message}`,
             );
         }
     }
@@ -3180,8 +3306,9 @@ export class AutodeskApiService {
                 throw new Error('El ID de la versión es requerido');
             }
 
+            const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
-            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}`;
+            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/versions/${encodeURIComponent(versionId)}`;
 
             const response = await this.httpClient.get<any>(url, {
                 headers: {
@@ -3216,8 +3343,9 @@ export class AutodeskApiService {
                 throw new Error('El ID de la versión es requerido');
             }
 
+            const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
-            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}/downloadFormats`;
+            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/versions/${encodeURIComponent(versionId)}/downloadFormats`;
 
             const response = await this.httpClient.get<any>(url, {
                 headers: {
@@ -3252,8 +3380,9 @@ export class AutodeskApiService {
                 throw new Error('El ID de la versión es requerido');
             }
 
+            const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
-            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}/downloads`;
+            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/versions/${encodeURIComponent(versionId)}/downloads`;
 
             const response = await this.httpClient.get<any>(url, {
                 headers: {
@@ -3288,8 +3417,9 @@ export class AutodeskApiService {
                 throw new Error('El ID de la versión es requerido');
             }
 
+            const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
-            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(projectId)}/versions/${encodeURIComponent(versionId)}/item`;
+            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/versions/${encodeURIComponent(versionId)}/item`;
 
             const response = await this.httpClient.get<any>(url, {
                 headers: {

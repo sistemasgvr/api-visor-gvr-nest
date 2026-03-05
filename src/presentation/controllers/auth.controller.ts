@@ -23,6 +23,7 @@ import { ObtenerPerfilUseCase } from '../../application/use-cases/auth/obtener-p
 import { SubirFotoPerfilUseCase } from '../../application/use-cases/auth/subir-foto-perfil.use-case';
 import { ValidarSesionUseCase } from '../../application/use-cases/auth/validar-sesion.use-case';
 import { CerrarTodasSesionesUseCase } from '../../application/use-cases/auth/cerrar-todas-sesiones.use-case';
+import { ObtenerEstadisticasUsuariosUseCase } from '../../application/use-cases/auth/obtener-estadisticas-usuarios.use-case';
 import { RegisterDto } from '../../application/dtos/register.dto';
 import { LoginDto } from '../../application/dtos/login.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -41,6 +42,7 @@ export class AuthController {
         private readonly subirFotoPerfilUseCase: SubirFotoPerfilUseCase,
         private readonly validarSesionUseCase: ValidarSesionUseCase,
         private readonly cerrarTodasSesionesUseCase: CerrarTodasSesionesUseCase,
+        private readonly obtenerEstadisticasUsuariosUseCase: ObtenerEstadisticasUsuariosUseCase,
     ) { }
 
     @Post('register')
@@ -196,6 +198,22 @@ export class AuthController {
             resultado,
             'Sesión activa',
         );
+    }
+
+    /**
+     * Estadísticas de usuarios (total y conectados). Solo Administrador GVR, Administrador Sistema, Gerencia.
+     * GET /auth/estadisticas-usuarios
+     */
+    @Get('estadisticas-usuarios')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async estadisticasUsuarios(@Req() request: Request & { user?: { id?: number; sub?: number } }) {
+        const userId = request.user?.sub ?? request.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const result = await this.obtenerEstadisticasUsuariosUseCase.execute(Number(userId));
+        return ApiResponseDto.success(result, 'Estadísticas de usuarios');
     }
 
     /**

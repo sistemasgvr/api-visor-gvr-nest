@@ -164,6 +164,7 @@ export class DataManagementItemsController {
     /**
      * GET - Descargar un item (archivo)
      * GET /data-management/items/:projectId/:itemId/download
+     * Query opcional: versionId — si se envía, se descarga esa versión concreta (desde historial de versiones).
      */
     @Get(':projectId/:itemId/download')
     @HttpCode(HttpStatus.OK)
@@ -171,6 +172,7 @@ export class DataManagementItemsController {
         @Req() request: Request,
         @Param('projectId') projectId: string,
         @Param('itemId') itemId: string,
+        @Query('versionId') versionIdQuery: string | undefined,
         @Query() queryParams: any,
         @Res() res: Response,
     ) {
@@ -179,11 +181,16 @@ export class DataManagementItemsController {
         const userRole = user?.roles && Array.isArray(user.roles) && user.roles.length > 0
             ? user.roles[0]?.nombre || user.roles[0]?.name || null
             : null;
+        const versionId = typeof versionIdQuery === 'string' && versionIdQuery.trim() !== ''
+            ? versionIdQuery.trim()
+            : Array.isArray(queryParams?.versionId) && queryParams.versionId.length > 0
+                ? String(queryParams.versionId[0]).trim()
+                : undefined;
         const resultado = await this.descargarItemUseCase.execute(
             user.sub,
             projectId,
             itemId,
-            queryParams,
+            { ...queryParams, versionId },
             requestInfo.ipAddress,
             requestInfo.userAgent,
             userRole,

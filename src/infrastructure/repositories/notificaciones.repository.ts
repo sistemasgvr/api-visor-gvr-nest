@@ -58,6 +58,29 @@ export class NotificacionesRepository implements INotificacionesRepository {
         return result || [];
     }
 
+    async obtenerNotificaciones(idUsuario: number, tipo?: string): Promise<any[]> {
+        let query = `
+            SELECT 
+                id, idusuario, tipo, titulo, mensaje, datos,
+                entregada, fechaentrega, fechacreacion
+            FROM notificacionespendientes
+            WHERE idusuario = $1 
+              AND estado = 1
+        `;
+        
+        const params: any[] = [idUsuario];
+        
+        if (tipo) {
+            query += ` AND tipo = $2`;
+            params.push(tipo);
+        }
+        
+        query += ` ORDER BY fechacreacion DESC LIMIT 50`;
+
+        const result = await this.databaseFunctionService.executeQuery(query, params);
+        return result || [];
+    }
+
     async marcarComoEntregada(id: number): Promise<void> {
         const query = `
             UPDATE notificacionespendientes
@@ -80,6 +103,28 @@ export class NotificacionesRepository implements INotificacionesRepository {
               AND entregada = FALSE
         `;
 
+        await this.databaseFunctionService.executeQuery(query, [idUsuario]);
+    }
+
+    async eliminarNotificacion(id: number, idUsuario: number): Promise<boolean> {
+        const query = `
+            UPDATE notificacionespendientes
+            SET estado = 0,
+                fechamodificacion = CURRENT_TIMESTAMP
+            WHERE id = $1 AND idusuario = $2 AND estado = 1
+            RETURNING id
+        `;
+        const result = await this.databaseFunctionService.executeQuery<{ id: number }>(query, [id, idUsuario]);
+        return (result?.length ?? 0) > 0;
+    }
+
+    async eliminarTodasNotificaciones(idUsuario: number): Promise<void> {
+        const query = `
+            UPDATE notificacionespendientes
+            SET estado = 0,
+                fechamodificacion = CURRENT_TIMESTAMP
+            WHERE idusuario = $1 AND estado = 1
+        `;
         await this.databaseFunctionService.executeQuery(query, [idUsuario]);
     }
 }
