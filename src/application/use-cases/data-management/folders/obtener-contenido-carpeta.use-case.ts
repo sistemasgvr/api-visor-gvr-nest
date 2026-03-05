@@ -105,13 +105,21 @@ export class ObtenerContenidoCarpetaUseCase {
                                 itemId,
                             );
 
+                            let lastModifiedByReal: string | null = null;
+                            let lastModifiedByRealId: number | null = null;
+                            let lastModifiedByRealRole: string | null = null;
                             let lastModifiedByRealEmpresa: string | null = null;
                             try {
                                 const auditoriasItem = await this.auditoriaRepository.obtenerAuditoriasPorItemId(itemId);
-                                const ultimaModificacion = auditoriasItem.find((a: any) => a.accion === 'FILE_UPDATE');
-                                if (ultimaModificacion?.empresa) {
-                                    lastModifiedByRealEmpresa = ultimaModificacion.empresa;
-                                } else if (registroCreacion?.empresa) {
+                                // FILE_UPDATE = actualización vía API (ej. renombrar); FILE_VERSION_SAVE = guardado desde visor Office/Collabora
+                                const ultimaModificacion = auditoriasItem.find((a: any) => a.accion === 'FILE_UPDATE' || a.accion === 'FILE_VERSION_SAVE');
+                                if (ultimaModificacion) {
+                                    if (ultimaModificacion.usuario) lastModifiedByReal = ultimaModificacion.usuario;
+                                    if (ultimaModificacion.idusuario != null) lastModifiedByRealId = ultimaModificacion.idusuario;
+                                    if (ultimaModificacion.rol) lastModifiedByRealRole = ultimaModificacion.rol;
+                                    if (ultimaModificacion.empresa) lastModifiedByRealEmpresa = ultimaModificacion.empresa;
+                                }
+                                if (!lastModifiedByRealEmpresa && registroCreacion?.empresa) {
                                     lastModifiedByRealEmpresa = registroCreacion.empresa;
                                 }
                             } catch {
@@ -125,13 +133,19 @@ export class ObtenerContenidoCarpetaUseCase {
                                     createdByRealId: registroCreacion.idusuario,
                                     createdByRealRole: registroCreacion.rol || null,
                                     createdByRealEmpresa: registroCreacion.empresa || null,
+                                    lastModifiedByReal: lastModifiedByReal ?? undefined,
+                                    lastModifiedByRealId: lastModifiedByRealId ?? undefined,
+                                    lastModifiedByRealRole: lastModifiedByRealRole ?? undefined,
                                     lastModifiedByRealEmpresa: lastModifiedByRealEmpresa ?? undefined,
                                 };
                             }
-                            if (lastModifiedByRealEmpresa) {
+                            if (lastModifiedByReal || lastModifiedByRealEmpresa) {
                                 return {
                                     ...item,
-                                    lastModifiedByRealEmpresa,
+                                    ...(lastModifiedByReal && { lastModifiedByReal }),
+                                    ...(lastModifiedByRealId != null && { lastModifiedByRealId }),
+                                    ...(lastModifiedByRealRole && { lastModifiedByRealRole }),
+                                    ...(lastModifiedByRealEmpresa && { lastModifiedByRealEmpresa }),
                                 };
                             }
                         } else if (itemType === 'folders') {
@@ -143,13 +157,20 @@ export class ObtenerContenidoCarpetaUseCase {
                                 itemId,
                             );
 
+                            let lastModifiedByReal: string | null = null;
+                            let lastModifiedByRealId: number | null = null;
+                            let lastModifiedByRealRole: string | null = null;
                             let lastModifiedByRealEmpresa: string | null = null;
                             try {
                                 const auditoriasFolder = await this.auditoriaRepository.obtenerAuditoriasPorFolderId(itemId);
                                 const ultimaModificacion = auditoriasFolder.find((a: any) => a.accion === 'FOLDER_UPDATE');
-                                if (ultimaModificacion?.empresa) {
-                                    lastModifiedByRealEmpresa = ultimaModificacion.empresa;
-                                } else if (registroCreacion?.empresa) {
+                                if (ultimaModificacion) {
+                                    if (ultimaModificacion.usuario) lastModifiedByReal = ultimaModificacion.usuario;
+                                    if (ultimaModificacion.idusuario != null) lastModifiedByRealId = ultimaModificacion.idusuario;
+                                    if (ultimaModificacion.rol) lastModifiedByRealRole = ultimaModificacion.rol;
+                                    if (ultimaModificacion.empresa) lastModifiedByRealEmpresa = ultimaModificacion.empresa;
+                                }
+                                if (!lastModifiedByRealEmpresa && registroCreacion?.empresa) {
                                     lastModifiedByRealEmpresa = registroCreacion.empresa;
                                 }
                             } catch {
@@ -163,13 +184,19 @@ export class ObtenerContenidoCarpetaUseCase {
                                     createdByRealId: registroCreacion.idusuario,
                                     createdByRealRole: registroCreacion.rol || null,
                                     createdByRealEmpresa: registroCreacion.empresa || null,
+                                    lastModifiedByReal: lastModifiedByReal ?? undefined,
+                                    lastModifiedByRealId: lastModifiedByRealId ?? undefined,
+                                    lastModifiedByRealRole: lastModifiedByRealRole ?? undefined,
                                     lastModifiedByRealEmpresa: lastModifiedByRealEmpresa ?? undefined,
                                 };
                             }
-                            if (lastModifiedByRealEmpresa) {
+                            if (lastModifiedByReal || lastModifiedByRealEmpresa) {
                                 return {
                                     ...item,
-                                    lastModifiedByRealEmpresa,
+                                    ...(lastModifiedByReal && { lastModifiedByReal }),
+                                    ...(lastModifiedByRealId != null && { lastModifiedByRealId }),
+                                    ...(lastModifiedByRealRole && { lastModifiedByRealRole }),
+                                    ...(lastModifiedByRealEmpresa && { lastModifiedByRealEmpresa }),
                                 };
                             }
                         }
