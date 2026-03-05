@@ -656,7 +656,8 @@ export class CollaboraController {
         projectIdNorm,
         versionData,
       );
-      const newVersionId = versionResult?.data?.id ?? null;
+      const rawVersionId = versionResult?.data?.id ?? versionResult?.id;
+      const newVersionId = (rawVersionId != null && rawVersionId !== '') ? String(rawVersionId).trim() || null : null;
       if (newVersionId) this.logger.log(`[WOPI PutFile] Nueva versión id: ${newVersionId}`);
 
       this.logger.log(`[WOPI PutFile] Nueva versión creada exitosamente para item: ${tokenData.itemId}`);
@@ -674,6 +675,7 @@ export class CollaboraController {
           let idEmpresaUsuario: number | null = null;
           let nombreEmpresaUsuario: string | null = null;
           let rolNombre: string | null = null;
+          let nombreUsuarioAudit: string | null = null;
           try {
             const perfil = await this.authRepository.obtenerPerfilUsuario(auditUserId);
             if (perfil) {
@@ -681,6 +683,9 @@ export class CollaboraController {
               nombreEmpresaUsuario = perfil.nombreempresa ?? perfil.nombreEmpresa ?? perfil.empresa ?? null;
               const roles = perfil.roles && Array.isArray(perfil.roles) ? perfil.roles : [];
               rolNombre = roles[0]?.nombre ?? roles[0]?.name ?? perfil.rol ?? null;
+              const trabajador = perfil.trabajador && typeof perfil.trabajador === 'object' ? perfil.trabajador : null;
+              const nombreCompleto = trabajador?.nombreCompleto ?? trabajador?.nombrecompleto;
+              nombreUsuarioAudit = (nombreCompleto ?? perfil.nombre ?? perfil.correo ?? '').trim() || null;
             }
           } catch (profileErr) {
             this.logger.warn('[WOPI PutFile] No se pudo obtener perfil para empresa/rol:', (profileErr as Error)?.message);
@@ -707,6 +712,7 @@ export class CollaboraController {
               accItemId: tokenData.itemId,
               ...(newVersionId && { accVersionId: newVersionId }),
               ...(rolNombre && { rol: rolNombre }),
+              ...(nombreUsuarioAudit && { nombreUsuario: nombreUsuarioAudit }),
             },
             idEmpresaUsuario ?? undefined,
             nombreEmpresaUsuario ?? undefined,

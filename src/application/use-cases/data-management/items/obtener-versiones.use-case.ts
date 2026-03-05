@@ -30,23 +30,53 @@ export class ObtenerVersionesUseCase {
 
         try {
             const auditorias = await this.auditoriaRepository.obtenerAuditoriasPorItemId(itemId);
-            const getMeta = (a: any) => typeof a.metadatos === 'string' ? (() => { try { return JSON.parse(a.metadatos); } catch { return {}; } })() : (a.metadatos ?? {});
-            const savesByVersion = (auditorias as any[])
-                .filter((a) => a.accion === 'FILE_VERSION_SAVE' && getMeta(a).accVersionId)
-                .reduce<Record<string, { usuario: string; empresa?: string; rol?: string }>>((map, a) => {
-                    const versionId = getMeta(a).accVersionId;
-                    if (versionId && !map[versionId]) {
-                        map[versionId] = {
-                            usuario: a.usuario ?? '—',
+            const getMeta = (a: any): Record<string, any> => {
+                const raw = a.metadatos;
+                if (raw == null) return {};
+                const obj = typeof raw === 'string' ? (() => { try { return JSON.parse(raw); } catch { return {}; } })() : raw;
+                return obj || {};
+            };
+            const fileVersionSaves = (auditorias as any[])
+                .filter((a) => a.accion === 'FILE_VERSION_SAVE')
+                .map((a) => ({ ...a, meta: getMeta(a) }));
+
+            const savesByVersionId: Record<string, { usuario: string; empresa?: string; rol?: string }> = {};
+            for (const a of fileVersionSaves) {
+                const versionId = a.meta?.accVersionId ?? a.meta?.accversionid;
+                const idNorm = versionId ? String(versionId).trim() : '';
+                const nombreUsuario = (a.meta?.nombreUsuario ?? a.meta?.nombreusuario ?? a.usuario ?? '—').trim() || '—';
+                if (idNorm && !savesByVersionId[idNorm]) {
+                    savesByVersionId[idNorm] = {
+                        usuario: nombreUsuario,
+                        ...(a.empresa && { empresa: a.empresa }),
+                        ...(a.rol && { rol: a.rol }),
+                    };
+                }
+            }
+
+            const dataEnriquecida = items.map((v: any) => {
+                const versionIdNorm = v.id ? String(v.id).trim() : '';
+                let audit = versionIdNorm ? savesByVersionId[versionIdNorm] : null;
+
+                if (!audit && fileVersionSaves.length > 0) {
+                    const sortedVersions = [...items].sort(
+                        (x, y) => new Date((y.attributes?.lastModifiedTime || 0) as any).getTime() - new Date((x.attributes?.lastModifiedTime || 0) as any).getTime(),
+                    );
+                    const sortedAudits = [...fileVersionSaves].sort(
+                        (x, y) => new Date(y.fechacreacion || 0).getTime() - new Date(x.fechacreacion || 0).getTime(),
+                    );
+                    const indexOfVersion = sortedVersions.findIndex((x) => (x.id || '').trim() === versionIdNorm);
+                    if (indexOfVersion >= 0 && sortedAudits[indexOfVersion]) {
+                        const a = sortedAudits[indexOfVersion];
+                        const nombreUsuario = (a.meta?.nombreUsuario ?? a.meta?.nombreusuario ?? a.usuario ?? '—').trim() || '—';
+                        audit = {
+                            usuario: nombreUsuario,
                             ...(a.empresa && { empresa: a.empresa }),
                             ...(a.rol && { rol: a.rol }),
                         };
                     }
-                    return map;
-                }, {});
+                }
 
-            const dataEnriquecida = items.map((v: any) => {
-                const audit = savesByVersion[v.id];
                 if (!audit) return v;
                 return {
                     ...v,
