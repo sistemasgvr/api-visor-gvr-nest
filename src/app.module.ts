@@ -20,6 +20,7 @@ import { DataManagementItemsModule } from './presentation/modules/data-managemen
 import { DataManagementVersionsModule } from './presentation/modules/data-management-versions.module';
 import { AccViewerModule } from './presentation/modules/acc-viewer.module';
 import { AccIssuesModule } from './presentation/modules/acc-issues.module';
+import { AccReviewsModule } from './presentation/modules/acc-reviews.module';
 import { IssuesBim360Module } from './presentation/modules/issues-bim360.module';
 import { AccResourcesModule } from './presentation/modules/acc-resources.module';
 import { CompaniesModule } from './presentation/modules/companies.module';
@@ -56,6 +57,7 @@ import { ControlOperativoModule } from './presentation/modules/control-operativo
     AccModule,
     AccProjectsModule,
     AccIssuesModule,
+    AccReviewsModule,
     IssuesBim360Module,
     AccResourcesModule,
     CompaniesModule,
