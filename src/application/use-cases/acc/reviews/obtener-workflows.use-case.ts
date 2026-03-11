@@ -62,6 +62,13 @@ export class ObtenerWorkflowsUseCase {
                     esOpcional:   r.esopcional,
                 }));
             }
+
+            // Ordenar del más reciente al más antiguo (por createdAt)
+            workflows.sort((a, b) => {
+                const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return tB - tA;
+            });
         } catch {
             // El enriquecimiento GVR no debe bloquear la respuesta principal
         }
