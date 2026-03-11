@@ -651,16 +651,19 @@ export class CollaboraController {
         },
       };
 
-      await this.autodeskApiService.crearVersion(
+      const versionResult = await this.autodeskApiService.crearVersion(
         tokenData.accessToken,
         projectIdNorm,
         versionData,
       );
+      const rawVersionId = versionResult?.data?.id ?? versionResult?.id;
+      const newVersionId = (rawVersionId != null && rawVersionId !== '') ? String(rawVersionId).trim() || null : null;
+      if (newVersionId) this.logger.log(`[WOPI PutFile] Nueva versión id: ${newVersionId}`);
 
       this.logger.log(`[WOPI PutFile] Nueva versión creada exitosamente para item: ${tokenData.itemId}`);
 
       // Collabora no envía identificador de usuario en PutFile; el userId viene de nuestra sesión
-      // (creada al abrir el documento con JWT req.user.sub). Sin eso no podríamos auditar quién guardó.
+      // (creada al abrir el documento con JWT req.user.sub). Registramos en auditoría quién guardó para historial de versiones y "última actualización".
       const auditUserId = Number(tokenData.userId);
       if (!Number.isInteger(auditUserId) || auditUserId < 1) {
         this.logger.warn(`[WOPI PutFile] userId inválido para auditoría: ${tokenData.userId} (no se registrará auditoría)`);
@@ -668,6 +671,25 @@ export class CollaboraController {
         try {
           const ip = typeof (req as any).ip === 'string' ? (req as any).ip : (req as any).socket?.remoteAddress ?? '';
           const userAgent = typeof (req as any).get === 'function' ? (req as any).get('user-agent') : (req as any).headers?.['user-agent'] ?? '';
+          // Obtener perfil del usuario para empresa y rol (historial de versiones / última actualización)
+          let idEmpresaUsuario: number | null = null;
+          let nombreEmpresaUsuario: string | null = null;
+          let rolNombre: string | null = null;
+          let nombreUsuarioAudit: string | null = null;
+          try {
+            const perfil = await this.authRepository.obtenerPerfilUsuario(auditUserId);
+            if (perfil) {
+              idEmpresaUsuario = perfil.idempresa ?? perfil.idEmpresaUsuario ?? null;
+              nombreEmpresaUsuario = perfil.nombreempresa ?? perfil.nombreEmpresa ?? perfil.empresa ?? null;
+              const roles = perfil.roles && Array.isArray(perfil.roles) ? perfil.roles : [];
+              rolNombre = roles[0]?.nombre ?? roles[0]?.name ?? perfil.rol ?? null;
+              const trabajador = perfil.trabajador && typeof perfil.trabajador === 'object' ? perfil.trabajador : null;
+              const nombreCompleto = trabajador?.nombreCompleto ?? trabajador?.nombrecompleto;
+              nombreUsuarioAudit = (nombreCompleto ?? perfil.nombre ?? perfil.correo ?? '').trim() || null;
+            }
+          } catch (profileErr) {
+            this.logger.warn('[WOPI PutFile] No se pudo obtener perfil para empresa/rol:', (profileErr as Error)?.message);
+          }
           this.logger.log(`[WOPI PutFile] Registrando auditoría idUsuario=${auditUserId}, ip=${ip || '(vacío)'}, userAgent=${userAgent ? 'present' : '(vacío)'}`);
           const auditResult = await this.auditoriaRepository.registrarAccion(
             auditUserId,
@@ -688,7 +710,12 @@ export class CollaboraController {
             {
               projectId: tokenData.projectId,
               accItemId: tokenData.itemId,
+              ...(newVersionId && { accVersionId: newVersionId }),
+              ...(rolNombre && { rol: rolNombre }),
+              ...(nombreUsuarioAudit && { nombreUsuario: nombreUsuarioAudit }),
             },
+            idEmpresaUsuario ?? undefined,
+            nombreEmpresaUsuario ?? undefined,
           );
           const success = auditResult && (auditResult as any).success !== false;
           if (!success) {

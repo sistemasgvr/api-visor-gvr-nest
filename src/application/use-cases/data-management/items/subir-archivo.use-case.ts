@@ -2,6 +2,7 @@ import { Injectable, Inject, ForbiddenException, BadRequestException } from '@ne
 import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
 import { ACC_REPOSITORY, type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
 import { AUDITORIA_REPOSITORY, type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { AUTH_REPOSITORY, type IAuthRepository } from '../../../../domain/repositories/auth.repository.interface';
 import type { Express } from 'express';
 
 @Injectable()
@@ -12,6 +13,8 @@ export class SubirArchivoUseCase {
         private readonly accRepository: IAccRepository,
         @Inject(AUDITORIA_REPOSITORY)
         private readonly auditoriaRepository: IAuditoriaRepository,
+        @Inject(AUTH_REPOSITORY)
+        private readonly authRepository: IAuthRepository,
     ) { }
 
     async execute(
@@ -125,8 +128,10 @@ export class SubirArchivoUseCase {
         let itemName: string;
         let itemResult: any;
 
+        let newVersionId: string | null = null;
+
         if (existingItem) {
-            // Crear nueva versión del item existente (comportamiento tipo ACC)
+            // Crear nueva versión del item existente (mismo nombre y tipo → ACC crea nueva versión)
             const versionData = {
                 type: 'versions',
                 attributes: {
@@ -146,11 +151,12 @@ export class SubirArchivoUseCase {
                     },
                 },
             };
-            await this.autodeskApiService.crearVersion(
+            const versionResult = await this.autodeskApiService.crearVersion(
                 token.tokenAcceso,
                 projectIdNorm,
                 versionData,
             );
+            newVersionId = versionResult?.data?.id ?? null;
             itemId = existingItem.id;
             itemName = fileName;
             itemResult = {
@@ -231,6 +237,56 @@ export class SubirArchivoUseCase {
             } catch (error) {
                 // No fallar la operación si la auditoría falla
                 console.error('Error registrando auditoría de subida de archivo:', error);
+            }
+
+            // Si se creó una nueva versión (subida con mismo nombre → ACC crea versión), registrar FILE_VERSION_SAVE
+            // para que el historial de versiones muestre "Actualizado por" / "Versión añadida por" = quien subió
+            if (newVersionId) {
+                try {
+                    let idEmpresaUsuario: number | null = null;
+                    let nombreEmpresaUsuario: string | null = null;
+                    let rolNombre: string | null = userRole || null;
+                    try {
+                        const perfil = await this.authRepository.obtenerPerfilUsuario(userId);
+                        if (perfil) {
+                            idEmpresaUsuario = perfil.idempresa ?? perfil.idEmpresaUsuario ?? null;
+                            nombreEmpresaUsuario = perfil.nombreempresa ?? perfil.nombreEmpresa ?? perfil.empresa ?? null;
+                            if (!rolNombre) {
+                                const roles = perfil.roles && Array.isArray(perfil.roles) ? perfil.roles : [];
+                                rolNombre = roles[0]?.nombre ?? roles[0]?.name ?? perfil.rol ?? null;
+                            }
+                        }
+                    } catch {
+                        // ignorar
+                    }
+                    await this.auditoriaRepository.registrarAccion(
+                        userId,
+                        'FILE_VERSION_SAVE',
+                        'file',
+                        null,
+                        `Nueva versión por subida (mismo nombre): ${itemName.substring(0, 100)}`,
+                        null,
+                        {
+                            itemId,
+                            projectId,
+                            folderId,
+                            fileName: itemName.substring(0, 100),
+                            source: 'upload',
+                        },
+                        ipAddress,
+                        userAgent,
+                        {
+                            projectId,
+                            accItemId: itemId,
+                            accVersionId: newVersionId,
+                            ...(rolNombre && { rol: rolNombre }),
+                        },
+                        idEmpresaUsuario ?? undefined,
+                        nombreEmpresaUsuario ?? undefined,
+                    );
+                } catch (error) {
+                    console.error('Error registrando auditoría FILE_VERSION_SAVE (subida):', error);
+                }
             }
         }
 

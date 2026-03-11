@@ -30,6 +30,8 @@ import { AccRepository } from '../../infrastructure/repositories/acc.repository'
 import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interface';
 import { AuditoriaRepository } from '../../infrastructure/repositories/auditoria.repository';
 import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.repository.interface';
+import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
 
 @Module({
     imports: [DatabaseModule],
@@ -66,6 +68,10 @@ import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.reposi
         {
             provide: AUDITORIA_REPOSITORY,
             useClass: AuditoriaRepository,
+        },
+        {
+            provide: AUTH_REPOSITORY,
+            useClass: AuthRepository,
         },
     ],
 })
