@@ -31,6 +31,10 @@ export class CrearWorkflowDto {
     approvalStatusOptions?: any[];
 
     @IsOptional()
+    @IsArray()
+    additionalApprovalStatusOptions?: { label: string; value: string }[];
+
+    @IsOptional()
     copyFilesOptions?: any;
 
     @IsOptional()

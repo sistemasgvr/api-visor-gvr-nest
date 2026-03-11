@@ -19,6 +19,8 @@ import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { ObtenerWorkflowsUseCase } from '../../application/use-cases/acc/reviews/obtener-workflows.use-case';
 import { ObtenerWorkflowPorIdUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-por-id.use-case';
 import { CrearWorkflowUseCase } from '../../application/use-cases/acc/reviews/crear-workflow.use-case';
+import { GuardarWorkflowCandidatosUseCase, type GuardarWorkflowCandidatosDto } from '../../application/use-cases/acc/reviews/guardar-workflow-candidatos.use-case';
+import { ObtenerWorkflowCandidatosUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-candidatos.use-case';
 
 // DTOs
 import { ObtenerWorkflowsDto } from '../../application/dtos/acc/reviews/obtener-workflows.dto';
@@ -30,11 +32,12 @@ export class AccWorkflowsController {
         private readonly obtenerWorkflowsUseCase: ObtenerWorkflowsUseCase,
         private readonly obtenerWorkflowPorIdUseCase: ObtenerWorkflowPorIdUseCase,
         private readonly crearWorkflowUseCase: CrearWorkflowUseCase,
+        private readonly guardarWorkflowCandidatosUseCase: GuardarWorkflowCandidatosUseCase,
+        private readonly obtenerWorkflowCandidatosUseCase: ObtenerWorkflowCandidatosUseCase,
     ) { }
 
     /**
      * GET /acc/projects/:projectId/workflows
-     * Lista los approval workflows del proyecto
      */
     @Get()
     @UseGuards(JwtAuthGuard)
@@ -66,7 +69,6 @@ export class AccWorkflowsController {
 
     /**
      * GET /acc/projects/:projectId/workflows/:workflowId
-     * Obtiene el detalle de un approval workflow
      */
     @Get(':workflowId')
     @UseGuards(JwtAuthGuard)
@@ -84,13 +86,11 @@ export class AccWorkflowsController {
         if (!userId) throw new BadRequestException('User ID es requerido');
 
         const resultado = await this.obtenerWorkflowPorIdUseCase.execute(userId, projectId, workflowId);
-
         return ApiResponseDto.success(resultado, 'Workflow obtenido exitosamente');
     }
 
     /**
      * POST /acc/projects/:projectId/workflows
-     * Crea un nuevo approval workflow
      */
     @Post()
     @UseGuards(JwtAuthGuard)
@@ -106,8 +106,69 @@ export class AccWorkflowsController {
         const userId = user?.sub || user?.id;
         if (!userId) throw new BadRequestException('User ID es requerido');
 
-        const resultado = await this.crearWorkflowUseCase.execute(userId, projectId, dto);
+        const ipAddress = (request as any).ip || request.socket?.remoteAddress || '';
+        const userAgent = request.headers['user-agent'] || '';
+
+        const resultado = await this.crearWorkflowUseCase.execute(
+            userId,
+            projectId,
+            dto,
+            ipAddress,
+            userAgent,
+        );
 
         return ApiResponseDto.created(resultado, 'Workflow creado exitosamente');
+    }
+
+    /**
+     * POST /acc/projects/:projectId/workflows/:workflowId/candidatos
+     * Guarda los candidatos internos GVR de un workflow
+     */
+    @Post(':workflowId/candidatos')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async guardarCandidatos(
+        @Param('projectId') projectId: string,
+        @Param('workflowId') workflowId: string,
+        @Body() dto: GuardarWorkflowCandidatosDto,
+        @Req() request: Request,
+    ) {
+        if (!projectId)  throw new BadRequestException('El ID del proyecto es requerido');
+        if (!workflowId) throw new BadRequestException('El ID del workflow es requerido');
+
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+
+        const resultado = await this.guardarWorkflowCandidatosUseCase.execute(
+            workflowId,
+            projectId,
+            dto,
+            userId,
+        );
+
+        return ApiResponseDto.success(resultado, 'Candidatos guardados exitosamente');
+    }
+
+    /**
+     * GET /acc/projects/:projectId/workflows/:workflowId/candidatos
+     * Lista los candidatos internos GVR de un workflow
+     */
+    @Get(':workflowId/candidatos')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async obtenerCandidatos(
+        @Param('projectId') projectId: string,
+        @Param('workflowId') workflowId: string,
+    ) {
+        if (!projectId)  throw new BadRequestException('El ID del proyecto es requerido');
+        if (!workflowId) throw new BadRequestException('El ID del workflow es requerido');
+
+        const resultado = await this.obtenerWorkflowCandidatosUseCase.execute(
+            workflowId,
+            projectId,
+        );
+
+        return ApiResponseDto.success(resultado, 'Candidatos obtenidos exitosamente');
     }
 }

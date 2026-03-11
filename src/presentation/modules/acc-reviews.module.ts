@@ -15,6 +15,8 @@ import { ObtenerVersionesRevisionUseCase } from '../../application/use-cases/acc
 import { ObtenerWorkflowsUseCase } from '../../application/use-cases/acc/reviews/obtener-workflows.use-case';
 import { ObtenerWorkflowPorIdUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-por-id.use-case';
 import { CrearWorkflowUseCase } from '../../application/use-cases/acc/reviews/crear-workflow.use-case';
+import { GuardarWorkflowCandidatosUseCase } from '../../application/use-cases/acc/reviews/guardar-workflow-candidatos.use-case';
+import { ObtenerWorkflowCandidatosUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-candidatos.use-case';
 
 // Use Cases — Versions
 import { ObtenerApprovalStatusesVersionUseCase } from '../../application/use-cases/acc/reviews/obtener-approval-statuses-version.use-case';
@@ -28,6 +30,8 @@ import { HttpClientService } from '../../shared/services/http-client.service';
 // Repositories
 import { AccRepository } from '../../infrastructure/repositories/acc.repository';
 import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interface';
+import { AuditoriaRepository } from '../../infrastructure/repositories/auditoria.repository';
+import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.repository.interface';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
 import { DatabaseFunctionService } from '../../infrastructure/database/database-function.service';
@@ -52,6 +56,8 @@ import { BroadcastModule } from './broadcast.module';
         ObtenerWorkflowsUseCase,
         ObtenerWorkflowPorIdUseCase,
         CrearWorkflowUseCase,
+        GuardarWorkflowCandidatosUseCase,
+        ObtenerWorkflowCandidatosUseCase,
 
         // Use Cases — Versions
         ObtenerApprovalStatusesVersionUseCase,
@@ -64,6 +70,10 @@ import { BroadcastModule } from './broadcast.module';
         {
             provide: ACC_REPOSITORY,
             useClass: AccRepository,
+        },
+        {
+            provide: AUDITORIA_REPOSITORY,
+            useClass: AuditoriaRepository,
         },
         {
             provide: AUTH_REPOSITORY,
