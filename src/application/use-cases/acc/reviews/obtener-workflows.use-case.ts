@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
 import { ObtenerWorkflowsDto } from '../../../dtos/acc/reviews/obtener-workflows.dto';
 import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
@@ -22,7 +22,18 @@ export class ObtenerWorkflowsUseCase {
         if (dto.filter_status)         filters['filter[status]'] = dto.filter_status;
         if (dto.filter_name)           filters['filter[name]'] = dto.filter_name;
 
-        const accResponse = await this.autodeskApiService.obtenerWorkflows(accessToken, projectId, filters);
+        let accResponse: any;
+        try {
+            accResponse = await this.autodeskApiService.obtenerWorkflows(accessToken, projectId, filters);
+        } catch (err: any) {
+            const status = err?.statusCode ?? (err?.message?.includes('503') ? 503 : undefined);
+            if (status === 503 || status === 502 || status === 504) {
+                throw new ServiceUnavailableException(
+                    'El servicio de Autodesk no está disponible temporalmente. Intente de nuevo en unos minutos.',
+                );
+            }
+            throw err;
+        }
 
         // Enriquecer con candidatos GVR (un solo query para todos los workflows del proyecto)
         try {

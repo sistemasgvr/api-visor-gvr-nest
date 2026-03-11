@@ -6352,7 +6352,11 @@ export class AutodeskApiService {
 
             return response.data;
         } catch (error: any) {
-            throw new Error(`Error al obtener workflows: ${error.response?.data?.message || error.message}`);
+            const status = error.response?.status;
+            const message = error.response?.data?.message || error.response?.data?.fault?.faultstring || error.message;
+            const err = new Error(`Error al obtener workflows: ${message}`) as Error & { statusCode?: number };
+            err.statusCode = status;
+            throw err;
         }
     }
 
