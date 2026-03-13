@@ -5,6 +5,7 @@ export interface ListarTrabajadoresParams {
     limit?: number;
     offset?: number;
     idRol?: number;
+    estado?: number | null;
 }
 
 export interface ListarTrabajadoresResponse {
