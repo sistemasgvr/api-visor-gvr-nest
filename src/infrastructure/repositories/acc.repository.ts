@@ -19,7 +19,7 @@ export class AccRepository implements IAccRepository {
         // Call accGuardarToken3Legged function
         // SELECT * FROM accGuardarToken3Legged(p_id_usuario, p_token_acceso, p_token_refresco, p_expira_en, p_tipo_token)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accGuardarToken3Legged',
+            'acc_GuardarToken3Legged',
             [
                 idUsuario,
                 tokenAcceso,
@@ -49,7 +49,7 @@ export class AccRepository implements IAccRepository {
         // Call accObtenerToken3LeggedPorUsuario function
         // SELECT * FROM accObtenerToken3LeggedPorUsuario(p_id_usuario)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accObtenerToken3LeggedPorUsuario',
+            'acc_ObtenerToken3LeggedPorUsuario',
             [idUsuario],
         );
 
@@ -77,7 +77,7 @@ export class AccRepository implements IAccRepository {
     ): Promise<AccToken> {
         // Call accActualizarToken3Legged function. Pass null when no new refresh token (e.g. after rotation the old one is invalid).
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accActualizarToken3Legged',
+            'acc_ActualizarToken3Legged',
             [id, tokenAcceso, tokenRefresco, expiraEn],
         );
 
@@ -101,14 +101,14 @@ export class AccRepository implements IAccRepository {
         // Call accRevocarToken3Legged function
         // SELECT * FROM accRevocarToken3Legged(p_id)
         await this.databaseFunctionService.callFunctionSingle<any>(
-            'accRevocarToken3Legged',
+            'acc_RevocarToken3Legged',
             [id],
         );
     }
 
     async listarTokensActivosParaRefresh(): Promise<{ id: number; idUsuario: number; tokenRefresco: string }[]> {
         const rows = await this.databaseFunctionService.callFunction<any>(
-            'accListarTokensActivosParaRefresh',
+            'acc_ListarTokensActivosParaRefresh',
             [],
         );
         return (rows || [])

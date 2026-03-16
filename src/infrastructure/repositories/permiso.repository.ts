@@ -18,7 +18,7 @@ export class PermisoRepository implements IPermisoRepository {
         const { busqueda = '', limit = 10, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
-            'authListarPermisos',
+            'auth_ListarPermisos',
             [busqueda, limit, offset],
         );
 
@@ -51,7 +51,7 @@ export class PermisoRepository implements IPermisoRepository {
 
     async obtenerPermisoPorId(idPermiso: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authObtenerPermisoPorId',
+            'auth_ObtenerPermisoPorId',
             [idPermiso],
         );
 
@@ -60,7 +60,7 @@ export class PermisoRepository implements IPermisoRepository {
 
     async crearPermiso(data: CrearPermisoData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authCreatePermiso',
+            'auth_CreatePermiso',
             [data.nombre, data.descripcion || '', data.idUsuarioCreacion],
         );
 
@@ -69,7 +69,7 @@ export class PermisoRepository implements IPermisoRepository {
 
     async editarPermiso(data: EditarPermisoData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authUpdatePermiso',
+            'auth_UpdatePermiso',
             [data.idPermiso, data.nombre, data.descripcion || '', data.idUsuarioModificacion],
         );
 
@@ -78,7 +78,7 @@ export class PermisoRepository implements IPermisoRepository {
 
     async eliminarPermiso(idPermiso: number, idUsuarioModificacion: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authDeletePermiso',
+            'auth_DeletePermiso',
             [idPermiso, idUsuarioModificacion],
         );
 

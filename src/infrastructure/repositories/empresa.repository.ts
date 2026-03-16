@@ -20,7 +20,7 @@ export class EmpresaRepository implements IEmpresaRepository {
         // Call emListarEmpresas function
         // SELECT * FROM emListarEmpresas(p_idUsuario, p_busqueda, p_limit, p_offset)
         const result = await this.databaseFunctionService.callFunction<any>(
-            'emListarEmpresas',
+            'em_ListarEmpresas',
             [idUsuario, busqueda, limit, offset],
         );
 
@@ -56,7 +56,7 @@ export class EmpresaRepository implements IEmpresaRepository {
         // Call emObtenerEmpresaPorId function
         // SELECT * FROM emObtenerEmpresaPorId(p_idEmpresa)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'emObtenerEmpresaPorId',
+            'em_ObtenerEmpresaPorId',
             [idEmpresa],
         );
 
@@ -67,7 +67,7 @@ export class EmpresaRepository implements IEmpresaRepository {
         // Call emCrearEmpresa function
         // SELECT * FROM emCrearEmpresa(p_razonSocial, p_nombreComercial, p_idTipoDocumento, p_nroDocumento, p_idUsuarioCreacion)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'emCrearEmpresa',
+            'em_CrearEmpresa',
             [
                 data.razonSocial,
                 data.nombreComercial || null,
@@ -84,7 +84,7 @@ export class EmpresaRepository implements IEmpresaRepository {
         // Call emEditarEmpresa function
         // SELECT * FROM emEditarEmpresa(p_idEmpresa, p_razonSocial, p_nombreComercial, p_idTipoDocumento, p_nroDocumento, p_idUsuarioModificacion)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'emEditarEmpresa',
+            'em_EditarEmpresa',
             [
                 data.idEmpresa,
                 data.razonSocial,
@@ -102,7 +102,7 @@ export class EmpresaRepository implements IEmpresaRepository {
         // Call emEliminarEmpresa function
         // SELECT * FROM emEliminarEmpresa(p_idEmpresa, p_idUsuarioModificacion)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'emEliminarEmpresa',
+            'em_EliminarEmpresa',
             [idEmpresa, idUsuarioModificacion],
         );
 

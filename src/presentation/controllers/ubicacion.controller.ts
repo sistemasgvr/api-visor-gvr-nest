@@ -11,7 +11,7 @@ export class UbicacionController {
     @Get('paises')
     @HttpCode(HttpStatus.OK)
     async listarPaises() {
-        const data = await this.databaseFunctionService.callFunction<any>('genListarPaises', []);
+        const data = await this.databaseFunctionService.callFunction<any>('gen_ListarPaises', []);
         return ApiResponseDto.success(data || [], 'Países obtenidos exitosamente');
     }
 
@@ -21,7 +21,7 @@ export class UbicacionController {
         @Query('idPais', new ParseIntPipe({ optional: true })) idPais?: number,
     ) {
         const data = await this.databaseFunctionService.callFunction<any>(
-            'genListarDepartamentos',
+            'gen_ListarDepartamentos',
             [idPais ?? null],
         );
         return ApiResponseDto.success(data || [], 'Departamentos obtenidos exitosamente');
@@ -33,7 +33,7 @@ export class UbicacionController {
         @Query('idDepartamento', new ParseIntPipe({ optional: true })) idDepartamento?: number,
     ) {
         const data = await this.databaseFunctionService.callFunction<any>(
-            'genListarProvincias',
+            'gen_ListarProvincias',
             [idDepartamento ?? null],
         );
         return ApiResponseDto.success(data || [], 'Provincias obtenidas exitosamente');
@@ -45,7 +45,7 @@ export class UbicacionController {
         @Query('idProvincia', new ParseIntPipe({ optional: true })) idProvincia?: number,
     ) {
         const data = await this.databaseFunctionService.callFunction<any>(
-            'genListarDistritos',
+            'gen_ListarDistritos',
             [idProvincia ?? null],
         );
         return ApiResponseDto.success(data || [], 'Distritos obtenidos exitosamente');

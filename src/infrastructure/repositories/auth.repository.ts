@@ -17,7 +17,7 @@ export class AuthRepository implements IAuthRepository {
         // Call authCrearUsuario function
         // SELECT * FROM authCrearUsuario(p_id, p_nombre, p_correo, p_contrasena, p_estado)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authCrearUsuario',
+            'auth_CrearUsuario',
             [
                 data.id ?? null,        // p_id
                 data.nombre,            // p_nombre
@@ -49,7 +49,7 @@ export class AuthRepository implements IAuthRepository {
         // Call authLoginUsuarioV2 function
         // SELECT * FROM authLoginUsuarioV2(correo)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authLoginUsuarioV2',
+            'auth_LoginUsuarioV2',
             [correo],
         );
 
@@ -136,7 +136,7 @@ export class AuthRepository implements IAuthRepository {
         // Call authActualizarCredencialesUsuario function
         // SELECT * FROM authActualizarCredencialesUsuario(p_idUsuario, p_nuevoCorreo, p_nuevaContrasena, p_idUsuarioModificacion)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authActualizarCredencialesUsuario',
+            'auth_ActualizarCredencialesUsuario',
             [
                 idUsuario,
                 nuevoCorreo,
@@ -154,7 +154,7 @@ export class AuthRepository implements IAuthRepository {
 
     async actualizarFotoPerfil(idUsuario: number, fotoPerfil: string): Promise<{ fotoPerfil: string }> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authActualizarFotoPerfilUsuario',
+            'auth_ActualizarFotoPerfilUsuario',
             [idUsuario, fotoPerfil],
         );
 

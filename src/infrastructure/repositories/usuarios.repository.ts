@@ -14,7 +14,7 @@ export class UsuariosRepository implements IUsuariosRepository {
         offset: number = 0,
     ): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'obtenerUsuariosActivos',
+            'auth_ObtenerUsuariosActivos',
             [busqueda, limit, offset],
         );
 

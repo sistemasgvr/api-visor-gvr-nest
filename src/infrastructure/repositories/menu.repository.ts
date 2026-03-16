@@ -61,9 +61,14 @@ export class MenuRepository implements IMenuRepository {
             return [];
         }
 
-        // The function returns a JSON string in the first property
-        // Parse it to get the actual menu structure
-        const menuData = result.gen_listarmenurecursivoporusuariov2 || result.genlistarmenurecursivoporusuariov2 || result.genListarMenuRecursivoPorUsuarioV2;
+        // The function returns a JSON string in the first property (column name = function name, driver may lowercase)
+        const row = result as Record<string, unknown>;
+        const menuData =
+            row.gen_ListarMenuRecursivoPorUsuarioV2 ??
+            row.gen_listarmenurecursivoporusuariov2 ??
+            row.genlistarmenurecursivoporusuariov2 ??
+            row.genListarMenuRecursivoPorUsuarioV2 ??
+            (Object.keys(row).length > 0 ? row[Object.keys(row)[0]] : undefined);
 
         if (typeof menuData === 'string') {
             try {
