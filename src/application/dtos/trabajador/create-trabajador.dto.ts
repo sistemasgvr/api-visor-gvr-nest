@@ -31,6 +31,8 @@ export class CreateTrabajadorDto {
     @IsOptional() @IsInt() idTipoContrato?: number;
     @IsOptional() @IsInt() idDuracionContrato?: number;
     @IsOptional() @IsDateString() fechaInicioLabores?: string;
+    @IsOptional() @IsDateString() fechaInicioContrato?: string;
+    @IsOptional() @IsDateString() fechaFinContrato?: string;
     @IsOptional() @IsInt() idModalidad?: number;
     @IsOptional() @IsArray() adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

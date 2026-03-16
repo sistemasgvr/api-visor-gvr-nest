@@ -20,7 +20,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         const estadoParam = params.estado === -1 ? null : (params.estado !== undefined ? params.estado : 1);
 
         const result = await this.databaseFunctionService.callFunction<any>(
-            'traListarTrabajadores',
+            'tra_ListarTrabajadores',
             [idUsuario, idEmpresa, busqueda, limit, offset, idRol, estadoParam],
         );
 
@@ -53,8 +53,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     }
 
     async listarTrabajadoresAdministrativos(): Promise<any[]> {
-        // Call traListarTrabajadoresAdministrativos function
-        // SELECT * FROM traListarTrabajadoresAdministrativos()
+        // Call traListarTrabajadoresAdministrativos (otro archivo SQL)
         const result = await this.databaseFunctionService.callFunction<any>(
             'traListarTrabajadoresAdministrativos',
             [],
@@ -86,7 +85,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
     async obtenerTrabajadorPorId(idTrabajador: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'traObtenerTrabajadorPorId',
+            'tra_ObtenerTrabajadorPorId',
             [idTrabajador],
         );
 
@@ -119,7 +118,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
     async crearTrabajador(data: CrearTrabajadorData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'traCrearTrabajador',
+            'tra_CrearTrabajador',
             [
                 data.nombres,
                 data.apellidos,
@@ -150,6 +149,8 @@ export class TrabajadorRepository implements ITrabajadorRepository {
                 data.idTipoContrato ?? null,
                 data.idDuracionContrato ?? null,
                 data.fechaInicioLabores ?? null,
+                data.fechaInicioContrato ?? null,
+                data.fechaFinContrato ?? null,
                 data.idModalidad ?? null,
             ],
         );
@@ -159,7 +160,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
     async editarTrabajador(data: EditarTrabajadorData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'traEditarTrabajador',
+            'tra_EditarTrabajador',
             [
                 data.idTrabajador,
                 data.nombres,
@@ -191,6 +192,8 @@ export class TrabajadorRepository implements ITrabajadorRepository {
                 data.idTipoContrato ?? null,
                 data.idDuracionContrato ?? null,
                 data.fechaInicioLabores ?? null,
+                data.fechaInicioContrato ?? null,
+                data.fechaFinContrato ?? null,
                 data.idModalidad ?? null,
             ],
         );
@@ -199,7 +202,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     }
 
     async eliminarAdjuntosPorTrabajador(idTrabajador: number): Promise<void> {
-        await this.databaseFunctionService.callFunction('traEliminarAdjuntosPorTrabajador', [idTrabajador]);
+        await this.databaseFunctionService.callFunction('tra_EliminarAdjuntosPorTrabajador', [idTrabajador]);
     }
 
     async insertarAdjuntos(
@@ -212,7 +215,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
             (a) => a != null && Number(a.idTipoAdjunto) > 0 && a.ruta != null && String(a.ruta).trim() !== '',
         );
         if (filtered.length === 0) return;
-        await this.databaseFunctionService.callFunction('traInsertarAdjuntos', [
+        await this.databaseFunctionService.callFunction('tra_InsertarAdjuntos', [
             idTrabajador,
             JSON.stringify(filtered),
             idUsuarioCreacion ?? null,
@@ -220,10 +223,9 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     }
 
     async eliminarTrabajador(idTrabajador: number, idUsuarioModificacion: number): Promise<any> {
-        // Call traEliminarTrabajador function
-        // SELECT * FROM traEliminarTrabajador(p_idTrabajador, p_idUsuarioModificacion)
+        // tra_EliminarTrabajador
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'traEliminarTrabajador',
+            'tra_EliminarTrabajador',
             [idTrabajador, idUsuarioModificacion],
         );
 
@@ -231,10 +233,9 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     }
 
     async resetearContrasena(idTrabajador: number, idUsuarioModificacion: number): Promise<any> {
-        // Call traResetearContrasena function
-        // SELECT * FROM traResetearContrasena(p_idTrabajador, p_idUsuarioModificacion)
+        // tra_ResetearContrasena
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'traResetearContrasena',
+            'tra_ResetearContrasena',
             [idTrabajador, idUsuarioModificacion],
         );
 
