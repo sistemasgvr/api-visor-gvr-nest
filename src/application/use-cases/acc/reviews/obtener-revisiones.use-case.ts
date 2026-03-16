@@ -47,7 +47,7 @@ export class ObtenerRevisionesUseCase {
                 correousuario: string;
                 fotoperfil:   string | null;
                 nombre:       string;
-            }>('acclistarrevisionesporproyecto', [projectId]);
+            }>('acc_ListarRevisionesPorProyecto', [projectId]);
 
             const byReview: Record<string, typeof creadoresRows[number]> = {};
             for (const row of creadoresRows) {
@@ -65,7 +65,7 @@ export class ObtenerRevisionesUseCase {
                 nombrepaso:   string;
                 ordenpaso:    number;
                 esopcional:   boolean;
-            }>('acclistarworkflowcandidatosporproyecto', [projectId]);
+            }>('acc_ListarWorkflowCandidatosPorProyecto', [projectId]);
 
             // Group candidates by workflowId → step order → users
             const byWorkflowStep: Record<string, Record<number, typeof candidatosRows>> = {};

@@ -83,10 +83,10 @@ export class AuthRepository implements IAuthRepository {
     }
 
     async obtenerPerfilUsuario(idUsuario: number): Promise<any> {
-        // Call authobtenerperfilusuario function
-        // SELECT * FROM authobtenerperfilusuario(p_id_usuario)
+        // Call auth_ObtenerPerfilUsuario function
+        // SELECT * FROM "auth_ObtenerPerfilUsuario"(p_id_usuario)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authobtenerperfilusuario',
+            'auth_ObtenerPerfilUsuario',
             [idUsuario],
         );
 

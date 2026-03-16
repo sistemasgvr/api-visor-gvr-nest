@@ -55,7 +55,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     async listarTrabajadoresAdministrativos(): Promise<any[]> {
         // Call traListarTrabajadoresAdministrativos (otro archivo SQL)
         const result = await this.databaseFunctionService.callFunction<any>(
-            'traListarTrabajadoresAdministrativos',
+            'tra_ListarTrabajadoresAdministrativos',
             [],
         );
 

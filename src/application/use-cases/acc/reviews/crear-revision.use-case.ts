@@ -45,7 +45,7 @@ export class CrearRevisionUseCase {
         // Persist the GVR creator of this revision in our system
         if (reviewId) {
             try {
-                await this.dbFunctionService.callFunction('accguardarrevision', [
+                await this.dbFunctionService.callFunction('acc_GuardarRevision', [
                     reviewId,
                     projectId,
                     userId,

@@ -83,7 +83,7 @@ export class ObtenerWorkflowsUseCase {
                 nombrepaso: string;
                 ordenpaso: number;
                 esopcional: boolean;
-            }>('acclistarworkflowcandidatosporproyecto', [projectId]);
+            }>('acc_ListarWorkflowCandidatosPorProyecto', [projectId]);
 
             const byWorkflow: Record<string, typeof gvrRows> = {};
             for (const row of gvrRows) {

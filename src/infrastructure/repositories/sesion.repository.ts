@@ -19,7 +19,7 @@ export class SesionRepository implements ISesionRepository {
         ip?: string | null,
         userAgent?: string | null,
     ): Promise<void> {
-        await this.databaseFunctionService.callFunction('authCrearActualizarSesion', [
+        await this.databaseFunctionService.callFunction('auth_CrearActualizarSesion', [
             null,                           // p_id (null = nueva sesión)
             idUsuario,
             token,
