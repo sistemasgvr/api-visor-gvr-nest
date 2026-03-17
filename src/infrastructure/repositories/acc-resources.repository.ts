@@ -260,7 +260,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
         const { resourceId, busqueda = '', limit = 100, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
-            'acc_ListarUsuariosDisponibles_Recurso',
+            'acc_ListarUsuariosDisponiblesRecurso',
             [resourceId, busqueda, limit, offset],
         );
 
@@ -355,7 +355,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async listarNivelesPermiso(): Promise<any> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'accListarPermissionLevels',
+            'acc_ListarPermissionLevels',
             [],
         );
 
