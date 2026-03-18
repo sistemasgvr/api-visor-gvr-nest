@@ -15,6 +15,8 @@ export interface JornadaListItem {
     idjornada: number | null;
     idconfiguracionjornada: number;
     idestadojornada?: number | null;
+    /** Duplicado explícito para clientes (lista jornadas). */
+    idEstadoJornada?: number | null;
     idtrabajador?: number;
     nombretrabajador?: string | null;
     idcoordinador?: number | null;

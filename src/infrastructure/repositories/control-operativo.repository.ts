@@ -70,9 +70,13 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         const totalCount = Number(result[0]?.total_count ?? result.length);
         const data: JornadaListItem[] = result.map((row) => {
             const { total_count: _tc, fecha: f, ...rest } = row;
+            const idEstado =
+                rest.idestadojornada != null ? Number(rest.idestadojornada) : NaN;
             return {
                 ...rest,
                 fecha: this.formatFechaYYYYMMDD(f),
+                /** Mismo valor que idestadojornada; camelCase explícito para el cliente. */
+                idEstadoJornada: Number.isFinite(idEstado) ? idEstado : null,
             } as JornadaListItem;
         });
 
