@@ -88,7 +88,16 @@ export class AccReviewsController {
         const userId = user?.sub || user?.id;
         if (!userId) throw new BadRequestException('User ID es requerido');
 
-        const resultado = await this.crearRevisionUseCase.execute(userId, projectId, dto);
+        const ipAddress = request.ip ?? request.socket?.remoteAddress ?? '';
+        const userAgent = request.headers['user-agent'] ?? '';
+
+        const resultado = await this.crearRevisionUseCase.execute(
+            userId,
+            projectId,
+            dto,
+            ipAddress,
+            userAgent,
+        );
 
         return ApiResponseDto.created(resultado, 'Revisión creada exitosamente');
     }

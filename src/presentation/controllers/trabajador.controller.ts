@@ -67,6 +67,7 @@ export class TrabajadorController {
         @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
         @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
         @Query('idRol', new ParseIntPipe({ optional: true })) idRol?: number,
+        @Query('estado', new ParseIntPipe({ optional: true })) estado?: number,
     ) {
         const token = this.extractTokenFromHeader(request);
         if (!token) {
@@ -83,6 +84,7 @@ export class TrabajadorController {
             limit,
             offset,
             idRol,
+            estado,
         });
 
         return ApiResponseDto.success(data, 'Trabajadores obtenidos exitosamente');

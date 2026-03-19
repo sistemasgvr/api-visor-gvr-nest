@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
 import { ObtenerRevisionesDto } from '../../../dtos/acc/reviews/obtener-revisiones.dto';
 import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
+import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
 
 @Injectable()
 export class ObtenerRevisionesUseCase {
     constructor(
         private readonly autodeskApiService: AutodeskApiService,
         private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
+        private readonly dbFunctionService: DatabaseFunctionService,
     ) { }
 
     async execute(userId: number, projectId: string, dto: ObtenerRevisionesDto): Promise<any> {
@@ -32,6 +34,86 @@ export class ObtenerRevisionesUseCase {
         if (dto.filter_archivedBy)                  filters['filter[archivedBy]'] = dto.filter_archivedBy;
         if (dto.filter_archivedAt)                  filters['filter[archivedAt]'] = dto.filter_archivedAt;
 
-        return this.autodeskApiService.obtenerRevisiones(accessToken, projectId, filters);
+        const accResponse = await this.autodeskApiService.obtenerRevisiones(accessToken, projectId, filters);
+
+        // ── Enriquecer con datos GVR ───────────────────────────────────────────
+        try {
+            // 1) Creadores GVR (quién creó cada revisión en nuestro sistema)
+            const creadoresRows = await this.dbFunctionService.callFunction<{
+                accreviewid:  string;
+                accworkflowid: string | null;
+                idusuario:    number;
+                nombreusuario: string;
+                correousuario: string;
+                fotoperfil:   string | null;
+                nombre:       string;
+            }>('acc_ListarRevisionesPorProyecto', [projectId]);
+
+            const byReview: Record<string, typeof creadoresRows[number]> = {};
+            for (const row of creadoresRows) {
+                byReview[row.accreviewid] = row;
+            }
+
+            // 2) Candidatos GVR de todos los workflows del proyecto
+            //    (para "siguiente acción de")
+            const candidatosRows = await this.dbFunctionService.callFunction<{
+                accworkflowid: string;
+                idusuario:    number;
+                nombreusuario: string;
+                correousuario: string;
+                tipopaso:     string;
+                nombrepaso:   string;
+                ordenpaso:    number;
+                esopcional:   boolean;
+            }>('acc_ListarWorkflowCandidatosPorProyecto', [projectId]);
+
+            // Group candidates by workflowId → step order → users
+            const byWorkflowStep: Record<string, Record<number, typeof candidatosRows>> = {};
+            for (const row of candidatosRows) {
+                if (row.tipopaso === 'INITIATOR') continue; // Skip initiators
+                if (!byWorkflowStep[row.accworkflowid]) byWorkflowStep[row.accworkflowid] = {};
+                if (!byWorkflowStep[row.accworkflowid][row.ordenpaso]) byWorkflowStep[row.accworkflowid][row.ordenpaso] = [];
+                byWorkflowStep[row.accworkflowid][row.ordenpaso].push(row);
+            }
+
+            // 3) Inject into each revision
+            const revisiones: any[] =
+                Array.isArray(accResponse?.results) ? accResponse.results :
+                Array.isArray(accResponse?.data)    ? accResponse.data    :
+                Array.isArray(accResponse)          ? accResponse         : [];
+
+            for (const rev of revisiones) {
+                // gvrCreadoPor — the GVR user who created this revision
+                const creator = byReview[rev.id];
+                rev.gvrCreadoPor = creator
+                    ? {
+                        idUsuario:    creator.idusuario,
+                        nombre:       creator.nombreusuario,
+                        correo:       creator.correousuario,
+                        fotoPerfil:   creator.fotoperfil ?? null,
+                    }
+                    : null;
+
+                // gvrNextActionBy — the GVR candidates for the next step(s) of the workflow
+                const wfSteps = byWorkflowStep[rev.workflowId] ?? {};
+                const stepOrders = Object.keys(wfSteps).map(Number).sort((a, b) => a - b);
+                // Return candidates from all reviewer/approver steps (sorted by order)
+                rev.gvrNextActionBy = stepOrders.flatMap((ord) =>
+                    (wfSteps[ord] ?? []).map((c) => ({
+                        idUsuario:  c.idusuario,
+                        nombre:     c.nombreusuario,
+                        correo:     c.correousuario,
+                        tipoPaso:   c.tipopaso,
+                        nombrePaso: c.nombrepaso,
+                        ordenPaso:  c.ordenpaso,
+                        esOpcional: c.esopcional,
+                    }))
+                );
+            }
+        } catch {
+            // Enrichment must not block the main response
+        }
+
+        return accResponse;
     }
 }

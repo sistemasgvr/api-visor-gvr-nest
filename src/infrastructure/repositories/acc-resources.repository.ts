@@ -28,7 +28,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
         const { busqueda = '', resourceType = '', limit = 10, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
-            'accListarRecursos',
+            'acc_ListarRecursos',
             [busqueda, resourceType, limit, offset],
         );
 
@@ -61,7 +61,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async obtenerRecursoPorId(id: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accObtenerRecursoPorId',
+            'acc_ObtenerRecursoPorId',
             [id],
         );
 
@@ -90,7 +90,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async crearRecurso(data: CrearRecursoData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accCreateRecurso',
+            'acc_CreateRecurso',
             [
                 data.external_id,
                 data.resource_type,
@@ -106,13 +106,13 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async actualizarRecurso(id: number, data: ActualizarRecursoData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accUpdateRecurso',
+            'acc_UpdateRecurso',
             [
                 id,
                 data.name,
+                data.idUsuarioModificacion,
                 data.parent_id || null,
                 data.account_id || null,
-                data.idUsuarioModificacion,
             ],
         );
 
@@ -121,7 +121,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async eliminarRecurso(id: number, idUsuarioModificacion: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accDeleteRecurso',
+            'acc_DeleteRecurso',
             [id, idUsuarioModificacion],
         );
 
@@ -132,7 +132,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
         const { roleId, limit = 100, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
-            'accListarPermisosRol',
+            'acc_ListarPermisosRol',
             [roleId, limit, offset],
         );
 
@@ -165,7 +165,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async listarRolesRecurso(resourceId: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'accListarRolesRecurso',
+            'acc_ListarRolesRecurso',
             [resourceId],
         );
 
@@ -176,7 +176,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async asignarPermiso(data: AsignarPermisoData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accAsignarPermiso',
+            'acc_AsignarPermiso',
             [
                 data.role_id,
                 data.resource_id,
@@ -189,7 +189,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async removerPermiso(id: number, idUsuarioModificacion: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accRemoverPermiso',
+            'acc_RemoverPermiso',
             [id, idUsuarioModificacion],
         );
 
@@ -198,7 +198,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async sincronizarPermisosRol(data: SincronizarPermisosRolData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accSincronizarPermisosRol',
+            'acc_SincronizarPermisosRol',
             [
                 data.role_id,
                 data.resource_ids,
@@ -214,7 +214,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
         const { userId, limit = 100, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
-            'accListarPermisos_Usuario',
+            'acc_ListarPermisosUsuario',
             [userId, limit, offset],
         );
 
@@ -247,7 +247,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async listarUsuariosRecurso(resourceId: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'accListarUsuarios_Recurso',
+            'acc_ListarUsuariosRecurso',
             [resourceId],
         );
 
@@ -260,7 +260,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
         const { resourceId, busqueda = '', limit = 100, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
-            'accListarUsuariosDisponibles_Recurso',
+            'acc_ListarUsuariosDisponiblesRecurso',
             [resourceId, busqueda, limit, offset],
         );
 
@@ -293,7 +293,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async asignarPermisoUsuario(data: AsignarPermisoUsuarioData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accAsignarPermiso_Usuario',
+            'acc_AsignarPermisoUsuario',
             [
                 data.user_id,
                 data.resource_id,
@@ -307,7 +307,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async actualizarNivelPermisoUsuario(data: ActualizarNivelPermisoUsuarioData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accactualizarnivelpermiso_usuario',
+            'acc_ActualizarNivelPermisoUsuario',
             [
                 data.userAccAccessId,
                 data.permission_level_id,
@@ -320,7 +320,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async removerPermisoUsuario(id: number, idUsuarioModificacion: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accRemoverPermiso_Usuario',
+            'acc_RemoverPermisoUsuario',
             [id, idUsuarioModificacion],
         );
 
@@ -329,7 +329,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async sincronizarPermisosUsuario(data: SincronizarPermisosUsuarioData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accSincronizarPermisos_Usuario',
+            'acc_SincronizarPermisosUsuario',
             [
                 data.user_id,
                 data.resource_ids,
@@ -342,7 +342,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async sincronizarPermisosProyecto(data: SincronizarPermisosProyectoData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accSincronizarPermisos_Proyecto',
+            'acc_SincronizarPermisosProyecto',
             [
                 data.project_resource_id,
                 data.idUsuarioModificacion,
@@ -355,7 +355,7 @@ export class AccResourcesRepository implements IAccResourcesRepository {
 
     async listarNivelesPermiso(): Promise<any> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'accListarPermissionLevels',
+            'acc_ListarPermissionLevels',
             [],
         );
 

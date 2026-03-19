@@ -36,8 +36,9 @@ export class DatabaseFunctionService {
             .map((_, index) => `$${index + 1}`)
             .join(', ');
 
-        // Construir la query
-        const query = `SELECT * FROM ${functionName}(${placeholders})`;
+        // Nombre entrecomillado para preservar mayúsculas (ej. "tra_ListarTrabajadores")
+        const quotedName = `"${functionName.replace(/"/g, '""')}"`;
+        const query = `SELECT * FROM ${quotedName}(${placeholders})`;
 
         // Debug: Log the query and params
         // console.log('🔍 SQL Query:', query);
@@ -83,7 +84,8 @@ export class DatabaseFunctionService {
             .map((_, index) => `$${index + 1}`)
             .join(', ');
 
-        const query = `CALL ${procedureName}(${placeholders})`;
+        const quotedName = `"${procedureName.replace(/"/g, '""')}"`;
+        const query = `CALL ${quotedName}(${placeholders})`;
         await this.dataSource.query(query, params);
     }
 }

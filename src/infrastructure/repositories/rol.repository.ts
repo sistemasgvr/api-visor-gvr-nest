@@ -21,7 +21,7 @@ export class RolRepository implements IRolRepository {
         const { busqueda = '', limit = 10, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
-            'authListarRoles',
+            'auth_ListarRoles',
             [busqueda, limit, offset],
         );
 
@@ -54,7 +54,7 @@ export class RolRepository implements IRolRepository {
 
     async listarRolesForList(): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'authListarRoles',
+            'auth_ListarRolesTodos',
             [],
         );
 
@@ -63,7 +63,7 @@ export class RolRepository implements IRolRepository {
 
     async obtenerRolPorId(idRol: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authObtenerRolPorId',
+            'auth_ObtenerRolPorId',
             [idRol],
         );
 
@@ -72,7 +72,7 @@ export class RolRepository implements IRolRepository {
 
     async crearRol(data: CrearRolData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authCreateRol',
+            'auth_CreateRol',
             [data.nombre, data.descripcion || '', data.idUsuarioCreacion],
         );
 
@@ -81,7 +81,7 @@ export class RolRepository implements IRolRepository {
 
     async editarRol(data: EditarRolData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authUpdateRol',
+            'auth_UpdateRol',
             [data.idRol, data.nombre, data.descripcion || '', data.idUsuarioModificacion],
         );
 
@@ -90,7 +90,7 @@ export class RolRepository implements IRolRepository {
 
     async eliminarRol(idRol: number, idUsuarioModificacion: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authDeleteRol',
+            'auth_DeleteRol',
             [idRol, idUsuarioModificacion],
         );
 
@@ -99,7 +99,7 @@ export class RolRepository implements IRolRepository {
 
     async listarPermisosRol(idRol: number): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'authListarPermisosRol',
+            'auth_ListarPermisosRol',
             [idRol],
         );
 
@@ -108,7 +108,7 @@ export class RolRepository implements IRolRepository {
 
     async listarPermisosDisponibles(idRol: number): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'authlistarpermisos_disponibles',
+            'auth_ListarPermisosDisponibles',
             [idRol],
         );
 
@@ -117,7 +117,7 @@ export class RolRepository implements IRolRepository {
 
     async asignarPermisoRol(data: AsignarPermisoData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authAsignarPermisoRol',
+            'auth_AsignarPermisoRol',
             [data.idRol, data.idPermiso, data.idUsuarioCreacion],
         );
 
@@ -126,7 +126,7 @@ export class RolRepository implements IRolRepository {
 
     async asignarPermisosRol(data: AsignarPermisosData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authAsignarPermisosRol',
+            'auth_AsignarPermisosRol',
             [data.idRol, JSON.stringify(data.permisos), data.idUsuarioCreacion],
         );
 
@@ -135,7 +135,7 @@ export class RolRepository implements IRolRepository {
 
     async removerPermisoRol(idRol: number, idPermiso: number, idUsuarioModificacion: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authRemoverPermisoRol',
+            'auth_RemoverPermisoRol',
             [idRol, idPermiso, idUsuarioModificacion],
         );
 
@@ -144,7 +144,7 @@ export class RolRepository implements IRolRepository {
 
     async sincronizarPermisosRol(data: SincronizarPermisosData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authSincronizarPermisosRol',
+            'auth_SincronizarPermisosRol',
             [data.idRol, JSON.stringify(data.permisos), data.idUsuarioModificacion],
         );
 
@@ -153,7 +153,7 @@ export class RolRepository implements IRolRepository {
 
     async obtenerDetalleRol(idRol: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authobtenerdetalle_rol',
+            'auth_ObtenerDetalleRol',
             [idRol],
         );
 
@@ -162,7 +162,7 @@ export class RolRepository implements IRolRepository {
 
     async gestionarRolesUsuario(idUsuario: number, rolesIds: number[], idUsuarioModificacion: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'authGestionarRolesUsuario',
+            'auth_GestionarRolesUsuario',
             [idUsuario, rolesIds, idUsuarioModificacion],
         );
 

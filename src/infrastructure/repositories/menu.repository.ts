@@ -12,7 +12,7 @@ export class MenuRepository implements IMenuRepository {
         // Call genListarMenuOpciones function
         // SELECT * FROM genListarMenuOpciones()
         const result = await this.databaseFunctionService.callFunction<any>(
-            'genListarMenuOpciones',
+            'gen_ListarMenuOpciones',
             [],
         );
 
@@ -23,7 +23,7 @@ export class MenuRepository implements IMenuRepository {
         // Call genObtenerMenuOpcionPorId function
         // SELECT * FROM genObtenerMenuOpcionPorId(p_id)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genObtenerMenuOpcionPorId',
+            'gen_ObtenerMenuOpcionPorId',
             [id],
         );
 
@@ -34,7 +34,7 @@ export class MenuRepository implements IMenuRepository {
         // Call genObtenerOpcionesPorLista function
         // SELECT * FROM genObtenerOpcionesPorLista(p_idLista)
         const result = await this.databaseFunctionService.callFunction<any>(
-            'genObtenerOpcionesPorLista',
+            'gen_ObtenerOpcionesPorLista',
             [idLista],
         );
 
@@ -43,7 +43,7 @@ export class MenuRepository implements IMenuRepository {
 
     async crearOpcionLista(idLista: number, nombre: string): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genCrearOpcionLista',
+            'gen_CrearOpcionLista',
             [idLista, nombre],
         );
         return result;
@@ -53,7 +53,7 @@ export class MenuRepository implements IMenuRepository {
         // Call genListarMenuRecursivoPorUsuarioV2 function
         // SELECT * FROM genListarMenuRecursivoPorUsuarioV2(p_idUsuario)
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genListarMenuRecursivoPorUsuarioV2',
+            'gen_ListarMenuRecursivoPorUsuarioV2',
             [idUsuario],
         );
 
@@ -61,9 +61,14 @@ export class MenuRepository implements IMenuRepository {
             return [];
         }
 
-        // The function returns a JSON string in the first property
-        // Parse it to get the actual menu structure
-        const menuData = result.genlistarmenurecursivoporusuariov2 || result.genListarMenuRecursivoPorUsuarioV2;
+        // The function returns a JSON string in the first property (column name = function name, driver may lowercase)
+        const row = result as Record<string, unknown>;
+        const menuData =
+            row.gen_ListarMenuRecursivoPorUsuarioV2 ??
+            row.gen_listarmenurecursivoporusuariov2 ??
+            row.genlistarmenurecursivoporusuariov2 ??
+            row.genListarMenuRecursivoPorUsuarioV2 ??
+            (Object.keys(row).length > 0 ? row[Object.keys(row)[0]] : undefined);
 
         if (typeof menuData === 'string') {
             try {

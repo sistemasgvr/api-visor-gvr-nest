@@ -24,7 +24,7 @@ export class ObtenerWorkflowCandidatosUseCase {
         idProyectoAcc?: string,
     ): Promise<WorkflowCandidatoRow[]> {
         return this.dbFunctionService.callFunction<WorkflowCandidatoRow>(
-            'acclistarworkflowcandidatos',
+            'acc_ListarWorkflowCandidatos',
             [accWorkflowId, idProyectoAcc ?? null],
         );
     }

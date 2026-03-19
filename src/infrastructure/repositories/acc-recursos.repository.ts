@@ -23,7 +23,7 @@ export class AccRecursosRepository implements IAccRecursosRepository {
         idUsuarioCreacion: number,
     ): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accGuardarRecurso',
+            'acc_GuardarRecurso',
             [
                 recursoTipo,
                 recursoId,
@@ -46,14 +46,14 @@ export class AccRecursosRepository implements IAccRecursosRepository {
 
         // La función retorna una tabla con success, message, id
         // Extraer el primer resultado
-        const jsonbResult = result.accguardarrecurso || result.accGuardarRecurso || result;
+        const jsonbResult = result.acc_guardarrecurso ?? result.accguardarrecurso ?? result.accGuardarRecurso ?? result;
 
         return jsonbResult;
     }
 
     async obtenerRecurso(recursoTipo: string, recursoId: string): Promise<any | null> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accObtenerRecurso',
+            'acc_ObtenerRecurso',
             [recursoTipo, recursoId],
         );
 
@@ -62,7 +62,7 @@ export class AccRecursosRepository implements IAccRecursosRepository {
         }
 
         // La función retorna un JSONB directamente, necesitamos extraerlo
-        const jsonbResult = result.accobtenerrecurso || result.accObtenerRecurso || result;
+        const jsonbResult = result.acc_obtenerrecurso ?? result.accobtenerrecurso ?? result.accObtenerRecurso ?? result;
 
         // Si el resultado tiene success: false, retornar null
         if (jsonbResult && jsonbResult.success === false) {
@@ -82,7 +82,7 @@ export class AccRecursosRepository implements IAccRecursosRepository {
         idUsuarioModificacion: number,
     ): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accActualizarRecurso',
+            'acc_ActualizarRecurso',
             [
                 recursoTipo,
                 recursoId,
@@ -112,7 +112,7 @@ export class AccRecursosRepository implements IAccRecursosRepository {
         offset: number,
     ): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accObtenerRecursosPorProyecto',
+            'acc_ObtenerRecursosPorProyecto',
             [projectId, recursoTipo, limit, offset],
         );
 
@@ -131,7 +131,7 @@ export class AccRecursosRepository implements IAccRecursosRepository {
         recursoTipo: string | null,
     ): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accObtenerRecursosHijos',
+            'acc_ObtenerRecursosHijos',
             [parentId, recursoTipo],
         );
 
@@ -163,7 +163,7 @@ export class AccRecursosRepository implements IAccRecursosRepository {
         offset: number,
     ): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accObtenerRecursosUsuario',
+            'acc_ObtenerRecursosUsuario',
             [idUsuario, recursoTipo, rol, limit, offset],
         );
 
@@ -198,7 +198,7 @@ export class AccRecursosRepository implements IAccRecursosRepository {
         idUsuarioCreacion: number,
     ): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accAsignarUsuariosIncidencia',
+            'acc_AsignarUsuariosIncidencia',
             [issueId, projectId, userIds, idUsuarioAsignador, idUsuarioCreacion],
         );
 
@@ -221,7 +221,7 @@ export class AccRecursosRepository implements IAccRecursosRepository {
         const userIdsParam = (userIds && Array.isArray(userIds) && userIds.length > 0) ? userIds : null;
         
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accDesasignarUsuariosIncidencia',
+            'acc_DesasignarUsuariosIncidencia',
             [issueId, idUsuarioModificacion, userIdsParam],
         );
 
@@ -239,7 +239,7 @@ export class AccRecursosRepository implements IAccRecursosRepository {
 
     async obtenerUsuariosAsignadosIncidencia(issueId: string): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'accObtenerUsuariosAsignadosIncidencia',
+            'acc_ObtenerUsuariosAsignadosIncidencia',
             [issueId],
         );
 

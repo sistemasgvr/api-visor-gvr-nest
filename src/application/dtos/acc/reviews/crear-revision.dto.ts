@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsUUID, IsArray } from 'class-validator';
 
 export class CrearRevisionDto {
     @IsString()
@@ -14,8 +14,6 @@ export class CrearRevisionDto {
     description?: string;
 
     @IsOptional()
-    reviewers?: any[];
-
-    @IsOptional()
-    linkedDocuments?: any[];
+    @IsArray()
+    linkedDocuments?: Array<{ versionUrn?: string; urn?: string }>;
 }

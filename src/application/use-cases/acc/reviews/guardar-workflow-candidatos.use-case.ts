@@ -29,7 +29,7 @@ export class GuardarWorkflowCandidatosUseCase {
             success: boolean;
             message: string;
             total: number;
-        }>('accguardarworkflowcandidatos', [
+        }>('acc_GuardarWorkflowCandidatos', [
             accWorkflowId,
             idProyectoAcc,
             JSON.stringify(dto.candidatos),

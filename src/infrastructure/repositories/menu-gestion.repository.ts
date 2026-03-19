@@ -24,7 +24,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
         const { busqueda = '', limit = 10, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
-            'genlistarmenurecursivo',
+            'gen_ListarMenuRecursivo',
             [busqueda, limit, offset],
         );
 
@@ -57,7 +57,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async listarMenusTree(): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'genlistarmenurecursivotree',
+            'gen_ListarMenuRecursivoTree',
             [],
         );
 
@@ -66,7 +66,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async listarMenuPadresDisponibles(idMenuActual?: number): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'genlistarmenu_padres_disponibles',
+            'gen_ListarMenuPadresDisponibles',
             [idMenuActual],
         );
 
@@ -75,7 +75,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async obtenerMenuPorId(idMenu: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genobtenermenuporid',
+            'gen_ObtenerMenuPorId',
             [idMenu],
         );
 
@@ -84,7 +84,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async obtenerDetalleMenu(idMenu: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genobtenerdetalle_menu',
+            'gen_ObtenerDetalleMenu',
             [idMenu],
         );
 
@@ -93,7 +93,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async crearMenu(data: CrearMenuData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gencrearmenurecursivo',
+            'gen_CrearMenuRecursivo',
             [data.nombre, data.url, data.icono, data.idPadre, data.orden, data.idUsuarioCreacion],
         );
 
@@ -102,7 +102,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async editarMenu(data: EditarMenuData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'geneditarmenurecursivo',
+            'gen_EditarMenuRecursivo',
             [data.idMenu, data.nombre, data.url, data.icono, data.idPadre, data.orden, data.idUsuarioModificacion],
         );
 
@@ -111,7 +111,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async eliminarMenu(idMenu: number, idUsuarioModificacion: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'geneliminarmenurecursivo',
+            'gen_EliminarMenuRecursivo',
             [idMenu, idUsuarioModificacion],
         );
 
@@ -120,7 +120,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async clonarMenu(data: ClonarMenuData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genclonarmenu',
+            'gen_ClonarMenu',
             [data.idMenu, data.nombreNuevo, data.idPadreNuevo, data.clonarRoles, data.idUsuarioCreacion],
         );
 
@@ -129,7 +129,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async moverMenu(data: MoverMenuData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genmovermenu',
+            'gen_MoverMenu',
             [data.idMenu, data.idPadreNuevo, data.idUsuarioModificacion],
         );
 
@@ -138,7 +138,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async reordenarMenu(data: ReordenarMenuData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genreordenarmenu',
+            'gen_ReordenarMenu',
             [data.idMenu, data.ordenNuevo, data.idUsuarioModificacion],
         );
 
@@ -147,7 +147,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async listarRolesMenu(idMenu: number): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'genlistarroles_menu',
+            'gen_ListarRolesMenu',
             [idMenu],
         );
 
@@ -156,7 +156,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async listarRolesDisponibles(idMenu: number): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'genlistarroles_disponibles',
+            'gen_ListarRolesDisponibles',
             [idMenu],
         );
 
@@ -165,7 +165,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async asignarRolMenu(data: AsignarRolMenuData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genasignarrol_menu',
+            'gen_AsignarRolMenu',
             [data.idMenu, data.idRol, data.idUsuarioCreacion],
         );
 
@@ -174,7 +174,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async asignarRolesMenu(data: AsignarRolesMenuData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genasignarroles_menu',
+            'gen_AsignarRolesMenu',
             [data.idMenu, JSON.stringify(data.roles), data.idUsuarioCreacion],
         );
 
@@ -183,7 +183,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async removerRolMenu(idMenu: number, idRol: number, idUsuarioModificacion: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'genremoverrol_menu',
+            'gen_RemoverRolMenu',
             [idMenu, idRol, idUsuarioModificacion],
         );
 
@@ -192,7 +192,7 @@ export class MenuGestionRepository implements IMenuGestionRepository {
 
     async sincronizarRolesMenu(data: SincronizarRolesMenuData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gensincronizarroles_menu',
+            'gen_SincronizarRolesMenu',
             [data.idMenu, JSON.stringify(data.roles), data.idUsuarioModificacion],
         );
 

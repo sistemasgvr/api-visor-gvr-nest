@@ -59,7 +59,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
         type Row = JornadaListItem & { total_count?: number };
         const result = await this.databaseFunctionService.callFunction<Row>(
-            'conlistarjornadastrabajador',
+            'con_ListarJornadasTrabajador',
             [idTrabajador, pFechaInicio, pFechaFin, limit, offset],
         );
 
@@ -70,9 +70,13 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         const totalCount = Number(result[0]?.total_count ?? result.length);
         const data: JornadaListItem[] = result.map((row) => {
             const { total_count: _tc, fecha: f, ...rest } = row;
+            const idEstado =
+                rest.idestadojornada != null ? Number(rest.idestadojornada) : NaN;
             return {
                 ...rest,
                 fecha: this.formatFechaYYYYMMDD(f),
+                /** Mismo valor que idestadojornada; camelCase explícito para el cliente. */
+                idEstadoJornada: Number.isFinite(idEstado) ? idEstado : null,
             } as JornadaListItem;
         });
 
@@ -81,7 +85,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]> {
         const result = await this.databaseFunctionService.callFunction<TrabajadorParaFiltro>(
-            'traListarTrabajadoresParaFiltro',
+            'tra_ListarTrabajadoresParaFiltro',
             [idTrabajador],
         );
         return result ?? [];
@@ -89,7 +93,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]> {
         const result = await this.databaseFunctionService.callFunction<ProyectoAccesoTrabajador>(
-            'proListarProyectosAccesoTrabajador',
+            'pro_ListarProyectosAccesoTrabajador',
             [idTrabajador],
         );
         if (Array.isArray(result)) return result;
@@ -99,7 +103,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async listarTrabajadoresSinJornadaHoy(fecha: string): Promise<TrabajadorSinJornadaHoyItem[]> {
         const result = await this.databaseFunctionService.callFunction<TrabajadorSinJornadaHoyItem>(
-            'conlistartrabajadoressinjornadahoy',
+            'con_ListarTrabajadoresSinJornadaHoy',
             [fecha],
         );
         return Array.isArray(result) ? result : [];
@@ -107,7 +111,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async listarTrabajadoresSinActividadesHoy(fecha: string): Promise<TrabajadorSinActividadesHoyItem[]> {
         const result = await this.databaseFunctionService.callFunction<TrabajadorSinActividadesHoyItem>(
-            'conlistartrabajadoressinactividadeshoy',
+            'con_ListarTrabajadoresSinActividadesHoy',
             [fecha],
         );
         return Array.isArray(result) ? result : [];
@@ -115,7 +119,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async contarTrabajadoresEsperadosJornadaHoy(fecha: string): Promise<number> {
         const row = await this.databaseFunctionService.callFunctionSingle<Record<string, unknown>>(
-            'concontartrabajadoresesperadosjornadahoy',
+            'con_ContarTrabajadoresEsperadosJornadaHoy',
             [fecha],
         );
         return getScalarInt(row);
@@ -123,7 +127,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async contarTrabajadoresConJornadaHoy(fecha: string): Promise<number> {
         const row = await this.databaseFunctionService.callFunctionSingle<Record<string, unknown>>(
-            'concontartrabajadoresconjornadahoy',
+            'con_ContarTrabajadoresConJornadaHoy',
             [fecha],
         );
         return getScalarInt(row);
@@ -153,7 +157,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             horasEsperadas,
         } = params;
         const row = await this.databaseFunctionService.callFunctionSingle<JornadaCreada>(
-            'concrearjornada',
+            'con_CrearJornada',
             [
                 idTrabajador,
                 fechaJornada,
@@ -169,7 +173,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         const { idJornada, idTrabajador, idProyecto, idEstadoActividad, limit = 10, offset = 0 } = params;
         type Row = ActividadListItem & { total_count?: number; total_horas?: number; horasesperadas?: number | null; diajornada?: string | null };
         const result = await this.databaseFunctionService.callFunction<Row>(
-            'conlistaractividades',
+            'con_ListarActividades',
             [
                 idJornada ?? null,
                 idTrabajador ?? null,
@@ -257,7 +261,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         } = params;
         type Row = ActividadValidacionListItem & { total_count?: number; total_horas?: number };
         const result = await this.databaseFunctionService.callFunction<Row>(
-            'conListarActividadesValidacion',
+            'con_ListarActividadesValidacion',
             [
                 idTrabajadorSesion,
                 esAdmin,
@@ -283,7 +287,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     async listarValorizacion(params: ListarValorizacionParams): Promise<ListarValorizacionResult> {
         const { idProyecto, fechaInicio, fechaFin } = params;
         const result = await this.databaseFunctionService.callFunction<ValorizacionGrupo>(
-            'conlistarvalorizacion',
+            'con_ListarValorizacion',
             [idProyecto, fechaInicio, fechaFin],
         );
         const grupos: ValorizacionGrupo[] = Array.isArray(result) ? result : [];
@@ -294,7 +298,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     async listarTrabajadoresPorProyecto(idProyecto: number): Promise<TrabajadorPorProyectoItem[]> {
         if (idProyecto == null || idProyecto < 1) return [];
         const result = await this.databaseFunctionService.callFunction<TrabajadorPorProyectoItem>(
-            'conlistartrabajadoresporproyecto',
+            'con_ListarTrabajadoresPorProyecto',
             [idProyecto],
         );
         return Array.isArray(result) ? result : [];
@@ -308,7 +312,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             total_horas_no_justificadas?: number;
             detalle_actividades_rechazadas?: unknown;
             detalle_observaciones?: unknown;
-        }>('conlistardesempeno', [idProyecto, fechaInicio, fechaFin, idTrabajador ?? null]);
+        }>('con_ListarDesempeno', [idProyecto, fechaInicio, fechaFin, idTrabajador ?? null]);
         const row = rows?.[0];
         if (!row) {
             return {
@@ -337,7 +341,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     async obtenerActividad(idActividad: number): Promise<ActividadDetalle | null> {
         if (idActividad == null || idActividad < 1) return null;
         const result = await this.databaseFunctionService.callFunction<Record<string, unknown>>(
-            'conobteneractividad',
+            'con_ObtenerActividad',
             [idActividad],
         );
         const row = result?.[0];
@@ -362,7 +366,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     async listarObservacionesActividad(idActividad: number): Promise<ObservacionActividad[]> {
         if (idActividad == null || idActividad < 1) return [];
         const rows = await this.databaseFunctionService.callFunction<ObservacionActividad>(
-            'conlistarobservacionesactividad',
+            'con_ListarObservacionesActividad',
             [idActividad],
         );
         return Array.isArray(rows) ? rows : [];
@@ -370,7 +374,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null> {
         const rows = await this.databaseFunctionService.callFunction<ActividadCreada>(
-            'concrearactividad',
+            'con_CrearActividad',
             [
                 params.idJornada,
                 params.idProyecto,
@@ -392,7 +396,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async actualizarActividad(params: ActualizarActividadParams): Promise<ActividadCreada | null> {
         const rows = await this.databaseFunctionService.callFunction<ActividadCreada>(
-            'conactualizaractividad',
+            'con_ActualizarActividad',
             [
                 params.idActividad,
                 params.idProyecto,
@@ -414,7 +418,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async validarActividad(params: ValidarActividadParams): Promise<ActividadCreada | null> {
         const rows = await this.databaseFunctionService.callFunction<ActividadCreada>(
-            'convalidaractividad',
+            'con_ValidarActividad',
             [
                 params.idActividad,
                 params.idEstadoActividad,
@@ -428,12 +432,12 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async eliminarActividad(idActividad: number): Promise<boolean> {
         if (idActividad == null || idActividad < 1) return false;
-        const result = await this.databaseFunctionService.callFunction<{ coneliminaractividad?: boolean }>(
-            'coneliminaractividad',
+        const result = await this.databaseFunctionService.callFunction<{ con_eliminaractividad?: boolean; coneliminaractividad?: boolean }>(
+            'con_EliminarActividad',
             [idActividad],
         );
         const row = result?.[0];
-        return row?.coneliminaractividad === true;
+        return row?.con_eliminaractividad === true || row?.coneliminaractividad === true;
     }
 
     private getInicioSemanaActual(): string {
@@ -454,7 +458,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult> {
         const rows = await this.databaseFunctionService.callFunction<any>(
-            'concroncierrejornadas',
+            'con_CronCierreJornadas',
             [fecha],
         );
         const row = rows?.[0];
@@ -472,9 +476,9 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         idUsuarioModificacion?: number,
     ): Promise<boolean> {
         const row = await this.databaseFunctionService.callFunctionSingle<any>(
-            'conactualizarestadojornada',
+            'con_ActualizarEstadoJornada',
             [idJornada, idEstadoJornada, idUsuarioModificacion ?? null],
         );
-        return row === true || row?.conactualizarestadojornada === true;
+        return row === true || row?.con_actualizarestadojornada === true || row?.conactualizarestadojornada === true;
     }
 }

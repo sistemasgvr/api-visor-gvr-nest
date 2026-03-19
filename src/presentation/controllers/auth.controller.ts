@@ -76,12 +76,17 @@ export class AuthController {
     }
 
     /**
-     * Refrescar token JWT
+     * Refrescar token JWT (acepta access token expirado si sigue siendo la sesión activa en BD).
      * POST /auth/refresh-token
      */
     @Post('refresh-token')
-    @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Refrescar JWT',
+        description:
+            'Envía el Bearer actual (aunque esté expirado). Se valida firma y que el token coincida con la sesión en base de datos.',
+        security: [],
+    })
     async refreshToken(@Req() request: Request) {
         const token = this.extractTokenFromHeader(request);
 

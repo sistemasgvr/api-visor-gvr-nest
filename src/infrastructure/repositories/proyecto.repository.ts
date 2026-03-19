@@ -22,7 +22,7 @@ export class ProyectoRepository implements IProyectoRepository {
         const { idUsuario, idTipoProyecto = null, idPais = null, idCliente = null, busqueda = '', limit = 10, offset = 0 } = params;
 
         const result = await this.databaseFunctionService.callFunction<any>(
-            'proListarProyectos',
+            'pro_ListarProyectos',
             [idUsuario, idTipoProyecto, idPais, idCliente, busqueda, limit, offset],
         );
 
@@ -55,7 +55,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async contarProyectosPorEstado(): Promise<ProyectoPorEstadoItem[]> {
         const result = await this.databaseFunctionService.callFunction<{ nombre_estado: string; cantidad: number | string }>(
-            'proContarProyectosPorEstado',
+            'pro_ContarProyectosPorEstado',
             [],
         );
         if (!Array.isArray(result)) return [];
@@ -67,7 +67,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async obtenerProyectoPorId(idProyecto: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proObtenerProyectoPorId',
+            'pro_ObtenerProyectoPorId',
             [idProyecto],
         );
         if (result?.coordinadores && Array.isArray(result.coordinadores)) {
@@ -81,7 +81,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async crearProyecto(data: CrearProyectoData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proCrearProyecto',
+            'pro_CrearProyecto',
             [
                 data.nombreProyecto,
                 data.nroProyecto,
@@ -112,7 +112,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async editarProyecto(data: EditarProyectoData): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proEditarProyecto',
+            'pro_EditarProyecto',
             [
                 data.idProyecto,
                 data.nombreProyecto,
@@ -144,7 +144,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async eliminarProyecto(idProyecto: number, idUsuarioModificacion: number): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proEliminarProyecto',
+            'pro_EliminarProyecto',
             [idProyecto, idUsuarioModificacion],
         );
 
@@ -153,7 +153,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async listarUsuariosProyecto(idProyecto: number): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'proListarUsuariosProyecto',
+            'pro_ListarUsuariosProyecto',
             [idProyecto],
         );
         return result ?? [];
@@ -166,7 +166,7 @@ export class ProyectoRepository implements IProyectoRepository {
         idUsuarioCreacion: number,
     ): Promise<{ success: boolean; message: string; id?: number }> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proAsignarAccesoProyecto',
+            'pro_AsignarAccesoProyecto',
             [idProyecto, idUsuario, idNivelAcceso, idUsuarioCreacion],
         );
         return result;
@@ -178,7 +178,7 @@ export class ProyectoRepository implements IProyectoRepository {
         idUsuarioModificacion: number,
     ): Promise<{ success: boolean; message: string }> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proActualizarNivelAccesoProyecto',
+            'pro_ActualizarNivelAccesoProyecto',
             [idAcceso, idNivelAcceso, idUsuarioModificacion],
         );
         return result;
@@ -186,7 +186,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async removerAccesoProyecto(idAcceso: number, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proRemoverAccesoProyecto',
+            'pro_RemoverAccesoProyecto',
             [idAcceso, idUsuarioModificacion],
         );
         return result;
@@ -195,7 +195,7 @@ export class ProyectoRepository implements IProyectoRepository {
     async listarUsuariosDisponiblesProyecto(params: ListarUsuariosDisponiblesParams): Promise<{ data: any[]; total: number }> {
         const { idProyecto, busqueda = '', limit = 50, offset = 0, idRol = null } = params;
         const result = await this.databaseFunctionService.callFunction<any>(
-            'proListarUsuariosDisponiblesProyecto',
+            'pro_ListarUsuariosDisponiblesProyecto',
             [idProyecto, busqueda, limit, offset, idRol],
         );
         const total = result?.[0]?.total_registros ?? 0;
@@ -204,7 +204,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async listarDocumentosProyecto(idProyecto: number): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'proListarDocumentosProyecto',
+            'pro_ListarDocumentosProyecto',
             [idProyecto],
         );
         return result ?? [];
@@ -216,7 +216,7 @@ export class ProyectoRepository implements IProyectoRepository {
         idUsuarioCreacion: number,
     ): Promise<{ success: boolean; message: string; id?: number }> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proCrearDocumentoProyecto',
+            'pro_CrearDocumentoProyecto',
             [idProyecto, data.idTipoDocumento, data.nombre, data.linkDocumento ?? null, idUsuarioCreacion],
         );
         return result;
@@ -228,7 +228,7 @@ export class ProyectoRepository implements IProyectoRepository {
         idUsuarioModificacion: number,
     ): Promise<{ success: boolean; message: string }> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proActualizarDocumentoProyecto',
+            'pro_ActualizarDocumentoProyecto',
             [idDocumento, data.idTipoDocumento, data.nombre, data.linkDocumento ?? null, idUsuarioModificacion],
         );
         return result;
@@ -236,7 +236,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async eliminarDocumentoProyecto(idDocumento: number, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proEliminarDocumentoProyecto',
+            'pro_EliminarDocumentoProyecto',
             [idDocumento, idUsuarioModificacion],
         );
         return result;
@@ -244,7 +244,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async listarCoordinadoresProyecto(idProyecto: number): Promise<import('../../domain/repositories/proyecto.repository.interface').CoordinadorProyectoItem[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'proListarCoordinadoresProyecto',
+            'pro_ListarCoordinadoresProyecto',
             [idProyecto],
         );
         const rows = result ?? [];
@@ -267,7 +267,7 @@ export class ProyectoRepository implements IProyectoRepository {
             miembros_equipo: c.miembrosEquipo ?? [],
         }));
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'proGuardarCoordinadoresProyecto',
+            'pro_GuardarCoordinadoresProyecto',
             [idProyecto, JSON.stringify(payload), idUsuario],
         );
         return result;
@@ -275,7 +275,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async obtenerCoordinadorParaTrabajadorEnProyecto(idProyecto: number, idTrabajador: number): Promise<number | null> {
         const result = await this.databaseFunctionService.callFunctionSingle<number | null>(
-            'proObtenerCoordinadorParaTrabajadorEnProyecto',
+            'pro_ObtenerCoordinadorParaTrabajadorEnProyecto',
             [idProyecto, idTrabajador],
         );
         return result != null && Number(result) > 0 ? Number(result) : null;
@@ -283,7 +283,7 @@ export class ProyectoRepository implements IProyectoRepository {
 
     async obtenerPrimerCoordinadorProyecto(idProyecto: number): Promise<number | null> {
         const result = await this.databaseFunctionService.callFunctionSingle<number | null>(
-            'proObtenerPrimerCoordinadorProyecto',
+            'pro_ObtenerPrimerCoordinadorProyecto',
             [idProyecto],
         );
         return result != null && Number(result) > 0 ? Number(result) : null;

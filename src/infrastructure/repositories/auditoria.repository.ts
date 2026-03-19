@@ -18,7 +18,7 @@ export class AuditoriaRepository implements IAuditoriaRepository {
         offset: number,
     ): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'audListarAuditorias',
+            'aud_ListarAuditorias',
             [idUsuario, accion, entidad, fechaDesde, fechaHasta, limit, offset],
         );
 
@@ -27,7 +27,7 @@ export class AuditoriaRepository implements IAuditoriaRepository {
 
     async obtenerAuditoriaPorId(id: number): Promise<any | null> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'audObtenerAuditoriaPorId',
+            'aud_ObtenerAuditoriaPorId',
             [id],
         );
 
@@ -36,7 +36,7 @@ export class AuditoriaRepository implements IAuditoriaRepository {
 
     async obtenerHistorialEntidad(entidad: string, identidad: string): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'audObtenerHistorialEntidad',
+            'aud_ObtenerHistorialEntidad',
             [entidad, identidad],
         );
 
@@ -46,7 +46,7 @@ export class AuditoriaRepository implements IAuditoriaRepository {
         }
 
         // Si el resultado es un objeto con una propiedad que contiene el JSONB
-        const jsonbResult = result.audobtenerhistorialentidad || result.audObtenerHistorialEntidad || result;
+        const jsonbResult = result.aud_obtenerhistorialentidad ?? result.audobtenerhistorialentidad ?? result.audObtenerHistorialEntidad ?? result;
 
         // Si es un string JSON, parsearlo
         if (typeof jsonbResult === 'string') {
@@ -121,7 +121,7 @@ export class AuditoriaRepository implements IAuditoriaRepository {
 
     async obtenerHistorialUsuario(idUsuario: number, limit: number, offset: number): Promise<any[]> {
         const result = await this.databaseFunctionService.callFunction<any>(
-            'audObtenerHistorialUsuario',
+            'aud_ObtenerHistorialUsuario',
             [idUsuario, limit, offset],
         );
 
@@ -130,7 +130,7 @@ export class AuditoriaRepository implements IAuditoriaRepository {
 
     async obtenerEstadisticas(fechaDesde: string | null, fechaHasta: string | null): Promise<any | null> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'audObtenerEstadisticas',
+            'aud_ObtenerEstadisticas',
             [fechaDesde, fechaHasta],
         );
 
@@ -254,7 +254,7 @@ export class AuditoriaRepository implements IAuditoriaRepository {
         nombreEmpresaUsuario?: string | null,
     ): Promise<any> {
         const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'audRegistrarAccion',
+            'aud_RegistrarAccion',
             [
                 idUsuario,
                 accion,
@@ -277,7 +277,7 @@ export class AuditoriaRepository implements IAuditoriaRepository {
         }
 
         // Si el resultado es un objeto con una propiedad que contiene el JSONB
-        const jsonbResult = result.audregistraraccion || result.audRegistrarAccion || result;
+        const jsonbResult = result.aud_registraraccion ?? result.audregistraraccion ?? result.audRegistrarAccion ?? result;
 
         // Si es un string JSON, parsearlo
         if (typeof jsonbResult === 'string') {
