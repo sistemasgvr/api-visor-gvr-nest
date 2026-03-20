@@ -153,6 +153,8 @@ docker exec -it <container-id> sh
 - **Espacios en credenciales**: La API y el frontend hacen `trim()` de correo y contraseña para evitar fallos por espacios/autocompletado en iOS.
 
 ## Comandos para crear y subir imagen a Docker
+## Limpiar cache de BuildKit
+docker builder prune -af
 
 # 1. Construir nueva imagen
 docker build -t tuusuario/mi-proyecto-nestjs:latest .
