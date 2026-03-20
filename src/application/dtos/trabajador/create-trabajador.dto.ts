@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsString, IsInt, IsEmail, IsOptional, MaxLength, IsNotEmpty, IsNumber, IsDateString, IsArray } from 'class-validator';
+import { EmptyStringToUndefined } from '../common/empty-string-to-undefined.transform';
 
 export class CreateTrabajadorDto {
     @IsNotEmpty() @IsString() @MaxLength(255) nombres: string;
@@ -11,7 +12,7 @@ export class CreateTrabajadorDto {
 
     @IsOptional() @IsInt() idResponsable?: number;
     @IsOptional() @IsInt() idRol?: number;
-    @IsOptional() @IsDateString() fechaNacimiento?: string;
+    @EmptyStringToUndefined() @IsOptional() @IsDateString() fechaNacimiento?: string;
     @IsOptional() @IsString() @MaxLength(20) celular?: string;
     @IsOptional() @IsString() @MaxLength(20) telefonoEmergencia?: string;
     @IsOptional() @IsString() @MaxLength(255) contactoEmergenciaNombre?: string;
@@ -30,9 +31,9 @@ export class CreateTrabajadorDto {
     @IsOptional() @IsNumber() remuneracion?: number;
     @IsOptional() @IsInt() idTipoContrato?: number;
     @IsOptional() @IsInt() idDuracionContrato?: number;
-    @IsOptional() @IsDateString() fechaInicioLabores?: string;
-    @IsOptional() @IsDateString() fechaInicioContrato?: string;
-    @IsOptional() @IsDateString() fechaFinContrato?: string;
+    @EmptyStringToUndefined() @IsOptional() @IsDateString() fechaInicioLabores?: string;
+    @EmptyStringToUndefined() @IsOptional() @IsDateString() fechaInicioContrato?: string;
+    @EmptyStringToUndefined() @IsOptional() @IsDateString() fechaFinContrato?: string;
     @IsOptional() @IsInt() idModalidad?: number;
     @IsOptional() @IsArray() adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
