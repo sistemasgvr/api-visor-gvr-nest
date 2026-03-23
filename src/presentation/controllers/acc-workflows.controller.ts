@@ -18,7 +18,7 @@ import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 // Use Cases
 import { ObtenerWorkflowsUseCase } from '../../application/use-cases/acc/reviews/obtener-workflows.use-case';
 import { ObtenerWorkflowPorIdUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-por-id.use-case';
-import { CrearWorkflowUseCase } from '../../application/use-cases/acc/reviews/crear-workflow.use-case';
+import { CrearFlujoRevisionGvrUseCase } from '../../application/use-cases/acc/reviews/crear-flujo-revision-gvr.use-case';
 import { GuardarWorkflowCandidatosUseCase, type GuardarWorkflowCandidatosDto } from '../../application/use-cases/acc/reviews/guardar-workflow-candidatos.use-case';
 import { ObtenerWorkflowCandidatosUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-candidatos.use-case';
 
@@ -31,7 +31,7 @@ export class AccWorkflowsController {
     constructor(
         private readonly obtenerWorkflowsUseCase: ObtenerWorkflowsUseCase,
         private readonly obtenerWorkflowPorIdUseCase: ObtenerWorkflowPorIdUseCase,
-        private readonly crearWorkflowUseCase: CrearWorkflowUseCase,
+        private readonly crearFlujoRevisionGvrUseCase: CrearFlujoRevisionGvrUseCase,
         private readonly guardarWorkflowCandidatosUseCase: GuardarWorkflowCandidatosUseCase,
         private readonly obtenerWorkflowCandidatosUseCase: ObtenerWorkflowCandidatosUseCase,
     ) { }
@@ -106,18 +106,17 @@ export class AccWorkflowsController {
         const userId = user?.sub || user?.id;
         if (!userId) throw new BadRequestException('User ID es requerido');
 
-        const ipAddress = (request as any).ip || request.socket?.remoteAddress || '';
-        const userAgent = request.headers['user-agent'] || '';
+        const resultado = await this.crearFlujoRevisionGvrUseCase.execute(userId, projectId, dto);
 
-        const resultado = await this.crearWorkflowUseCase.execute(
-            userId,
-            projectId,
-            dto,
-            ipAddress,
-            userAgent,
+        return ApiResponseDto.created(
+            {
+                id: resultado.id,
+                name: resultado.name,
+                idProyectoAcc: resultado.idProyectoAcc,
+                mensaje: resultado.mensaje,
+            },
+            'Flujo de trabajo creado exitosamente',
         );
-
-        return ApiResponseDto.created(resultado, 'Workflow creado exitosamente');
     }
 
     /**

@@ -1,5 +1,13 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength, IsArray, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsNotEmpty, IsOptional, MaxLength, IsArray } from 'class-validator';
+
+/** Candidato GVR para un paso (usuario que puede iniciar/revisar/aprobar) */
+export interface WorkflowCandidatoInput {
+    idUsuario: number;
+    tipoPaso: 'INITIATOR' | 'REVIEWER' | 'APPROVER';
+    nombrePaso: string;
+    ordenPaso: number;
+    esOpcional?: boolean;
+}
 
 export class CrearWorkflowDto {
     @IsString()
@@ -25,6 +33,11 @@ export class CrearWorkflowDto {
     @IsOptional()
     @IsArray()
     steps?: any[];
+
+    /** Candidatos GVR por paso (idUsuario, tipoPaso, ordenPaso). Se integran en el flujo al crear en BD. */
+    @IsOptional()
+    @IsArray()
+    candidatos?: WorkflowCandidatoInput[];
 
     @IsOptional()
     @IsArray()

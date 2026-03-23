@@ -1,124 +1,84 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
+import { Injectable } from '@nestjs/common';
 import { ObtenerWorkflowsDto } from '../../../dtos/acc/reviews/obtener-workflows.dto';
-import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
 import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
 
+/**
+ * Lista flujos de trabajo de aprobación **solo desde la BD GVR**
+ * (`acc_FlujoTrabajoAprobacion` vía `acc_ListarFlujosTrabajoAprobacionGvr`).
+ * No consulta la API de Autodesk: la pantalla muestra únicamente lo persistido internamente.
+ */
 @Injectable()
 export class ObtenerWorkflowsUseCase {
     constructor(
-        private readonly autodeskApiService: AutodeskApiService,
-        private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
         private readonly dbFunctionService: DatabaseFunctionService,
     ) { }
 
-    async execute(userId: number, projectId: string, dto: ObtenerWorkflowsDto): Promise<any> {
-        const accessToken = await this.obtenerTokenValidoHelper.execute(userId);
+    async execute(_userId: number, projectId: string, dto: ObtenerWorkflowsDto): Promise<any> {
+        const gvrFlows = await this.dbFunctionService.callFunction<{
+            id: string;
+            name: string;
+            description: string | null;
+            notes: string | null;
+            status: string;
+            steps_json: unknown;
+            copy_files_enabled: boolean;
+            copy_files_options_json: unknown;
+            gvr_candidatos_json: unknown;
+            created_at: string | Date;
+            updated_at: string | Date;
+        }>('acc_ListarFlujosTrabajoAprobacionGvr', [projectId]);
 
-        // Autodesk Workflows API max limit is 50. filter[status] and filter[name]
-        // are NOT supported query params. We auto-paginate and filter client-side.
-        const ACC_PAGE_SIZE = 50;
-        const allWorkflows: any[] = [];
-        let accOffset = 0;
-        let firstError: any = null;
-
-        while (true) {
-            const pageFilters: Record<string, any> = { limit: ACC_PAGE_SIZE, offset: accOffset };
-            if (dto.sort) pageFilters['sort'] = dto.sort;
-
-            let pageResponse: any;
-            try {
-                pageResponse = await this.autodeskApiService.obtenerWorkflows(accessToken, projectId, pageFilters);
-            } catch (err: any) {
-                if (accOffset === 0) {
-                    // First page failed — check for service errors and rethrow
-                    const status = err?.statusCode ?? (err?.message?.includes('503') ? 503 : undefined);
-                    if (status === 503 || status === 502 || status === 504) {
-                        throw new ServiceUnavailableException(
-                            'El servicio de Autodesk no está disponible temporalmente. Intente de nuevo en unos minutos.',
-                        );
-                    }
-                    throw err;
-                }
-                firstError = err;
-                break; // Stop gracefully on subsequent page errors
-            }
-
-            const pageItems: any[] =
-                Array.isArray(pageResponse?.results) ? pageResponse.results :
-                Array.isArray(pageResponse?.data)    ? pageResponse.data    :
-                Array.isArray(pageResponse)          ? pageResponse         : [];
-
-            allWorkflows.push(...pageItems);
-
-            // Stop when we have received the last page
-            if (pageItems.length < ACC_PAGE_SIZE) break;
-            const totalFromAcc = pageResponse?.pagination?.totalResults ?? 0;
-            if (totalFromAcc > 0 && allWorkflows.length >= totalFromAcc) break;
-            accOffset += ACC_PAGE_SIZE;
+        const workflows: any[] = [];
+        for (const row of gvrFlows ?? []) {
+            const steps = Array.isArray(row.steps_json) ? row.steps_json : [];
+            const gvrCandidatos = Array.isArray(row.gvr_candidatos_json) ? row.gvr_candidatos_json : [];
+            const copyJson = row.copy_files_options_json as Record<string, unknown> | null | undefined;
+            const copyFilesOptions =
+                copyJson && typeof copyJson === 'object' && copyJson !== null
+                    ? {
+                          enabled: !!copyJson.enabled,
+                          condition: typeof copyJson.condition === 'string' ? copyJson.condition : 'ANY',
+                          ...(typeof copyJson.folderUrn === 'string' && copyJson.folderUrn
+                              ? { folderUrn: copyJson.folderUrn }
+                              : {}),
+                          allowOverride: !!copyJson.allowOverride,
+                          includeMarkups: copyJson.includeMarkups !== false,
+                          allowApproversChangeMarkups: copyJson.allowApproversChangeMarkups !== false,
+                      }
+                    : { enabled: !!row.copy_files_enabled };
+            workflows.push({
+                id:           row.id,
+                name:         row.name,
+                description:  row.description ?? undefined,
+                notes:        row.notes ?? undefined,
+                status:       row.status,
+                steps,
+                copyFilesOptions,
+                createdAt:    row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at),
+                updatedAt:    row.updated_at instanceof Date ? row.updated_at.toISOString() : String(row.updated_at),
+                gvrCandidatos,
+            });
         }
 
-        if (allWorkflows.length === 0 && firstError) {
-            throw firstError;
-        }
-
-        // ── Client-side filtering ──────────────────────────────────────────────
-        let workflows = allWorkflows;
+        let filtered = workflows;
         if (dto.filter_status) {
-            workflows = workflows.filter((wf) => wf.status === dto.filter_status);
+            filtered = filtered.filter((wf) => wf.status === dto.filter_status);
         }
         if (dto.filter_name) {
             const q = dto.filter_name.toLowerCase();
-            workflows = workflows.filter((wf) => wf.name?.toLowerCase().includes(q));
+            filtered = filtered.filter((wf) => wf.name?.toLowerCase().includes(q));
         }
 
-        // ── Enriquecer con candidatos GVR ──────────────────────────────────────
-        try {
-            const gvrRows = await this.dbFunctionService.callFunction<{
-                accworkflowid: string;
-                idusuario: number;
-                nombreusuario: string;
-                correousuario: string;
-                tipopaso: string;
-                nombrepaso: string;
-                ordenpaso: number;
-                esopcional: boolean;
-            }>('acc_ListarWorkflowCandidatosPorProyecto', [projectId]);
-
-            const byWorkflow: Record<string, typeof gvrRows> = {};
-            for (const row of gvrRows) {
-                const wid = row.accworkflowid;
-                if (!byWorkflow[wid]) byWorkflow[wid] = [];
-                byWorkflow[wid].push(row);
-            }
-
-            for (const wf of workflows) {
-                wf.gvrCandidatos = (byWorkflow[wf.id] ?? []).map((r) => ({
-                    idUsuario:  r.idusuario,
-                    nombre:     r.nombreusuario,
-                    correo:     r.correousuario,
-                    tipoPaso:   r.tipopaso,
-                    nombrePaso: r.nombrepaso,
-                    ordenPaso:  r.ordenpaso,
-                    esOpcional: r.esopcional,
-                }));
-            }
-        } catch {
-            // Enrichment should not block the main response
-        }
-
-        // ── Ordenar más reciente primero ───────────────────────────────────────
-        workflows.sort((a, b) => {
+        filtered.sort((a, b) => {
             const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
             return tB - tA;
         });
 
-        // ── Client-side pagination (to preserve table pagination in the UI) ────
-        const totalFiltered = workflows.length;
+        const totalFiltered = filtered.length;
         const pageLimit  = dto.limit  ?? totalFiltered;
         const pageOffset = dto.offset ?? 0;
-        const paginatedWorkflows = workflows.slice(pageOffset, pageOffset + pageLimit);
+        const paginatedWorkflows = filtered.slice(pageOffset, pageOffset + pageLimit);
 
         return {
             results: paginatedWorkflows,
