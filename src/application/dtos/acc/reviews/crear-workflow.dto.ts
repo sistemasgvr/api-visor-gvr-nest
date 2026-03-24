@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, MaxLength, IsArray, IsBoolean, IsIn } from 'class-validator';
 
 /** Candidato GVR para un paso (usuario que puede iniciar/revisar/aprobar) */
 export interface WorkflowCandidatoInput {
@@ -56,4 +56,14 @@ export class CrearWorkflowDto {
 
     @IsOptional()
     updateAttributesOptions?: any;
+
+    /** Si true, el flujo se crea como Borrador (acc_flujo_estado). */
+    @IsOptional()
+    @IsBoolean()
+    saveAsDraft?: boolean;
+
+    /** Estado explícito (listado UI ACTIVE/INACTIVE). Tiene prioridad sobre saveAsDraft al crear. */
+    @IsOptional()
+    @IsIn(['ACTIVE', 'INACTIVE'])
+    workflowStatus?: 'ACTIVE' | 'INACTIVE';
 }

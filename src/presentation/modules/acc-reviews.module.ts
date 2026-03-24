@@ -15,6 +15,8 @@ import { ObtenerVersionesRevisionUseCase } from '../../application/use-cases/acc
 import { ObtenerWorkflowsUseCase } from '../../application/use-cases/acc/reviews/obtener-workflows.use-case';
 import { ObtenerWorkflowPorIdUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-por-id.use-case';
 import { CrearFlujoRevisionGvrUseCase } from '../../application/use-cases/acc/reviews/crear-flujo-revision-gvr.use-case';
+import { ActualizarFlujoRevisionGvrUseCase } from '../../application/use-cases/acc/reviews/actualizar-flujo-revision-gvr.use-case';
+import { CambiarEstadoFlujoGvrUseCase } from '../../application/use-cases/acc/reviews/cambiar-estado-flujo-gvr.use-case';
 import { GuardarWorkflowCandidatosUseCase } from '../../application/use-cases/acc/reviews/guardar-workflow-candidatos.use-case';
 import { ObtenerWorkflowCandidatosUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-candidatos.use-case';
 
@@ -56,6 +58,8 @@ import { BroadcastModule } from './broadcast.module';
         ObtenerWorkflowsUseCase,
         ObtenerWorkflowPorIdUseCase,
         CrearFlujoRevisionGvrUseCase,
+        ActualizarFlujoRevisionGvrUseCase,
+        CambiarEstadoFlujoGvrUseCase,
         GuardarWorkflowCandidatosUseCase,
         ObtenerWorkflowCandidatosUseCase,
 
