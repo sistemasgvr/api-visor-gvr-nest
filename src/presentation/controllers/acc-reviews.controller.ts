@@ -2,6 +2,7 @@ import {
     Controller,
     Get,
     Post,
+    Delete,
     Body,
     Param,
     Query,
@@ -10,6 +11,7 @@ import {
     UseGuards,
     Req,
     BadRequestException,
+    ParseIntPipe,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -22,10 +24,14 @@ import { ObtenerRevisionPorIdUseCase } from '../../application/use-cases/acc/rev
 import { ObtenerWorkflowRevisionUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-revision.use-case';
 import { ObtenerProgresoRevisionUseCase } from '../../application/use-cases/acc/reviews/obtener-progreso-revision.use-case';
 import { ObtenerVersionesRevisionUseCase } from '../../application/use-cases/acc/reviews/obtener-versiones-revision.use-case';
+import { ObtenerReferenciasRevisionUseCase } from '../../application/use-cases/acc/reviews/obtener-referencias-revision.use-case';
+import { AgregarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/agregar-referencia-revision.use-case';
+import { EliminarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/eliminar-referencia-revision.use-case';
 
 // DTOs
 import { ObtenerRevisionesDto } from '../../application/dtos/acc/reviews/obtener-revisiones.dto';
 import { CrearRevisionDto } from '../../application/dtos/acc/reviews/crear-revision.dto';
+import { AgregarReferenciaRevisionDto } from '../../application/dtos/acc/reviews/agregar-referencia-revision.dto';
 
 @Controller('acc/projects/:projectId/reviews')
 export class AccReviewsController {
@@ -36,6 +42,9 @@ export class AccReviewsController {
         private readonly obtenerWorkflowRevisionUseCase: ObtenerWorkflowRevisionUseCase,
         private readonly obtenerProgresoRevisionUseCase: ObtenerProgresoRevisionUseCase,
         private readonly obtenerVersionesRevisionUseCase: ObtenerVersionesRevisionUseCase,
+        private readonly obtenerReferenciasRevisionUseCase: ObtenerReferenciasRevisionUseCase,
+        private readonly agregarReferenciaRevisionUseCase: AgregarReferenciaRevisionUseCase,
+        private readonly eliminarReferenciaRevisionUseCase: EliminarReferenciaRevisionUseCase,
     ) { }
 
     /**
@@ -196,5 +205,74 @@ export class AccReviewsController {
         const resultado = await this.obtenerVersionesRevisionUseCase.execute(userId, projectId, reviewId);
 
         return ApiResponseDto.success(resultado, 'Versiones de revisión obtenidas exitosamente');
+    }
+
+    /**
+     * GET /acc/projects/:projectId/reviews/:reviewId/references
+     * Lista las referencias de una revisión
+     */
+    @Get(':reviewId/references')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async obtenerReferenciasRevision(
+        @Param('reviewId') reviewId: string,
+        @Req() request: Request,
+    ) {
+        if (!reviewId) throw new BadRequestException('El ID de la revisión es requerido');
+
+        const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+
+        const resultado = await this.obtenerReferenciasRevisionUseCase.execute(idRevision);
+        return ApiResponseDto.success(resultado, 'Referencias obtenidas exitosamente');
+    }
+
+    /**
+     * POST /acc/projects/:projectId/reviews/:reviewId/references
+     * Agrega una o varias referencias a una revisión
+     */
+    @Post(':reviewId/references')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.CREATED)
+    async agregarReferenciasRevision(
+        @Param('projectId') projectId: string,
+        @Param('reviewId') reviewId: string,
+        @Body() dto: AgregarReferenciaRevisionDto | AgregarReferenciaRevisionDto[],
+        @Req() request: Request,
+    ) {
+        if (!reviewId) throw new BadRequestException('El ID de la revisión es requerido');
+
+        const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+
+        const items = Array.isArray(dto) ? dto : [dto];
+        const resultados = await Promise.all(
+            items.map((item) => this.agregarReferenciaRevisionUseCase.execute(idRevision, projectId, item, userId))
+        );
+
+        return ApiResponseDto.created(resultados, 'Referencia(s) agregada(s) exitosamente');
+    }
+
+    /**
+     * DELETE /acc/projects/:projectId/reviews/:reviewId/references/:refId
+     * Elimina una referencia de una revisión
+     */
+    @Delete(':reviewId/references/:refId')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async eliminarReferenciaRevision(
+        @Param('refId', ParseIntPipe) refId: number,
+        @Req() request: Request,
+    ) {
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+
+        const resultado = await this.eliminarReferenciaRevisionUseCase.execute(refId, userId);
+        return ApiResponseDto.success(resultado, resultado.message);
     }
 }
