@@ -27,11 +27,13 @@ import { ObtenerVersionesRevisionUseCase } from '../../application/use-cases/acc
 import { ObtenerReferenciasRevisionUseCase } from '../../application/use-cases/acc/reviews/obtener-referencias-revision.use-case';
 import { AgregarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/agregar-referencia-revision.use-case';
 import { EliminarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/eliminar-referencia-revision.use-case';
+import { AnularRevisionEntireUseCase } from '../../application/use-cases/acc/reviews/anular-revision-entire.use-case';
 
 // DTOs
 import { ObtenerRevisionesDto } from '../../application/dtos/acc/reviews/obtener-revisiones.dto';
 import { CrearRevisionDto } from '../../application/dtos/acc/reviews/crear-revision.dto';
 import { AgregarReferenciaRevisionDto } from '../../application/dtos/acc/reviews/agregar-referencia-revision.dto';
+import { AnularRevisionDto } from '../../application/dtos/acc/reviews/anular-revision.dto';
 
 @Controller('acc/projects/:projectId/reviews')
 export class AccReviewsController {
@@ -45,6 +47,7 @@ export class AccReviewsController {
         private readonly obtenerReferenciasRevisionUseCase: ObtenerReferenciasRevisionUseCase,
         private readonly agregarReferenciaRevisionUseCase: AgregarReferenciaRevisionUseCase,
         private readonly eliminarReferenciaRevisionUseCase: EliminarReferenciaRevisionUseCase,
+        private readonly anularRevisionEntireUseCase: AnularRevisionEntireUseCase,
     ) { }
 
     /**
@@ -273,6 +276,33 @@ export class AccReviewsController {
         if (!userId) throw new BadRequestException('User ID es requerido');
 
         const resultado = await this.eliminarReferenciaRevisionUseCase.execute(refId, userId);
+        return ApiResponseDto.success(resultado, resultado.message);
+    }
+
+    /**
+     * POST /acc/projects/:projectId/reviews/:reviewId/void
+     * Anula completamente una revisión (Void entire review).
+     */
+    @Post(':reviewId/void')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async anularRevisionEntire(
+        @Param('projectId') projectId: string,
+        @Param('reviewId') reviewId: string,
+        @Body() dto: AnularRevisionDto,
+        @Req() request: Request,
+    ) {
+        if (!reviewId) throw new BadRequestException('El ID de la revisión es requerido');
+
+        const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
+
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+
+        const resultado = await this.anularRevisionEntireUseCase.execute(userId, projectId, idRevision, dto);
         return ApiResponseDto.success(resultado, resultado.message);
     }
 }

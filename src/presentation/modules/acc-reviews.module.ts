@@ -13,6 +13,7 @@ import { ObtenerVersionesRevisionUseCase } from '../../application/use-cases/acc
 import { ObtenerReferenciasRevisionUseCase } from '../../application/use-cases/acc/reviews/obtener-referencias-revision.use-case';
 import { AgregarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/agregar-referencia-revision.use-case';
 import { EliminarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/eliminar-referencia-revision.use-case';
+import { AnularRevisionEntireUseCase } from '../../application/use-cases/acc/reviews/anular-revision-entire.use-case';
 
 // Use Cases — Workflows
 import { ObtenerWorkflowsUseCase } from '../../application/use-cases/acc/reviews/obtener-workflows.use-case';
@@ -59,6 +60,7 @@ import { BroadcastModule } from './broadcast.module';
         ObtenerReferenciasRevisionUseCase,
         AgregarReferenciaRevisionUseCase,
         EliminarReferenciaRevisionUseCase,
+        AnularRevisionEntireUseCase,
 
         // Use Cases — Workflows
         ObtenerWorkflowsUseCase,
