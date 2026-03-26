@@ -28,12 +28,16 @@ import { ObtenerReferenciasRevisionUseCase } from '../../application/use-cases/a
 import { AgregarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/agregar-referencia-revision.use-case';
 import { EliminarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/eliminar-referencia-revision.use-case';
 import { AnularRevisionEntireUseCase } from '../../application/use-cases/acc/reviews/anular-revision-entire.use-case';
+import { SaltarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/saltar-paso-revision.use-case';
+import { VolverPasoAnteriorRevisionUseCase } from '../../application/use-cases/acc/reviews/volver-paso-anterior-revision.use-case';
 
 // DTOs
 import { ObtenerRevisionesDto } from '../../application/dtos/acc/reviews/obtener-revisiones.dto';
 import { CrearRevisionDto } from '../../application/dtos/acc/reviews/crear-revision.dto';
 import { AgregarReferenciaRevisionDto } from '../../application/dtos/acc/reviews/agregar-referencia-revision.dto';
 import { AnularRevisionDto } from '../../application/dtos/acc/reviews/anular-revision.dto';
+import { SaltarPasoRevisionDto } from '../../application/dtos/acc/reviews/saltar-paso-revision.dto';
+import { VolverPasoAnteriorRevisionDto } from '../../application/dtos/acc/reviews/volver-paso-anterior-revision.dto';
 
 @Controller('acc/projects/:projectId/reviews')
 export class AccReviewsController {
@@ -48,6 +52,8 @@ export class AccReviewsController {
         private readonly agregarReferenciaRevisionUseCase: AgregarReferenciaRevisionUseCase,
         private readonly eliminarReferenciaRevisionUseCase: EliminarReferenciaRevisionUseCase,
         private readonly anularRevisionEntireUseCase: AnularRevisionEntireUseCase,
+        private readonly saltarPasoRevisionUseCase: SaltarPasoRevisionUseCase,
+        private readonly volverPasoAnteriorRevisionUseCase: VolverPasoAnteriorRevisionUseCase,
     ) { }
 
     /**
@@ -303,6 +309,60 @@ export class AccReviewsController {
         if (!userId) throw new BadRequestException('User ID es requerido');
 
         const resultado = await this.anularRevisionEntireUseCase.execute(userId, projectId, idRevision, dto);
+        return ApiResponseDto.success(resultado, resultado.message);
+    }
+
+    /**
+     * POST /acc/projects/:projectId/reviews/:reviewId/skip-step
+     * Salta el paso actual y avanza al siguiente.
+     */
+    @Post(':reviewId/skip-step')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async saltarPasoRevision(
+        @Param('projectId') projectId: string,
+        @Param('reviewId') reviewId: string,
+        @Body() dto: SaltarPasoRevisionDto,
+        @Req() request: Request,
+    ) {
+        if (!reviewId) throw new BadRequestException('El ID de la revisión es requerido');
+
+        const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
+
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+
+        const resultado = await this.saltarPasoRevisionUseCase.execute(userId, projectId, idRevision, dto);
+        return ApiResponseDto.success(resultado, resultado.message);
+    }
+
+    /**
+     * POST /acc/projects/:projectId/reviews/:reviewId/return-step
+     * Devuelve la revisión al paso anterior.
+     */
+    @Post(':reviewId/return-step')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async volverPasoAnterior(
+        @Param('projectId') projectId: string,
+        @Param('reviewId') reviewId: string,
+        @Body() dto: VolverPasoAnteriorRevisionDto,
+        @Req() request: Request,
+    ) {
+        if (!reviewId) throw new BadRequestException('El ID de la revisión es requerido');
+
+        const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
+
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+
+        const resultado = await this.volverPasoAnteriorRevisionUseCase.execute(userId, projectId, idRevision, dto);
         return ApiResponseDto.success(resultado, resultado.message);
     }
 }

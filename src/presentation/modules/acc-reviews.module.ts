@@ -14,6 +14,8 @@ import { ObtenerReferenciasRevisionUseCase } from '../../application/use-cases/a
 import { AgregarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/agregar-referencia-revision.use-case';
 import { EliminarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/eliminar-referencia-revision.use-case';
 import { AnularRevisionEntireUseCase } from '../../application/use-cases/acc/reviews/anular-revision-entire.use-case';
+import { SaltarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/saltar-paso-revision.use-case';
+import { VolverPasoAnteriorRevisionUseCase } from '../../application/use-cases/acc/reviews/volver-paso-anterior-revision.use-case';
 
 // Use Cases — Workflows
 import { ObtenerWorkflowsUseCase } from '../../application/use-cases/acc/reviews/obtener-workflows.use-case';
@@ -61,6 +63,8 @@ import { BroadcastModule } from './broadcast.module';
         AgregarReferenciaRevisionUseCase,
         EliminarReferenciaRevisionUseCase,
         AnularRevisionEntireUseCase,
+        SaltarPasoRevisionUseCase,
+        VolverPasoAnteriorRevisionUseCase,
 
         // Use Cases — Workflows
         ObtenerWorkflowsUseCase,
