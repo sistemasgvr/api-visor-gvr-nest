@@ -30,6 +30,12 @@ import { EliminarReferenciaRevisionUseCase } from '../../application/use-cases/a
 import { AnularRevisionEntireUseCase } from '../../application/use-cases/acc/reviews/anular-revision-entire.use-case';
 import { SaltarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/saltar-paso-revision.use-case';
 import { VolverPasoAnteriorRevisionUseCase } from '../../application/use-cases/acc/reviews/volver-paso-anterior-revision.use-case';
+import { IniciarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/iniciar-paso-revision.use-case';
+import { DelegarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/delegar-paso-revision.use-case';
+import { EnviarResenaPasoUseCase } from '../../application/use-cases/acc/reviews/enviar-resena-paso.use-case';
+import { GetComentariosArchivoUseCase } from '../../application/use-cases/acc/reviews/get-comentarios-archivo.use-case';
+import { AddComentarioArchivoUseCase } from '../../application/use-cases/acc/reviews/add-comentario-archivo.use-case';
+import { AddComentarioArchivoDto } from '../../application/dtos/acc/reviews/add-comentario-archivo.dto';
 
 // DTOs
 import { ObtenerRevisionesDto } from '../../application/dtos/acc/reviews/obtener-revisiones.dto';
@@ -38,6 +44,7 @@ import { AgregarReferenciaRevisionDto } from '../../application/dtos/acc/reviews
 import { AnularRevisionDto } from '../../application/dtos/acc/reviews/anular-revision.dto';
 import { SaltarPasoRevisionDto } from '../../application/dtos/acc/reviews/saltar-paso-revision.dto';
 import { VolverPasoAnteriorRevisionDto } from '../../application/dtos/acc/reviews/volver-paso-anterior-revision.dto';
+import { EnviarResenaPasoDto } from '../../application/dtos/acc/reviews/enviar-resena-paso.dto';
 
 @Controller('acc/projects/:projectId/reviews')
 export class AccReviewsController {
@@ -54,6 +61,11 @@ export class AccReviewsController {
         private readonly anularRevisionEntireUseCase: AnularRevisionEntireUseCase,
         private readonly saltarPasoRevisionUseCase: SaltarPasoRevisionUseCase,
         private readonly volverPasoAnteriorRevisionUseCase: VolverPasoAnteriorRevisionUseCase,
+        private readonly iniciarPasoRevisionUseCase: IniciarPasoRevisionUseCase,
+        private readonly delegarPasoRevisionUseCase: DelegarPasoRevisionUseCase,
+        private readonly enviarResenaPasoUseCase: EnviarResenaPasoUseCase,
+        private readonly getComentariosArchivoUseCase: GetComentariosArchivoUseCase,
+        private readonly addComentarioArchivoUseCase: AddComentarioArchivoUseCase,
     ) { }
 
     /**
@@ -363,6 +375,100 @@ export class AccReviewsController {
         if (!userId) throw new BadRequestException('User ID es requerido');
 
         const resultado = await this.volverPasoAnteriorRevisionUseCase.execute(userId, projectId, idRevision, dto);
+        return ApiResponseDto.success(resultado, resultado.message);
+    }
+
+    /** POST /acc/projects/:projectId/reviews/:reviewId/claim-step — Inicia / reclama el paso actual */
+    @Post(':reviewId/claim-step')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async iniciarPasoRevision(
+        @Param('projectId') projectId: string,
+        @Param('reviewId') reviewId: string,
+        @Req() request: Request,
+    ) {
+        const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+        const resultado = await this.iniciarPasoRevisionUseCase.execute(userId, projectId, idRevision);
+        return ApiResponseDto.success(resultado, resultado.message);
+    }
+
+    /** POST /acc/projects/:projectId/reviews/:reviewId/delegate-step — Delega / libera el paso actual */
+    @Post(':reviewId/delegate-step')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async delegarPasoRevision(
+        @Param('projectId') projectId: string,
+        @Param('reviewId') reviewId: string,
+        @Req() request: Request,
+    ) {
+        const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+        const resultado = await this.delegarPasoRevisionUseCase.execute(userId, projectId, idRevision);
+        return ApiResponseDto.success(resultado, resultado.message);
+    }
+
+    /** POST /acc/projects/:projectId/reviews/:reviewId/submit-step — Entrega la reseña del paso actual */
+    @Post(':reviewId/submit-step')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async enviarResenaPaso(
+        @Param('projectId') projectId: string,
+        @Param('reviewId') reviewId: string,
+        @Body() dto: EnviarResenaPasoDto,
+        @Req() request: Request,
+    ) {
+        const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+        const resultado = await this.enviarResenaPasoUseCase.execute(userId, projectId, idRevision, dto);
+        return ApiResponseDto.success(resultado, resultado.message);
+    }
+
+    /** GET /acc/projects/:projectId/reviews/:reviewId/files/:fileId/comments */
+    @Get(':reviewId/files/:fileId/comments')
+    @UseGuards(JwtAuthGuard)
+    async getComentariosArchivo(
+        @Param('reviewId') reviewId: string,
+        @Param('fileId') fileId: string,
+    ) {
+        const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
+        const idArchivo = parseInt(fileId, 10);
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (isNaN(idArchivo)) throw new BadRequestException('ID de archivo inválido');
+        const data = await this.getComentariosArchivoUseCase.execute(idRevision, idArchivo);
+        return ApiResponseDto.success(data);
+    }
+
+    /** POST /acc/projects/:projectId/reviews/:reviewId/files/:fileId/comments */
+    @Post(':reviewId/files/:fileId/comments')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.CREATED)
+    async addComentarioArchivo(
+        @Param('reviewId') reviewId: string,
+        @Param('fileId') fileId: string,
+        @Body() dto: AddComentarioArchivoDto,
+        @Req() request: Request,
+    ) {
+        const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
+        const idArchivo = parseInt(fileId, 10);
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (isNaN(idArchivo)) throw new BadRequestException('ID de archivo inválido');
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+        const resultado = await this.addComentarioArchivoUseCase.execute(userId, idRevision, idArchivo, dto);
         return ApiResponseDto.success(resultado, resultado.message);
     }
 }

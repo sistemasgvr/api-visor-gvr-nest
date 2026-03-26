@@ -16,6 +16,11 @@ import { EliminarReferenciaRevisionUseCase } from '../../application/use-cases/a
 import { AnularRevisionEntireUseCase } from '../../application/use-cases/acc/reviews/anular-revision-entire.use-case';
 import { SaltarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/saltar-paso-revision.use-case';
 import { VolverPasoAnteriorRevisionUseCase } from '../../application/use-cases/acc/reviews/volver-paso-anterior-revision.use-case';
+import { IniciarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/iniciar-paso-revision.use-case';
+import { DelegarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/delegar-paso-revision.use-case';
+import { EnviarResenaPasoUseCase } from '../../application/use-cases/acc/reviews/enviar-resena-paso.use-case';
+import { GetComentariosArchivoUseCase } from '../../application/use-cases/acc/reviews/get-comentarios-archivo.use-case';
+import { AddComentarioArchivoUseCase } from '../../application/use-cases/acc/reviews/add-comentario-archivo.use-case';
 
 // Use Cases — Workflows
 import { ObtenerWorkflowsUseCase } from '../../application/use-cases/acc/reviews/obtener-workflows.use-case';
@@ -65,6 +70,11 @@ import { BroadcastModule } from './broadcast.module';
         AnularRevisionEntireUseCase,
         SaltarPasoRevisionUseCase,
         VolverPasoAnteriorRevisionUseCase,
+        IniciarPasoRevisionUseCase,
+        DelegarPasoRevisionUseCase,
+        EnviarResenaPasoUseCase,
+        GetComentariosArchivoUseCase,
+        AddComentarioArchivoUseCase,
 
         // Use Cases — Workflows
         ObtenerWorkflowsUseCase,
