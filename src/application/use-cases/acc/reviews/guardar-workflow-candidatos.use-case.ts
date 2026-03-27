@@ -25,16 +25,28 @@ export class GuardarWorkflowCandidatosUseCase {
         dto: GuardarWorkflowCandidatosDto,
         idUsuarioCreacion?: number,
     ): Promise<{ success: boolean; message: string; total: number }> {
+        const isGvrNumericId = /^\d+$/.test(String(accWorkflowId).trim());
+
+        const fn = isGvrNumericId ? 'acc_GuardarFlujoCandidatosGvr' : 'acc_GuardarWorkflowCandidatos';
+        const args = isGvrNumericId
+            ? [
+                  parseInt(String(accWorkflowId).trim(), 10),
+                  idProyectoAcc,
+                  JSON.stringify(dto.candidatos),
+                  idUsuarioCreacion ?? null,
+              ]
+            : [
+                  accWorkflowId,
+                  idProyectoAcc,
+                  JSON.stringify(dto.candidatos),
+                  idUsuarioCreacion ?? null,
+              ];
+
         const result = await this.dbFunctionService.callFunction<{
             success: boolean;
             message: string;
             total: number;
-        }>('acc_GuardarWorkflowCandidatos', [
-            accWorkflowId,
-            idProyectoAcc,
-            JSON.stringify(dto.candidatos),
-            idUsuarioCreacion ?? null,
-        ]);
+        }>(fn, args);
 
         return result[0] ?? { success: false, message: 'Sin respuesta', total: 0 };
     }

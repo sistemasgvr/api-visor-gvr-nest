@@ -1,7 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
+import { BadRequestException } from '@nestjs/common';
 import { CrearRevisionDto } from '../../../dtos/acc/reviews/crear-revision.dto';
-import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
 import type { IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
 import { AUDITORIA_REPOSITORY } from '../../../../domain/repositories/auditoria.repository.interface';
 import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
@@ -9,8 +8,6 @@ import { DatabaseFunctionService } from '../../../../infrastructure/database/dat
 @Injectable()
 export class CrearRevisionUseCase {
     constructor(
-        private readonly autodeskApiService: AutodeskApiService,
-        private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
         private readonly dbFunctionService: DatabaseFunctionService,
         @Inject(AUDITORIA_REPOSITORY)
         private readonly auditoriaRepository: IAuditoriaRepository,
@@ -23,39 +20,40 @@ export class CrearRevisionUseCase {
         ipAddress?: string,
         userAgent?: string,
     ): Promise<any> {
-        const accessToken = await this.obtenerTokenValidoHelper.execute(userId);
-
-        // Build the exact payload the ACC Reviews API expects.
-        // The correct property is "fileVersions" (not "linkedDocuments"),
-        // and each item must be { urn: "..." } — confirmed from official Postman collection.
-        const bodyAutodesk: Record<string, any> = {
-            name:       dto.name,
-            workflowId: dto.workflowId,
-        };
-        if (dto.description) bodyAutodesk.notes = dto.description;
-        if (dto.linkedDocuments?.length) {
-            bodyAutodesk.fileVersions = dto.linkedDocuments.map((doc: any) => ({
-                urn: doc.versionUrn ?? doc.urn,
-            }));
+        const flowId = parseInt(String(dto.workflowId ?? '').trim(), 10);
+        if (Number.isNaN(flowId) || flowId < 1) {
+            throw new BadRequestException(
+                'workflowId inválido. Debe ser un ID numérico de flujo interno GVR.',
+            );
         }
-        const resultado = await this.autodeskApiService.crearRevision(accessToken, projectId, bodyAutodesk);
 
-        const reviewId: string | null = resultado?.data?.id || resultado?.id || null;
+        const linkedDocuments = (dto.linkedDocuments ?? [])
+            .map((doc: any) => String(doc?.versionUrn ?? doc?.urn ?? '').trim())
+            .filter((urn) => urn.length > 0)
+            .map((urn) => ({ versionUrn: urn }));
 
-        // Persist the GVR creator of this revision in our system
-        if (reviewId) {
-            try {
-                await this.dbFunctionService.callFunction('acc_GuardarRevision', [
-                    reviewId,
-                    projectId,
-                    userId,
-                    dto.workflowId ?? null,
-                    dto.name?.substring(0, 500) ?? '',
-                    userId,
-                ]);
-            } catch {
-                // Saving the creator must not block the main operation
-            }
+        const rows = await this.dbFunctionService.callFunction<{
+            id_revision: number;
+            review_id: string;
+            workflow_id: string;
+            project_id: string;
+            name: string;
+            status: string;
+            message: string;
+            created_at: string | Date;
+            linked_documents_count: number;
+        }>('acc_CrearRevisionInterna', [
+            projectId,
+            userId,
+            flowId,
+            dto.name,
+            dto.description ?? null,
+            JSON.stringify(linkedDocuments),
+        ]);
+
+        const row = rows?.[0];
+        if (!row?.review_id) {
+            throw new BadRequestException(row?.message ?? 'No se pudo crear la revisión interna.');
         }
 
         try {
@@ -63,29 +61,42 @@ export class CrearRevisionUseCase {
                 userId,
                 'REVISION_CREATE',
                 'revision',
-                reviewId,
+                row.review_id,
                 `Revisión creada: ${dto.name.substring(0, 100)}`,
                 null,
                 {
-                    reviewId,
-                    projectId,
+                    reviewId: row.review_id,
+                    projectId: row.project_id ?? projectId,
                     name: dto.name.substring(0, 100),
-                    workflowId: dto.workflowId,
-                    linkedDocumentsCount: dto.linkedDocuments?.length ?? 0,
+                    workflowId: row.workflow_id ?? String(flowId),
+                    linkedDocumentsCount: row.linked_documents_count ?? linkedDocuments.length,
                 },
                 ipAddress ?? '',
                 userAgent ?? '',
                 {
-                    projectId,
-                    accReviewId: reviewId,
-                    workflowId: dto.workflowId,
-                    linkedDocumentsCount: dto.linkedDocuments?.length ?? 0,
+                    projectId: row.project_id ?? projectId,
+                    accReviewId: row.review_id,
+                    workflowId: row.workflow_id ?? String(flowId),
+                    linkedDocumentsCount: row.linked_documents_count ?? linkedDocuments.length,
                 },
             );
         } catch {
             // El fallo de auditoría no debe bloquear la operación principal
         }
 
-        return resultado;
+        return {
+            id: row.review_id,
+            internalId: row.id_revision,
+            name: row.name ?? dto.name,
+            projectId: row.project_id ?? projectId,
+            workflowId: row.workflow_id ?? String(flowId),
+            status: row.status ?? 'OPEN',
+            linkedDocumentsCount: row.linked_documents_count ?? linkedDocuments.length,
+            createdAt:
+                row.created_at instanceof Date
+                    ? row.created_at.toISOString()
+                    : String(row.created_at),
+            message: row.message ?? 'Revisión creada internamente.',
+        };
     }
 }

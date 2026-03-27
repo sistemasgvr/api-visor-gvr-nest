@@ -10,11 +10,24 @@ import { ObtenerRevisionPorIdUseCase } from '../../application/use-cases/acc/rev
 import { ObtenerWorkflowRevisionUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-revision.use-case';
 import { ObtenerProgresoRevisionUseCase } from '../../application/use-cases/acc/reviews/obtener-progreso-revision.use-case';
 import { ObtenerVersionesRevisionUseCase } from '../../application/use-cases/acc/reviews/obtener-versiones-revision.use-case';
+import { ObtenerReferenciasRevisionUseCase } from '../../application/use-cases/acc/reviews/obtener-referencias-revision.use-case';
+import { AgregarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/agregar-referencia-revision.use-case';
+import { EliminarReferenciaRevisionUseCase } from '../../application/use-cases/acc/reviews/eliminar-referencia-revision.use-case';
+import { AnularRevisionEntireUseCase } from '../../application/use-cases/acc/reviews/anular-revision-entire.use-case';
+import { SaltarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/saltar-paso-revision.use-case';
+import { VolverPasoAnteriorRevisionUseCase } from '../../application/use-cases/acc/reviews/volver-paso-anterior-revision.use-case';
+import { IniciarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/iniciar-paso-revision.use-case';
+import { DelegarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/delegar-paso-revision.use-case';
+import { EnviarResenaPasoUseCase } from '../../application/use-cases/acc/reviews/enviar-resena-paso.use-case';
+import { GetComentariosArchivoUseCase } from '../../application/use-cases/acc/reviews/get-comentarios-archivo.use-case';
+import { AddComentarioArchivoUseCase } from '../../application/use-cases/acc/reviews/add-comentario-archivo.use-case';
 
 // Use Cases — Workflows
 import { ObtenerWorkflowsUseCase } from '../../application/use-cases/acc/reviews/obtener-workflows.use-case';
 import { ObtenerWorkflowPorIdUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-por-id.use-case';
-import { CrearWorkflowUseCase } from '../../application/use-cases/acc/reviews/crear-workflow.use-case';
+import { CrearFlujoRevisionGvrUseCase } from '../../application/use-cases/acc/reviews/crear-flujo-revision-gvr.use-case';
+import { ActualizarFlujoRevisionGvrUseCase } from '../../application/use-cases/acc/reviews/actualizar-flujo-revision-gvr.use-case';
+import { CambiarEstadoFlujoGvrUseCase } from '../../application/use-cases/acc/reviews/cambiar-estado-flujo-gvr.use-case';
 import { GuardarWorkflowCandidatosUseCase } from '../../application/use-cases/acc/reviews/guardar-workflow-candidatos.use-case';
 import { ObtenerWorkflowCandidatosUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-candidatos.use-case';
 
@@ -51,11 +64,24 @@ import { BroadcastModule } from './broadcast.module';
         ObtenerWorkflowRevisionUseCase,
         ObtenerProgresoRevisionUseCase,
         ObtenerVersionesRevisionUseCase,
+        ObtenerReferenciasRevisionUseCase,
+        AgregarReferenciaRevisionUseCase,
+        EliminarReferenciaRevisionUseCase,
+        AnularRevisionEntireUseCase,
+        SaltarPasoRevisionUseCase,
+        VolverPasoAnteriorRevisionUseCase,
+        IniciarPasoRevisionUseCase,
+        DelegarPasoRevisionUseCase,
+        EnviarResenaPasoUseCase,
+        GetComentariosArchivoUseCase,
+        AddComentarioArchivoUseCase,
 
         // Use Cases — Workflows
         ObtenerWorkflowsUseCase,
         ObtenerWorkflowPorIdUseCase,
-        CrearWorkflowUseCase,
+        CrearFlujoRevisionGvrUseCase,
+        ActualizarFlujoRevisionGvrUseCase,
+        CambiarEstadoFlujoGvrUseCase,
         GuardarWorkflowCandidatosUseCase,
         ObtenerWorkflowCandidatosUseCase,
 

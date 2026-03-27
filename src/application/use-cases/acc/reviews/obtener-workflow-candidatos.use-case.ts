@@ -23,6 +23,13 @@ export class ObtenerWorkflowCandidatosUseCase {
         accWorkflowId: string,
         idProyectoAcc?: string,
     ): Promise<WorkflowCandidatoRow[]> {
+        const isGvrNumericId = /^\d+$/.test(String(accWorkflowId).trim());
+        if (isGvrNumericId) {
+            return this.dbFunctionService.callFunction<WorkflowCandidatoRow>(
+                'acc_ListarCandidatosFlujoTrabajoGvr',
+                [parseInt(String(accWorkflowId).trim(), 10)],
+            );
+        }
         return this.dbFunctionService.callFunction<WorkflowCandidatoRow>(
             'acc_ListarWorkflowCandidatos',
             [accWorkflowId, idProyectoAcc ?? null],

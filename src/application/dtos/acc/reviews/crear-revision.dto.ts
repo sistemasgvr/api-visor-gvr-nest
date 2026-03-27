@@ -1,12 +1,13 @@
-import { IsString, IsNotEmpty, IsOptional, IsUUID, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
 
 export class CrearRevisionDto {
     @IsString()
     @IsNotEmpty()
     name: string;
 
-    @IsUUID()
+    /** ID interno GVR del flujo (numérico en string). */
     @IsNotEmpty()
+    @IsString()
     workflowId: string;
 
     @IsOptional()
