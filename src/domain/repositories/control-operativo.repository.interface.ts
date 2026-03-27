@@ -24,6 +24,8 @@ export interface JornadaListItem {
     diajornada: string;
     fecha: string;
     horasesperadas: number;
+    horas_registradas?: number | null;
+    horas_aprobadas?: number | null;
     estadojornada: string;
     /** Conteo de actividades por estado: { "Por aprobar": 2, "Aprobado": 1 }. Null si no hay jornada o no hay actividades. */
     actividades_por_estado?: Record<string, number> | null;
@@ -309,6 +311,8 @@ export interface ProyectoAccesoTrabajador {
     nombrecliente: string | null;
     idcoordinador: number | null;
     nombrecoordinador: string | null;
+    /** True si el trabajador está registrado como coordinador del proyecto en proproyectocoordinador. */
+    es_coordinador_del_proyecto?: boolean | null;
 }
 
 /** Item de trabajador que no ha registrado jornada en la fecha (para dashboard). */
