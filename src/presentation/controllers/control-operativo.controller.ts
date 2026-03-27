@@ -20,6 +20,7 @@ import { ListarValorizacionUseCase } from '../../application/use-cases/control-o
 import { ListarDesempenoUseCase } from '../../application/use-cases/control-operativo/listar-desempeno.use-case';
 import { ListarTrabajadoresPorProyectoUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-por-proyecto.use-case';
 import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
+import { ListarReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-reporte-general.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -46,6 +47,7 @@ export class ControlOperativoController {
         private readonly listarDesempenoUseCase: ListarDesempenoUseCase,
         private readonly listarTrabajadoresPorProyectoUseCase: ListarTrabajadoresPorProyectoUseCase,
         private readonly validarActividadUseCase: ValidarActividadUseCase,
+        private readonly listarReporteGeneralUseCase: ListarReporteGeneralUseCase,
         private readonly configService: ConfigService,
     ) {}
 
@@ -464,6 +466,59 @@ export class ControlOperativoController {
             rolesAdminPermitidos: rolesAdminIds,
         });
         return ApiResponseDto.success(result, 'Trabajadores del proyecto listados exitosamente');
+    }
+
+    /**
+     * Reporte general de actividades con filtros opcionales.
+     * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
+     * GET /control-operativo/reporte-general?...&idTrabajadores=1,2&idProyectos=3&idEstadosActividad=374,375&...
+     */
+    @Get('reporte-general')
+    @UseGuards(JwtAuthGuard)
+    async listarReporteGeneral(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('fechaInicio') fechaInicio?: string,
+        @Query('fechaFin') fechaFin?: string,
+        @Query('idTrabajadores') idTrabajadores?: string,
+        @Query('idProyectos') idProyectos?: string,
+        @Query('idEstadosActividad') idEstadosActividad?: string,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
+        @Query('rolesAdmin') rolesAdmin?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const fInicio = (fechaInicio ?? '').trim() || null;
+        const fFin = (fechaFin ?? '').trim() || null;
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const limitNum = limit && limit !== '' ? parseInt(limit, 10) : 50;
+        const offsetNum = offset && offset !== '' ? parseInt(offset, 10) : 0;
+        const result = await this.listarReporteGeneralUseCase.execute({
+            idUsuario: Number(userId),
+            idTrabajadores: this.parseIdsListQuery(idTrabajadores),
+            idProyectos: this.parseIdsListQuery(idProyectos),
+            idEstadosActividad: this.parseIdsListQuery(idEstadosActividad),
+            fechaInicio: fInicio,
+            fechaFin: fFin,
+            limit: !Number.isNaN(limitNum) && limitNum >= 0 ? limitNum : 50,
+            offset: !Number.isNaN(offsetNum) && offsetNum >= 0 ? offsetNum : 0,
+            rolesAdminPermitidos: rolesAdminIds,
+        });
+        return ApiResponseDto.success(result, 'Reporte general listado exitosamente');
+    }
+
+    /** Lista de IDs separados por coma (ej. "1,5,11"). Vacío o inválido => null (sin filtro). */
+    private parseIdsListQuery(param?: string): number[] | null {
+        if (param == null || param.trim() === '') {
+            return null;
+        }
+        const ids = param
+            .split(',')
+            .map((s) => parseInt(s.trim(), 10))
+            .filter((n) => !Number.isNaN(n) && n >= 1);
+        return ids.length > 0 ? ids : null;
     }
 
     /** Parsea query rolesAdmin (ej. "1,5,11") a número[]. Si viene vacío, devuelve [1, 5, 11] por compatibilidad. */

@@ -31,6 +31,9 @@ import type {
     TrabajadorPorProyectoItem,
     TrabajadorSinJornadaHoyItem,
     TrabajadorSinActividadesHoyItem,
+    ReporteGeneralParams,
+    ReporteGeneralResult,
+    ReporteGeneralItem,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -171,7 +174,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     async listarActividades(params: ListarActividadesParams): Promise<ListarActividadesResult> {
         const { idJornada, idTrabajador, idProyecto, idEstadoActividad, limit = 10, offset = 0 } = params;
-        type Row = ActividadListItem & { total_count?: number; total_horas?: number; horasesperadas?: number | null; diajornada?: string | null };
+        type Row = ActividadListItem & { total_count?: number; total_horas?: number; horasesperadas?: number | null; diajornada?: string | null; idestadojornada?: number | null; estadojornada?: string | null };
         const result = await this.databaseFunctionService.callFunction<Row>(
             'con_ListarActividades',
             [
@@ -186,27 +189,35 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         if (!result?.length) {
             let diajornada: string | null = null;
             let horasesperadas: number | null = null;
+            let idestadojornada: number | null = null;
+            let estadojornada: string | null = null;
             if (idJornada != null && idJornada >= 1) {
-                const meta = await this.dataSource.query<{ diajornada: string; horasesperadas: number }[]>(
-                    'SELECT fechajornada::text AS diajornada, horasesperadas FROM conjornada WHERE id = $1 AND estado = 1 LIMIT 1',
+                const meta = await this.dataSource.query<{ diajornada: string; horasesperadas: number; idestadojornada: number; estadojornada: string }[]>(
+                    `SELECT fechajornada::text AS diajornada, horasesperadas, idestadojornada,
+                            (SELECT glo.nombre FROM genlistadoopciones glo WHERE glo.id = j.idestadojornada AND glo.estado = 1 LIMIT 1) AS estadojornada
+                     FROM conjornada j WHERE j.id = $1 AND j.estado = 1 LIMIT 1`,
                     [idJornada],
                 );
                 if (meta?.[0]) {
                     diajornada = meta[0].diajornada != null ? String(meta[0].diajornada).split('T')[0] : null;
                     horasesperadas = meta[0].horasesperadas != null ? Number(meta[0].horasesperadas) : null;
+                    idestadojornada = meta[0].idestadojornada != null ? Number(meta[0].idestadojornada) : null;
+                    estadojornada = meta[0].estadojornada ?? null;
                 }
             }
-            return { data: [], totalCount: 0, totalHoras: 0, horasesperadas, diajornada };
+            return { data: [], totalCount: 0, totalHoras: 0, horasesperadas, diajornada, idestadojornada, estadojornada };
         }
         const totalCount = Number(result[0].total_count ?? result.length);
         const totalHoras = Number(result[0].total_horas ?? 0);
         const horasesperadas = result[0].horasesperadas != null ? Number(result[0].horasesperadas) : null;
         const diajornada = result[0].diajornada != null ? String(result[0].diajornada).split('T')[0] : null;
+        const idestadojornada = result[0].idestadojornada != null ? Number(result[0].idestadojornada) : null;
+        const estadojornada = result[0].estadojornada ?? null;
         const data: ActividadListItem[] = result.map((row) => {
-            const { total_count: _tc, total_horas: _th, horasesperadas: _hm, diajornada: _dj, ...rest } = row;
+            const { total_count: _tc, total_horas: _th, horasesperadas: _hm, diajornada: _dj, idestadojornada: _ej, estadojornada: _ejs, ...rest } = row;
             return rest as ActividadListItem;
         });
-        return { data, totalCount, totalHoras, horasesperadas, diajornada };
+        return { data, totalCount, totalHoras, horasesperadas, diajornada, idestadojornada, estadojornada };
     }
 
     async obtenerIdTrabajadorPorIdUsuario(idUsuario: number): Promise<number | null> {
@@ -480,5 +491,36 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             [idJornada, idEstadoJornada, idUsuarioModificacion ?? null],
         );
         return row === true || row?.con_actualizarestadojornada === true || row?.conactualizarestadojornada === true;
+    }
+
+    async listarReporteGeneral(params: ReporteGeneralParams): Promise<ReporteGeneralResult> {
+        const { idTrabajadores, idProyectos, idEstadosActividad, fechaInicio, fechaFin, limit = 50, offset = 0 } = params;
+        const pTrab = idTrabajadores != null && idTrabajadores.length > 0 ? idTrabajadores : null;
+        const pProy = idProyectos != null && idProyectos.length > 0 ? idProyectos : null;
+        const pEst = idEstadosActividad != null && idEstadosActividad.length > 0 ? idEstadosActividad : null;
+        type Row = ReporteGeneralItem & { total_count?: number | null; total_horas?: number | null };
+        const rows = await this.databaseFunctionService.callFunction<Row>(
+            'con_ReporteGeneral',
+            [pTrab, pProy, pEst, fechaInicio ?? null, fechaFin ?? null, limit, offset],
+        );
+        if (!rows?.length) {
+            return { data: [], totalCount: 0, totalHoras: 0 };
+        }
+        const totalCount = Number(rows[0].total_count ?? rows.length);
+        const totalHoras = Number(rows[0].total_horas ?? 0);
+        const data: ReporteGeneralItem[] = rows.map((row) => {
+            const { total_count: _tc, total_horas: _th, ...rest } = row;
+            const rawDia =
+                rest.diajornada ??
+                (rest as { diaJornada?: unknown }).diaJornada ??
+                (() => {
+                    const key = Object.keys(rest).find((k) => k.toLowerCase() === 'diajornada');
+                    return key ? (rest as Record<string, unknown>)[key] : undefined;
+                })();
+            const diajornadaNorm = this.formatFechaYYYYMMDD(rawDia);
+            const diajornada = diajornadaNorm !== '' ? diajornadaNorm : null;
+            return { ...rest, diajornada } as ReporteGeneralItem;
+        });
+        return { data, totalCount, totalHoras };
     }
 }
