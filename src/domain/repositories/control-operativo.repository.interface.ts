@@ -278,13 +278,15 @@ export interface ActividadDetalle {
     fechamodificacion: string | null;
 }
 
-/** Resultado de listar actividades: filas + totales + meta de jornada (horasesperadas, diajornada). */
+/** Resultado de listar actividades: filas + totales + meta de jornada (horasesperadas, diajornada, idestadojornada, estadojornada). */
 export interface ListarActividadesResult {
     data: ActividadListItem[];
     totalCount: number;
     totalHoras: number;
     horasesperadas?: number | null;
-    diajornada?: string | null; // YYYY-MM-DD cuando se filtra por idJornada
+    diajornada?: string | null;
+    idestadojornada?: number | null;
+    estadojornada?: string | null;
 }
 
 /** Retorno del cron único de cierre de jornadas (concroncierrejornadas). */
