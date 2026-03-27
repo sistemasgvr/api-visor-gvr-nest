@@ -329,6 +329,49 @@ export interface TrabajadorSinActividadesHoyItem {
     nombrecompleto: string | null;
 }
 
+/** Parámetros para el reporte general de actividades. */
+export interface ReporteGeneralParams {
+    idTrabajador?: number | null;
+    idProyecto?: number | null;
+    idEstadoActividad?: number | null;
+    fechaInicio?: string | null;
+    fechaFin?: string | null;
+    limit?: number;
+    offset?: number;
+}
+
+/** Item del reporte general de actividades. */
+export interface ReporteGeneralItem {
+    id: number;
+    idjornada: number;
+    idtrabajador: number | null;
+    nombretrabajador: string | null;
+    idcoordinador: number | null;
+    nombrecoordinador: string | null;
+    idproyecto: number | null;
+    nombreproyecto: string | null;
+    nombreactividad: string;
+    descripciondetallada: string | null;
+    horasdedicadas: number;
+    horainicio: string | null;
+    horafin: string | null;
+    diajornada: string | null;
+    idestadoactividad: number | null;
+    estadoactividad: string | null;
+    idmodalidad: number | null;
+    nombremodalidad: string | null;
+    idtipoactividad: number | null;
+    nombretipoactividad: string | null;
+    linkevidencia: string | null;
+}
+
+/** Resultado del reporte general de actividades. */
+export interface ReporteGeneralResult {
+    data: ReporteGeneralItem[];
+    totalCount: number;
+    totalHoras: number;
+}
+
 export interface IControlOperativoRepository {
     listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult>;
     listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]>;
@@ -360,6 +403,7 @@ export interface IControlOperativoRepository {
     eliminarActividad(idActividad: number): Promise<boolean>;
     ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
     actualizarEstadoJornada(idJornada: number, idEstadoJornada: number, idUsuarioModificacion?: number): Promise<boolean>;
+    listarReporteGeneral(params: ReporteGeneralParams): Promise<ReporteGeneralResult>;
 }
 
 export const CONTROL_OPERATIVO_REPOSITORY = 'CONTROL_OPERATIVO_REPOSITORY';

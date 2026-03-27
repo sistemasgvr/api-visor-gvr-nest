@@ -31,6 +31,9 @@ import type {
     TrabajadorPorProyectoItem,
     TrabajadorSinJornadaHoyItem,
     TrabajadorSinActividadesHoyItem,
+    ReporteGeneralParams,
+    ReporteGeneralResult,
+    ReporteGeneralItem,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -488,5 +491,41 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             [idJornada, idEstadoJornada, idUsuarioModificacion ?? null],
         );
         return row === true || row?.con_actualizarestadojornada === true || row?.conactualizarestadojornada === true;
+    }
+
+    async listarReporteGeneral(params: ReporteGeneralParams): Promise<ReporteGeneralResult> {
+        const { idTrabajador, idProyecto, idEstadoActividad, fechaInicio, fechaFin, limit = 50, offset = 0 } = params;
+        type Row = ReporteGeneralItem & { total_count?: number | null; total_horas?: number | null };
+        const rows = await this.databaseFunctionService.callFunction<Row>(
+            'con_ReporteGeneral',
+            [
+                idTrabajador ?? null,
+                idProyecto ?? null,
+                idEstadoActividad ?? null,
+                fechaInicio ?? null,
+                fechaFin ?? null,
+                limit,
+                offset,
+            ],
+        );
+        if (!rows?.length) {
+            return { data: [], totalCount: 0, totalHoras: 0 };
+        }
+        const totalCount = Number(rows[0].total_count ?? rows.length);
+        const totalHoras = Number(rows[0].total_horas ?? 0);
+        const data: ReporteGeneralItem[] = rows.map((row) => {
+            const { total_count: _tc, total_horas: _th, ...rest } = row;
+            const rawDia =
+                rest.diajornada ??
+                (rest as { diaJornada?: unknown }).diaJornada ??
+                (() => {
+                    const key = Object.keys(rest).find((k) => k.toLowerCase() === 'diajornada');
+                    return key ? (rest as Record<string, unknown>)[key] : undefined;
+                })();
+            const diajornadaNorm = this.formatFechaYYYYMMDD(rawDia);
+            const diajornada = diajornadaNorm !== '' ? diajornadaNorm : null;
+            return { ...rest, diajornada } as ReporteGeneralItem;
+        });
+        return { data, totalCount, totalHoras };
     }
 }

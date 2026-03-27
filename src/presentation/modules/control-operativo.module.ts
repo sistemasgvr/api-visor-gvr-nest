@@ -19,6 +19,7 @@ import { ListarValorizacionUseCase } from '../../application/use-cases/control-o
 import { ListarDesempenoUseCase } from '../../application/use-cases/control-operativo/listar-desempeno.use-case';
 import { ListarTrabajadoresPorProyectoUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-por-proyecto.use-case';
 import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
+import { ListarReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-reporte-general.use-case';
 import { ControlOperativoRepository } from '../../infrastructure/repositories/control-operativo.repository';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../domain/repositories/control-operativo.repository.interface';
@@ -77,6 +78,7 @@ import { ProyectoModule } from './proyecto.module';
         ListarDesempenoUseCase,
         ListarTrabajadoresPorProyectoUseCase,
         ValidarActividadUseCase,
+        ListarReporteGeneralUseCase,
         JwtStrategy,
     ],
     exports: [CONTROL_OPERATIVO_REPOSITORY],
