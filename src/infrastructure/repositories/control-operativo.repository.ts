@@ -494,19 +494,14 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     }
 
     async listarReporteGeneral(params: ReporteGeneralParams): Promise<ReporteGeneralResult> {
-        const { idTrabajador, idProyecto, idEstadoActividad, fechaInicio, fechaFin, limit = 50, offset = 0 } = params;
+        const { idTrabajadores, idProyectos, idEstadosActividad, fechaInicio, fechaFin, limit = 50, offset = 0 } = params;
+        const pTrab = idTrabajadores != null && idTrabajadores.length > 0 ? idTrabajadores : null;
+        const pProy = idProyectos != null && idProyectos.length > 0 ? idProyectos : null;
+        const pEst = idEstadosActividad != null && idEstadosActividad.length > 0 ? idEstadosActividad : null;
         type Row = ReporteGeneralItem & { total_count?: number | null; total_horas?: number | null };
         const rows = await this.databaseFunctionService.callFunction<Row>(
             'con_ReporteGeneral',
-            [
-                idTrabajador ?? null,
-                idProyecto ?? null,
-                idEstadoActividad ?? null,
-                fechaInicio ?? null,
-                fechaFin ?? null,
-                limit,
-                offset,
-            ],
+            [pTrab, pProy, pEst, fechaInicio ?? null, fechaFin ?? null, limit, offset],
         );
         if (!rows?.length) {
             return { data: [], totalCount: 0, totalHoras: 0 };

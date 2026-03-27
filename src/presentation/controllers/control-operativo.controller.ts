@@ -471,7 +471,7 @@ export class ControlOperativoController {
     /**
      * Reporte general de actividades con filtros opcionales.
      * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
-     * GET /control-operativo/reporte-general?fechaInicio=...&fechaFin=...&idTrabajador=...&idProyecto=...&idEstadoActividad=...&limit=...&offset=...&rolesAdmin=1,5,11
+     * GET /control-operativo/reporte-general?...&idTrabajadores=1,2&idProyectos=3&idEstadosActividad=374,375&...
      */
     @Get('reporte-general')
     @UseGuards(JwtAuthGuard)
@@ -479,9 +479,9 @@ export class ControlOperativoController {
         @Req() req: Request & { user?: { id?: number; sub?: number } },
         @Query('fechaInicio') fechaInicio?: string,
         @Query('fechaFin') fechaFin?: string,
-        @Query('idTrabajador') idTrabajador?: string,
-        @Query('idProyecto') idProyecto?: string,
-        @Query('idEstadoActividad') idEstadoActividad?: string,
+        @Query('idTrabajadores') idTrabajadores?: string,
+        @Query('idProyectos') idProyectos?: string,
+        @Query('idEstadosActividad') idEstadosActividad?: string,
         @Query('limit') limit?: string,
         @Query('offset') offset?: string,
         @Query('rolesAdmin') rolesAdmin?: string,
@@ -493,16 +493,13 @@ export class ControlOperativoController {
         const fInicio = (fechaInicio ?? '').trim() || null;
         const fFin = (fechaFin ?? '').trim() || null;
         const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
-        const idTrab = idTrabajador && idTrabajador !== '' ? parseInt(idTrabajador, 10) : null;
-        const idProy = idProyecto && idProyecto !== '' ? parseInt(idProyecto, 10) : null;
-        const idEstado = idEstadoActividad && idEstadoActividad !== '' ? parseInt(idEstadoActividad, 10) : null;
         const limitNum = limit && limit !== '' ? parseInt(limit, 10) : 50;
         const offsetNum = offset && offset !== '' ? parseInt(offset, 10) : 0;
         const result = await this.listarReporteGeneralUseCase.execute({
             idUsuario: Number(userId),
-            idTrabajador: idTrab != null && !Number.isNaN(idTrab) && idTrab >= 1 ? idTrab : null,
-            idProyecto: idProy != null && !Number.isNaN(idProy) && idProy >= 1 ? idProy : null,
-            idEstadoActividad: idEstado != null && !Number.isNaN(idEstado) && idEstado >= 1 ? idEstado : null,
+            idTrabajadores: this.parseIdsListQuery(idTrabajadores),
+            idProyectos: this.parseIdsListQuery(idProyectos),
+            idEstadosActividad: this.parseIdsListQuery(idEstadosActividad),
             fechaInicio: fInicio,
             fechaFin: fFin,
             limit: !Number.isNaN(limitNum) && limitNum >= 0 ? limitNum : 50,
@@ -510,6 +507,18 @@ export class ControlOperativoController {
             rolesAdminPermitidos: rolesAdminIds,
         });
         return ApiResponseDto.success(result, 'Reporte general listado exitosamente');
+    }
+
+    /** Lista de IDs separados por coma (ej. "1,5,11"). Vacío o inválido => null (sin filtro). */
+    private parseIdsListQuery(param?: string): number[] | null {
+        if (param == null || param.trim() === '') {
+            return null;
+        }
+        const ids = param
+            .split(',')
+            .map((s) => parseInt(s.trim(), 10))
+            .filter((n) => !Number.isNaN(n) && n >= 1);
+        return ids.length > 0 ? ids : null;
     }
 
     /** Parsea query rolesAdmin (ej. "1,5,11") a número[]. Si viene vacío, devuelve [1, 5, 11] por compatibilidad. */

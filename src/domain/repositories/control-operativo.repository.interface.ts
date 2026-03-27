@@ -331,9 +331,12 @@ export interface TrabajadorSinActividadesHoyItem {
 
 /** Parámetros para el reporte general de actividades. */
 export interface ReporteGeneralParams {
-    idTrabajador?: number | null;
-    idProyecto?: number | null;
-    idEstadoActividad?: number | null;
+    /** Vacío o null = sin filtrar por trabajador. */
+    idTrabajadores?: number[] | null;
+    /** Vacío o null = sin filtrar por proyecto. */
+    idProyectos?: number[] | null;
+    /** Vacío o null = sin filtrar por estado de actividad. */
+    idEstadosActividad?: number[] | null;
     fechaInicio?: string | null;
     fechaFin?: string | null;
     limit?: number;

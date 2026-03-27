@@ -6,9 +6,9 @@ import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.in
 
 export interface ListarReporteGeneralInput {
     idUsuario: number;
-    idTrabajador?: number | null;
-    idProyecto?: number | null;
-    idEstadoActividad?: number | null;
+    idTrabajadores?: number[] | null;
+    idProyectos?: number[] | null;
+    idEstadosActividad?: number[] | null;
     fechaInicio?: string | null;
     fechaFin?: string | null;
     limit?: number;
@@ -40,9 +40,9 @@ export class ListarReporteGeneralUseCase {
             throw new UnauthorizedException('Solo administradores pueden acceder al reporte general');
         }
         return this.controlOperativoRepository.listarReporteGeneral({
-            idTrabajador: input.idTrabajador ?? null,
-            idProyecto: input.idProyecto ?? null,
-            idEstadoActividad: input.idEstadoActividad ?? null,
+            idTrabajadores: input.idTrabajadores ?? null,
+            idProyectos: input.idProyectos ?? null,
+            idEstadosActividad: input.idEstadosActividad ?? null,
             fechaInicio: input.fechaInicio ?? null,
             fechaFin: input.fechaFin ?? null,
             limit: input.limit ?? 50,
