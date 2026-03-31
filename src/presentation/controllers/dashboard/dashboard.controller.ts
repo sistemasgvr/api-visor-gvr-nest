@@ -6,7 +6,7 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { ApiResponseDto } from '../../../shared/dtos/api-response.dto';
-// import { JwtAuthGuard } from '../../../infrastructure/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../../../infrastructure/auth/jwt-auth.guard';
 
 import { ObtenerCantidadProyectosVigentesUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-proyectos-vigentes.use-case';
 import { ObtenerCantidadTrabajadoresActivosUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-trabajadores-activos.use-case';
@@ -20,7 +20,7 @@ import { ObtenerCantidadTrabajadoresConectadoSemanaUseCase } from '../../../appl
 import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from '../../../application/use-cases/dashboard/obtener-horas-esperadas-vs-registradas-mes.use-case';
 
 @Controller('dashboard')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class DashboardController {
     constructor(
         private readonly obtenerCantidadProyectosVigentesUseCase: ObtenerCantidadProyectosVigentesUseCase,
