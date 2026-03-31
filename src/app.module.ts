@@ -38,6 +38,9 @@ import { OfficeDocumentModule } from './presentation/modules/office-document.mod
 import { CollaboraModule } from './presentation/modules/collabora.module';
 import { ControlOperativoModule } from './presentation/modules/control-operativo.module';
 
+// MODULO - DASHBOARD
+import { DashboardModule } from './presentation/modules/dashboard/dashboard.module';
+
 @Module({
   imports: [
     // Configuración global de variables de entorno
@@ -86,6 +89,9 @@ import { ControlOperativoModule } from './presentation/modules/control-operativo
     OfficeDocumentModule,
     CollaboraModule,
     ControlOperativoModule,
+
+    // Módulo de dashboard
+    DashboardModule,
   ],
 })
 export class AppModule { }
