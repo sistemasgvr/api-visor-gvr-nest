@@ -28,9 +28,15 @@ export class CrearRevisionUseCase {
         }
 
         const linkedDocuments = (dto.linkedDocuments ?? [])
-            .map((doc: any) => String(doc?.versionUrn ?? doc?.urn ?? '').trim())
-            .filter((urn) => urn.length > 0)
-            .map((urn) => ({ versionUrn: urn }));
+            .map((doc: any) => {
+                const versionUrn = String(doc?.versionUrn ?? doc?.urn ?? '').trim();
+                if (!versionUrn) return null;
+                const itemUrn = String(doc?.itemUrn ?? doc?.itemId ?? '').trim();
+                const payload: { versionUrn: string; itemUrn?: string } = { versionUrn };
+                if (itemUrn) payload.itemUrn = itemUrn;
+                return payload;
+            })
+            .filter((x): x is { versionUrn: string; itemUrn?: string } => x != null);
 
         const rows = await this.dbFunctionService.callFunction<{
             id_revision: number;
