@@ -40,51 +40,98 @@ export class ObtenerRevisionPorIdUseCase {
 
         const row = internal?.[0];
         if (row) {
-            const rawFiles: any[] = Array.isArray(row.files_json) ? row.files_json : [];
+            let rawFiles: any[] = Array.isArray(row.files_json) ? row.files_json : [];
+            const fileIds = rawFiles.map((f) => Number(f.id)).filter((id) => Number.isFinite(id) && id > 0);
+            if (fileIds.length > 0) {
+                try {
+                    const versionRows = await this.dbFunctionService.executeQuery<{ id: number; urnversionacc: string }>(
+                        `SELECT id, urnversionacc FROM "acc_RevisionArchivo" WHERE id = ANY($1::int[]) AND estado = 1`,
+                        [fileIds],
+                    );
+                    const vmap = new Map(versionRows.map((r) => [Number(r.id), String(r.urnversionacc ?? '').trim()]));
+                    rawFiles = rawFiles.map((f) => {
+                        const vu = String(f.versionUrn ?? '').trim() || vmap.get(Number(f.id)) || '';
+                        return vu ? { ...f, versionUrn: vu } : f;
+                    });
+                } catch {
+                    /* usar solo JSON de la función */
+                }
+            }
 
-            // Enriquecer archivos cuyo nombre sigue siendo una URN
-            const filesToEnrich = rawFiles.filter((f) => String(f.name ?? '').startsWith('urn:'));
+            const needsItemFromVersion = (f: any) =>
+                !String(f.urnItemAcc ?? '').trim() && String(f.versionUrn ?? '').trim().length > 0;
+            const needsNameFromUrn = (f: any) => String(f.name ?? '').startsWith('urn:');
+            const needsAnyAccEnrich = rawFiles.some((f) => needsItemFromVersion(f) || needsNameFromUrn(f));
+
             let enrichedFiles = rawFiles;
 
-            if (filesToEnrich.length > 0) {
+            if (needsAnyAccEnrich) {
                 try {
                     const accessToken = await this.obtenerTokenValidoHelper.execute(userId);
 
                     enrichedFiles = await Promise.all(
                         rawFiles.map(async (f) => {
-                            const rawName = String(f.name ?? '');
-                            if (!rawName.startsWith('urn:')) return f;
+                            let next = { ...f };
+                            const versionUrn = String(f.versionUrn ?? '').trim();
 
-                            try {
-                                const versionResp = await this.autodeskApiService.obtenerVersionPorId(
-                                    accessToken,
-                                    projectId,
-                                    rawName,
-                                );
-                                const attrs = versionResp?.data?.attributes ?? {};
-                                const displayName: string = attrs.displayName ?? attrs.name ?? rawName;
-                                const versionNum: number | null = attrs.versionNumber ?? null;
-                                const versionLabel = versionNum ? `V${versionNum}` : (f.version ?? 'V1');
-
-                                // Persistir en background para futuras llamadas
-                                this.dbFunctionService.executeQuery(
-                                    `UPDATE "acc_RevisionArchivo"
-                                     SET nombrearchivomostrar = $1,
-                                         etiquetaversion      = $2,
-                                         fechamodificacion    = NOW()
-                                     WHERE id = $3
-                                       AND (nombrearchivomostrar IS NULL OR nombrearchivomostrar = '')`,
-                                    [displayName, versionLabel, Number(f.id)],
-                                ).catch(() => { /* no bloquear si falla */ });
-
-                                return { ...f, name: displayName, version: versionLabel };
-                            } catch {
-                                return f;
+                            if (needsItemFromVersion(f) && versionUrn) {
+                                try {
+                                    const versionResp = await this.autodeskApiService.obtenerVersionPorId(
+                                        accessToken,
+                                        projectId,
+                                        versionUrn,
+                                    );
+                                    const itemId = versionResp?.data?.relationships?.item?.data?.id;
+                                    if (itemId) {
+                                        const itemStr = String(itemId);
+                                        next = { ...next, urnItemAcc: itemStr };
+                                        this.dbFunctionService.executeQuery(
+                                            `UPDATE "acc_RevisionArchivo"
+                                             SET urnitemacc = $1,
+                                                 fechamodificacion = NOW()
+                                             WHERE id = $2
+                                               AND (urnitemacc IS NULL OR TRIM(COALESCE(urnitemacc, '')) = '')`,
+                                            [itemStr, Number(f.id)],
+                                        ).catch(() => { /* no bloquear */ });
+                                    }
+                                } catch {
+                                    /* mantener fila sin item */
+                                }
                             }
+
+                            const rawName = String(next.name ?? '');
+                            if (rawName.startsWith('urn:')) {
+                                try {
+                                    const versionResp = await this.autodeskApiService.obtenerVersionPorId(
+                                        accessToken,
+                                        projectId,
+                                        rawName,
+                                    );
+                                    const attrs = versionResp?.data?.attributes ?? {};
+                                    const displayName: string = attrs.displayName ?? attrs.name ?? rawName;
+                                    const versionNum: number | null = attrs.versionNumber ?? null;
+                                    const versionLabel = versionNum ? `V${versionNum}` : (next.version ?? 'V1');
+
+                                    this.dbFunctionService.executeQuery(
+                                        `UPDATE "acc_RevisionArchivo"
+                                         SET nombrearchivomostrar = $1,
+                                             etiquetaversion      = $2,
+                                             fechamodificacion    = NOW()
+                                         WHERE id = $3
+                                           AND (nombrearchivomostrar IS NULL OR nombrearchivomostrar = '')`,
+                                        [displayName, versionLabel, Number(f.id)],
+                                    ).catch(() => { /* no bloquear si falla */ });
+
+                                    next = { ...next, name: displayName, version: versionLabel };
+                                } catch {
+                                    /* sin cambios */
+                                }
+                            }
+
+                            return next;
                         }),
                     );
                 } catch {
-                    // Si no hay token, retornar los archivos sin enriquecer
                     enrichedFiles = rawFiles;
                 }
             }

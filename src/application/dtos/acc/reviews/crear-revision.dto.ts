@@ -16,5 +16,5 @@ export class CrearRevisionDto {
 
     @IsOptional()
     @IsArray()
-    linkedDocuments?: Array<{ versionUrn?: string; urn?: string }>;
+    linkedDocuments?: Array<{ versionUrn?: string; urn?: string; itemUrn?: string; itemId?: string }>;
 }
