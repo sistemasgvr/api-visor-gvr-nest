@@ -23,6 +23,8 @@ export interface UserSessionTokenData {
     versionId?: string;
     accessToken?: string;
     expiresAt: Date;
+    /** WOPI: sesión solo lectura (p. ej. apertura desde detalle de revisión) */
+    wopiPermission?: 'edit' | 'view';
 }
 
 @Injectable()
@@ -114,7 +116,7 @@ export class DocumentTokenService {
     }
 
     /** Almacén de sesiones de usuario por access_token (para WOPI con mismo docId) */
-    private userSessions: Map<string, UserSessionTokenData & { token: string }> = new Map();
+    private userSessions: Map<string, UserSessionTokenData & { token: string; wopiPermission: 'edit' | 'view' }> = new Map();
 
     /** Duración base de la sesión WOPI: 8 horas (evita que al cambiar de pestaña caduque pronto) */
     private readonly WOPI_SESSION_EXPIRATION_MINUTES = 8 * 60;
@@ -135,6 +137,7 @@ export class DocumentTokenService {
         expiresInMinutes: number = this.WOPI_SESSION_EXPIRATION_MINUTES,
         accessToken?: string,
         versionId?: string,
+        wopiPermission: 'edit' | 'view' = 'edit',
     ): string {
         const token = randomUUID();
         const now = new Date();
@@ -148,6 +151,7 @@ export class DocumentTokenService {
             accessToken,
             versionId,
             expiresAt,
+            wopiPermission,
         });
         return token;
     }
@@ -175,6 +179,7 @@ export class DocumentTokenService {
             accessToken: session.accessToken,
             versionId: session.versionId,
             expiresAt: newExpiresAt,
+            wopiPermission: session.wopiPermission ?? 'edit',
         };
     }
 

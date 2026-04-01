@@ -46,6 +46,7 @@ export class CollaboraController {
    * Endpoint para obtener la URL de Collabora para abrir un documento
    * GET /api/collabora/config/:projectId/:itemId
    * Query opcional: versionId — si se envía, se abre esa versión concreta (desde historial de versiones).
+   * Query opcional: permission=view — solo lectura en Collabora/WOPI (p. ej. desde detalle de revisión).
    */
   @Get('config/:projectId/:itemId')
   @UseGuards(JwtAuthGuard)
@@ -53,6 +54,7 @@ export class CollaboraController {
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Query('versionId') versionId: string | undefined,
+    @Query('permission') permission: string | undefined,
     @Req() req: any,
   ) {
     try {
@@ -122,6 +124,9 @@ export class CollaboraController {
         stableDocId = this.documentTokenService.generateStableDocId(projectId, itemId);
       }
 
+      const wopiPermission =
+        permission && String(permission).toLowerCase() === 'view' ? 'view' : 'edit';
+
       const userSessionToken = this.documentTokenService.createUserSessionToken(
         userId,
         projectId,
@@ -130,12 +135,16 @@ export class CollaboraController {
         8 * 60,
         accessToken,
         versionId,
+        wopiPermission,
       );
 
       const backendUrl = process.env.BACKEND_PUBLIC_URL || 'http://localhost:4001';
       const wopiSrcUrl = `${backendUrl}/api/collabora/wopi/files/${stableDocId}?access_token=${encodeURIComponent(userSessionToken)}`;
 
-      const collaboraUrl = this.collaboraService.generateCollaboraUrl(wopiSrcUrl, 'edit');
+      const collaboraUrl = this.collaboraService.generateCollaboraUrl(
+        wopiSrcUrl,
+        wopiPermission === 'view' ? 'view' : 'edit',
+      );
 
       this.logger.log(`[WOPI] URL generada - docId: ${stableDocId}`);
 
@@ -287,6 +296,8 @@ export class CollaboraController {
         this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener información del usuario');
       }
 
+      const canWrite = (tokenData.wopiPermission ?? 'edit') === 'edit';
+
       const wopiResponse = {
         BaseFileName: tokenData.fileName,
         OwnerId: tokenData.userId.toString(),
@@ -294,10 +305,10 @@ export class CollaboraController {
         UserId: tokenData.userId.toString(),
         Version: wopiVersion,
 
-        UserCanWrite: true,
+        UserCanWrite: canWrite,
         UserCanNotWriteRelative: true,
-        SupportsUpdate: true,
-        SupportsCoauth: true,
+        SupportsUpdate: canWrite,
+        SupportsCoauth: canWrite,
         SupportsLocks: false,
         SupportsGetLock: false,
         
@@ -486,6 +497,11 @@ export class CollaboraController {
       if (expectedDocId !== stableDocId) {
         setWopiCors();
         return res.status(403).json({ error: 'Documento no autorizado' });
+      }
+
+      if ((tokenData.wopiPermission ?? 'edit') === 'view') {
+        setWopiCors();
+        return res.status(403).json({ error: 'Documento abierto en modo solo lectura' });
       }
 
       if (!tokenData.accessToken) {
