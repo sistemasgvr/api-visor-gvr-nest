@@ -17,7 +17,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { RegisterUseCase } from '../../application/use-cases/register.use-case';
 import { LoginUseCase } from '../../application/use-cases/login.use-case';
-import { RefreshTokenUseCase } from '../../application/use-cases/auth/refresh-token.use-case';
+import {
+    RefreshTokenUseCase,
+    AUTH_REFRESH_ERROR_CODE,
+} from '../../application/use-cases/auth/refresh-token.use-case';
 import { LogoutUseCase } from '../../application/use-cases/auth/logout.use-case';
 import { ObtenerPerfilUseCase } from '../../application/use-cases/auth/obtener-perfil.use-case';
 import { SubirFotoPerfilUseCase } from '../../application/use-cases/auth/subir-foto-perfil.use-case';
@@ -91,7 +94,10 @@ export class AuthController {
         const token = this.extractTokenFromHeader(request);
 
         if (!token) {
-            throw new UnauthorizedException('Token no proporcionado');
+            throw new UnauthorizedException({
+                message: 'Token no proporcionado',
+                code: AUTH_REFRESH_ERROR_CODE.NO_BEARER,
+            });
         }
 
         const ip = this.getIpAddress(request);

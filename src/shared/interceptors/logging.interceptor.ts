@@ -4,6 +4,7 @@ import {
     ExecutionContext,
     CallHandler,
     Logger,
+    HttpException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
@@ -68,16 +69,25 @@ export class LoggingInterceptor implements NestInterceptor {
             }),
             catchError((error) => {
                 const duration = Date.now() - startTime;
-                const statusCode = error.status || 500;
+                const statusCode =
+                    error instanceof HttpException ? error.getStatus() : error.status || 500;
                 const statusEmoji = this.getStatusEmoji(statusCode);
+                const clientError =
+                    error instanceof HttpException && statusCode >= 400 && statusCode < 500;
 
-                this.logger.error(
-                    `${statusEmoji} ${method} ${url} - ${statusCode} - ${duration}ms`,
-                );
-                this.logger.error(`   Error: ${error.message}`);
+                if (clientError) {
+                    this.logger.warn(
+                        `${statusEmoji} ${method} ${url} - ${statusCode} - ${duration}ms — ${error.message}`,
+                    );
+                } else {
+                    this.logger.error(
+                        `${statusEmoji} ${method} ${url} - ${statusCode} - ${duration}ms`,
+                    );
+                    this.logger.error(`   Error: ${error.message}`);
 
-                if (error.stack) {
-                    this.logger.log(`   Stack: ${error.stack}`);
+                    if (error.stack) {
+                        this.logger.log(`   Stack: ${error.stack}`);
+                    }
                 }
 
                 throw error;

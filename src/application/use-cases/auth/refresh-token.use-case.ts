@@ -11,6 +11,15 @@ export interface RefreshTokenResponse {
     tipo_token: string;
 }
 
+/** Códigos para que el cliente trate el 401 de refresh como flujo esperado (p. ej. re-login). */
+export const AUTH_REFRESH_ERROR_CODE = {
+    NO_BEARER: 'AUTH_REFRESH_NO_BEARER',
+    SESSION_INVALID: 'AUTH_REFRESH_SESSION_INVALID',
+    TOKEN_INVALID: 'AUTH_REFRESH_TOKEN_INVALID',
+    TOKEN_SESSION_MISMATCH: 'AUTH_REFRESH_TOKEN_SESSION_MISMATCH',
+    TOKEN_PAYLOAD: 'AUTH_REFRESH_TOKEN_PAYLOAD',
+} as const;
+
 @Injectable()
 export class RefreshTokenUseCase {
     constructor(
@@ -30,7 +39,10 @@ export class RefreshTokenUseCase {
         const sesion = await this.sesionRepository.obtenerSesionPorToken(token);
 
         if (!sesion || sesion.estado !== 1) {
-            throw new UnauthorizedException('Sesión inválida o expirada');
+            throw new UnauthorizedException({
+                message: 'Sesión inválida o expirada',
+                code: AUTH_REFRESH_ERROR_CODE.SESSION_INVALID,
+            });
         }
 
         let payload: { sub?: number | string; correo?: string };
@@ -40,16 +52,25 @@ export class RefreshTokenUseCase {
                 ignoreExpiration: true,
             });
         } catch {
-            throw new UnauthorizedException('Token inválido');
+            throw new UnauthorizedException({
+                message: 'Token inválido',
+                code: AUTH_REFRESH_ERROR_CODE.TOKEN_INVALID,
+            });
         }
 
         const idUsuario = typeof payload.sub === 'number' ? payload.sub : Number(payload.sub);
         if (!Number.isInteger(idUsuario) || idUsuario !== sesion.idUsuario) {
-            throw new UnauthorizedException('Token no coincide con la sesión');
+            throw new UnauthorizedException({
+                message: 'Token no coincide con la sesión',
+                code: AUTH_REFRESH_ERROR_CODE.TOKEN_SESSION_MISMATCH,
+            });
         }
 
         if (!payload.correo || typeof payload.correo !== 'string') {
-            throw new UnauthorizedException('Token sin correo válido');
+            throw new UnauthorizedException({
+                message: 'Token sin correo válido',
+                code: AUTH_REFRESH_ERROR_CODE.TOKEN_PAYLOAD,
+            });
         }
 
         const usuario = await this.authRepository.login(payload.correo);

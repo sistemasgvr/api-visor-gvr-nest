@@ -9,6 +9,8 @@ export interface ApiResponse<T = any> {
     data: T;
     message: string;
     status: number;
+    /** Código estable para el cliente (p. ej. auth), opcional en errores */
+    code?: string;
     pagination?: PaginationMeta;
 }
 
@@ -16,12 +18,16 @@ export class ApiResponseDto<T = any> {
     data: T;
     message: string;
     status: number;
+    code?: string;
     pagination?: PaginationMeta;
 
-    constructor(data: T, message: string, status: number, pagination?: PaginationMeta) {
+    constructor(data: T, message: string, status: number, pagination?: PaginationMeta, code?: string) {
         this.data = data;
         this.message = message;
         this.status = status;
+        if (code !== undefined) {
+            this.code = code;
+        }
         if (pagination) {
             this.pagination = pagination;
         }
@@ -77,9 +83,9 @@ export class ApiResponseDto<T = any> {
         return new ApiResponseDto(null, message, 409);
     }
 
-    // 500 - Internal Server Error
-    static error(message: string = 'Error interno del servidor', status: number = 500): ApiResponseDto<null> {
-        return new ApiResponseDto(null, message, status);
+    // 500 - Internal Server Error (u otro status de error)
+    static error(message: string = 'Error interno del servidor', status: number = 500, code?: string): ApiResponseDto<null> {
+        return new ApiResponseDto(null, message, status, undefined, code);
     }
 
     // 200 - Paginated Response

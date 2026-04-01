@@ -17,6 +17,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         let status = HttpStatus.INTERNAL_SERVER_ERROR;
         let message = 'Error interno del servidor';
 
+        let code: string | undefined;
+
         if (exception instanceof HttpException) {
             status = exception.getStatus();
             const exceptionResponse = exception.getResponse();
@@ -24,19 +26,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             if (typeof exceptionResponse === 'string') {
                 message = exceptionResponse;
             } else if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
-                const responseObj = exceptionResponse as any;
-                message = responseObj.message || message;
-
-                // Handle validation errors
-                if (Array.isArray(responseObj.message)) {
-                    message = responseObj.message.join(', ');
+                const responseObj = exceptionResponse as Record<string, unknown>;
+                const rawMsg = responseObj.message;
+                if (Array.isArray(rawMsg)) {
+                    message = rawMsg.join(', ');
+                } else if (typeof rawMsg === 'string') {
+                    message = rawMsg;
+                }
+                if (typeof responseObj.code === 'string') {
+                    code = responseObj.code;
                 }
             }
         } else if (exception instanceof Error) {
             message = exception.message;
         }
 
-        const errorResponse = ApiResponseDto.error(message, status);
+        const errorResponse = ApiResponseDto.error(message, status, code);
 
         response.status(status).json(errorResponse);
     }
