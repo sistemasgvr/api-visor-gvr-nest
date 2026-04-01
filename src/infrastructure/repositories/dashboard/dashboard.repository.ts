@@ -113,8 +113,8 @@ export class DashboardRepository implements IDashboardRepository {
             dia: Number(row.dia),
             horasEsperadas: Number(row.horasEsperadas),
             horasRegistradas: Number(row.horasRegistradas),
-            totalUsuariosEsperados: Number(row.totalUsuariosEsperados),
-            totalUsuariosRegistrados: Number(row.totalUsuariosRegistrados),
+            totalTrabajadoresEsperados: Number(row.totalTrabajadoresEsperados),
+            totalTrabajadoresRegistrados: Number(row.totalTrabajadoresRegistrados),
         }));
     }
 }

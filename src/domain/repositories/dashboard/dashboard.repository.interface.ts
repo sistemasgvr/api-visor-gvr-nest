@@ -51,8 +51,8 @@ export interface DashboardHorasEsperadasVsRegistradasMes {
     dia: number;
     horasEsperadas: number;
     horasRegistradas: number;
-    totalUsuariosEsperados: number;
-    totalUsuariosRegistrados: number;
+    totalTrabajadoresEsperados: number;
+    totalTrabajadoresRegistrados: number;
 }
 
 
