@@ -26,7 +26,7 @@ export class ListarActividadesValidacionUseCase {
 
         const idTrabajadorSesion = await this.controlOperativoRepository.obtenerIdTrabajadorPorIdUsuario(idUsuario);
         if (idTrabajadorSesion == null) {
-            return { data: [], totalCount: 0, totalHoras: 0 };
+            return { data: [], totalCount: 0, totalHoras: 0, countPorAprobar: 0 };
         }
         return this.controlOperativoRepository.listarActividadesValidacion({
             idTrabajadorSesion,

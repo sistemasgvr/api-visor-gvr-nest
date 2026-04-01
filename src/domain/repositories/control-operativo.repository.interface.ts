@@ -99,6 +99,8 @@ export interface ListarActividadesValidacionResult {
     data: ActividadValidacionListItem[];
     totalCount: number;
     totalHoras: number;
+    /** Actividades en estado "Por aprobar" en todo el listado filtrado (no solo la página). */
+    countPorAprobar: number;
 }
 
 /** Item de detalle de actividad dentro de un grupo de valorización (sustento cliente). */

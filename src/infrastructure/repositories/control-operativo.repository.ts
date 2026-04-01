@@ -270,7 +270,11 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             limit = 50,
             offset = 0,
         } = params;
-        type Row = ActividadValidacionListItem & { total_count?: number; total_horas?: number };
+        type Row = ActividadValidacionListItem & {
+            total_count?: number;
+            total_horas?: number;
+            total_por_aprobar?: number;
+        };
         const result = await this.databaseFunctionService.callFunction<Row>(
             'con_ListarActividadesValidacion',
             [
@@ -284,15 +288,16 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             ],
         );
         if (!result?.length) {
-            return { data: [], totalCount: 0, totalHoras: 0 };
+            return { data: [], totalCount: 0, totalHoras: 0, countPorAprobar: 0 };
         }
         const totalCount = Number(result[0].total_count ?? result.length);
         const totalHoras = Number(result[0].total_horas ?? 0);
+        const countPorAprobar = Number(result[0].total_por_aprobar ?? 0);
         const data: ActividadValidacionListItem[] = result.map((row) => {
-            const { total_count: _tc, total_horas: _th, ...rest } = row;
+            const { total_count: _tc, total_horas: _th, total_por_aprobar: _tpa, ...rest } = row;
             return rest as ActividadValidacionListItem;
         });
-        return { data, totalCount, totalHoras };
+        return { data, totalCount, totalHoras, countPorAprobar };
     }
 
     async listarValorizacion(params: ListarValorizacionParams): Promise<ListarValorizacionResult> {
