@@ -40,6 +40,7 @@ import { ControlOperativoModule } from './presentation/modules/control-operativo
 
 // MODULO - DASHBOARD
 import { DashboardModule } from './presentation/modules/dashboard/dashboard.module';
+import { DemoModule } from './presentation/modules/demo.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { DashboardModule } from './presentation/modules/dashboard/dashboard.modu
 
     // Módulo de dashboard
     DashboardModule,
+    DemoModule,
   ],
 })
 export class AppModule { }

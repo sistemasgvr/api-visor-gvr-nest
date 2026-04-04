@@ -87,7 +87,7 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
-  // Prefijo global para todas las rutas
+  // Prefijo global para todas las rutas de la API
   app.setGlobalPrefix('api');
 
   // Servir fotos de perfil (uploads/profiles)
