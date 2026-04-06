@@ -1,4 +1,21 @@
-import { Controller, Get, Post, Patch, Delete, Param, Query, Body, UseGuards, ParseIntPipe, UnauthorizedException, Req, Header, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Post,
+    Patch,
+    Delete,
+    Param,
+    Query,
+    Body,
+    UseGuards,
+    ParseIntPipe,
+    UnauthorizedException,
+    ForbiddenException,
+    Req,
+    Header,
+    HttpCode,
+    HttpStatus,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
@@ -8,6 +25,7 @@ import { ListarActividadesUseCase } from '../../application/use-cases/control-op
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
+import { ListarProyectosParaValidacionUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-para-validacion.use-case';
 import { ListarTrabajadoresSinJornadaHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-jornada-hoy.use-case';
 import { ListarTrabajadoresSinActividadesHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-actividades-hoy.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
@@ -36,6 +54,7 @@ export class ControlOperativoController {
         private readonly cronCierreJornadasUseCase: CronCierreJornadasUseCase,
         private readonly actualizarEstadoJornadaUseCase: ActualizarEstadoJornadaUseCase,
         private readonly listarProyectosAccesoTrabajadorUseCase: ListarProyectosAccesoTrabajadorUseCase,
+        private readonly listarProyectosParaValidacionUseCase: ListarProyectosParaValidacionUseCase,
         private readonly listarTrabajadoresSinJornadaHoyUseCase: ListarTrabajadoresSinJornadaHoyUseCase,
         private readonly listarTrabajadoresSinActividadesHoyUseCase: ListarTrabajadoresSinActividadesHoyUseCase,
         private readonly crearActividadUseCase: CrearActividadUseCase,
@@ -126,18 +145,25 @@ export class ControlOperativoController {
      * Listar proyectos para filtros en actividades, valorización, desempeño y validación.
      * idTrabajador = tratrabajador.id (ID del trabajador), NO idUsuario (auth). Proyectos se filtran por proaccesoproyecto.idtrabajador.
      * Por rol: admins ven todos; coordinador BIM los que coordina; resto por acceso.
-     * GET /control-operativo/proyectos-acceso-trabajador?idTrabajador=123
+     * GET /control-operativo/proyectos-acceso-trabajador?idTrabajador=123&paraValidacion=1
+     * paraValidacion=1 usa pro_ListarProyectosParaValidacion (alineado con actividades-validacion).
      */
     @Get('proyectos-acceso-trabajador')
     @HttpCode(HttpStatus.OK)
     @Header('Cache-Control', 'no-store')
     @UseGuards(JwtAuthGuard)
-    async listarProyectosAccesoTrabajador(@Query('idTrabajador') idTrabajador?: string) {
+    async listarProyectosAccesoTrabajador(
+        @Query('idTrabajador') idTrabajador?: string,
+        @Query('paraValidacion') paraValidacion?: string,
+    ) {
         const id = idTrabajador != null && idTrabajador !== '' ? parseInt(idTrabajador, 10) : NaN;
         if (Number.isNaN(id) || id < 1) {
             return ApiResponseDto.success([], 'Proyectos acceso (idTrabajador = tratrabajador.id requerido)');
         }
-        const data = await this.listarProyectosAccesoTrabajadorUseCase.execute(id);
+        const pv = paraValidacion === 'true' || paraValidacion === '1';
+        const data = pv
+            ? await this.listarProyectosParaValidacionUseCase.execute(id)
+            : await this.listarProyectosAccesoTrabajadorUseCase.execute(id);
         return ApiResponseDto.success(Array.isArray(data) ? data : [], 'Proyectos con acceso listados exitosamente');
     }
 
@@ -314,14 +340,13 @@ export class ControlOperativoController {
 
     /**
      * Listar actividades para la pestaña Validación (jerarquía del usuario de sesión, excluyéndose).
-     * GET /control-operativo/actividades-validacion?esAdmin=false&idTrabajador=&idProyecto=&idEstadoActividad=&limit=10&offset=0
-     * esAdmin lo envía el front (según rol del usuario). Usuario de sesión se resuelve por JWT.
+     * GET /control-operativo/actividades-validacion?idTrabajador=&idProyecto=&idEstadoActividad=&limit=10&offset=0
+     * Alcance total (todas las actividades): solo Administrador Sistemas y Administrador GVR (según JWT).
      */
     @Get('actividades-validacion')
     @UseGuards(JwtAuthGuard)
     async listarActividadesValidacion(
         @Req() req: Request & { user?: { id?: number; sub?: number } },
-        @Query('esAdmin') esAdmin?: string,
         @Query('idTrabajador') idTrabajador?: string,
         @Query('idProyecto') idProyecto?: string,
         @Query('idEstadoActividad') idEstadoActividad?: string,
@@ -334,7 +359,6 @@ export class ControlOperativoController {
         }
         const result = await this.listarActividadesValidacionUseCase.execute({
             idUsuario: Number(userId),
-            esAdmin: esAdmin === 'true',
             idTrabajadorFiltro: idTrabajador != null && idTrabajador !== '' ? parseInt(idTrabajador, 10) : undefined,
             idProyectoFiltro: idProyecto != null && idProyecto !== '' ? parseInt(idProyecto, 10) : undefined,
             idEstadoActividadFiltro:
@@ -578,13 +602,30 @@ export class ControlOperativoController {
 
     /**
      * Obtener una actividad por ID con toda la información relacionada (para "Ver").
-     * GET /control-operativo/actividades/:id
+     * GET /control-operativo/actividades/:id?contextoValidacion=1
+     * Con contextoValidacion=1 solo responde si el usuario puede validar esa actividad.
      */
     @Get('actividades/:id')
     @UseGuards(JwtAuthGuard)
-    async obtenerActividad(@Param('id', ParseIntPipe) id: number) {
-        const data = await this.obtenerActividadUseCase.execute(id);
+    async obtenerActividad(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Param('id', ParseIntPipe) id: number,
+        @Query('contextoValidacion') contextoValidacion?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        const ctxVal = contextoValidacion === 'true' || contextoValidacion === '1';
+        if (ctxVal && userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const data = await this.obtenerActividadUseCase.execute(
+            ctxVal
+                ? { idActividad: id, contextoValidacion: true, idUsuario: Number(userId) }
+                : id,
+        );
         if (!data) {
+            if (ctxVal) {
+                throw new ForbiddenException('No tiene permiso para ver esta actividad en validación');
+            }
             return ApiResponseDto.notFound('Actividad no encontrada');
         }
         return ApiResponseDto.success(data, 'Actividad obtenida exitosamente');

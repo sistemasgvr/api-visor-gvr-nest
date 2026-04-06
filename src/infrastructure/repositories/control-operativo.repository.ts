@@ -105,6 +105,28 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         return [];
     }
 
+    async listarProyectosParaValidacion(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]> {
+        const result = await this.databaseFunctionService.callFunction<ProyectoAccesoTrabajador>(
+            'pro_ListarProyectosParaValidacion',
+            [idTrabajador],
+        );
+        if (Array.isArray(result)) return result;
+        if (result != null && typeof result === 'object') return [result as ProyectoAccesoTrabajador];
+        return [];
+    }
+
+    async puedeValidarActividad(
+        idActividad: number,
+        idRevisor: number,
+        esAdminTotalValidacion: boolean,
+    ): Promise<boolean> {
+        const rows = await this.databaseFunctionService.callFunction<{ resultado?: boolean }>(
+            'con_PuedeValidarActividad',
+            [idActividad, idRevisor, esAdminTotalValidacion],
+        );
+        return rows?.[0]?.resultado === true;
+    }
+
     async listarTrabajadoresSinJornadaHoy(fecha: string): Promise<TrabajadorSinJornadaHoyItem[]> {
         const result = await this.databaseFunctionService.callFunction<TrabajadorSinJornadaHoyItem>(
             'con_ListarTrabajadoresSinJornadaHoy',
@@ -442,6 +464,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
                 params.comentarioValidacion ?? null,
                 params.idCoordinadorRevisor,
                 params.idUsuarioModificacion ?? null,
+                params.esAdminTotalValidacion === true,
             ],
         );
         return rows?.[0] ?? null;

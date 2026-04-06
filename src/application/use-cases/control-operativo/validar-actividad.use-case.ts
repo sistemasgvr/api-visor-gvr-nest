@@ -1,11 +1,14 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import type {
     IControlOperativoRepository,
     ValidarActividadParams,
     ActividadCreada,
 } from '../../../domain/repositories/control-operativo.repository.interface';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
+import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
+import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
 import { BroadcastService } from '../../../shared/services/broadcast.service';
+import { esAccesoTotalValidacionActividades } from './validacion-acceso.util';
 
 /** Estados de validación: 375 Aprobado, 376 Observado, 377 Rechazado */
 const ESTADO_APROBADO = 375;
@@ -26,15 +29,34 @@ export class ValidarActividadUseCase {
     constructor(
         @Inject(CONTROL_OPERATIVO_REPOSITORY)
         private readonly controlOperativoRepository: IControlOperativoRepository,
+        @Inject(AUTH_REPOSITORY)
+        private readonly authRepository: IAuthRepository,
         private readonly broadcastService: BroadcastService,
     ) {}
 
     async execute(input: ValidarActividadInput): Promise<ActividadCreada | null> {
+        const perfil = await this.authRepository.obtenerPerfilUsuario(input.idUsuario);
+        if (!perfil?.roles || !Array.isArray(perfil.roles)) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const rolesIds = (perfil.roles as { id?: number }[])
+            .map((r) => r?.id)
+            .filter((id): id is number => id != null);
+        const esAdminTotalValidacion = esAccesoTotalValidacionActividades(rolesIds);
+
         const idCoordinadorRevisor = await this.controlOperativoRepository.obtenerIdTrabajadorPorIdUsuario(
             input.idUsuario,
         );
         if (idCoordinadorRevisor == null) {
             return null;
+        }
+        const puede = await this.controlOperativoRepository.puedeValidarActividad(
+            input.idActividad,
+            idCoordinadorRevisor,
+            esAdminTotalValidacion,
+        );
+        if (!puede) {
+            throw new ForbiddenException('No tiene permiso para validar esta actividad');
         }
         const params: ValidarActividadParams = {
             idActividad: input.idActividad,
@@ -42,6 +64,7 @@ export class ValidarActividadUseCase {
             comentarioValidacion: input.comentarioValidacion ?? null,
             idCoordinadorRevisor,
             idUsuarioModificacion: input.idUsuario,
+            esAdminTotalValidacion,
         };
         const data = await this.controlOperativoRepository.validarActividad(params);
         if (!data) return null;

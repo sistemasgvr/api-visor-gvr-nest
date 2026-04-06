@@ -220,6 +220,8 @@ export interface ValidarActividadParams {
     comentarioValidacion?: string | null;
     idCoordinadorRevisor: number; // idTrabajador del usuario que revisa
     idUsuarioModificacion?: number | null;
+    /** True solo si el usuario es Administrador Sistemas o Administrador GVR (alcance total en validación). */
+    esAdminTotalValidacion: boolean;
 }
 
 /** Parámetros para actualizar una actividad (conactualizaractividad). */
@@ -392,6 +394,9 @@ export interface IControlOperativoRepository {
     listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult>;
     listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]>;
     listarProyectosAccesoTrabajador(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]>;
+    /** Proyectos alineados con el alcance de validación (no incluye “todos” para Gerencia). */
+    listarProyectosParaValidacion(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]>;
+    puedeValidarActividad(idActividad: number, idRevisor: number, esAdminTotalValidacion: boolean): Promise<boolean>;
     listarTrabajadoresSinJornadaHoy(fecha: string): Promise<TrabajadorSinJornadaHoyItem[]>;
     listarTrabajadoresSinActividadesHoy(fecha: string): Promise<TrabajadorSinActividadesHoyItem[]>;
     /** Total de trabajadores que deben tener jornada en la fecha (para dashboard). */
