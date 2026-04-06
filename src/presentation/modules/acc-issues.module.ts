@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AccIssuesController } from '../controllers/acc-issues.controller';
+import { HTML_PDF_GENERATOR } from '../../domain/services/html-pdf-generator.interface';
+import { HtmlPdfService } from '../../infrastructure/pdf/html-pdf.service';
 
 // Use Cases
 import { ObtenerPerfilUsuarioUseCase } from '../../application/use-cases/acc/issues/obtener-perfil-usuario.use-case';
@@ -74,6 +76,10 @@ import { BroadcastModule } from './broadcast.module';
         AutodeskApiService,
         ExportacionIncidenciasService,
         HttpClientService,
+        {
+            provide: HTML_PDF_GENERATOR,
+            useClass: HtmlPdfService,
+        },
 
         // Repositories
         {

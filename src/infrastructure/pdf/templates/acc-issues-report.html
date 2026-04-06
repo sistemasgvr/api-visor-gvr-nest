@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<!-- Template: acc-issues-report  →  fiel al diseño de exportación Autodesk ACC -->
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>{{tituloReporte}}</title>
+  <style>
+    /* ══════════════════════════════════════════════
+       RESET / BASE
+    ══════════════════════════════════════════════ */
+    @page { size: A4; margin: 24mm 15mm 20mm 15mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 8.5pt;
+      color: #1f2937;
+      line-height: 1.5;
+      background: #fff;
+    }
+    .page-break { page-break-before: always; break-before: page; }
+
+    /* ══════════════════════════════════════════════
+       CUBIERTA
+    ══════════════════════════════════════════════ */
+    .cover { padding-top: 36px; }
+
+    /* Fila superior: texto (izquierda) + icono edificio (derecha) */
+    .cover-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 22px;
+    }
+    .cover-top-text { flex: 1; padding-right: 20px; }
+    .cover-section-label {
+      font-size: 8pt;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+    .cover-title {
+      font-size: 22pt;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.2;
+    }
+    .building-icon {
+      flex-shrink: 0;
+      width: 96px;
+      height: 72px;
+    }
+
+    /* Divisor + tabla de metadatos */
+    .cover-divider {
+      border: none;
+      border-top: 1.5px solid #d1d5db;
+      margin: 0 0 1px;
+    }
+    .cover-table { width: 100%; border-collapse: collapse; }
+    .cover-table tr td {
+      padding: 7px 0;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 8.5pt;
+      vertical-align: top;
+    }
+    .cover-table tr:last-child td { border-bottom: none; }
+    .cover-table tr td:first-child {
+      width: 160px;
+      min-width: 160px;
+      color: #374151;
+      font-weight: 600;
+    }
+    .cover-table tr td:last-child { color: #1f2937; }
+
+    /* ══════════════════════════════════════════════
+       ÍNDICE  (TOC con puntos)
+    ══════════════════════════════════════════════ */
+    .toc-title {
+      font-size: 15pt;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 12px;
+    }
+    .toc-row {
+      display: flex;
+      align-items: baseline;
+      padding: 4px 0;
+    }
+    .toc-label {
+      color: #2563eb;
+      font-weight: 500;
+      font-size: 8.5pt;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-right: 2px;
+    }
+    .toc-dots {
+      flex: 1;
+      border-bottom: 1.5px dotted #9ca3af;
+      margin: 0 4px 3px;
+      min-width: 24px;
+    }
+    .toc-page {
+      color: #374151;
+      font-size: 8.5pt;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════════════
+       ENCABEZADO DE INCIDENCIA
+    ══════════════════════════════════════════════ */
+    .issue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-top: 6px;
+      margin-bottom: 16px;
+    }
+    .issue-header-text { flex: 1; padding-right: 20px; }
+    .issue-section-label {
+      font-size: 7.5pt;
+      color: #9ca3af;
+      margin-bottom: 3px;
+    }
+    .issue-title {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #2563eb;
+      line-height: 1.3;
+    }
+
+    /* ══════════════════════════════════════════════
+       SECCIONES
+    ══════════════════════════════════════════════ */
+    .section { margin-top: 16px; }
+    .section-title {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #111827;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #374151;
+      margin-bottom: 0;
+    }
+
+    /* Barra gris para subsecciones (Fotos, Revisiones) */
+    .subsection-bar {
+      background: #e5e7eb;
+      font-size: 8.5pt;
+      font-weight: 600;
+      color: #374151;
+      padding: 5px 8px;
+      margin: 10px 0 8px;
+    }
+
+    /* ══════════════════════════════════════════════
+       FILAS DE CAMPO
+    ══════════════════════════════════════════════ */
+    .field-row {
+      display: flex;
+      align-items: flex-start;
+      padding: 5px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .field-label {
+      width: 162px;
+      min-width: 162px;
+      font-size: 8.5pt;
+      color: #6b7280;
+      padding-right: 8px;
+    }
+    .field-value {
+      flex: 1;
+      font-size: 8.5pt;
+      color: #1f2937;
+    }
+    /* Vencimiento vencido → naranja */
+    .field-value-late { color: #dc6803; }
+    /* Posición / link → azul */
+    .field-value-link { color: #2563eb; }
+
+    /* ── Estado: barra izquierda de color ─────── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 7px 1px 5px;
+      border-left: 4px solid #f59e0b;
+      font-weight: 600;
+      color: #1f2937;
+      font-size: 8.5pt;
+    }
+    /* open = ámbar (igual que ACC); draft = gris claro */
+    .issue-status-draft       { border-left-color: #94a3b8; }
+    .issue-status-open        { border-left-color: #f59e0b; }
+    .issue-status-pending     { border-left-color: #f97316; }
+    .issue-status-in-progress { border-left-color: #f97316; }
+    .issue-status-in-review   { border-left-color: #8b5cf6; }
+    .issue-status-closed      { border-left-color: #10b981; }
+    .issue-status-default     { border-left-color: #f59e0b; }
+
+    /* ── Tipo: círculo naranja con letra ─────── */
+    .type-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .type-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f59e0b;
+      color: #fff;
+      font-size: 7.5pt;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════════════
+       FOTOS
+    ══════════════════════════════════════════════ */
+    .photos-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+    .photos-grid.normal .photo { width: calc(50% - 6px); }
+    .photos-grid.small  .photo { width: calc(33.33% - 8px); }
+    .photos-grid.large  .photo { width: 100%; }
+    .photo img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      display: block;
+      border: 1px solid #e5e7eb;
+    }
+    .photo-placeholder {
+      width: 100%;
+      height: 160px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      font-size: 7.5pt;
+    }
+    .photo-meta-block { margin-top: 8px; }
+    .photo-name  { font-size: 8pt; font-weight: 700; color: #111827; margin-bottom: 2px; }
+    .photo-type  { font-size: 8pt; font-weight: 700; color: #374151; }
+    /* fecha de adjunto en naranja */
+    .photo-date  { font-size: 7.5pt; color: #dc6803; margin: 2px 0; }
+    .photo-by    { font-size: 7.5pt; color: #374151; }
+
+    /* ══════════════════════════════════════════════
+       VÍNCULOS DE ARCHIVO
+    ══════════════════════════════════════════════ */
+    .vinculo-titulo    { font-size: 8.5pt; font-weight: 700; margin: 8px 0 3px; }
+    .vinculo-inner-row { display: flex; padding: 3px 0; border-bottom: 1px solid #f3f4f6; }
+    .vinculo-label     { width: 130px; min-width: 130px; color: #6b7280; font-size: 8pt; }
+    .vinculo-value     { flex: 1; font-size: 8pt; color: #111827; word-break: break-all; }
+    .vinculo-sep       { border: none; border-top: 1px solid #e5e7eb; margin: 5px 0; }
+
+    /* ══════════════════════════════════════════════
+       COMENTARIOS
+    ══════════════════════════════════════════════ */
+    .comment {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .avatar {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-size: 10pt;
+      font-weight: 700;
+      color: #fff;
+      background-color: #6b7280;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .avatar-tone-0 { background-color: #3498db; }
+    .avatar-tone-1 { background-color: #2ecc71; }
+    .avatar-tone-2 { background-color: #e74c3c; }
+    .avatar-tone-3 { background-color: #9b59b6; }
+    .avatar-tone-4 { background-color: #f39c12; }
+    .avatar-tone-5 { background-color: #1abc9c; }
+    .avatar-tone-6 { background-color: #e91e63; }
+    .avatar-tone-7 { background-color: #00bcd4; }
+    .avatar-tone-8 { background-color: #ff5722; }
+    .avatar-tone-9 { background-color: #795548; }
+    .comment-body   { flex: 1; }
+    .comment-author { font-size: 8.5pt; font-weight: 700; color: #111827; }
+    .comment-date   { font-size: 7.5pt; color: #9ca3af; margin: 1px 0 4px; }
+    .comment-text   { font-size: 8.5pt; color: #374151; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+
+{{!-- ══════════════════════════════════════════════ CUBIERTA --}}
+{{#if incluirCubierta}}
+<div class="cover">
+
+  {{!-- Título + icono edificio --}}
+  <div class="cover-top">
+    <div class="cover-top-text">
+      <p class="cover-section-label">Detalle de la incidencia</p>
+      <p class="cover-title">{{tituloReporte}}</p>
+    </div>
+    <svg class="building-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 72">
+      <rect width="96" height="72" rx="4" fill="#f1f3f5"/>
+      <rect x="17" y="12" width="29" height="46" fill="#adb5bd"/>
+      <rect x="22" y="18" width="7" height="6" fill="#dee2e6"/>
+      <rect x="32" y="18" width="7" height="6" fill="#dee2e6"/>
+      <rect x="22" y="28" width="7" height="6" fill="#dee2e6"/>
+      <rect x="32" y="28" width="7" height="6" fill="#dee2e6"/>
+      <rect x="22" y="38" width="7" height="6" fill="#dee2e6"/>
+      <rect x="32" y="38" width="7" height="6" fill="#dee2e6"/>
+      <rect x="50" y="24" width="26" height="34" fill="#9ca3af"/>
+      <rect x="54" y="29" width="6" height="5" fill="#dee2e6"/>
+      <rect x="63" y="29" width="6" height="5" fill="#dee2e6"/>
+      <rect x="54" y="38" width="6" height="5" fill="#dee2e6"/>
+      <rect x="63" y="38" width="6" height="5" fill="#dee2e6"/>
+      <rect x="10" y="57" width="76" height="2" fill="#adb5bd"/>
+    </svg>
+  </div>
+
+  <hr class="cover-divider">
+
+  <table class="cover-table">
+    <tbody>
+      <tr>
+        <td>Creado el</td>
+        <td>{{fechaCreacion}}</td>
+      </tr>
+      <tr>
+        <td>Creado por</td>
+        <td><strong>{{usuarioCreador}}</strong> ({{emailCreador}})</td>
+      </tr>
+      <tr>
+        <td>Elementos totales</td>
+        <td>{{totalIncidencias}}</td>
+      </tr>
+      <tr>
+        <td>Ordenado por</td>
+        <td>ID (Descendente)</td>
+      </tr>
+      <tr>
+        <td>Filtrado por</td>
+        <td>{{filtrosTexto}}</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+{{/if}}
+
+{{!-- ══════════════════════════════════════════════ ÍNDICE (TOC) --}}
+{{#if incluirIndice}}
+<div class="page-break">
+  <p class="toc-title">Contenido</p>
+  {{#each indice}}
+  <div class="toc-row">
+    <span class="toc-label">#{{id}}: {{titulo}}</span>
+    <span class="toc-dots"></span>
+    <span class="toc-page">{{pagina}}</span>
+  </div>
+  {{/each}}
+</div>
+{{/if}}
+
+{{!-- ══════════════════════════════════════════════ INCIDENCIAS --}}
+{{#each incidencias}}
+<div class="page-break">
+
+  {{!-- Encabezado de incidencia con icono --}}
+  <div class="issue-header">
+    <div class="issue-header-text">
+      <p class="issue-section-label">Detalle de la incidencia</p>
+      <p class="issue-title">#{{id}}: {{titulo}}</p>
+    </div>
+    <svg class="building-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 72">
+      <rect width="96" height="72" rx="4" fill="#f1f3f5"/>
+      <rect x="17" y="12" width="29" height="46" fill="#adb5bd"/>
+      <rect x="22" y="18" width="7" height="6" fill="#dee2e6"/>
+      <rect x="32" y="18" width="7" height="6" fill="#dee2e6"/>
+      <rect x="22" y="28" width="7" height="6" fill="#dee2e6"/>
+      <rect x="32" y="28" width="7" height="6" fill="#dee2e6"/>
+      <rect x="22" y="38" width="7" height="6" fill="#dee2e6"/>
+      <rect x="32" y="38" width="7" height="6" fill="#dee2e6"/>
+      <rect x="50" y="24" width="26" height="34" fill="#9ca3af"/>
+      <rect x="54" y="29" width="6" height="5" fill="#dee2e6"/>
+      <rect x="63" y="29" width="6" height="5" fill="#dee2e6"/>
+      <rect x="54" y="38" width="6" height="5" fill="#dee2e6"/>
+      <rect x="63" y="38" width="6" height="5" fill="#dee2e6"/>
+      <rect x="10" y="57" width="76" height="2" fill="#adb5bd"/>
+    </svg>
+  </div>
+
+  {{!-- ── Campos estándar ──────────────────────────────────── --}}
+  <div class="section">
+    <h3 class="section-title">Campos estándar</h3>
+    {{#each camposEstandar}}
+    <div class="field-row">
+      <span class="field-label">{{label}}</span>
+      {{#if isEstado}}
+        <span class="field-value">
+          <span class="status-badge {{statusCssClass}}">{{value}}</span>
+        </span>
+      {{else if isTipo}}
+        <span class="field-value">
+          <span class="type-row">
+            <span class="type-circle">{{tipoLetra}}</span>
+            <span>{{value}}</span>
+          </span>
+        </span>
+      {{else if isPosicion}}
+        <span class="field-value field-value-link">{{value}}</span>
+      {{else if isVencido}}
+        <span class="field-value field-value-late">{{value}}</span>
+      {{else}}
+        <span class="field-value">{{value}}</span>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+
+  {{!-- ── Información general del plano ──────────────────── --}}
+  {{#if ../opciones.incluirInformacionGeneralPlano}}
+  {{#if informacionPlano}}
+  <div class="section">
+    <h3 class="section-title">Información general del plano</h3>
+    {{#each informacionPlano}}
+    <div class="field-row">
+      <span class="field-label">{{label}}</span>
+      <span class="field-value">{{value}}</span>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+  {{/if}}
+
+  {{!-- ── Campos personalizados ───────────────────────────── --}}
+  {{#if ../opciones.incluirCamposPersonalizados}}
+  {{#if camposPersonalizados}}
+  <div class="section">
+    <h3 class="section-title">Campos personalizados</h3>
+    {{#each camposPersonalizados}}
+    <div class="field-row">
+      <span class="field-label">{{label}}</span>
+      <span class="field-value">{{value}}</span>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+  {{/if}}
+
+  {{!-- ── Referencias y archivos adjuntos ────────────────── --}}
+  {{#if ../opciones.incluirFotos}}
+  {{#if fotos}}
+  <div class="section">
+    <h3 class="section-title">Referencias y archivos adjuntos</h3>
+
+    {{!-- Barra gris "Fotos (N)" --}}
+    <div class="subsection-bar">Fotos ({{fotos.length}})</div>
+
+    <div class="photos-grid {{../opciones.tamañoFotos}}">
+      {{#each fotos}}
+      <div class="photo">
+        {{#if base64}}
+          <img src="{{base64}}" alt="{{nombre}}">
+        {{else}}
+          <div class="photo-placeholder">Sin previsualización</div>
+        {{/if}}
+        <div class="photo-meta-block">
+          <p class="photo-name">{{nombre}}</p>
+          <p class="photo-type">Se ha añadido como Archivo adjunto</p>
+          {{#if creadoEl}}<p class="photo-date">Añadida el {{creadoEl}}</p>{{/if}}
+          <p class="photo-by">Añadida por {{creadoPor}}</p>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+  {{/if}}
+
+  {{!-- ── Vínculos de archivo ─────────────────────────────── --}}
+  {{#if ../opciones.incluirVinculosArchivo}}
+  {{#if vinculosArchivo}}
+  <div class="section">
+    <h3 class="section-title">Vínculos de archivo</h3>
+    {{#each vinculosArchivo}}
+    <p class="vinculo-titulo">{{titulo}}</p>
+    {{#each campos}}
+    <div class="vinculo-inner-row">
+      <span class="vinculo-label">{{label}}</span>
+      <span class="vinculo-value">{{value}}</span>
+    </div>
+    {{/each}}
+    {{#unless @last}}<hr class="vinculo-sep">{{/unless}}
+    {{/each}}
+  </div>
+  {{/if}}
+  {{/if}}
+
+  {{!-- ── Otras referencias ───────────────────────────────── --}}
+  {{#if ../opciones.incluirOtrasReferencias}}
+  {{#if otrasReferencias}}
+  <div class="section">
+    <h3 class="section-title">Otras referencias</h3>
+    {{#each otrasReferencias}}
+    <div class="field-row">
+      <span class="field-label">{{label}}</span>
+      <span class="field-value">{{value}}</span>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+  {{/if}}
+
+  {{!-- ── Comentarios ──────────────────────────────────────── --}}
+  {{#if ../opciones.incluirComentarios}}
+  {{#if comentarios}}
+  <div class="section">
+    <h3 class="section-title">Comentarios</h3>
+    {{#each comentarios}}
+    <div class="comment">
+      <div class="avatar {{avatarToneClass}}">
+        {{#if avatarBase64}}
+          <img src="{{avatarBase64}}" alt="{{creador}}">
+        {{else}}
+          <span>{{iniciales}}</span>
+        {{/if}}
+      </div>
+      <div class="comment-body">
+        <p class="comment-author">{{creador}}</p>
+        <p class="comment-date">{{fecha}}</p>
+        <p class="comment-text">{{texto}}</p>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+  {{/if}}
+
+</div>
+{{/each}}
+
+</body>
+</html>

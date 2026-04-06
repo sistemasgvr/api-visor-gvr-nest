@@ -4,6 +4,7 @@ import { HtmlPdfService } from 'src/infrastructure/pdf/html-pdf.service';
 import { GenerarPdfDemoUseCase } from 'src/application/use-cases/pdf/generar-pdf-demo.use-case';
 import { DemoController } from '../controllers/demo.controller';
 
+/** Módulo de rutas de prueba / sandbox (sin auth). */
 @Module({
   controllers: [DemoController],
   providers: [
@@ -13,6 +14,5 @@ import { DemoController } from '../controllers/demo.controller';
     },
     GenerarPdfDemoUseCase,
   ],
-  exports: [HTML_PDF_GENERATOR, GenerarPdfDemoUseCase],
 })
 export class DemoModule {}

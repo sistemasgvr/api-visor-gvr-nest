@@ -9,9 +9,12 @@ import { readFile } from 'fs/promises';
 import { basename, join } from 'path';
 import * as handlebars from 'handlebars';
 import puppeteer, { Browser } from 'puppeteer';
-import { IHtmlPdfGenerator } from 'src/domain/services/html-pdf-generator.interface';
+import type {
+  IHtmlPdfGenerator,
+  PdfRenderOptions,
+} from 'src/domain/services/html-pdf-generator.interface';
 
-/** Genera PDF desde plantillas HTML; el demo sample-report se expone en GET /api/demo/pdf */
+/** Genera PDFs desde plantillas HTML con Handlebars. Lanza Chromium al iniciar. */
 @Injectable()
 export class HtmlPdfService
   implements IHtmlPdfGenerator, OnModuleInit, OnModuleDestroy
@@ -32,7 +35,7 @@ export class HtmlPdfService
         '--disable-dev-shm-usage',
       ],
     });
-    this.logger.log('Puppeteer browser listo para generar PDFs');
+    this.logger.log('Puppeteer listo para generar PDFs');
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -44,7 +47,7 @@ export class HtmlPdfService
 
   private resolveTemplatePath(templateName: string): string {
     const safeBase = basename(templateName);
-    if (safeBase !== templateName || !/^[a-z0-9-]+$/i.test(templateName)) {
+    if (safeBase !== templateName || !/^[a-z0-9_-]+$/i.test(templateName)) {
       throw new BadRequestException('Nombre de plantilla no permitido');
     }
     const fullPath = join(this.templatesDir, `${templateName}.html`);
@@ -57,6 +60,7 @@ export class HtmlPdfService
   async renderPdfFromTemplate(
     templateName: string,
     data: Record<string, unknown>,
+    options: PdfRenderOptions = {},
   ): Promise<Buffer> {
     if (!this.browser) {
       throw new BadRequestException(
@@ -73,9 +77,17 @@ export class HtmlPdfService
     try {
       await page.setContent(html, { waitUntil: 'load' });
       const pdf = await page.pdf({
-        format: 'A4',
+        format: options.format ?? 'A4',
         printBackground: true,
-        margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' },
+        displayHeaderFooter: options.displayHeaderFooter ?? false,
+        headerTemplate: options.headerTemplate ?? '<span></span>',
+        footerTemplate: options.footerTemplate ?? '<span></span>',
+        margin: options.margin ?? {
+          top: options.displayHeaderFooter ? '28mm' : '20mm',
+          right: '15mm',
+          bottom: options.displayHeaderFooter ? '22mm' : '20mm',
+          left: '15mm',
+        },
       });
       return Buffer.from(pdf);
     } finally {
