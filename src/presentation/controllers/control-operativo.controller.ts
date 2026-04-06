@@ -21,6 +21,7 @@ import { ListarDesempenoUseCase } from '../../application/use-cases/control-oper
 import { ListarTrabajadoresPorProyectoUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-por-proyecto.use-case';
 import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
 import { ListarReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-reporte-general.use-case';
+import { ListarLideresEquipoReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-lideres-equipo-reporte-general.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -48,6 +49,7 @@ export class ControlOperativoController {
         private readonly listarTrabajadoresPorProyectoUseCase: ListarTrabajadoresPorProyectoUseCase,
         private readonly validarActividadUseCase: ValidarActividadUseCase,
         private readonly listarReporteGeneralUseCase: ListarReporteGeneralUseCase,
+        private readonly listarLideresEquipoReporteGeneralUseCase: ListarLideresEquipoReporteGeneralUseCase,
         private readonly configService: ConfigService,
     ) {}
 
@@ -469,9 +471,31 @@ export class ControlOperativoController {
     }
 
     /**
+     * Coordinadores / responsables con personal a cargo (filtro reporte general).
+     * GET /control-operativo/reporte-general/lideres-equipo?rolesAdmin=...
+     */
+    @Get('reporte-general/lideres-equipo')
+    @UseGuards(JwtAuthGuard)
+    async listarLideresEquipoReporteGeneral(
+        @Req() req: Request & { user?: { id?: number; sub?: number } },
+        @Query('rolesAdmin') rolesAdmin?: string,
+    ) {
+        const userId = req.user?.sub ?? req.user?.id;
+        if (userId == null) {
+            throw new UnauthorizedException('Usuario no identificado');
+        }
+        const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+        const data = await this.listarLideresEquipoReporteGeneralUseCase.execute({
+            idUsuario: Number(userId),
+            rolesAdminPermitidos: rolesAdminIds,
+        });
+        return ApiResponseDto.success(data, 'Líderes listados exitosamente');
+    }
+
+    /**
      * Reporte general de actividades con filtros opcionales.
      * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
-     * GET /control-operativo/reporte-general?...&idTrabajadores=1,2&idProyectos=3&idEstadosActividad=374,375&...
+     * GET /control-operativo/reporte-general?...&idTrabajadores=1,2&idProyectos=3&idEstadosActividad=374,375&idLiderEquipo=5&...
      */
     @Get('reporte-general')
     @UseGuards(JwtAuthGuard)
@@ -482,6 +506,7 @@ export class ControlOperativoController {
         @Query('idTrabajadores') idTrabajadores?: string,
         @Query('idProyectos') idProyectos?: string,
         @Query('idEstadosActividad') idEstadosActividad?: string,
+        @Query('idLiderEquipo') idLiderEquipo?: string,
         @Query('limit') limit?: string,
         @Query('offset') offset?: string,
         @Query('rolesAdmin') rolesAdmin?: string,
@@ -495,6 +520,12 @@ export class ControlOperativoController {
         const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
         const limitNum = limit && limit !== '' ? parseInt(limit, 10) : 50;
         const offsetNum = offset && offset !== '' ? parseInt(offset, 10) : 0;
+        const idLiderParsed =
+            idLiderEquipo != null && idLiderEquipo.trim() !== ''
+                ? parseInt(idLiderEquipo.trim(), 10)
+                : NaN;
+        const idLiderEquipoVal =
+            !Number.isNaN(idLiderParsed) && idLiderParsed >= 1 ? idLiderParsed : null;
         const result = await this.listarReporteGeneralUseCase.execute({
             idUsuario: Number(userId),
             idTrabajadores: this.parseIdsListQuery(idTrabajadores),
@@ -502,6 +533,7 @@ export class ControlOperativoController {
             idEstadosActividad: this.parseIdsListQuery(idEstadosActividad),
             fechaInicio: fInicio,
             fechaFin: fFin,
+            idLiderEquipo: idLiderEquipoVal,
             limit: !Number.isNaN(limitNum) && limitNum >= 0 ? limitNum : 50,
             offset: !Number.isNaN(offsetNum) && offsetNum >= 0 ? offsetNum : 0,
             rolesAdminPermitidos: rolesAdminIds,

@@ -34,6 +34,7 @@ import type {
     ReporteGeneralParams,
     ReporteGeneralResult,
     ReporteGeneralItem,
+    LiderEquipoReporteGeneralItem,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -499,14 +500,25 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     }
 
     async listarReporteGeneral(params: ReporteGeneralParams): Promise<ReporteGeneralResult> {
-        const { idTrabajadores, idProyectos, idEstadosActividad, fechaInicio, fechaFin, limit = 50, offset = 0 } = params;
+        const {
+            idTrabajadores,
+            idProyectos,
+            idEstadosActividad,
+            fechaInicio,
+            fechaFin,
+            idLiderEquipo,
+            limit = 50,
+            offset = 0,
+        } = params;
         const pTrab = idTrabajadores != null && idTrabajadores.length > 0 ? idTrabajadores : null;
         const pProy = idProyectos != null && idProyectos.length > 0 ? idProyectos : null;
         const pEst = idEstadosActividad != null && idEstadosActividad.length > 0 ? idEstadosActividad : null;
+        const pLider =
+            idLiderEquipo != null && Number.isFinite(idLiderEquipo) && idLiderEquipo >= 1 ? idLiderEquipo : null;
         type Row = ReporteGeneralItem & { total_count?: number | null; total_horas?: number | null };
         const rows = await this.databaseFunctionService.callFunction<Row>(
             'con_ReporteGeneral',
-            [pTrab, pProy, pEst, fechaInicio ?? null, fechaFin ?? null, limit, offset],
+            [pTrab, pProy, pEst, fechaInicio ?? null, fechaFin ?? null, pLider, limit, offset],
         );
         if (!rows?.length) {
             return { data: [], totalCount: 0, totalHoras: 0 };
@@ -527,5 +539,13 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             return { ...rest, diajornada } as ReporteGeneralItem;
         });
         return { data, totalCount, totalHoras };
+    }
+
+    async listarLideresEquipoReporteGeneral(): Promise<LiderEquipoReporteGeneralItem[]> {
+        const rows = await this.databaseFunctionService.callFunction<LiderEquipoReporteGeneralItem>(
+            'tra_ListarLideresEquipoReporteGeneral',
+            [],
+        );
+        return rows ?? [];
     }
 }

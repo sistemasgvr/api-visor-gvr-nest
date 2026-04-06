@@ -341,8 +341,19 @@ export interface ReporteGeneralParams {
     idEstadosActividad?: number[] | null;
     fechaInicio?: string | null;
     fechaFin?: string | null;
+    /**
+     * Opcional: id trabajador líder (coordinador de proyecto / responsable /
+     * coordinador en actividad). Solo actividades de personal bajo su cargo.
+     */
+    idLiderEquipo?: number | null;
     limit?: number;
     offset?: number;
+}
+
+/** Líder disponible para filtro del reporte general (admin). */
+export interface LiderEquipoReporteGeneralItem {
+    idtrabajador: number;
+    nombrecompleto: string | null;
 }
 
 /** Item del reporte general de actividades. */
@@ -409,6 +420,7 @@ export interface IControlOperativoRepository {
     ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
     actualizarEstadoJornada(idJornada: number, idEstadoJornada: number, idUsuarioModificacion?: number): Promise<boolean>;
     listarReporteGeneral(params: ReporteGeneralParams): Promise<ReporteGeneralResult>;
+    listarLideresEquipoReporteGeneral(): Promise<LiderEquipoReporteGeneralItem[]>;
 }
 
 export const CONTROL_OPERATIVO_REPOSITORY = 'CONTROL_OPERATIVO_REPOSITORY';
