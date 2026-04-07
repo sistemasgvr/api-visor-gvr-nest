@@ -8,6 +8,10 @@
       {
         "include": "infrastructure/pdf/templates/**/*.html",
         "watchAssets": true
+      },
+      {
+        "include": "infrastructure/mail/templates/**/*.hbs",
+        "watchAssets": true
       }
     ]
   }

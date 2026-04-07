@@ -1,0 +1,7 @@
+<p>{{#if title}}<strong>{{title}}</strong>{{else}}Notificación{{/if}}</p>
+{{#if message}}
+<p>{{message}}</p>
+{{/if}}
+{{#if actionUrl}}
+<p><a href="{{actionUrl}}">{{#if actionLabel}}{{actionLabel}}{{else}}Ver detalle{{/if}}</a></p>
+{{/if}}

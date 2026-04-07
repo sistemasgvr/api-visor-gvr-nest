@@ -41,6 +41,7 @@ import { ControlOperativoModule } from './presentation/modules/control-operativo
 // MODULO - DASHBOARD
 import { DashboardModule } from './presentation/modules/dashboard/dashboard.module';
 import { DemoModule } from './presentation/modules/demo.module';
+import { MailModule } from './presentation/modules/mail.module';
 
 @Module({
   imports: [
@@ -94,6 +95,7 @@ import { DemoModule } from './presentation/modules/demo.module';
     // Módulo de dashboard
     DashboardModule,
     DemoModule,
+    MailModule.register(),
   ],
 })
 export class AppModule { }
