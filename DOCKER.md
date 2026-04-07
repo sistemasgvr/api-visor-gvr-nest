@@ -92,8 +92,17 @@ docker push tu-usuario/api-visor-gvr-nest:latest
    - Timeout: 3s
 
 5. **Recursos**
-   - Memoria: Mínimo 512MB, recomendado 1GB
+   - Memoria: Mínimo **1GB** (Chromium/Puppeteer para PDFs); recomendado 1.5–2GB si hay picos
    - CPU: 0.5-1 core
+
+### PDFs y Puppeteer (Chromium en Docker)
+
+La imagen de producción usa **Debian bookworm-slim** con el paquete **`chromium`** del sistema. Variables que define el `Dockerfile`:
+
+- `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true` — no descarga el Chrome empaquetado por npm (evita `ENOENT` en contenedor).
+- `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium` — Puppeteer usa ese binario.
+
+En desarrollo local (sin Docker) no hace falta definir `PUPPETEER_EXECUTABLE_PATH`; se usa el navegador que instala Puppeteer. Si en otro entorno el binario está en otra ruta, sobrescribe solo `PUPPETEER_EXECUTABLE_PATH`.
 
 ### Notas importantes
 

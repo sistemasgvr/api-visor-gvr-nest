@@ -27,15 +27,22 @@ export class HtmlPdfService
   }
 
   async onModuleInit(): Promise<void> {
+    const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH?.trim();
     this.browser = await puppeteer.launch({
       headless: true,
+      ...(executablePath ? { executablePath } : {}),
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
+        '--disable-gpu',
       ],
     });
-    this.logger.log('Puppeteer listo para generar PDFs');
+    this.logger.log(
+      executablePath
+        ? `Puppeteer listo (Chromium: ${executablePath})`
+        : 'Puppeteer listo para generar PDFs (bundle por defecto)',
+    );
   }
 
   async onModuleDestroy(): Promise<void> {
