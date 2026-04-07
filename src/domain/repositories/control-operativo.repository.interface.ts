@@ -101,6 +101,8 @@ export interface ListarActividadesValidacionResult {
     totalHoras: number;
     /** Actividades en estado "Por aprobar" en todo el listado filtrado (no solo la página). */
     countPorAprobar: number;
+    /** Actividades "Por aprobar" con más de 7 días sin validar en todo el listado (todas las páginas). */
+    countVencidas: number;
 }
 
 /** Item de detalle de actividad dentro de un grupo de valorización (sustento cliente). */
@@ -390,6 +392,40 @@ export interface ReporteGeneralResult {
     totalHoras: number;
 }
 
+/** Actividad vencida retornada por el cron de alerta (> 7 días sin validar). */
+export interface ActividadSinValidarItem {
+    id: number;
+    nombreActividad: string;
+    idTrabajador: number;
+    idProyecto: number;
+    nombreProyecto: string | null;
+    nombreTrabajador: string | null;
+    fechaCreacion: string;
+    diasVencido: number;
+}
+
+/** Grupo de actividades vencidas agrupadas por coordinador responsable de validarlas. */
+export interface GrupoCoordinadorSinValidar {
+    idCoordinador: number;
+    nombreCoordinador: string;
+    /** idUsuario en authUsuarios del coordinador (para notificarle si aplica). */
+    idUsuarioCoordinador: number | null;
+    /** id en traTrabajador del responsable directo del coordinador. */
+    idResponsable: number | null;
+    nombreResponsable: string | null;
+    /** idUsuario en authUsuarios del responsable directo. */
+    idUsuarioResponsable: number | null;
+    cantidad: number;
+    actividades: ActividadSinValidarItem[];
+}
+
+/** Resultado del cron de alerta de actividades sin validar. */
+export interface CronAlertaActividadesSinValidarResult {
+    gruposCoordinadores: GrupoCoordinadorSinValidar[];
+    usuariosANotificar: number[];
+    totalActividades: number;
+}
+
 export interface IControlOperativoRepository {
     listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult>;
     listarTrabajadoresParaFiltro(idTrabajador: number): Promise<TrabajadorParaFiltro[]>;
@@ -423,6 +459,10 @@ export interface IControlOperativoRepository {
     validarActividad(params: ValidarActividadParams): Promise<ActividadCreada | null>;
     eliminarActividad(idActividad: number): Promise<boolean>;
     ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
+    /** Detecta actividades "Por Aprobar" (374) con más de 7 días desde su creación,
+     *  marca la fecha de alerta (deduplicación) y devuelve los datos para notificar
+     *  a Administradores y Gerencia vía WebSocket. */
+    ejecutarCronAlertaActividadesSinValidar(fecha: string): Promise<CronAlertaActividadesSinValidarResult>;
     actualizarEstadoJornada(idJornada: number, idEstadoJornada: number, idUsuarioModificacion?: number): Promise<boolean>;
     listarReporteGeneral(params: ReporteGeneralParams): Promise<ReporteGeneralResult>;
     listarLideresEquipoReporteGeneral(): Promise<LiderEquipoReporteGeneralItem[]>;

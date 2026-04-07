@@ -23,6 +23,7 @@ import { ListarTrabajadoresParaFiltroUseCase } from '../../application/use-cases
 import { CrearJornadaUseCase } from '../../application/use-cases/control-operativo/crear-jornada.use-case';
 import { ListarActividadesUseCase } from '../../application/use-cases/control-operativo/listar-actividades.use-case';
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
+import { CronAlertaActividadesSinValidarUseCase } from '../../application/use-cases/control-operativo/cron-alerta-actividades-sin-validar.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
 import { ListarProyectosParaValidacionUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-para-validacion.use-case';
@@ -69,6 +70,7 @@ export class ControlOperativoController {
         private readonly validarActividadUseCase: ValidarActividadUseCase,
         private readonly listarReporteGeneralUseCase: ListarReporteGeneralUseCase,
         private readonly listarLideresEquipoReporteGeneralUseCase: ListarLideresEquipoReporteGeneralUseCase,
+        private readonly cronAlertaActividadesSinValidarUseCase: CronAlertaActividadesSinValidarUseCase,
         private readonly configService: ConfigService,
     ) {}
 
@@ -97,6 +99,34 @@ export class ControlOperativoController {
                 pasados_incompleto: result.pasados_incompleto,
             },
             'Cierre de jornadas ejecutado',
+        );
+    }
+
+    /**
+     * Cron de alerta por actividades sin validar (> 7 días "Por Aprobar").
+     * GET /control-operativo/cron/alerta-actividades-sin-validar?key=CRON_SECRET
+     * GET /control-operativo/cron/alerta-actividades-sin-validar?key=CRON_SECRET&fecha=YYYY-MM-DD
+     * Detecta actividades con más de 7 días sin validar, notifica por WebSocket y persiste
+     * notificaciones para Administradores (1), Gerencia (5) y Administrador GVR (11).
+     */
+    @Get('cron/alerta-actividades-sin-validar')
+    @HttpCode(HttpStatus.OK)
+    async cronAlertaActividadesSinValidar(@Query('key') key?: string, @Query('fecha') fecha?: string) {
+        const secret = this.configService.get<string>('CRON_SECRET');
+        if (secret && key !== secret) {
+            throw new UnauthorizedException('Cron no autorizado');
+        }
+        const f = fecha?.trim() || getFechaHoy();
+        const result = await this.cronAlertaActividadesSinValidarUseCase.execute(f);
+        return ApiResponseDto.success(
+            {
+                fecha: f,
+                total_actividades_vencidas: result.totalActividades,
+                usuarios_notificados: result.usuariosANotificar.length,
+            },
+            result.totalActividades === 0
+                ? 'Sin actividades vencidas pendientes de alerta'
+                : `Alerta enviada: ${result.totalActividades} actividad(es) sin validar notificada(s)`,
         );
     }
 

@@ -22,6 +22,7 @@ import { ListarTrabajadoresPorProyectoUseCase } from '../../application/use-case
 import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
 import { ListarReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-reporte-general.use-case';
 import { ListarLideresEquipoReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-lideres-equipo-reporte-general.use-case';
+import { CronAlertaActividadesSinValidarUseCase } from '../../application/use-cases/control-operativo/cron-alerta-actividades-sin-validar.use-case';
 import { ControlOperativoRepository } from '../../infrastructure/repositories/control-operativo.repository';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../domain/repositories/control-operativo.repository.interface';
@@ -83,6 +84,7 @@ import { ProyectoModule } from './proyecto.module';
         ValidarActividadUseCase,
         ListarReporteGeneralUseCase,
         ListarLideresEquipoReporteGeneralUseCase,
+        CronAlertaActividadesSinValidarUseCase,
         JwtStrategy,
     ],
     exports: [CONTROL_OPERATIVO_REPOSITORY],

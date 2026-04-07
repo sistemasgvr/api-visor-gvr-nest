@@ -19,6 +19,8 @@ import type {
     ValidarActividadParams,
     ActividadCreada,
     CronCierreJornadasResult,
+    CronAlertaActividadesSinValidarResult,
+    GrupoCoordinadorSinValidar,
     TrabajadorParaFiltro,
     ProyectoAccesoTrabajador,
     ListarActividadesValidacionParams,
@@ -305,20 +307,36 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             total_horas?: number;
             total_por_aprobar?: number;
         };
-        const result = await this.databaseFunctionService.callFunction<Row>(
-            'con_ListarActividadesValidacion',
-            [
-                idTrabajadorSesion,
-                esAdmin,
-                idTrabajadorFiltro ?? null,
-                idProyectoFiltro ?? null,
-                idEstadoActividadFiltro ?? null,
-                limit,
-                offset,
-            ],
-        );
+
+        // Ejecutar en paralelo: listado paginado + conteo de vencidas (todas las páginas)
+        const [result, vencidasRows] = await Promise.all([
+            this.databaseFunctionService.callFunction<Row>(
+                'con_ListarActividadesValidacion',
+                [
+                    idTrabajadorSesion,
+                    esAdmin,
+                    idTrabajadorFiltro ?? null,
+                    idProyectoFiltro ?? null,
+                    idEstadoActividadFiltro ?? null,
+                    limit,
+                    offset,
+                ],
+            ),
+            this.databaseFunctionService.callFunction<{ con_contarvencidasvalidacion?: number }>(
+                'con_ContarVencidasValidacion',
+                [
+                    idTrabajadorSesion,
+                    esAdmin,
+                    idTrabajadorFiltro ?? null,
+                    idProyectoFiltro ?? null,
+                ],
+            ),
+        ]);
+
+        const countVencidas = getScalarInt(vencidasRows?.[0]);
+
         if (!result?.length) {
-            return { data: [], totalCount: 0, totalHoras: 0, countPorAprobar: 0 };
+            return { data: [], totalCount: 0, totalHoras: 0, countPorAprobar: 0, countVencidas };
         }
         const totalCount = Number(result[0].total_count ?? result.length);
         const totalHoras = Number(result[0].total_horas ?? 0);
@@ -327,7 +345,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             const { total_count: _tc, total_horas: _th, total_por_aprobar: _tpa, ...rest } = row;
             return rest as ActividadValidacionListItem;
         });
-        return { data, totalCount, totalHoras, countPorAprobar };
+        return { data, totalCount, totalHoras, countPorAprobar, countVencidas };
     }
 
     async listarValorizacion(params: ListarValorizacionParams): Promise<ListarValorizacionResult> {
@@ -582,5 +600,40 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             [],
         );
         return rows ?? [];
+    }
+
+    async ejecutarCronAlertaActividadesSinValidar(fecha: string): Promise<CronAlertaActividadesSinValidarResult> {
+        const rows = await this.databaseFunctionService.callFunction<{
+            grupos_coordinadores: GrupoCoordinadorSinValidar[] | string | null;
+            usuarios_a_notificar: number[] | null;
+            total_actividades: number | null;
+        }>('con_CronAlertaActividadesSinValidar', [fecha]);
+
+        const row = rows?.[0];
+        if (!row) {
+            return { gruposCoordinadores: [], usuariosANotificar: [], totalActividades: 0 };
+        }
+
+        const gruposRaw = row.grupos_coordinadores;
+        let gruposCoordinadores: GrupoCoordinadorSinValidar[] = [];
+        if (typeof gruposRaw === 'string') {
+            try {
+                gruposCoordinadores = JSON.parse(gruposRaw) as GrupoCoordinadorSinValidar[];
+            } catch {
+                gruposCoordinadores = [];
+            }
+        } else if (Array.isArray(gruposRaw)) {
+            gruposCoordinadores = gruposRaw as GrupoCoordinadorSinValidar[];
+        }
+
+        const usuariosANotificar = Array.isArray(row.usuarios_a_notificar)
+            ? (row.usuarios_a_notificar as number[]).map(Number).filter((n) => Number.isFinite(n) && n > 0)
+            : [];
+
+        return {
+            gruposCoordinadores,
+            usuariosANotificar,
+            totalActividades: Number(row.total_actividades ?? 0),
+        };
     }
 }
