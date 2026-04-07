@@ -45,6 +45,13 @@ function getScalarInt(row: any): number {
     if (keys.length > 0 && typeof row[keys[0]] === 'number') return row[keys[0]];
     return 0;
 }
+
+/** Query param vacío (ej. fechaFin=) → null; evita invalid input syntax for type date: "". */
+function queryDateOrNull(v: string | null | undefined): string | null {
+    if (v == null) return null;
+    const t = String(v).trim();
+    return t === '' ? null : t;
+}
 import { DatabaseFunctionService } from '../database/database-function.service';
 
 @Injectable()
@@ -58,8 +65,8 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     async listarJornadasTrabajador(params: ListarJornadasTrabajadorParams): Promise<ListarJornadasTrabajadorResult> {
         const { idTrabajador, fechaInicio, fechaFin, limit = 10, offset = 0 } = params;
 
-        const pFechaInicio = fechaInicio ?? this.getInicioSemanaActual();
-        const pFechaFin = fechaFin ?? this.getFinSemanaActual();
+        const pFechaInicio = queryDateOrNull(fechaInicio) ?? this.getInicioSemanaActual();
+        const pFechaFin = queryDateOrNull(fechaFin) ?? this.getFinSemanaActual();
 
         type Row = JornadaListItem & { total_count?: number };
         const result = await this.databaseFunctionService.callFunction<Row>(
@@ -327,7 +334,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         const { idProyecto, fechaInicio, fechaFin } = params;
         const result = await this.databaseFunctionService.callFunction<ValorizacionGrupo>(
             'con_ListarValorizacion',
-            [idProyecto, fechaInicio, fechaFin],
+            [idProyecto, queryDateOrNull(fechaInicio), queryDateOrNull(fechaFin)],
         );
         const grupos: ValorizacionGrupo[] = Array.isArray(result) ? result : [];
         const totalGeneralHoras = grupos.reduce((sum, g) => sum + Number(g.total_horas ?? 0), 0);
@@ -351,7 +358,12 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             total_horas_no_justificadas?: number;
             detalle_actividades_rechazadas?: unknown;
             detalle_observaciones?: unknown;
-        }>('con_ListarDesempeno', [idProyecto, fechaInicio, fechaFin, idTrabajador ?? null]);
+        }>('con_ListarDesempeno', [
+            idProyecto,
+            queryDateOrNull(fechaInicio),
+            queryDateOrNull(fechaFin),
+            idTrabajador ?? null,
+        ]);
         const row = rows?.[0];
         if (!row) {
             return {
@@ -541,7 +553,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         type Row = ReporteGeneralItem & { total_count?: number | null; total_horas?: number | null };
         const rows = await this.databaseFunctionService.callFunction<Row>(
             'con_ReporteGeneral',
-            [pTrab, pProy, pEst, fechaInicio ?? null, fechaFin ?? null, pLider, limit, offset],
+            [pTrab, pProy, pEst, queryDateOrNull(fechaInicio), queryDateOrNull(fechaFin), pLider, limit, offset],
         );
         if (!rows?.length) {
             return { data: [], totalCount: 0, totalHoras: 0 };
