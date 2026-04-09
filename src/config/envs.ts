@@ -1,6 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import 'dotenv/config';
+import { config as loadDotenv } from 'dotenv';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import * as joi from 'joi';
+
+const rootEnvPath = join(__dirname, '..', '..', '.env');
+if (existsSync(rootEnvPath)) {
+  loadDotenv({ path: rootEnvPath });
+} else {
+  loadDotenv();
+}
 
 interface EnvsVars {
   PORT: number;
