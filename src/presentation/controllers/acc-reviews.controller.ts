@@ -45,6 +45,8 @@ import { AnularRevisionDto } from '../../application/dtos/acc/reviews/anular-rev
 import { SaltarPasoRevisionDto } from '../../application/dtos/acc/reviews/saltar-paso-revision.dto';
 import { VolverPasoAnteriorRevisionDto } from '../../application/dtos/acc/reviews/volver-paso-anterior-revision.dto';
 import { EnviarResenaPasoDto } from '../../application/dtos/acc/reviews/enviar-resena-paso.dto';
+import { NotificarRevisoresRevisionDto } from '../../application/dtos/acc/reviews/notificar-revisores-revision.dto';
+import { NotificarRevisoresRevisionUseCase } from '../../application/use-cases/acc/reviews/notificar-revisores-revision.use-case';
 
 @Controller('acc/projects/:projectId/reviews')
 export class AccReviewsController {
@@ -64,6 +66,7 @@ export class AccReviewsController {
         private readonly iniciarPasoRevisionUseCase: IniciarPasoRevisionUseCase,
         private readonly delegarPasoRevisionUseCase: DelegarPasoRevisionUseCase,
         private readonly enviarResenaPasoUseCase: EnviarResenaPasoUseCase,
+        private readonly notificarRevisoresRevisionUseCase: NotificarRevisoresRevisionUseCase,
         private readonly getComentariosArchivoUseCase: GetComentariosArchivoUseCase,
         private readonly addComentarioArchivoUseCase: AddComentarioArchivoUseCase,
     ) { }
@@ -102,7 +105,7 @@ export class AccReviewsController {
 
     /**
      * POST /acc/projects/:projectId/reviews
-     * Crea una nueva revisión
+     * Crea una nueva revisi?n
      */
     @Post()
     @UseGuards(JwtAuthGuard)
@@ -129,12 +132,12 @@ export class AccReviewsController {
             userAgent,
         );
 
-        return ApiResponseDto.created(resultado, 'Revisión creada exitosamente');
+        return ApiResponseDto.created(resultado, 'Revisi?n creada exitosamente');
     }
 
     /**
      * GET /acc/projects/:projectId/reviews/:reviewId
-     * Obtiene el detalle de una revisión
+     * Obtiene el detalle de una revisi?n
      */
     @Get(':reviewId')
     @UseGuards(JwtAuthGuard)
@@ -145,7 +148,7 @@ export class AccReviewsController {
         @Req() request: Request,
     ) {
         if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
-        if (!reviewId)  throw new BadRequestException('El ID de la revisión es requerido');
+        if (!reviewId)  throw new BadRequestException('El ID de la revisi?n es requerido');
 
         const user = (request as any).user;
         const userId = user?.sub || user?.id;
@@ -153,12 +156,12 @@ export class AccReviewsController {
 
         const resultado = await this.obtenerRevisionPorIdUseCase.execute(userId, projectId, reviewId);
 
-        return ApiResponseDto.success(resultado, 'Revisión obtenida exitosamente');
+        return ApiResponseDto.success(resultado, 'Revisi?n obtenida exitosamente');
     }
 
     /**
      * GET /acc/projects/:projectId/reviews/:reviewId/workflow
-     * Obtiene el workflow de una revisión
+     * Obtiene el workflow de una revisi?n
      */
     @Get(':reviewId/workflow')
     @UseGuards(JwtAuthGuard)
@@ -169,7 +172,7 @@ export class AccReviewsController {
         @Req() request: Request,
     ) {
         if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
-        if (!reviewId)  throw new BadRequestException('El ID de la revisión es requerido');
+        if (!reviewId)  throw new BadRequestException('El ID de la revisi?n es requerido');
 
         const user = (request as any).user;
         const userId = user?.sub || user?.id;
@@ -177,12 +180,12 @@ export class AccReviewsController {
 
         const resultado = await this.obtenerWorkflowRevisionUseCase.execute(userId, projectId, reviewId);
 
-        return ApiResponseDto.success(resultado, 'Workflow de revisión obtenido exitosamente');
+        return ApiResponseDto.success(resultado, 'Workflow de revisi?n obtenido exitosamente');
     }
 
     /**
      * GET /acc/projects/:projectId/reviews/:reviewId/progress
-     * Obtiene el progreso de una revisión
+     * Obtiene el progreso de una revisi?n
      */
     @Get(':reviewId/progress')
     @UseGuards(JwtAuthGuard)
@@ -193,7 +196,7 @@ export class AccReviewsController {
         @Req() request: Request,
     ) {
         if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
-        if (!reviewId)  throw new BadRequestException('El ID de la revisión es requerido');
+        if (!reviewId)  throw new BadRequestException('El ID de la revisi?n es requerido');
 
         const user = (request as any).user;
         const userId = user?.sub || user?.id;
@@ -201,12 +204,12 @@ export class AccReviewsController {
 
         const resultado = await this.obtenerProgresoRevisionUseCase.execute(userId, projectId, reviewId);
 
-        return ApiResponseDto.success(resultado, 'Progreso de revisión obtenido exitosamente');
+        return ApiResponseDto.success(resultado, 'Progreso de revisi?n obtenido exitosamente');
     }
 
     /**
      * GET /acc/projects/:projectId/reviews/:reviewId/versions
-     * Obtiene las versiones de documentos vinculados a una revisión
+     * Obtiene las versiones de documentos vinculados a una revisi?n
      */
     @Get(':reviewId/versions')
     @UseGuards(JwtAuthGuard)
@@ -217,7 +220,7 @@ export class AccReviewsController {
         @Req() request: Request,
     ) {
         if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
-        if (!reviewId)  throw new BadRequestException('El ID de la revisión es requerido');
+        if (!reviewId)  throw new BadRequestException('El ID de la revisi?n es requerido');
 
         const user = (request as any).user;
         const userId = user?.sub || user?.id;
@@ -225,12 +228,12 @@ export class AccReviewsController {
 
         const resultado = await this.obtenerVersionesRevisionUseCase.execute(userId, projectId, reviewId);
 
-        return ApiResponseDto.success(resultado, 'Versiones de revisión obtenidas exitosamente');
+        return ApiResponseDto.success(resultado, 'Versiones de revisi?n obtenidas exitosamente');
     }
 
     /**
      * GET /acc/projects/:projectId/reviews/:reviewId/references
-     * Lista las referencias de una revisión
+     * Lista las referencias de una revisi?n
      */
     @Get(':reviewId/references')
     @UseGuards(JwtAuthGuard)
@@ -239,10 +242,10 @@ export class AccReviewsController {
         @Param('reviewId') reviewId: string,
         @Req() request: Request,
     ) {
-        if (!reviewId) throw new BadRequestException('El ID de la revisión es requerido');
+        if (!reviewId) throw new BadRequestException('El ID de la revisi?n es requerido');
 
         const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
-        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisi?n inv?lido');
 
         const resultado = await this.obtenerReferenciasRevisionUseCase.execute(idRevision);
         return ApiResponseDto.success(resultado, 'Referencias obtenidas exitosamente');
@@ -250,7 +253,7 @@ export class AccReviewsController {
 
     /**
      * POST /acc/projects/:projectId/reviews/:reviewId/references
-     * Agrega una o varias referencias a una revisión
+     * Agrega una o varias referencias a una revisi?n
      */
     @Post(':reviewId/references')
     @UseGuards(JwtAuthGuard)
@@ -261,10 +264,10 @@ export class AccReviewsController {
         @Body() dto: AgregarReferenciaRevisionDto | AgregarReferenciaRevisionDto[],
         @Req() request: Request,
     ) {
-        if (!reviewId) throw new BadRequestException('El ID de la revisión es requerido');
+        if (!reviewId) throw new BadRequestException('El ID de la revisi?n es requerido');
 
         const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
-        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisi?n inv?lido');
 
         const user = (request as any).user;
         const userId = user?.sub || user?.id;
@@ -280,7 +283,7 @@ export class AccReviewsController {
 
     /**
      * DELETE /acc/projects/:projectId/reviews/:reviewId/references/:refId
-     * Elimina una referencia de una revisión
+     * Elimina una referencia de una revisi?n
      */
     @Delete(':reviewId/references/:refId')
     @UseGuards(JwtAuthGuard)
@@ -299,7 +302,7 @@ export class AccReviewsController {
 
     /**
      * POST /acc/projects/:projectId/reviews/:reviewId/void
-     * Anula completamente una revisión (Void entire review).
+     * Anula completamente una revisi?n (Void entire review).
      */
     @Post(':reviewId/void')
     @UseGuards(JwtAuthGuard)
@@ -310,10 +313,10 @@ export class AccReviewsController {
         @Body() dto: AnularRevisionDto,
         @Req() request: Request,
     ) {
-        if (!reviewId) throw new BadRequestException('El ID de la revisión es requerido');
+        if (!reviewId) throw new BadRequestException('El ID de la revisi?n es requerido');
 
         const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
-        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisi?n inv?lido');
         if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
 
         const user = (request as any).user;
@@ -337,10 +340,10 @@ export class AccReviewsController {
         @Body() dto: SaltarPasoRevisionDto,
         @Req() request: Request,
     ) {
-        if (!reviewId) throw new BadRequestException('El ID de la revisión es requerido');
+        if (!reviewId) throw new BadRequestException('El ID de la revisi?n es requerido');
 
         const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
-        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisi?n inv?lido');
         if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
 
         const user = (request as any).user;
@@ -353,7 +356,7 @@ export class AccReviewsController {
 
     /**
      * POST /acc/projects/:projectId/reviews/:reviewId/return-step
-     * Devuelve la revisión al paso anterior.
+     * Devuelve la revisi?n al paso anterior.
      */
     @Post(':reviewId/return-step')
     @UseGuards(JwtAuthGuard)
@@ -364,10 +367,10 @@ export class AccReviewsController {
         @Body() dto: VolverPasoAnteriorRevisionDto,
         @Req() request: Request,
     ) {
-        if (!reviewId) throw new BadRequestException('El ID de la revisión es requerido');
+        if (!reviewId) throw new BadRequestException('El ID de la revisi?n es requerido');
 
         const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
-        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisi?n inv?lido');
         if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
 
         const user = (request as any).user;
@@ -378,7 +381,7 @@ export class AccReviewsController {
         return ApiResponseDto.success(resultado, resultado.message);
     }
 
-    /** POST /acc/projects/:projectId/reviews/:reviewId/claim-step — Inicia / reclama el paso actual */
+    /** POST /acc/projects/:projectId/reviews/:reviewId/claim-step ��� Inicia / reclama el paso actual */
     @Post(':reviewId/claim-step')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
@@ -388,7 +391,7 @@ export class AccReviewsController {
         @Req() request: Request,
     ) {
         const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
-        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisi?n inv?lido');
         if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
         const user = (request as any).user;
         const userId = user?.sub || user?.id;
@@ -397,7 +400,7 @@ export class AccReviewsController {
         return ApiResponseDto.success(resultado, resultado.message);
     }
 
-    /** POST /acc/projects/:projectId/reviews/:reviewId/delegate-step — Delega / libera el paso actual */
+    /** POST /acc/projects/:projectId/reviews/:reviewId/delegate-step ��� Delega / libera el paso actual */
     @Post(':reviewId/delegate-step')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
@@ -407,7 +410,7 @@ export class AccReviewsController {
         @Req() request: Request,
     ) {
         const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
-        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisi?n inv?lido');
         if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
         const user = (request as any).user;
         const userId = user?.sub || user?.id;
@@ -416,7 +419,7 @@ export class AccReviewsController {
         return ApiResponseDto.success(resultado, resultado.message);
     }
 
-    /** POST /acc/projects/:projectId/reviews/:reviewId/submit-step — Entrega la reseña del paso actual */
+    /** POST /acc/projects/:projectId/reviews/:reviewId/submit-step ��� Entrega la rese?a del paso actual */
     @Post(':reviewId/submit-step')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
@@ -427,13 +430,41 @@ export class AccReviewsController {
         @Req() request: Request,
     ) {
         const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
-        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisi?n inv?lido');
         if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
         const user = (request as any).user;
         const userId = user?.sub || user?.id;
         if (!userId) throw new BadRequestException('User ID es requerido');
         const resultado = await this.enviarResenaPasoUseCase.execute(userId, projectId, idRevision, dto);
         return ApiResponseDto.success(resultado, resultado.message);
+    }
+
+    /**
+     * POST /acc/projects/:projectId/reviews/:reviewId/notify-reviewers
+     * Encola correos a revisores (plantilla revision-reviewer-notify).
+     */
+    @Post(':reviewId/notify-reviewers')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async notificarRevisoresRevision(
+        @Param('projectId') projectId: string,
+        @Param('reviewId') reviewId: string,
+        @Body() dto: NotificarRevisoresRevisionDto,
+        @Req() request: Request,
+    ) {
+        if (!reviewId) throw new BadRequestException('El ID de la revisi?n es requerido');
+        if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+
+        const resultado = await this.notificarRevisoresRevisionUseCase.execute(
+            Number(userId),
+            projectId,
+            reviewId,
+            dto,
+        );
+        return ApiResponseDto.success(resultado, 'Notificaciones encoladas correctamente');
     }
 
     /** GET /acc/projects/:projectId/reviews/:reviewId/files/:fileId/comments */
@@ -445,8 +476,8 @@ export class AccReviewsController {
     ) {
         const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
         const idArchivo = parseInt(fileId, 10);
-        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
-        if (isNaN(idArchivo)) throw new BadRequestException('ID de archivo inválido');
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisi?n inv?lido');
+        if (isNaN(idArchivo)) throw new BadRequestException('ID de archivo inv?lido');
         const data = await this.getComentariosArchivoUseCase.execute(idRevision, idArchivo);
         return ApiResponseDto.success(data);
     }
@@ -463,8 +494,8 @@ export class AccReviewsController {
     ) {
         const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
         const idArchivo = parseInt(fileId, 10);
-        if (isNaN(idRevision)) throw new BadRequestException('ID de revisión inválido');
-        if (isNaN(idArchivo)) throw new BadRequestException('ID de archivo inválido');
+        if (isNaN(idRevision)) throw new BadRequestException('ID de revisi?n inv?lido');
+        if (isNaN(idArchivo)) throw new BadRequestException('ID de archivo inv?lido');
         const user = (request as any).user;
         const userId = user?.sub || user?.id;
         if (!userId) throw new BadRequestException('User ID es requerido');

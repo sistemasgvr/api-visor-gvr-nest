@@ -26,4 +26,8 @@ export const MAIL_TEMPLATE_REGISTRY: Record<string, MailTemplateDefinition> = {
         file: 'internal-alert.hbs',
         defaultSubject: '[Alerta interna] {{title}}',
     },
+    'revision-reviewer-notify': {
+        file: 'revision-reviewer-notify.hbs',
+        defaultSubject: '[{{appName}}] {{actionHeading}} — {{reviewLabel}}',
+    },
 };

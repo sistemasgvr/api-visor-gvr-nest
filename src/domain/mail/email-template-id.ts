@@ -7,6 +7,7 @@ export const EMAIL_TEMPLATE_IDS = {
     RESET_PASSWORD: 'reset-password',
     NOTIFICATION: 'notification',
     INTERNAL_ALERT: 'internal-alert',
+    REVISION_REVIEWER_NOTIFY: 'revision-reviewer-notify',
 } as const;
 
 export type EmailTemplateId =

@@ -59,7 +59,7 @@ export class EnviarCorreoBienvenidaDemoUseCase {
         const frontend =
             this.configService.get<string>('FRONTEND_URLS')?.split(',')[0]?.trim() || '';
         const appName =
-            this.configService.get<string>('MAIL_FROM_NAME')?.trim() || 'Visor GVR';
+            this.configService.get<string>('MAIL_FROM_NAME')?.trim() || 'GVR PE';
 
         const { jobId } = await this.mailService.enqueue({
             templateId: 'welcome',

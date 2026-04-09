@@ -19,6 +19,7 @@ import { VolverPasoAnteriorRevisionUseCase } from '../../application/use-cases/a
 import { IniciarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/iniciar-paso-revision.use-case';
 import { DelegarPasoRevisionUseCase } from '../../application/use-cases/acc/reviews/delegar-paso-revision.use-case';
 import { EnviarResenaPasoUseCase } from '../../application/use-cases/acc/reviews/enviar-resena-paso.use-case';
+import { NotificarRevisoresRevisionUseCase } from '../../application/use-cases/acc/reviews/notificar-revisores-revision.use-case';
 import { GetComentariosArchivoUseCase } from '../../application/use-cases/acc/reviews/get-comentarios-archivo.use-case';
 import { AddComentarioArchivoUseCase } from '../../application/use-cases/acc/reviews/add-comentario-archivo.use-case';
 
@@ -73,6 +74,7 @@ import { BroadcastModule } from './broadcast.module';
         IniciarPasoRevisionUseCase,
         DelegarPasoRevisionUseCase,
         EnviarResenaPasoUseCase,
+        NotificarRevisoresRevisionUseCase,
         GetComentariosArchivoUseCase,
         AddComentarioArchivoUseCase,
 

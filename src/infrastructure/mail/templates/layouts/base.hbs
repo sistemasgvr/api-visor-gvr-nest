@@ -3,37 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{#if title}}{{title}}{{else}}Notificación{{/if}}</title>
-  <style type="text/css">
-    body { margin:0; padding:0; background:#f4f4f5; font-family: Arial, Helvetica, sans-serif; color:#1f2937; }
-    .wrapper { width:100%; padding:24px 12px; box-sizing:border-box; }
-    .card { max-width:600px; margin:0 auto; background:#ffffff; border-radius:8px; overflow:hidden; border:1px solid #e5e7eb; }
-    .header { padding:20px 24px; background:#111827; color:#ffffff; font-size:18px; font-weight:bold; }
-    .body { padding:24px; font-size:15px; line-height:1.5; }
-    .footer { padding:16px 24px; font-size:12px; color:#6b7280; background:#f9fafb; border-top:1px solid #e5e7eb; }
-    a { color:#2563eb; }
-    @media only screen and (max-width:600px) {
-      .body { padding:16px !important; }
-    }
-  </style>
+  <title>{{#if title}}{{title}}{{else}}Correo{{/if}}</title>
 </head>
-<body>
-  <div class="wrapper">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-      <tr>
-        <td align="center">
-          <div class="card">
-            <div class="header">{{#if appName}}{{appName}}{{else}}Visor GVR{{/if}}</div>
-            <div class="body">
-              {{{content}}}
-            </div>
-            <div class="footer">
-              Este mensaje fue enviado automáticamente. Si no esperabas este correo, ignóralo.
-            </div>
-          </div>
-        </td>
-      </tr>
-    </table>
-  </div>
+<body style="margin:0;padding:0;">
+  {{{content}}}
 </body>
 </html>
