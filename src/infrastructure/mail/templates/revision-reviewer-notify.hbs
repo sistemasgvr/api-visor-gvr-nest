@@ -1,29 +1,47 @@
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:24px 12px;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+{{!--
+  Gmail / Outlook / Apple Mail: tablas + estilos inline; sin depender de <style>.
+  Botón envuelto en <td bgcolor> para Word/Outlook; gradiente solo como mejora visual.
+--}}
+<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#f8fafc" style="width:100%;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;background-color:#f8fafc;padding:24px 12px;font-family:Segoe UI,Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;color:#334155;">
   <tr>
-    <td align="center">
-      <table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;">
+    <td align="center" valign="top" style="padding:0;color:#334155;">
+      <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="width:100%;max-width:560px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;background-color:#ffffff;border-radius:12px;border:1px solid #e2e8f0;">
         <tr>
-          <td style="padding:20px 24px;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#ffffff;">
-            <p style="margin:0;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.9;">{{appName}}</p>
-            <h1 style="margin:8px 0 0;font-size:18px;font-weight:600;line-height:1.35;">{{actionHeading}}</h1>
+          <td bgcolor="#1d4ed8" valign="top" style="padding:20px 24px;background-color:#1d4ed8;background-image:linear-gradient(135deg,#1d4ed8,#2563eb);">
+            <p style="margin:0;font-family:Segoe UI,Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:0.08em;text-transform:uppercase;color:#ffffff;mso-line-height-rule:exactly;">{{appName}}</p>
+            <p style="margin:8px 0 0;font-family:Segoe UI,Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-size:18px;font-weight:600;line-height:24px;color:#ffffff;mso-line-height-rule:exactly;">{{actionHeading}}</p>
           </td>
         </tr>
         <tr>
-          <td style="padding:24px;color:#334155;font-size:15px;line-height:1.55;">
-            <p style="margin:0 0 16px;">Hola{{#if recipientName}} <strong>{{recipientName}}</strong>{{/if}},</p>
-            <p style="margin:0 0 12px;"><strong>Revisión:</strong> {{reviewLabel}}</p>
-            <p style="margin:0 0 12px;"><strong>Paso:</strong> {{stepTitle}}</p>
+          <td valign="top" style="padding:24px;background-color:#ffffff;color:#334155;font-size:15px;line-height:23px;font-family:Segoe UI,Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;mso-line-height-rule:exactly;">
+            <p style="margin:0 0 16px;color:#334155;font-size:15px;line-height:23px;mso-line-height-rule:exactly;">Hola{{#if recipientName}} <strong style="color:#0f172a;">{{recipientName}}</strong>{{/if}},</p>
+            <p style="margin:0 0 12px;color:#334155;font-size:15px;line-height:23px;mso-line-height-rule:exactly;"><strong style="color:#0f172a;">Revisión:</strong> {{reviewLabel}}</p>
+            <p style="margin:0 0 12px;color:#334155;font-size:15px;line-height:23px;mso-line-height-rule:exactly;"><strong style="color:#0f172a;">Paso:</strong> {{stepTitle}}</p>
             {{#if message}}
-            <div style="margin:16px 0;padding:12px 14px;background:#f1f5f9;border-radius:8px;border-left:4px solid #3b82f6;">
-              <p style="margin:0;font-size:14px;white-space:pre-wrap;">{{message}}</p>
-            </div>
+            <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;margin:16px 0;">
+              <tr>
+                <td bgcolor="#f1f5f9" valign="top" style="padding:12px 14px;background-color:#f1f5f9;border-radius:8px;border-left:4px solid #3b82f6;">
+                  <p style="margin:0;font-family:Segoe UI,Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;line-height:21px;color:#334155;white-space:pre-wrap;mso-line-height-rule:exactly;">{{message}}</p>
+                </td>
+              </tr>
+            </table>
             {{/if}}
             {{#if reviewDetailUrl}}
-            <p style="margin:20px 0 0;">
-              <a href="{{reviewDetailUrl}}" style="display:inline-block;padding:10px 18px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Abrir revisión</a>
-            </p>
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;margin:20px 0 0;">
+              <tr>
+                <td align="left" valign="middle" style="padding:0;">
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+                    <tr>
+                      <td bgcolor="#2563eb" align="center" valign="middle" style="background-color:#2563eb;border-radius:8px;mso-padding-alt:10px 18px;">
+                        <a href="{{reviewDetailUrl}}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:10px 18px;font-family:Segoe UI,Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;line-height:20px;color:#ffffff;text-decoration:none;mso-line-height-rule:exactly;">Abrir revisión</a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
             {{/if}}
-            <p style="margin:24px 0 0;font-size:13px;color:#64748b;">Este mensaje se envió desde {{appName}}. Si no esperabas este correo, puedes ignorarlo.</p>
+            <p style="margin:24px 0 0;font-family:Segoe UI,Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-size:13px;line-height:19px;color:#64748b;mso-line-height-rule:exactly;">Este mensaje se envió desde {{appName}}. Si no esperabas este correo, puedes ignorarlo.</p>
           </td>
         </tr>
       </table>
