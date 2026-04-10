@@ -129,8 +129,10 @@ async function bootstrap() {
     });
   }
 
-  await app.listen(envs.port || 4001, envs.host);
-  
+  //await app.listen(envs.port || 4001, envs.host);
+  // Deja que el servidor decida la interfaz (escuchar en 0.0.0.0 por defecto)
+  await app.listen(process.env.PORT || 3000);
+
   // Verificar estado de la base de datos
   try {
     const dataSource = app.get(DataSource);
@@ -139,7 +141,7 @@ async function bootstrap() {
   } catch (error) {
     logger.log(`📊 Database: ❌ Connection check failed`);
   }
-  
+
   const port = envs.port || 4001;
   const host = envs.host;
   logger.log(`🚀⭐ Application is running on: http://${host}:${port}/api`);
