@@ -129,9 +129,9 @@ async function bootstrap() {
     });
   }
 
-  //await app.listen(envs.port || 4001, envs.host);
+  await app.listen(envs.port || 4001, envs.host);
   // Deja que el servidor decida la interfaz (escuchar en 0.0.0.0 por defecto)
-  await app.listen(process.env.PORT || 3000, '0.0.0.0');
+  //await app.listen(process.env.PORT || 3000, '0.0.0.0');
 
   // Verificar estado de la base de datos
   try {
