@@ -6,12 +6,12 @@ export class ListarUsuariosDisponiblesRecursoDto {
     @IsString()
     busqueda?: string = '';
 
-    /** Máximo alineado con listados masivos (p. ej. combos de flujo de aprobación). */
+    /** Listados masivos (p. ej. agregar usuarios a recurso sin paginar en cliente). */
     @IsOptional()
     @Type(() => Number)
     @IsInt()
     @Min(1)
-    @Max(1000)
+    @Max(500_000)
     limit?: number = 100;
 
     @IsOptional()
