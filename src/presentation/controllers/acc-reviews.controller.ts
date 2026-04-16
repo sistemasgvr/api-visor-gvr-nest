@@ -10,10 +10,11 @@ import {
     HttpStatus,
     UseGuards,
     Req,
+    Res,
     BadRequestException,
     ParseIntPipe,
 } from '@nestjs/common';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 
@@ -36,9 +37,12 @@ import { EnviarResenaPasoUseCase } from '../../application/use-cases/acc/reviews
 import { GetComentariosArchivoUseCase } from '../../application/use-cases/acc/reviews/get-comentarios-archivo.use-case';
 import { AddComentarioArchivoUseCase } from '../../application/use-cases/acc/reviews/add-comentario-archivo.use-case';
 import { AddComentarioArchivoDto } from '../../application/dtos/acc/reviews/add-comentario-archivo.dto';
+import { ExportarRevisionesPdfUseCase } from '../../application/use-cases/acc/reviews/exportar-revisiones-pdf.use-case';
+import { ExportarRevisionDetallePdfUseCase } from '../../application/use-cases/acc/reviews/exportar-revision-detalle-pdf.use-case';
 
 // DTOs
 import { ObtenerRevisionesDto } from '../../application/dtos/acc/reviews/obtener-revisiones.dto';
+import { ExportarRevisionesPdfQueryDto } from '../../application/dtos/acc/reviews/exportar-revisiones-pdf-query.dto';
 import { CrearRevisionDto } from '../../application/dtos/acc/reviews/crear-revision.dto';
 import { AgregarReferenciaRevisionDto } from '../../application/dtos/acc/reviews/agregar-referencia-revision.dto';
 import { AnularRevisionDto } from '../../application/dtos/acc/reviews/anular-revision.dto';
@@ -69,6 +73,8 @@ export class AccReviewsController {
         private readonly notificarRevisoresRevisionUseCase: NotificarRevisoresRevisionUseCase,
         private readonly getComentariosArchivoUseCase: GetComentariosArchivoUseCase,
         private readonly addComentarioArchivoUseCase: AddComentarioArchivoUseCase,
+        private readonly exportarRevisionesPdfUseCase: ExportarRevisionesPdfUseCase,
+        private readonly exportarRevisionDetallePdfUseCase: ExportarRevisionDetallePdfUseCase,
     ) { }
 
     /**
@@ -104,6 +110,37 @@ export class AccReviewsController {
     }
 
     /**
+     * GET /acc/projects/:projectId/reviews/export/pdf
+     * PDF del listado de revisiones con los mismos filtros opcionales que el listado (sin paginar en cliente).
+     */
+    @Get('export/pdf')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async exportarRevisionesPdf(
+        @Param('projectId') projectId: string,
+        @Query() query: ExportarRevisionesPdfQueryDto,
+        @Req() request: Request,
+        @Res() response: Response,
+    ) {
+        if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
+
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+
+        const userIdNumero = typeof userId === 'number' ? userId : parseInt(userId.toString(), 10);
+        if (isNaN(userIdNumero) || userIdNumero <= 0) {
+            throw new BadRequestException('User ID invï¿½lido');
+        }
+
+        const resultado = await this.exportarRevisionesPdfUseCase.execute(userIdNumero, projectId, query);
+
+        response.setHeader('Content-Type', resultado.contentType);
+        response.setHeader('Content-Disposition', `attachment; filename="${resultado.filename}"`);
+        response.send(Buffer.from(resultado.data));
+    }
+
+    /**
      * POST /acc/projects/:projectId/reviews
      * Crea una nueva revisi?n
      */
@@ -133,6 +170,38 @@ export class AccReviewsController {
         );
 
         return ApiResponseDto.created(resultado, 'Revisi?n creada exitosamente');
+    }
+
+    /**
+     * GET /acc/projects/:projectId/reviews/:reviewId/export/pdf
+     * PDF genÃ©rico con resumen, flujo, archivos, comentarios por archivo, referencias y actividad.
+     */
+    @Get(':reviewId/export/pdf')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async exportarRevisionDetallePdf(
+        @Param('projectId') projectId: string,
+        @Param('reviewId') reviewId: string,
+        @Req() request: Request,
+        @Res() response: Response,
+    ) {
+        if (!projectId) throw new BadRequestException('El ID del proyecto es requerido');
+        if (!reviewId) throw new BadRequestException('El ID de la revisi?n es requerido');
+
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) throw new BadRequestException('User ID es requerido');
+
+        const userIdNumero = typeof userId === 'number' ? userId : parseInt(userId.toString(), 10);
+        if (isNaN(userIdNumero) || userIdNumero <= 0) {
+            throw new BadRequestException('User ID invÃ¡lido');
+        }
+
+        const resultado = await this.exportarRevisionDetallePdfUseCase.execute(userIdNumero, projectId, reviewId);
+
+        response.setHeader('Content-Type', resultado.contentType);
+        response.setHeader('Content-Disposition', `attachment; filename="${resultado.filename}"`);
+        response.send(Buffer.from(resultado.data));
     }
 
     /**
@@ -381,7 +450,7 @@ export class AccReviewsController {
         return ApiResponseDto.success(resultado, resultado.message);
     }
 
-    /** POST /acc/projects/:projectId/reviews/:reviewId/claim-step ÿÿÿ Inicia / reclama el paso actual */
+    /** POST /acc/projects/:projectId/reviews/:reviewId/claim-step ï¿½ï¿½ï¿½ Inicia / reclama el paso actual */
     @Post(':reviewId/claim-step')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
@@ -400,7 +469,7 @@ export class AccReviewsController {
         return ApiResponseDto.success(resultado, resultado.message);
     }
 
-    /** POST /acc/projects/:projectId/reviews/:reviewId/delegate-step ÿÿÿ Delega / libera el paso actual */
+    /** POST /acc/projects/:projectId/reviews/:reviewId/delegate-step ï¿½ï¿½ï¿½ Delega / libera el paso actual */
     @Post(':reviewId/delegate-step')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
@@ -419,7 +488,7 @@ export class AccReviewsController {
         return ApiResponseDto.success(resultado, resultado.message);
     }
 
-    /** POST /acc/projects/:projectId/reviews/:reviewId/submit-step ÿÿÿ Entrega la rese?a del paso actual */
+    /** POST /acc/projects/:projectId/reviews/:reviewId/submit-step ï¿½ï¿½ï¿½ Entrega la rese?a del paso actual */
     @Post(':reviewId/submit-step')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)

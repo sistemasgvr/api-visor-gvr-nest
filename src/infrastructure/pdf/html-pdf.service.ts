@@ -85,6 +85,7 @@ export class HtmlPdfService
       await page.setContent(html, { waitUntil: 'load' });
       const pdf = await page.pdf({
         format: options.format ?? 'A4',
+        landscape: options.landscape ?? false,
         printBackground: true,
         displayHeaderFooter: options.displayHeaderFooter ?? false,
         headerTemplate: options.headerTemplate ?? '<span></span>',

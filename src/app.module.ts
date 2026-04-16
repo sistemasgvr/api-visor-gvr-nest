@@ -42,6 +42,7 @@ import { ControlOperativoModule } from './presentation/modules/control-operativo
 import { DashboardModule } from './presentation/modules/dashboard/dashboard.module';
 import { DemoModule } from './presentation/modules/demo.module';
 import { MailModule } from './presentation/modules/mail.module';
+import { PdfModule } from './infrastructure/pdf/pdf.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { MailModule } from './presentation/modules/mail.module';
     }),
     // Módulo de base de datos
     DatabaseModule,
+    PdfModule,
     // Módulo de broadcasting
     BroadcastModule,
     // Módulo de health check

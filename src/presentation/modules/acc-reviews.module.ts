@@ -22,6 +22,8 @@ import { EnviarResenaPasoUseCase } from '../../application/use-cases/acc/reviews
 import { NotificarRevisoresRevisionUseCase } from '../../application/use-cases/acc/reviews/notificar-revisores-revision.use-case';
 import { GetComentariosArchivoUseCase } from '../../application/use-cases/acc/reviews/get-comentarios-archivo.use-case';
 import { AddComentarioArchivoUseCase } from '../../application/use-cases/acc/reviews/add-comentario-archivo.use-case';
+import { ExportarRevisionesPdfUseCase } from '../../application/use-cases/acc/reviews/exportar-revisiones-pdf.use-case';
+import { ExportarRevisionDetallePdfUseCase } from '../../application/use-cases/acc/reviews/exportar-revision-detalle-pdf.use-case';
 
 // Use Cases — Workflows
 import { ObtenerWorkflowsUseCase } from '../../application/use-cases/acc/reviews/obtener-workflows.use-case';
@@ -49,6 +51,8 @@ import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.reposi
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
 import { DatabaseFunctionService } from '../../infrastructure/database/database-function.service';
+import { ExportacionRevisionesPdfService } from '../../infrastructure/services/exportacion-revisiones-pdf.service';
+import { ExportacionRevisionDetallePdfService } from '../../infrastructure/services/exportacion-revision-detalle-pdf.service';
 import { BroadcastModule } from './broadcast.module';
 
 @Module({
@@ -77,6 +81,10 @@ import { BroadcastModule } from './broadcast.module';
         NotificarRevisoresRevisionUseCase,
         GetComentariosArchivoUseCase,
         AddComentarioArchivoUseCase,
+        ExportarRevisionesPdfUseCase,
+        ExportacionRevisionesPdfService,
+        ExportarRevisionDetallePdfUseCase,
+        ExportacionRevisionDetallePdfService,
 
         // Use Cases — Workflows
         ObtenerWorkflowsUseCase,

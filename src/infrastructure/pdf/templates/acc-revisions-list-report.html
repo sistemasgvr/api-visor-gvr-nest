@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>{{tituloReporte}}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 8pt;
+      color: #1f2937;
+      line-height: 1.4;
+      background: #fff;
+    }
+    h1 {
+      font-size: 16pt;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    .meta {
+      font-size: 8pt;
+      color: #6b7280;
+      margin-bottom: 12px;
+    }
+    .meta strong { color: #374151; }
+    .filters {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+      font-size: 7.5pt;
+    }
+    .filters td {
+      padding: 4px 8px;
+      border: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+    .filters td:first-child {
+      width: 140px;
+      background: #f9fafb;
+      font-weight: 600;
+      color: #374151;
+    }
+    .notice {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 7.5pt;
+      margin-bottom: 10px;
+    }
+    table.data {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7pt;
+    }
+    table.data th {
+      text-align: left;
+      background: #2563eb;
+      color: #fff;
+      padding: 6px 5px;
+      font-weight: 600;
+      border: 1px solid #1d4ed8;
+    }
+    table.data td {
+      padding: 5px;
+      border: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+    table.data tr:nth-child(even) td { background: #f9fafb; }
+    .num { text-align: right; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <h1>{{tituloReporte}}</h1>
+  <div class="meta">
+    <div><strong>Proyecto (ID):</strong> {{projectId}}</div>
+    <div><strong>Generado:</strong> {{fechaGeneracion}}</div>
+    <div><strong>Coincidentes con el filtro (total):</strong> {{totalEnSistema}}</div>
+    <div><strong>Filas incluidas en este PDF:</strong> {{totalListadas}}</div>
+  </div>
+
+  {{#if listadoParcial}}
+  <div class="notice">
+    El listado supera el máximo exportable ({{totalListadas}} filas en este documento). Ajuste los filtros para reducir resultados o exporte por partes.
+  </div>
+  {{/if}}
+
+  <table class="filters" aria-label="Filtros aplicados">
+    {{#each filtrosResumen}}
+    <tr>
+      <td>{{etiqueta}}</td>
+      <td>{{valor}}</td>
+    </tr>
+    {{/each}}
+  </table>
+
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Estado</th>
+        <th>Nombre</th>
+        <th>Iniciado por</th>
+        <th>Siguiente acción</th>
+        <th>Vence</th>
+        <th>Creado</th>
+        <th>Finalizado</th>
+        <th class="num">Arch.</th>
+        <th class="num">Aprob.</th>
+        <th class="num">Rech.</th>
+        <th class="num">%</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each rows}}
+      <tr>
+        <td>{{estado}}</td>
+        <td>{{nombre}}</td>
+        <td>{{iniciadoPor}}</td>
+        <td>{{siguienteAccion}}</td>
+        <td>{{vence}}</td>
+        <td>{{creado}}</td>
+        <td>{{finalizado}}</td>
+        <td class="num">{{archivos}}</td>
+        <td class="num">{{aprobados}}</td>
+        <td class="num">{{rechazados}}</td>
+        <td class="num">{{progreso}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</body>
+</html>

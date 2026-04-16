@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>{{titulo}}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 8.5pt;
+      color: #1f2937;
+      line-height: 1.45;
+      background: #fff;
+    }
+    h1 { font-size: 15pt; color: #111827; margin-bottom: 6px; }
+    h2 {
+      font-size: 10pt;
+      color: #1e40af;
+      margin: 14px 0 6px;
+      padding-bottom: 3px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .muted { color: #6b7280; font-size: 8pt; }
+    .grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 4px 12px;
+      font-size: 8pt;
+      margin-bottom: 8px;
+    }
+    .grid dt { font-weight: 600; color: #374151; }
+    .grid dd { color: #111827; word-break: break-word; }
+    table.meta { width: 100%; border-collapse: collapse; font-size: 8pt; margin-top: 6px; }
+    table.meta td { padding: 4px 6px; border: 1px solid #e5e7eb; vertical-align: top; }
+    table.meta td:first-child { width: 130px; background: #f9fafb; font-weight: 600; }
+    table.files { width: 100%; border-collapse: collapse; font-size: 7.5pt; margin-top: 6px; }
+    table.files th {
+      background: #2563eb;
+      color: #fff;
+      text-align: left;
+      padding: 5px 4px;
+      border: 1px solid #1d4ed8;
+    }
+    table.files td {
+      border: 1px solid #e5e7eb;
+      padding: 5px 4px;
+      vertical-align: top;
+      word-break: break-word;
+    }
+    table.files tr:nth-child(even) td { background: #f9fafb; }
+    table.files ul { margin: 0; padding-left: 14px; }
+    table.files li { margin: 2px 0; }
+    .actividad-item { margin-bottom: 8px; padding-left: 8px; border-left: 2px solid #d1d5db; }
+    .page-break { page-break-before: always; }
+  </style>
+</head>
+<body>
+  <h1>Informe de revisión</h1>
+  <p class="muted">Generado: {{fechaInforme}} · Proyecto: {{projectId}} · ID revisión: {{reviewIdExterno}}</p>
+
+  <h2>Resumen</h2>
+  <dl class="grid">
+    <dt>Nombre</dt><dd>{{titulo}}</dd>
+    <dt>Estado</dt><dd>{{estado}}</dd>
+    <dt>ID secuencia</dt><dd>{{sequenceId}}</dd>
+    <dt>Ronda</dt><dd>{{ronda}}</dd>
+    <dt>Progreso</dt><dd>{{progresoPct}} %</dd>
+    <dt>Archivos</dt><dd>Total {{archivosTotal}} · Aprobados {{archivosAprobados}} · Rechazados {{archivosRechazados}}</dd>
+    <dt>Creado</dt><dd>{{creado}}</dd>
+    <dt>Actualizado</dt><dd>{{actualizado}}</dd>
+    <dt>Finalizado</dt><dd>{{finalizado}}</dd>
+  </dl>
+  {{#if notasRevision}}
+  <p style="font-size:8pt;margin-top:6px;"><strong>Notas de la revisión:</strong> {{notasRevision}}</p>
+  {{/if}}
+
+  <h2>Flujo de trabajo</h2>
+  <p><strong>{{flujoNombre}}</strong></p>
+  {{#if flujoNotas}}
+  <p style="font-size:8pt;margin-top:4px;">{{flujoNotas}}</p>
+  {{/if}}
+  <table class="meta" style="margin-top:8px;">
+    <thead>
+      <tr><th colspan="2">Pasos y responsables</th></tr>
+    </thead>
+    <tbody>
+      {{#each pasos}}
+      <tr>
+        <td>#{{orden}} · {{tipo}}</td>
+        <td><strong>{{nombre}}</strong><br/><span class="muted">Candidatos: {{candidatos}}</span></td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <h2>Iniciador</h2>
+  <p>{{iniciadorNombre}}{{#if iniciadorCorreo}} · {{iniciadorCorreo}}{{/if}}</p>
+
+  <h2>Archivos revisados y comentarios</h2>
+  {{#if sinArchivos}}
+  <p class="muted">No hay archivos en esta revisión.</p>
+  {{else}}
+  <table class="files">
+    <thead>
+      <tr>
+        <th>Archivo</th>
+        <th>Ruta</th>
+        <th>Versión</th>
+        <th>Estado</th>
+        <th>Comentarios</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each fileRows}}
+      <tr>
+        <td>{{nombre}}</td>
+        <td>{{ruta}}</td>
+        <td>{{version}}</td>
+        <td>{{estado}}</td>
+        <td><ul>{{{comentariosLista}}}</ul></td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  <h2 class="page-break">Referencias</h2>
+  {{#if sinReferencias}}
+  <p class="muted">Sin referencias registradas.</p>
+  {{else}}
+  <table class="files">
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>ID externo</th>
+        <th>Notas</th>
+        <th>Enlace</th>
+        <th>Creado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each referencias}}
+      <tr>
+        <td>{{tipo}}</td>
+        <td>{{idExterno}}</td>
+        <td>{{notas}}</td>
+        <td>{{url}}</td>
+        <td>{{creado}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  <h2>Actividad</h2>
+  {{#if sinActividad}}
+  <p class="muted">Sin eventos de actividad.</p>
+  {{else}}
+  {{#each actividades}}
+  <div class="actividad-item">
+    <strong>{{autor}}</strong> <span class="muted">· {{cuando}}</span>
+    {{#if evento}}<div class="muted" style="font-size:7.5pt;">{{evento}}</div>{{/if}}
+    {{#if mensaje}}<div style="margin-top:2px;">{{mensaje}}</div>{{/if}}
+  </div>
+  {{/each}}
+  {{/if}}
+</body>
+</html>
