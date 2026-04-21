@@ -20,6 +20,7 @@ import { ObtenerCantidadJornadasCompletasSemanaUseCase } from 'src/application/u
 import { ObtenerTopTrabajadoresHorasMesUseCase } from 'src/application/use-cases/dashboard/obtener-top-trabajadores-horas-mes.use-case';
 import { ObtenerCantidadTrabajadoresConectadoSemanaUseCase } from 'src/application/use-cases/dashboard/obtener-cantidad-trabajadores-conectado-semana.use-case';
 import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from 'src/application/use-cases/dashboard/obtener-horas-esperadas-vs-registradas-mes.use-case';
+import { ObtenerProyectosConProgresoUseCase } from 'src/application/use-cases/dashboard/obtener-proyectos-con-progreso.use-case';
 
 @Module({
     imports: [
@@ -52,6 +53,7 @@ import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from 'src/application/us
         ObtenerTopTrabajadoresHorasMesUseCase,
         ObtenerCantidadTrabajadoresConectadoSemanaUseCase,
         ObtenerHorasEsperadasVsRegistradasMesUseCase,
+        ObtenerProyectosConProgresoUseCase,
 
         JwtStrategy,
     ],

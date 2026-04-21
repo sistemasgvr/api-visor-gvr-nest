@@ -11,6 +11,7 @@ import {
     DashboardTopTrabajadoresHorasMes,
     DashboardCantidadTrabajadoresConectadoSemana,
     DashboardHorasEsperadasVsRegistradasMes,
+    DashboardProyectosConProgreso,
 } from 'src/domain/repositories/dashboard/dashboard.repository.interface';
 import { DatabaseFunctionService } from 'src/infrastructure/database/database-function.service';
 
@@ -117,4 +118,17 @@ export class DashboardRepository implements IDashboardRepository {
             totalTrabajadoresRegistrados: Number(row.totalTrabajadoresRegistrados),
         }));
     }
+
+    async proyectosConProgreso(): Promise<DashboardProyectosConProgreso[]> {
+    const result = await this.databaseFunctionService.callFunction<any>(
+        'dash_ProyectosConProgreso', [],
+    );
+    if (!Array.isArray(result)) return [];
+    return result.map(row => ({
+        nombreProyecto: row.nombreProyecto,
+        tipoProyecto: row.tipoProyecto,
+        estadoProyecto: row.estadoProyecto,
+        progresoPorcentaje: Math.trunc(Number(row.progresoPorcentaje)),
+    }));
+}
 }

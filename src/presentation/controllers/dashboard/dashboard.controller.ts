@@ -18,6 +18,7 @@ import { ObtenerCantidadJornadasCompletasSemanaUseCase } from '../../../applicat
 import { ObtenerTopTrabajadoresHorasMesUseCase } from '../../../application/use-cases/dashboard/obtener-top-trabajadores-horas-mes.use-case';
 import { ObtenerCantidadTrabajadoresConectadoSemanaUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-trabajadores-conectado-semana.use-case';
 import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from '../../../application/use-cases/dashboard/obtener-horas-esperadas-vs-registradas-mes.use-case';
+import { ObtenerProyectosConProgresoUseCase } from '../../../application/use-cases/dashboard/obtener-proyectos-con-progreso.use-case';
 
 @Controller('dashboard')
 @UseGuards(JwtAuthGuard)
@@ -33,7 +34,7 @@ export class DashboardController {
         private readonly obtenerTopTrabajadoresHorasMesUseCase: ObtenerTopTrabajadoresHorasMesUseCase,
         private readonly obtenerCantidadTrabajadoresConectadoSemanaUseCase: ObtenerCantidadTrabajadoresConectadoSemanaUseCase,
         private readonly obtenerHorasEsperadasVsRegistradasMesUseCase: ObtenerHorasEsperadasVsRegistradasMesUseCase,
-
+        private readonly obtenerProyectosConProgresoUseCase: ObtenerProyectosConProgresoUseCase,
     ) { }
 
     @Get('cantidad-proyectos-vigentes')
@@ -104,5 +105,12 @@ export class DashboardController {
     async obtenerHorasEsperadasVsRegistradasMes() {
         const data = await this.obtenerHorasEsperadasVsRegistradasMesUseCase.execute();
         return ApiResponseDto.success(data, 'Horas esperadas vs registradas del mes');
+    }
+
+    @Get('proyectos-con-progreso')
+    @HttpCode(HttpStatus.OK)
+    async obtenerProyectosConProgreso() {
+        const data = await this.obtenerProyectosConProgresoUseCase.execute();
+        return ApiResponseDto.success(data, 'Proyectos con progreso');
     }
 }

@@ -13,6 +13,7 @@ export interface IDashboardRepository {
     topTrabajadoresHorasMes(): Promise<DashboardTopTrabajadoresHorasMes[]>;
     cantidadTrabajadoresConectadoSemana(): Promise<DashboardCantidadTrabajadoresConectadoSemana[]>;
     horasEsperadasVsRegistradasMes(): Promise<DashboardHorasEsperadasVsRegistradasMes[]>;
+    proyectosConProgreso(): Promise<DashboardProyectosConProgreso[]>;
 }
 
 export interface DashboardCantidadTrabajadoresActivos {
@@ -53,6 +54,13 @@ export interface DashboardHorasEsperadasVsRegistradasMes {
     horasRegistradas: number;
     totalTrabajadoresEsperados: number;
     totalTrabajadoresRegistrados: number;
+}
+
+export interface DashboardProyectosConProgreso {
+    nombreProyecto: string;
+    tipoProyecto: string;
+    estadoProyecto: string;
+    progresoPorcentaje: number;
 }
 
 
