@@ -2,6 +2,33 @@ import { Injectable } from '@nestjs/common';
 import { IAccRecursosRepository } from '../../domain/repositories/acc-recursos.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
 
+/**
+ * Las funciones PostgreSQL que retornan JSONB aparecen en el row con el nombre de la función;
+ * el driver puede usar distinto casing o guiones (p. ej. acc_asignarusuariosincidencia vs accasignarusuariosincidencia).
+ * Tomar el valor de la única columna evita depender de esa convención.
+ */
+function pickJsonbFromFunctionRow(row: Record<string, unknown> | null | undefined): unknown {
+    if (!row || typeof row !== 'object') {
+        return null;
+    }
+    const values = Object.values(row).filter((v) => v !== undefined && v !== null);
+    if (values.length === 1) {
+        return values[0];
+    }
+    return (
+        values.find(
+            (v) =>
+                typeof v === 'object' &&
+                v !== null &&
+                !Array.isArray(v) &&
+                ('success' in v ||
+                    'data' in v ||
+                    'id_recurso' in v ||
+                    ('id' in v && 'recurso_id' in v)),
+        ) ?? null
+    );
+}
+
 @Injectable()
 export class AccRecursosRepository implements IAccRecursosRepository {
     constructor(
@@ -44,9 +71,12 @@ export class AccRecursosRepository implements IAccRecursosRepository {
             return null;
         }
 
-        // La función retorna una tabla con success, message, id
-        // Extraer el primer resultado
-        const jsonbResult = result.acc_guardarrecurso ?? result.accguardarrecurso ?? result.accGuardarRecurso ?? result;
+        const jsonbResult =
+            pickJsonbFromFunctionRow(result as Record<string, unknown>) ??
+            (result as any).acc_guardarrecurso ??
+            (result as any).accguardarrecurso ??
+            (result as any).accGuardarRecurso ??
+            result;
 
         return jsonbResult;
     }
@@ -61,8 +91,12 @@ export class AccRecursosRepository implements IAccRecursosRepository {
             return null;
         }
 
-        // La función retorna un JSONB directamente, necesitamos extraerlo
-        const jsonbResult = result.acc_obtenerrecurso ?? result.accobtenerrecurso ?? result.accObtenerRecurso ?? result;
+        const jsonbResult =
+            pickJsonbFromFunctionRow(result as Record<string, unknown>) ??
+            (result as any).acc_obtenerrecurso ??
+            (result as any).accobtenerrecurso ??
+            (result as any).accObtenerRecurso ??
+            result;
 
         // Si el resultado tiene success: false, retornar null
         if (jsonbResult && jsonbResult.success === false) {
@@ -99,8 +133,11 @@ export class AccRecursosRepository implements IAccRecursosRepository {
             return null;
         }
 
-        // La función retorna una tabla con success, message
-        const jsonbResult = result.accactualizarrecurso || result.accActualizarRecurso || result;
+        const jsonbResult =
+            pickJsonbFromFunctionRow(result as Record<string, unknown>) ??
+            (result as any).accactualizarrecurso ??
+            (result as any).accActualizarRecurso ??
+            result;
 
         return jsonbResult;
     }
@@ -120,8 +157,11 @@ export class AccRecursosRepository implements IAccRecursosRepository {
             return { data: [], total_registros: 0 };
         }
 
-        // La función retorna un JSONB directamente
-        const jsonbResult = result.accobtenerrecursosporproyecto || result.accObtenerRecursosPorProyecto || result;
+        const jsonbResult =
+            pickJsonbFromFunctionRow(result as Record<string, unknown>) ??
+            (result as any).accobtenerrecursosporproyecto ??
+            (result as any).accObtenerRecursosPorProyecto ??
+            result;
 
         return jsonbResult || { data: [], total_registros: 0 };
     }
@@ -139,8 +179,11 @@ export class AccRecursosRepository implements IAccRecursosRepository {
             return [];
         }
 
-        // La función retorna un JSONB directamente
-        const jsonbResult = result.accobtenerrecursoshijos || result.accObtenerRecursosHijos || result;
+        const jsonbResult =
+            pickJsonbFromFunctionRow(result as Record<string, unknown>) ??
+            (result as any).accobtenerrecursoshijos ??
+            (result as any).accObtenerRecursosHijos ??
+            result;
 
         // Si es un array, retornarlo directamente
         if (Array.isArray(jsonbResult)) {
@@ -171,8 +214,11 @@ export class AccRecursosRepository implements IAccRecursosRepository {
             return { data: [], total_registros: 0 };
         }
 
-        // La función retorna un JSONB directamente
-        const jsonbResult = result.accobtenerrecursosusuario || result.accObtenerRecursosUsuario || result;
+        const jsonbResult =
+            pickJsonbFromFunctionRow(result as Record<string, unknown>) ??
+            (result as any).accobtenerrecursosusuario ??
+            (result as any).accObtenerRecursosUsuario ??
+            result;
 
         // Si tiene estructura con data y total_registros, retornarla
         if (jsonbResult && jsonbResult.data !== undefined) {
@@ -206,7 +252,12 @@ export class AccRecursosRepository implements IAccRecursosRepository {
             return null;
         }
 
-        const jsonbResult = result.accasignarusuariosincidencia || result.accAsignarUsuariosIncidencia || result;
+        const jsonbResult =
+            pickJsonbFromFunctionRow(result as Record<string, unknown>) ??
+            (result as any).accasignarusuariosincidencia ??
+            (result as any).acc_asignarusuariosincidencia ??
+            (result as any).accAsignarUsuariosIncidencia ??
+            result;
 
         return jsonbResult;
     }
@@ -232,7 +283,12 @@ export class AccRecursosRepository implements IAccRecursosRepository {
             };
         }
 
-        const jsonbResult = result.accdesasignarusuariosincidencia || result.accDesasignarUsuariosIncidencia || result;
+        const jsonbResult =
+            pickJsonbFromFunctionRow(result as Record<string, unknown>) ??
+            (result as any).accdesasignarusuariosincidencia ??
+            (result as any).acc_desasignarusuariosincidencia ??
+            (result as any).accDesasignarUsuariosIncidencia ??
+            result;
 
         return jsonbResult;
     }
@@ -247,7 +303,12 @@ export class AccRecursosRepository implements IAccRecursosRepository {
             return { success: false, data: [], total: 0 };
         }
 
-        const jsonbResult = result.accobtenerusuariosasignadosincidencia || result.accObtenerUsuariosAsignadosIncidencia || result;
+        const jsonbResult =
+            pickJsonbFromFunctionRow(result as Record<string, unknown>) ??
+            (result as any).accobtenerusuariosasignadosincidencia ??
+            (result as any).acc_obtenerusuariosasignadosincidencia ??
+            (result as any).accObtenerUsuariosAsignadosIncidencia ??
+            result;
 
         return jsonbResult;
     }
