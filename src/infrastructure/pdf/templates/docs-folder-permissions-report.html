@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>{{tituloReporte}}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 8pt; color: #1f2937; }
+    h1 { font-size: 14pt; color: #111827; margin-bottom: 4px; }
+    .meta { font-size: 7.5pt; color: #6b7280; margin-bottom: 10px; }
+    .meta strong { color: #374151; }
+    .notice { background: #eff6ff; color: #1e3a5f; padding: 6px 8px; border-radius: 4px; font-size: 7pt; margin-bottom: 8px; }
+    table.data { width: 100%; border-collapse: collapse; }
+    table.data th { text-align: left; background: #0f766e; color: #fff; padding: 5px; font-size: 7.5pt; border: 1px solid #0d9488; }
+    table.data td { padding: 4px 5px; border: 1px solid #e5e7eb; vertical-align: top; }
+    table.data tr:nth-child(even) td { background: #f0fdfa; }
+  </style>
+</head>
+<body>
+  <h1>{{tituloReporte}}</h1>
+  <div class="meta">
+    <div><strong>Proyecto:</strong> {{projectId}}</div>
+    <div><strong>Carpeta de referencia:</strong> {{carpetaRef}}</div>
+    <div><strong>Alcance:</strong> {{alcanceEtiqueta}}</div>
+    <div><strong>Generado:</strong> {{fechaGeneracion}}</div>
+    <div><strong>Asignaciones (filas):</strong> {{totalAsignaciones}} · <strong>Carpetas con datos:</strong> {{carpetasRecorridas}}</div>
+  </div>
+  {{#if listadoParcial}}
+  <div class="notice">Se alcanzó un límite de filas o carpetas; el informe puede estar incompleto. Solo se listan permisos registrados en GVR (accresources + useraccaccess) para carpetas mapeadas.</div>
+  {{/if}}
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Carpeta</th>
+        <th>Usuario</th>
+        <th>Correo</th>
+        <th>Nivel de permiso</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each filas}}
+      <tr>
+        <td>{{carpeta}}</td>
+        <td>{{usuario}}</td>
+        <td>{{email}}</td>
+        <td>{{nivel}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  <p style="margin-top:8px; font-size:6.5pt; color:#6b7280;">Los permisos se obtienen de la base de datos de la aplicación (GVR) para recursos de carpeta sincronizados; si una carpeta de ACC no está mapeada, no aparecerán filas de permisos.</p>
+</body>
+</html>

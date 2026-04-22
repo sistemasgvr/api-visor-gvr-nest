@@ -873,6 +873,50 @@ export class AutodeskApiService {
     }
 
     /**
+     * Contenido de una carpeta siguiendo paginación JSON:API (links.next) hasta agotar resultados.
+     */
+    async obtenerContenidoCarpetaTodasLasPaginas(
+        accessToken: string,
+        projectId: string,
+        folderId: string,
+        filters: Record<string, any> = {},
+    ): Promise<{ data: any[]; included: any[] }> {
+        const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
+        const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
+        const initialPath = `${baseUrl}/data/v1/projects/${encodeURIComponent(
+            dataManagementProjectId,
+        )}/folders/${encodeURIComponent(folderId)}/contents`;
+        const q =
+            Object.keys(filters).length > 0
+                ? '?' + new URLSearchParams(filters as Record<string, string>).toString()
+                : '';
+        let nextUrl: string | null = initialPath + q;
+        const all: any[] = [];
+        const allIncluded: any[] = [];
+        const guard = 200;
+        let pages = 0;
+        while (nextUrl && pages < guard) {
+            pages += 1;
+            const response = await this.httpClient.get<any>(nextUrl, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            const chunk = response.data.data || [];
+            all.push(...chunk);
+            allIncluded.push(...(response.data.included || []));
+            const links = response.data?.links;
+            const next = links?.next;
+            if (typeof next === 'string' && next.length > 0) {
+                nextUrl = next;
+            } else if (next && typeof next === 'object' && (next as { href?: string }).href) {
+                nextUrl = (next as { href: string }).href;
+            } else {
+                nextUrl = null;
+            }
+        }
+        return { data: all, included: allIncluded };
+    }
+
+    /**
      * Busca en el contenido de una carpeta por nombre u otros criterios
      */
     async buscarEnContenidoCarpeta(
@@ -1878,8 +1922,9 @@ export class AutodeskApiService {
                 throw new Error('Token, projectId y itemId son requeridos');
             }
 
+            const dataManagementProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
             const baseUrl = this.configService.get<string>('AUTODESK_API_BASE_URL') || 'https://developer.api.autodesk.com';
-            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(projectId)}/items/${encodeURIComponent(itemId)}/tip`;
+            const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/items/${encodeURIComponent(itemId)}/tip`;
 
             const response = await this.httpClient.get<any>(url, {
                 headers: {

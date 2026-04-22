@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>{{tituloReporte}}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 7.5pt; color: #1f2937; }
+    h1 { font-size: 14pt; color: #111827; margin-bottom: 4px; }
+    .meta { font-size: 7.5pt; color: #6b7280; margin-bottom: 10px; }
+    .meta strong { color: #374151; }
+    .notice { background: #eff6ff; color: #1e3a5f; padding: 6px 8px; border-radius: 4px; font-size: 7pt; margin-bottom: 8px; }
+    table.data { width: 100%; border-collapse: collapse; }
+    table.data th { text-align: left; background: #2563eb; color: #fff; padding: 4px; font-size: 7pt; border: 1px solid #1d4ed8; }
+    table.data td { padding: 3px 4px; border: 1px solid #e5e7eb; vertical-align: top; font-size: 6.5pt; }
+    table.data tr:nth-child(even) td { background: #f9fafb; }
+  </style>
+</head>
+<body>
+  <h1>{{tituloReporte}}</h1>
+  <div class="meta">
+    <div><strong>Proyecto:</strong> {{proyectoLabel}}</div>
+    <div><strong>Carpeta base:</strong> {{carpetaBaseLabel}}</div>
+    <div><strong>Generado:</strong> {{fechaGeneracion}}</div>
+    <div><strong>Subcarpetas:</strong> {{#if incluirSubcarpetas}}Sí{{else}}No (solo actual){{/if}} · <strong>Atributos ext.:</strong> {{#if atributosPersonalizados}}Sí{{else}}No{{/if}}</div>
+    <div><strong>Filas:</strong> {{totalFilas}} · <strong>Carpetas visitadas:</strong> {{carpetasVisitadas}}</div>
+  </div>
+  {{#if listadoParcial}}
+  <div class="notice">El registro alcanzó el límite de exportación; el PDF puede estar incompleto. Reduzca el alcance (solo carpeta actual) o exporte por secciones.</div>
+  {{/if}}
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Ruta relativa</th>
+        <th>Nombre</th>
+        <th>Tipo</th>
+        <th>Descripción</th>
+        <th>Versión / ref.</th>
+        <th>Modificado</th>
+        <th>Atributos (ext.)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each filas}}
+      <tr>
+        <td>{{ruta}}</td>
+        <td>{{nombre}}</td>
+        <td>{{tipo}}</td>
+        <td>{{descripcion}}</td>
+        <td>{{version}}</td>
+        <td>{{modificado}}</td>
+        <td>{{atributosExtra}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  <p style="margin-top:8px; font-size:6.5pt; color:#6b7280;">Los permisos y versiones de ACC pueden requerir datos adicionales en el visor nativo. Este informe refleja los metadatos disponibles vía API.</p>
+</body>
+</html>

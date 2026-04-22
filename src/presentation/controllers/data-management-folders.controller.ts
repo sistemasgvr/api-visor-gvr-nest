@@ -1,18 +1,20 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Patch,
-    Delete,
-    Query,
-    Param,
+    BadRequestException,
     Body,
+    Controller,
+    Delete,
+    Get,
     HttpCode,
     HttpStatus,
+    Param,
+    Patch,
+    Post,
+    Query,
     Req,
+    Res,
     UseGuards,
 } from '@nestjs/common';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { RequestInfoHelper } from '../../shared/helpers/request-info.helper';
@@ -36,6 +38,10 @@ import { CrearReferenciaCarpetaUseCase } from '../../application/use-cases/data-
 import { ActualizarCarpetaUseCase } from '../../application/use-cases/data-management/folders/actualizar-carpeta.use-case';
 import { EliminarCarpetaUseCase } from '../../application/use-cases/data-management/folders/eliminar-carpeta.use-case';
 import { SincronizarCarpetasProyectoUseCase } from '../../application/use-cases/data-management/folders/sincronizar-carpetas-proyecto.use-case';
+import { ExportarRegistroArchivosPdfUseCase } from '../../application/use-cases/data-management/folders/exportar-registro-archivos-pdf.use-case';
+import { ExportarPermisosCarpetaPdfUseCase } from '../../application/use-cases/data-management/folders/exportar-permisos-carpeta-pdf.use-case';
+import { ExportarRegistroArchivosPdfDto } from '../../application/dtos/data-management/folders/exportar-registro-archivos-pdf.dto';
+import { ExportarPermisosCarpetaPdfDto } from '../../application/dtos/data-management/folders/exportar-permisos-carpeta-pdf.dto';
 
 // DTOs - Group 1
 import { ObtenerCarpetaPorIdDto } from '../../application/dtos/data-management/folders/obtener-carpeta-por-id.dto';
@@ -75,7 +81,81 @@ export class DataManagementFoldersController {
         private readonly actualizarCarpetaUseCase: ActualizarCarpetaUseCase,
         private readonly eliminarCarpetaUseCase: EliminarCarpetaUseCase,
         private readonly sincronizarCarpetasProyectoUseCase: SincronizarCarpetasProyectoUseCase,
+        private readonly exportarRegistroArchivosPdfUseCase: ExportarRegistroArchivosPdfUseCase,
+        private readonly exportarPermisosCarpetaPdfUseCase: ExportarPermisosCarpetaPdfUseCase,
     ) { }
+
+    /**
+     * POST - PDF registro de archivos (carpeta actual o con subcarpetas)
+     * POST /data-management/folders/:projectId/:folderId/export/file-registry/pdf
+     */
+    @Post(':projectId/:folderId/export/file-registry/pdf')
+    @HttpCode(HttpStatus.OK)
+    async exportarRegistroArchivosPdf(
+        @Req() request: Request,
+        @Param('projectId') projectId: string,
+        @Param('folderId') folderId: string,
+        @Body() dto: ExportarRegistroArchivosPdfDto,
+        @Res() res: Response,
+    ) {
+        if (!projectId || !folderId) {
+            throw new BadRequestException('projectId y folderId son requeridos');
+        }
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) {
+            throw new BadRequestException('User ID es requerido');
+        }
+        const userIdNumero = typeof userId === 'number' ? userId : parseInt(String(userId), 10);
+        if (isNaN(userIdNumero) || userIdNumero <= 0) {
+            throw new BadRequestException('User ID inválido');
+        }
+        const resultado = await this.exportarRegistroArchivosPdfUseCase.execute(
+            userIdNumero,
+            projectId,
+            folderId,
+            dto,
+        );
+        res.setHeader('Content-Type', resultado.contentType);
+        res.setHeader('Content-Disposition', `attachment; filename="${resultado.filename}"`);
+        return res.send(Buffer.from(resultado.data));
+    }
+
+    /**
+     * POST - PDF de permisos de carpeta (GVR: accresources + asignaciones)
+     * POST /data-management/folders/:projectId/:folderId/export/permissions/pdf
+     */
+    @Post(':projectId/:folderId/export/permissions/pdf')
+    @HttpCode(HttpStatus.OK)
+    async exportarPermisosCarpetaPdf(
+        @Req() request: Request,
+        @Param('projectId') projectId: string,
+        @Param('folderId') folderId: string,
+        @Body() dto: ExportarPermisosCarpetaPdfDto,
+        @Res() res: Response,
+    ) {
+        if (!projectId || !folderId) {
+            throw new BadRequestException('projectId y folderId son requeridos');
+        }
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) {
+            throw new BadRequestException('User ID es requerido');
+        }
+        const userIdNumero = typeof userId === 'number' ? userId : parseInt(String(userId), 10);
+        if (isNaN(userIdNumero) || userIdNumero <= 0) {
+            throw new BadRequestException('User ID inválido');
+        }
+        const resultado = await this.exportarPermisosCarpetaPdfUseCase.execute(
+            userIdNumero,
+            projectId,
+            folderId,
+            dto,
+        );
+        res.setHeader('Content-Type', resultado.contentType);
+        res.setHeader('Content-Disposition', `attachment; filename="${resultado.filename}"`);
+        return res.send(Buffer.from(resultado.data));
+    }
 
     /**
      * GET - Obtener una carpeta específica por ID
