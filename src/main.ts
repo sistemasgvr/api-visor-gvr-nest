@@ -17,6 +17,7 @@ import { AppModule } from './app.module';
 import { envs } from './config';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
+import { spanishValidationExceptionFactory } from './shared/validation/spanish-validation-messages';
 
 async function bootstrap() {
   const logger = new Logger('Main.ts');
@@ -54,6 +55,8 @@ async function bootstrap() {
       whitelist: true, // Elimina propiedades no definidas en el DTO
       forbidNonWhitelisted: true, // Lanza error si hay propiedades extra
       transform: true, // Transforma los payloads a instancias de DTO
+      // Mensajes de validación en español (class-validator en inglés por defecto)
+      exceptionFactory: (errors) => spanishValidationExceptionFactory(errors),
     }),
   );
 
