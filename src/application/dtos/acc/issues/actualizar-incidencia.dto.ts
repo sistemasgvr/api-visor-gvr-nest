@@ -1,5 +1,5 @@
 import { IsOptional, IsString, IsNumber, IsBoolean, IsObject, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class ActualizarIncidenciaDto {
     @IsOptional()
@@ -45,6 +45,16 @@ export class ActualizarIncidenciaDto {
     @IsOptional()
     @IsString()
     locationDetails?: string;
+
+    @IsOptional()
+    @Transform(({ value }) => value === 'true' || value === true)
+    @IsBoolean()
+    published?: boolean;
+
+    @IsOptional()
+    @Transform(({ value }) => value === 'true' || value === true)
+    @IsBoolean()
+    deleted?: boolean;
 }
 
 

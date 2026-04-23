@@ -23,6 +23,9 @@ export interface IAuditoriaRepository {
 
     obtenerAuditoriasPorFolderId(folderId: string): Promise<any[]>;
 
+    /** Registros de auditoría cuyo metadatos apunta a una incidencia ACC (accIssueId o issueId) */
+    obtenerAuditoriasPorAccIssueId(issueId: string, limit?: number): Promise<any[]>;
+
     registrarAccion(
         idUsuario: number,
         accion: string,

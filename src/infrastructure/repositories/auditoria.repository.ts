@@ -239,6 +239,33 @@ export class AuditoriaRepository implements IAuditoriaRepository {
         return result || [];
     }
 
+    async obtenerAuditoriasPorAccIssueId(issueId: string, limit = 200): Promise<any[]> {
+        const query = `
+            SELECT
+                a.id,
+                a.idusuario,
+                u.nombre as usuario,
+                a.accion,
+                a.descripcion,
+                a.datosanteriores,
+                a.datosnuevos,
+                a.metadatos,
+                a.fechacreacion,
+                a.entidad
+            FROM audauditoria a
+            LEFT JOIN authusuarios u ON a.idusuario = u.id
+            WHERE a.estado = 1
+                AND (
+                    a.metadatos->>'accIssueId' = $1
+                    OR a.metadatos->>'issueId' = $1
+                )
+            ORDER BY a.fechacreacion DESC
+            LIMIT $2
+        `;
+        const result = await this.databaseFunctionService.executeQuery<any>(query, [issueId, limit]);
+        return result || [];
+    }
+
     async registrarAccion(
         idUsuario: number,
         accion: string,

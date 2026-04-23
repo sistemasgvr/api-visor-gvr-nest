@@ -21,6 +21,7 @@ import { EliminarAdjuntoUseCase } from '../../application/use-cases/acc/issues/e
 import { AsignarIncidenciaUseCase } from '../../application/use-cases/acc/issues/asignar-incidencia.use-case';
 import { ObtenerUsuariosDisponiblesUseCase } from '../../application/use-cases/acc/issues/obtener-usuarios-disponibles.use-case';
 import { ExportarIncidenciasUseCase } from '../../application/use-cases/acc/issues/exportar-incidencias.use-case';
+import { ObtenerActividadIncidenciaUseCase } from '../../application/use-cases/acc/issues/obtener-actividad-incidencia.use-case';
 import ObtenerTokenValidoHelper from '../../application/use-cases/acc/issues/obtener-token-valido.helper';
 
 // Services
@@ -69,6 +70,7 @@ import { BroadcastModule } from './broadcast.module';
         AsignarIncidenciaUseCase,
         ObtenerUsuariosDisponiblesUseCase,
         ExportarIncidenciasUseCase,
+        ObtenerActividadIncidenciaUseCase,
 
         // Services
         AutodeskApiService,

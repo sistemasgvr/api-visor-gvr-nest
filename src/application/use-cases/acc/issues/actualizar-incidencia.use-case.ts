@@ -33,6 +33,7 @@ export class ActualizarIncidenciaUseCase {
                     title: issueAnterior.title,
                     status: issueAnterior.status,
                     description: issueAnterior.description?.substring(0, 200),
+                    published: (issueAnterior as { published?: boolean }).published,
                 };
             }
         } catch (error) {
@@ -51,6 +52,8 @@ export class ActualizarIncidenciaUseCase {
         if (dto.startDate !== undefined) updateData.startDate = dto.startDate;
         if (dto.locationId !== undefined) updateData.locationId = dto.locationId;
         if (dto.locationDetails !== undefined) updateData.locationDetails = dto.locationDetails.substring(0, 250);
+        if (dto.published !== undefined) updateData.published = dto.published;
+        if (dto.deleted !== undefined) updateData.deleted = dto.deleted;
 
         const resultado = await this.autodeskApiService.actualizarIncidencia(accessToken, projectId, issueId, updateData);
 
@@ -67,14 +70,16 @@ export class ActualizarIncidenciaUseCase {
                     {
                         issueId,
                         projectId,
-                        title: updateData.title || datosAnteriores?.title,
-                        status: updateData.status || datosAnteriores?.status,
+                        title: updateData.title !== undefined ? updateData.title : datosAnteriores?.title,
+                        status: updateData.status !== undefined ? updateData.status : datosAnteriores?.status,
+                        published: updateData.published !== undefined ? updateData.published : datosAnteriores?.published,
                     },
                     ipAddress,
                     userAgent,
                     {
                         projectId,
                         accIssueId: issueId, // ID de la incidencia de ACC (string/UUID)
+                        issueId, // cláusula OR en obtenerAuditoriasPorAccIssueId
                         rol: userRole || null, // Rol del usuario al momento de actualizar la incidencia
                     },
                 );

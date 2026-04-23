@@ -42,6 +42,7 @@ import { EliminarAdjuntoUseCase } from '../../application/use-cases/acc/issues/e
 import { AsignarIncidenciaUseCase } from '../../application/use-cases/acc/issues/asignar-incidencia.use-case';
 import { ObtenerUsuariosDisponiblesUseCase } from '../../application/use-cases/acc/issues/obtener-usuarios-disponibles.use-case';
 import { ExportarIncidenciasUseCase } from '../../application/use-cases/acc/issues/exportar-incidencias.use-case';
+import { ObtenerActividadIncidenciaUseCase } from '../../application/use-cases/acc/issues/obtener-actividad-incidencia.use-case';
 
 // DTOs
 import { ObtenerTiposIncidenciasDto } from '../../application/dtos/acc/issues/obtener-tipos-incidencias.dto';
@@ -59,7 +60,6 @@ import { CrearAdjuntoDto } from '../../application/dtos/acc/issues/crear-adjunto
 import { ObtenerAdjuntosDto } from '../../application/dtos/acc/issues/obtener-adjuntos.dto';
 import { AsignarIncidenciaDto } from '../../application/dtos/acc/issues/asignar-incidencia.dto';
 import { ExportarIncidenciasDto } from '../../application/dtos/acc/issues/exportar-incidencias.dto';
-
 @Controller('acc/projects/:projectId')
 export class AccIssuesController {
     constructor(
@@ -82,6 +82,7 @@ export class AccIssuesController {
         private readonly asignarIncidenciaUseCase: AsignarIncidenciaUseCase,
         private readonly obtenerUsuariosDisponiblesUseCase: ObtenerUsuariosDisponiblesUseCase,
         private readonly exportarIncidenciasUseCase: ExportarIncidenciasUseCase,
+        private readonly obtenerActividadIncidenciaUseCase: ObtenerActividadIncidenciaUseCase,
     ) { }
 
     /**
@@ -429,6 +430,34 @@ export class AccIssuesController {
             resultado,
             'Incidencia creada exitosamente',
         );
+    }
+
+    /**
+     * GET - Registro de actividad (GVR: auditoría + comentarios ACC) para una incidencia
+     * GET /acc/projects/:projectId/issues/:issueId/activity
+     */
+    @Get('issues/:issueId/activity')
+    @UseGuards(JwtAuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async obtenerActividadIncidencia(
+        @Param('projectId') projectId: string,
+        @Param('issueId') issueId: string,
+        @Req() request: Request,
+    ) {
+        if (!projectId || !issueId) {
+            throw new BadRequestException('Project ID y Issue ID son requeridos');
+        }
+        const user = (request as any).user;
+        const userId = user?.sub || user?.id;
+        if (!userId) {
+            throw new BadRequestException('User ID es requerido');
+        }
+        const userIdNumero = typeof userId === 'number' ? userId : parseInt(String(userId), 10);
+        if (isNaN(userIdNumero) || userIdNumero <= 0) {
+            throw new BadRequestException('User ID inválido');
+        }
+        const resultado = await this.obtenerActividadIncidenciaUseCase.execute(userIdNumero, projectId, issueId);
+        return ApiResponseDto.success(resultado, 'Actividad de la incidencia obtenida');
     }
 
     /**
