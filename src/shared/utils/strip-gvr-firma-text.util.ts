@@ -2,7 +2,9 @@
  * Elimina el bloque de firma GVR añadido a comentarios (p. ej. en CommentsSection.vue)
  * para mostrar solo el cuerpo visible.
  */
-export function stripGvrFirmaDelComentario(text: string | undefined | null): string {
+export function stripGvrFirmaDelComentario(
+  text: string | undefined | null,
+): string {
   if (text == null || String(text).length === 0) {
     return '';
   }

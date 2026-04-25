@@ -4,12 +4,12 @@ import { ROL_REPOSITORY } from '../../../domain/repositories/rol.repository.inte
 
 @Injectable()
 export class ListarPermisosDisponiblesUseCase {
-    constructor(
-        @Inject(ROL_REPOSITORY)
-        private readonly rolRepository: IRolRepository,
-    ) { }
+  constructor(
+    @Inject(ROL_REPOSITORY)
+    private readonly rolRepository: IRolRepository,
+  ) {}
 
-    async execute(idRol: number) {
-        return await this.rolRepository.listarPermisosDisponibles(idRol);
-    }
+  async execute(idRol: number) {
+    return await this.rolRepository.listarPermisosDisponibles(idRol);
+  }
 }

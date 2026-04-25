@@ -1,5 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { AUDITORIA_REPOSITORY, type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import {
+  AUDITORIA_REPOSITORY,
+  type IAuditoriaRepository,
+} from '../../../../domain/repositories/auditoria.repository.interface';
 import { ObtenerComentariosUseCase } from './obtener-comentarios.use-case';
 import { ObtenerComentariosDto } from '../../../dtos/acc/issues/obtener-comentarios.dto';
 import { stripGvrFirmaDelComentario } from '../../../../shared/utils/strip-gvr-firma-text.util';
@@ -36,7 +39,11 @@ export class ObtenerActividadIncidenciaUseCase {
     const entradas: ActividadEntrada[] = [];
     const visto = new Set<string>();
 
-    const auditoria = await this.auditoriaRepository.obtenerAuditoriasPorAccIssueId(issueId, 500);
+    const auditoria =
+      await this.auditoriaRepository.obtenerAuditoriasPorAccIssueId(
+        issueId,
+        500,
+      );
 
     const comentarioIdsGvr = new Set<string>();
     for (const row of auditoria) {
@@ -50,9 +57,15 @@ export class ObtenerActividadIncidenciaUseCase {
     for (const a of auditoria) {
       const ocurridoEn = a.fechacreacion || new Date().toISOString();
       const rawNuevos = a.datosnuevos;
-      const nuevos = typeof rawNuevos === 'string' ? safeJson(rawNuevos) : (rawNuevos as Record<string, unknown> | null);
+      const nuevos =
+        typeof rawNuevos === 'string'
+          ? safeJson(rawNuevos)
+          : (rawNuevos as Record<string, unknown> | null);
       const rawAnt = a.datosanteriores;
-      const anteriores = typeof rawAnt === 'string' ? safeJson(rawAnt) : (rawAnt as Record<string, unknown> | null);
+      const anteriores =
+        typeof rawAnt === 'string'
+          ? safeJson(rawAnt)
+          : (rawAnt as Record<string, unknown> | null);
       const actor = a.usuario || undefined;
 
       const { titulo, detalle } = this.mapearAuditoria(
@@ -66,7 +79,12 @@ export class ObtenerActividadIncidenciaUseCase {
       entradas.push({
         id,
         ocurridoEn: toIso(ocurridoEn),
-        tipo: a.accion === 'COMMENT_CREATE' ? 'comentario_gvr' : a.accion === 'ATTACHMENT_CREATE' ? 'adjunto' : 'auditoria',
+        tipo:
+          a.accion === 'COMMENT_CREATE'
+            ? 'comentario_gvr'
+            : a.accion === 'ATTACHMENT_CREATE'
+              ? 'adjunto'
+              : 'auditoria',
         titulo,
         detalle,
         actor,
@@ -97,11 +115,17 @@ export class ObtenerActividadIncidenciaUseCase {
           visto.add(`c-${cid}`);
           const creado = c?.createdAt || c?.createdat;
           const body = c?.body || c?.content || c?.message || '';
-          const createdBy = c?.createdByReal || c?.createdBy || c?.author || 'ACC';
-          const detalleLimpio = stripGvrFirmaDelComentario(String(body)).slice(0, 5000);
+          const createdBy =
+            c?.createdByReal || c?.createdBy || c?.author || 'ACC';
+          const detalleLimpio = stripGvrFirmaDelComentario(String(body)).slice(
+            0,
+            5000,
+          );
           entradas.push({
             id: `c-${cid}`,
-            ocurridoEn: creado ? toIso(creado) : toIso(new Date().toISOString()),
+            ocurridoEn: creado
+              ? toIso(creado)
+              : toIso(new Date().toISOString()),
             tipo: 'comentario_acc',
             titulo: 'Se ha añadido un comentario',
             detalle: detalleLimpio,
@@ -118,7 +142,10 @@ export class ObtenerActividadIncidenciaUseCase {
 
     // Adjuntos: metadata fileName from ATTACHMENT entries already in auditoria
 
-    entradas.sort((a, b) => new Date(b.ocurridoEn).getTime() - new Date(a.ocurridoEn).getTime());
+    entradas.sort(
+      (a, b) =>
+        new Date(b.ocurridoEn).getTime() - new Date(a.ocurridoEn).getTime(),
+    );
 
     return { entradas, total: entradas.length };
   }
@@ -135,7 +162,10 @@ export class ObtenerActividadIncidenciaUseCase {
         : descripcion || undefined;
       return {
         titulo: 'Se ha añadido un comentario',
-        detalle: raw != null && raw !== '' ? stripGvrFirmaDelComentario(raw) : undefined,
+        detalle:
+          raw != null && raw !== ''
+            ? stripGvrFirmaDelComentario(raw)
+            : undefined,
       };
     }
     if (accion === 'ATTACHMENT_CREATE') {
@@ -148,9 +178,14 @@ export class ObtenerActividadIncidenciaUseCase {
     if (accion === 'ISSUE_CREATE') {
       return { titulo: 'Incidencia creada', detalle: descripcion || undefined };
     }
-    if (accion === 'ISSUE_UPDATE' && datosNuevos && 'published' in (datosNuevos as object)) {
+    if (
+      accion === 'ISSUE_UPDATE' &&
+      datosNuevos &&
+      'published' in (datosNuevos as object)
+    ) {
       const pub = (datosNuevos as { published?: boolean }).published;
-      const was = (datosAnteriores as { published?: boolean } | null)?.published;
+      const was = (datosAnteriores as { published?: boolean } | null)
+        ?.published;
       if (pub === true && was === false) {
         return { titulo: 'Se ha publicado la incidencia' };
       }
@@ -167,7 +202,8 @@ export class ObtenerActividadIncidenciaUseCase {
     if (accion === 'ISSUE_UPDATE') {
       return {
         titulo: 'Incidencia actualizada',
-        detalle: descripcion || this.resumirCambio(datosNuevos, datosAnteriores),
+        detalle:
+          descripcion || this.resumirCambio(datosNuevos, datosAnteriores),
       };
     }
     return {
@@ -176,7 +212,10 @@ export class ObtenerActividadIncidenciaUseCase {
     };
   }
 
-  private resumirCambio(n: Record<string, unknown> | null, a: Record<string, unknown> | null): string {
+  private resumirCambio(
+    n: Record<string, unknown> | null,
+    a: Record<string, unknown> | null,
+  ): string {
     if (!n && !a) return '';
     return '';
   }

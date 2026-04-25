@@ -4,12 +4,12 @@ import type { INotificacionesRepository } from '../../../domain/repositories/not
 
 @Injectable()
 export class EliminarTodasNotificacionesUseCase {
-    constructor(
-        @Inject(NOTIFICACIONES_REPOSITORY)
-        private readonly notificacionesRepository: INotificacionesRepository,
-    ) {}
+  constructor(
+    @Inject(NOTIFICACIONES_REPOSITORY)
+    private readonly notificacionesRepository: INotificacionesRepository,
+  ) {}
 
-    async execute(idUsuario: number): Promise<void> {
-        await this.notificacionesRepository.eliminarTodasNotificaciones(idUsuario);
-    }
+  async execute(idUsuario: number): Promise<void> {
+    await this.notificacionesRepository.eliminarTodasNotificaciones(idUsuario);
+  }
 }

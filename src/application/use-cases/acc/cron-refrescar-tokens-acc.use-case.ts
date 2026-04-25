@@ -4,10 +4,10 @@ import { ACC_REPOSITORY } from '../../../domain/repositories/acc.repository.inte
 import { RefrescarToken3LeggedUseCase } from './refrescar-token-3legged.use-case';
 
 export interface CronRefrescarTokensAccResult {
-    total: number;
-    refrescados: number;
-    errores: number;
-    detalles: { idUsuario: number; ok: boolean; error?: string }[];
+  total: number;
+  refrescados: number;
+  errores: number;
+  detalles: { idUsuario: number; ok: boolean; error?: string }[];
 }
 
 /**
@@ -18,39 +18,41 @@ export interface CronRefrescarTokensAccResult {
  */
 @Injectable()
 export class CronRefrescarTokensAccUseCase {
-    private readonly logger = new Logger(CronRefrescarTokensAccUseCase.name);
+  private readonly logger = new Logger(CronRefrescarTokensAccUseCase.name);
 
-    constructor(
-        @Inject(ACC_REPOSITORY)
-        private readonly accRepository: IAccRepository,
-        private readonly refrescarToken3LeggedUseCase: RefrescarToken3LeggedUseCase,
-    ) {}
+  constructor(
+    @Inject(ACC_REPOSITORY)
+    private readonly accRepository: IAccRepository,
+    private readonly refrescarToken3LeggedUseCase: RefrescarToken3LeggedUseCase,
+  ) {}
 
-    async execute(): Promise<CronRefrescarTokensAccResult> {
-        const tokens = await this.accRepository.listarTokensActivosParaRefresh();
-        const userIds = [...new Set(tokens.map((t) => t.idUsuario))];
-        const detalles: { idUsuario: number; ok: boolean; error?: string }[] = [];
-        let refrescados = 0;
-        let errores = 0;
+  async execute(): Promise<CronRefrescarTokensAccResult> {
+    const tokens = await this.accRepository.listarTokensActivosParaRefresh();
+    const userIds = [...new Set(tokens.map((t) => t.idUsuario))];
+    const detalles: { idUsuario: number; ok: boolean; error?: string }[] = [];
+    let refrescados = 0;
+    let errores = 0;
 
-        for (const idUsuario of userIds) {
-            try {
-                await this.refrescarToken3LeggedUseCase.execute(idUsuario);
-                detalles.push({ idUsuario, ok: true });
-                refrescados++;
-            } catch (err: any) {
-                const msg = err?.message ?? String(err);
-                this.logger.warn(`Cron refresh ACC: fallo usuario ${idUsuario}: ${msg}`);
-                detalles.push({ idUsuario, ok: false, error: msg });
-                errores++;
-            }
-        }
-
-        return {
-            total: userIds.length,
-            refrescados,
-            errores,
-            detalles,
-        };
+    for (const idUsuario of userIds) {
+      try {
+        await this.refrescarToken3LeggedUseCase.execute(idUsuario);
+        detalles.push({ idUsuario, ok: true });
+        refrescados++;
+      } catch (err: any) {
+        const msg = err?.message ?? String(err);
+        this.logger.warn(
+          `Cron refresh ACC: fallo usuario ${idUsuario}: ${msg}`,
+        );
+        detalles.push({ idUsuario, ok: false, error: msg });
+        errores++;
+      }
     }
+
+    return {
+      total: userIds.length,
+      refrescados,
+      errores,
+      detalles,
+    };
+  }
 }

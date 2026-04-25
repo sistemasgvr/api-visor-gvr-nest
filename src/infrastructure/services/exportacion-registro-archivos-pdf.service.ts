@@ -1,5 +1,8 @@
 import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
-import { ACC_REPOSITORY, type IAccRepository } from '../../domain/repositories/acc.repository.interface';
+import {
+  ACC_REPOSITORY,
+  type IAccRepository,
+} from '../../domain/repositories/acc.repository.interface';
 import { AutodeskApiService } from './autodesk-api.service';
 import {
   HTML_PDF_GENERATOR,
@@ -52,7 +55,8 @@ export class ExportacionRegistroArchivosPdfService {
     folderId: string,
     dto: ExportarRegistroArchivosPdfDto,
   ): Promise<Buffer> {
-    const token = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
+    const token =
+      await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
     if (!token) {
       throw new ForbiddenException(
         'No se encontró token de acceso. Autoriza Autodesk primero.',
@@ -146,10 +150,7 @@ export class ExportacionRegistroArchivosPdfService {
     return `V${n}`;
   }
 
-  private versionDeItem(
-    item: any,
-    includedMap: Map<string, any>,
-  ): string {
+  private versionDeItem(item: any, includedMap: Map<string, any>): string {
     const direct = this.versionLabelFromAttributes(item?.attributes);
     if (direct) return direct;
 
@@ -241,7 +242,11 @@ export class ExportacionRegistroArchivosPdfService {
     let carpetasVisitadas = 0;
     let truncated = false;
 
-    while (cola.length > 0 && rows.length < MAX_FILES && carpetasVisitadas < MAX_CARPETAS) {
+    while (
+      cola.length > 0 &&
+      rows.length < MAX_FILES &&
+      carpetasVisitadas < MAX_CARPETAS
+    ) {
       const { id, ruta: pathPrefix } = cola.shift()!;
       if (visto.has(id)) continue;
       visto.add(id);
@@ -261,7 +266,8 @@ export class ExportacionRegistroArchivosPdfService {
           truncated = true;
           break;
         }
-        const nombre = item.attributes?.displayName || item.attributes?.name || '—';
+        const nombre =
+          item.attributes?.displayName || item.attributes?.name || '—';
         const t = String(item.type || '');
 
         if (t === 'folders') {
@@ -278,7 +284,10 @@ export class ExportacionRegistroArchivosPdfService {
             modificado: fmtFecha(
               item.attributes?.lastModifiedTime || item.attributes?.createTime,
             ),
-            atributosExtra: this.atributosStr(item, dto.incluirAtributosPersonalizados),
+            atributosExtra: this.atributosStr(
+              item,
+              dto.incluirAtributosPersonalizados,
+            ),
           });
         } else if (t === 'items') {
           const ver = this.versionDeItem(item, includedMap);
@@ -289,7 +298,10 @@ export class ExportacionRegistroArchivosPdfService {
             descripcion: this.descripcionDe(item),
             version: ver,
             modificado: fmtFecha(item.attributes?.lastModifiedTime),
-            atributosExtra: this.atributosStr(item, dto.incluirAtributosPersonalizados),
+            atributosExtra: this.atributosStr(
+              item,
+              dto.incluirAtributosPersonalizados,
+            ),
           };
           if (ver === '—' && item.id) {
             row._itemId = item.id;

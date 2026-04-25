@@ -37,45 +37,45 @@ import { AccResourcesRepository } from '../../infrastructure/repositories/acc-re
 import { ACC_RESOURCES_REPOSITORY } from '../../domain/repositories/acc-resources.repository.interface';
 
 @Module({
-    imports: [DatabaseModule],
-    controllers: [DataManagementFoldersController],
-    providers: [
-        // Group 1
-        ObtenerCarpetaPorIdUseCase,
-        ObtenerContenidoCarpetaUseCase,
-        BuscarEnContenidoCarpetaUseCase,
-        ObtenerCarpetaPadreUseCase,
-        ObtenerReferenciasUseCase,
-        // Group 2
-        ObtenerRelacionesLinksUseCase,
-        ObtenerRelacionesRefsUseCase,
-        BuscarEnCarpetaUseCase,
-        // Group 3
-        CrearCarpetaUseCase,
-        CrearSubcarpetaUseCase,
-        CrearReferenciaCarpetaUseCase,
-        ActualizarCarpetaUseCase,
-        EliminarCarpetaUseCase,
-        SincronizarCarpetasProyectoUseCase,
-        ExportarRegistroArchivosPdfUseCase,
-        ExportarPermisosCarpetaPdfUseCase,
-        ExportacionRegistroArchivosPdfService,
-        ExportacionPermisosCarpetaPdfService,
-        // Infrastructure
-        AutodeskApiService,
-        HttpClientService,
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
-        {
-            provide: AUDITORIA_REPOSITORY,
-            useClass: AuditoriaRepository,
-        },
-        {
-            provide: ACC_RESOURCES_REPOSITORY,
-            useClass: AccResourcesRepository,
-        },
-    ],
+  imports: [DatabaseModule],
+  controllers: [DataManagementFoldersController],
+  providers: [
+    // Group 1
+    ObtenerCarpetaPorIdUseCase,
+    ObtenerContenidoCarpetaUseCase,
+    BuscarEnContenidoCarpetaUseCase,
+    ObtenerCarpetaPadreUseCase,
+    ObtenerReferenciasUseCase,
+    // Group 2
+    ObtenerRelacionesLinksUseCase,
+    ObtenerRelacionesRefsUseCase,
+    BuscarEnCarpetaUseCase,
+    // Group 3
+    CrearCarpetaUseCase,
+    CrearSubcarpetaUseCase,
+    CrearReferenciaCarpetaUseCase,
+    ActualizarCarpetaUseCase,
+    EliminarCarpetaUseCase,
+    SincronizarCarpetasProyectoUseCase,
+    ExportarRegistroArchivosPdfUseCase,
+    ExportarPermisosCarpetaPdfUseCase,
+    ExportacionRegistroArchivosPdfService,
+    ExportacionPermisosCarpetaPdfService,
+    // Infrastructure
+    AutodeskApiService,
+    HttpClientService,
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
+    {
+      provide: AUDITORIA_REPOSITORY,
+      useClass: AuditoriaRepository,
+    },
+    {
+      provide: ACC_RESOURCES_REPOSITORY,
+      useClass: AccResourcesRepository,
+    },
+  ],
 })
-export class DataManagementFoldersModule { }
+export class DataManagementFoldersModule {}

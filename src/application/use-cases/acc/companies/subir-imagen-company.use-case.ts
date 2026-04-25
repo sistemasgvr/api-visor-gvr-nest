@@ -3,19 +3,30 @@ import { AutodeskApiService } from '../../../../infrastructure/services/autodesk
 
 @Injectable()
 export class SubirImagenCompanyUseCase {
-    constructor(
-        private readonly autodeskApiService: AutodeskApiService,
-    ) { }
+  constructor(private readonly autodeskApiService: AutodeskApiService) {}
 
-    async execute(accountId: string, companyId: string, file: Express.Multer.File, region?: string): Promise<any> {
-        const token = await this.autodeskApiService.obtenerToken2Legged(['account:write']);
+  async execute(
+    accountId: string,
+    companyId: string,
+    file: Express.Multer.File,
+    region?: string,
+  ): Promise<any> {
+    const token = await this.autodeskApiService.obtenerToken2Legged([
+      'account:write',
+    ]);
 
-        if (this.autodeskApiService.esTokenExpirado(token.expires_at)) {
-            throw new BadRequestException('El token ha expirado. Por favor, genera un nuevo token.');
-        }
-
-        return await this.autodeskApiService.subirImagenCompany(token.access_token, accountId, companyId, file, region);
+    if (this.autodeskApiService.esTokenExpirado(token.expires_at)) {
+      throw new BadRequestException(
+        'El token ha expirado. Por favor, genera un nuevo token.',
+      );
     }
+
+    return await this.autodeskApiService.subirImagenCompany(
+      token.access_token,
+      accountId,
+      companyId,
+      file,
+      region,
+    );
+  }
 }
-
-

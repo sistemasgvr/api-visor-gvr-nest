@@ -6,5 +6,3 @@ export { BuscarCompaniesUseCase } from './buscar-companies.use-case';
 export { ObtenerCompaniesProyectoUseCase } from './obtener-companies-proyecto.use-case';
 export { ActualizarCompanyUseCase } from './actualizar-company.use-case';
 export { SubirImagenCompanyUseCase } from './subir-imagen-company.use-case';
-
-

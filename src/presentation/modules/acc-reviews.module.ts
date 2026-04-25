@@ -56,66 +56,70 @@ import { ExportacionRevisionDetallePdfService } from '../../infrastructure/servi
 import { BroadcastModule } from './broadcast.module';
 
 @Module({
-    imports: [BroadcastModule],
-    controllers: [AccReviewsController, AccWorkflowsController, AccVersionsReviewsController],
-    providers: [
-        // Helper compartido
-        ObtenerTokenValidoHelper,
+  imports: [BroadcastModule],
+  controllers: [
+    AccReviewsController,
+    AccWorkflowsController,
+    AccVersionsReviewsController,
+  ],
+  providers: [
+    // Helper compartido
+    ObtenerTokenValidoHelper,
 
-        // Use Cases — Reviews
-        ObtenerRevisionesUseCase,
-        CrearRevisionUseCase,
-        ObtenerRevisionPorIdUseCase,
-        ObtenerWorkflowRevisionUseCase,
-        ObtenerProgresoRevisionUseCase,
-        ObtenerVersionesRevisionUseCase,
-        ObtenerReferenciasRevisionUseCase,
-        AgregarReferenciaRevisionUseCase,
-        EliminarReferenciaRevisionUseCase,
-        AnularRevisionEntireUseCase,
-        SaltarPasoRevisionUseCase,
-        VolverPasoAnteriorRevisionUseCase,
-        IniciarPasoRevisionUseCase,
-        DelegarPasoRevisionUseCase,
-        EnviarResenaPasoUseCase,
-        NotificarRevisoresRevisionUseCase,
-        GetComentariosArchivoUseCase,
-        AddComentarioArchivoUseCase,
-        ExportarRevisionesPdfUseCase,
-        ExportacionRevisionesPdfService,
-        ExportarRevisionDetallePdfUseCase,
-        ExportacionRevisionDetallePdfService,
+    // Use Cases — Reviews
+    ObtenerRevisionesUseCase,
+    CrearRevisionUseCase,
+    ObtenerRevisionPorIdUseCase,
+    ObtenerWorkflowRevisionUseCase,
+    ObtenerProgresoRevisionUseCase,
+    ObtenerVersionesRevisionUseCase,
+    ObtenerReferenciasRevisionUseCase,
+    AgregarReferenciaRevisionUseCase,
+    EliminarReferenciaRevisionUseCase,
+    AnularRevisionEntireUseCase,
+    SaltarPasoRevisionUseCase,
+    VolverPasoAnteriorRevisionUseCase,
+    IniciarPasoRevisionUseCase,
+    DelegarPasoRevisionUseCase,
+    EnviarResenaPasoUseCase,
+    NotificarRevisoresRevisionUseCase,
+    GetComentariosArchivoUseCase,
+    AddComentarioArchivoUseCase,
+    ExportarRevisionesPdfUseCase,
+    ExportacionRevisionesPdfService,
+    ExportarRevisionDetallePdfUseCase,
+    ExportacionRevisionDetallePdfService,
 
-        // Use Cases — Workflows
-        ObtenerWorkflowsUseCase,
-        ObtenerWorkflowPorIdUseCase,
-        CrearFlujoRevisionGvrUseCase,
-        ActualizarFlujoRevisionGvrUseCase,
-        CambiarEstadoFlujoGvrUseCase,
-        GuardarWorkflowCandidatosUseCase,
-        ObtenerWorkflowCandidatosUseCase,
+    // Use Cases — Workflows
+    ObtenerWorkflowsUseCase,
+    ObtenerWorkflowPorIdUseCase,
+    CrearFlujoRevisionGvrUseCase,
+    ActualizarFlujoRevisionGvrUseCase,
+    CambiarEstadoFlujoGvrUseCase,
+    GuardarWorkflowCandidatosUseCase,
+    ObtenerWorkflowCandidatosUseCase,
 
-        // Use Cases — Versions
-        ObtenerApprovalStatusesVersionUseCase,
+    // Use Cases — Versions
+    ObtenerApprovalStatusesVersionUseCase,
 
-        // Services
-        AutodeskApiService,
-        HttpClientService,
+    // Services
+    AutodeskApiService,
+    HttpClientService,
 
-        // Repositories
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
-        {
-            provide: AUDITORIA_REPOSITORY,
-            useClass: AuditoriaRepository,
-        },
-        {
-            provide: AUTH_REPOSITORY,
-            useClass: AuthRepository,
-        },
-        DatabaseFunctionService,
-    ],
+    // Repositories
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
+    {
+      provide: AUDITORIA_REPOSITORY,
+      useClass: AuditoriaRepository,
+    },
+    {
+      provide: AUTH_REPOSITORY,
+      useClass: AuthRepository,
+    },
+    DatabaseFunctionService,
+  ],
 })
-export class AccReviewsModule { }
+export class AccReviewsModule {}

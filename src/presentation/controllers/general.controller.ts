@@ -1,15 +1,15 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Query,
-    HttpCode,
-    HttpStatus,
-    Req,
-    UseGuards,
-    UnauthorizedException,
-    ParseIntPipe,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  HttpCode,
+  HttpStatus,
+  Req,
+  UseGuards,
+  UnauthorizedException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { ListarMenuOpcionesUseCase } from '../../application/use-cases/general/listar-menu-opciones.use-case';
@@ -24,124 +24,128 @@ import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 @Controller()
 @UseGuards(JwtAuthGuard)
 export class GeneralController {
-    constructor(
-        private readonly listarMenuOpcionesUseCase: ListarMenuOpcionesUseCase,
-        private readonly obtenerMenuOpcionUseCase: ObtenerMenuOpcionUseCase,
-        private readonly obtenerOpcionesListaUseCase: ObtenerOpcionesListaUseCase,
-        private readonly crearOpcionListaUseCase: CrearOpcionListaUseCase,
-        private readonly obtenerCatalogosTrabajadorUseCase: ObtenerCatalogosTrabajadorUseCase,
-        private readonly listarMenuRecursivoUseCase: ListarMenuRecursivoUseCase,
-    ) { }
+  constructor(
+    private readonly listarMenuOpcionesUseCase: ListarMenuOpcionesUseCase,
+    private readonly obtenerMenuOpcionUseCase: ObtenerMenuOpcionUseCase,
+    private readonly obtenerOpcionesListaUseCase: ObtenerOpcionesListaUseCase,
+    private readonly crearOpcionListaUseCase: CrearOpcionListaUseCase,
+    private readonly obtenerCatalogosTrabajadorUseCase: ObtenerCatalogosTrabajadorUseCase,
+    private readonly listarMenuRecursivoUseCase: ListarMenuRecursivoUseCase,
+  ) {}
 
-    /**
-     * Listar todas las opciones de menú
-     * GET /menu-opciones
-     */
-    @Get('menu-opciones')
-    @HttpCode(HttpStatus.OK)
-    async listarMenuOpciones() {
-        const menuOpciones = await this.listarMenuOpcionesUseCase.execute();
+  /**
+   * Listar todas las opciones de menú
+   * GET /menu-opciones
+   */
+  @Get('menu-opciones')
+  @HttpCode(HttpStatus.OK)
+  async listarMenuOpciones() {
+    const menuOpciones = await this.listarMenuOpcionesUseCase.execute();
 
-        return ApiResponseDto.success(
-            menuOpciones,
-            'Opciones de menú obtenidas exitosamente',
-        );
+    return ApiResponseDto.success(
+      menuOpciones,
+      'Opciones de menú obtenidas exitosamente',
+    );
+  }
+
+  /**
+   * Obtener opción de menú por ID
+   * GET /menu-opcion?id=1
+   */
+  @Get('menu-opcion')
+  @HttpCode(HttpStatus.OK)
+  async obtenerMenuOpcion(
+    @Query('id', new ParseIntPipe({ optional: false })) id: number,
+  ) {
+    const menuOpcion = await this.obtenerMenuOpcionUseCase.execute(id);
+
+    return ApiResponseDto.success(
+      menuOpcion,
+      'Opción de menú obtenida exitosamente',
+    );
+  }
+
+  /**
+   * Catálogos para formulario de trabajador (grado instrucción, carrera, entidad bancaria, tipo/duración contrato).
+   * Los IDs de lista vienen del frontend (constants/listasOpciones). GET /catalogos-trabajador?idListas=8,9,10,11,12,13,14
+   */
+  @Get('catalogos-trabajador')
+  @HttpCode(HttpStatus.OK)
+  async obtenerCatalogosTrabajador(@Query('idListas') idListas?: string) {
+    const ids = idListas
+      ? idListas
+          .split(',')
+          .map((s) => parseInt(s.trim(), 10))
+          .filter((n) => !Number.isNaN(n))
+      : undefined;
+    const data = await this.obtenerCatalogosTrabajadorUseCase.execute(ids);
+    return ApiResponseDto.success(data, 'Catálogos obtenidos exitosamente');
+  }
+
+  /**
+   * Obtener opciones por lista
+   * GET /listado-opciones?idLista=1
+   */
+  @Get('listado-opciones')
+  @HttpCode(HttpStatus.OK)
+  async obtenerOpcionesPorLista(
+    @Query('idLista', new ParseIntPipe({ optional: false })) idLista: number,
+  ) {
+    const listaOpciones =
+      await this.obtenerOpcionesListaUseCase.execute(idLista);
+
+    return ApiResponseDto.success(
+      listaOpciones,
+      'Listado de opciones obtenido exitosamente',
+    );
+  }
+
+  /**
+   * Crear una nueva opción en una lista (ej. tipo de actividad "Otros")
+   * POST /listado-opciones body: { idLista: number, nombre: string }
+   */
+  @Post('listado-opciones')
+  @HttpCode(HttpStatus.CREATED)
+  async crearOpcionLista(
+    @Body('idLista', new ParseIntPipe({ optional: false })) idLista: number,
+    @Body('nombre') nombre: string,
+  ) {
+    const created = await this.crearOpcionListaUseCase.execute(
+      idLista,
+      (nombre ?? '').trim(),
+    );
+    return ApiResponseDto.success(created, 'Opción creada exitosamente');
+  }
+
+  /**
+   * Listar menú recursivo para usuario autenticado
+   * GET /listado-opciones-recursivo
+   */
+  @Get('listado-opciones-recursivo')
+  @HttpCode(HttpStatus.OK)
+  async listarMenuRecursivo(@Req() request: Request) {
+    const token = this.extractTokenFromHeader(request);
+
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
     }
 
-    /**
-     * Obtener opción de menú por ID
-     * GET /menu-opcion?id=1
-     */
-    @Get('menu-opcion')
-    @HttpCode(HttpStatus.OK)
-    async obtenerMenuOpcion(
-        @Query('id', new ParseIntPipe({ optional: false })) id: number
-    ) {
-        const menuOpcion = await this.obtenerMenuOpcionUseCase.execute(id);
+    const menuOpciones = await this.listarMenuRecursivoUseCase.execute(token);
 
-        return ApiResponseDto.success(
-            menuOpcion,
-            'Opción de menú obtenida exitosamente',
-        );
+    return ApiResponseDto.success(
+      menuOpciones,
+      'Opciones de menú obtenidas exitosamente',
+    );
+  }
+
+  // Helper method
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
+      return undefined;
     }
 
-    /**
-     * Catálogos para formulario de trabajador (grado instrucción, carrera, entidad bancaria, tipo/duración contrato).
-     * Los IDs de lista vienen del frontend (constants/listasOpciones). GET /catalogos-trabajador?idListas=8,9,10,11,12,13,14
-     */
-    @Get('catalogos-trabajador')
-    @HttpCode(HttpStatus.OK)
-    async obtenerCatalogosTrabajador(@Query('idListas') idListas?: string) {
-        const ids = idListas
-            ? idListas.split(',').map((s) => parseInt(s.trim(), 10)).filter((n) => !Number.isNaN(n))
-            : undefined;
-        const data = await this.obtenerCatalogosTrabajadorUseCase.execute(ids);
-        return ApiResponseDto.success(data, 'Catálogos obtenidos exitosamente');
-    }
-
-    /**
-     * Obtener opciones por lista
-     * GET /listado-opciones?idLista=1
-     */
-    @Get('listado-opciones')
-    @HttpCode(HttpStatus.OK)
-    async obtenerOpcionesPorLista(
-        @Query('idLista', new ParseIntPipe({ optional: false })) idLista: number
-    ) {
-        const listaOpciones = await this.obtenerOpcionesListaUseCase.execute(idLista);
-
-        return ApiResponseDto.success(
-            listaOpciones,
-            'Listado de opciones obtenido exitosamente',
-        );
-    }
-
-    /**
-     * Crear una nueva opción en una lista (ej. tipo de actividad "Otros")
-     * POST /listado-opciones body: { idLista: number, nombre: string }
-     */
-    @Post('listado-opciones')
-    @HttpCode(HttpStatus.CREATED)
-    async crearOpcionLista(
-        @Body('idLista', new ParseIntPipe({ optional: false })) idLista: number,
-        @Body('nombre') nombre: string
-    ) {
-        const created = await this.crearOpcionListaUseCase.execute(idLista, (nombre ?? '').trim());
-        return ApiResponseDto.success(
-            created,
-            'Opción creada exitosamente',
-        );
-    }
-
-    /**
-     * Listar menú recursivo para usuario autenticado
-     * GET /listado-opciones-recursivo
-     */
-    @Get('listado-opciones-recursivo')
-    @HttpCode(HttpStatus.OK)
-    async listarMenuRecursivo(@Req() request: Request) {
-        const token = this.extractTokenFromHeader(request);
-
-        if (!token) {
-            throw new UnauthorizedException('Token no proporcionado');
-        }
-
-        const menuOpciones = await this.listarMenuRecursivoUseCase.execute(token);
-
-        return ApiResponseDto.success(
-            menuOpciones,
-            'Opciones de menú obtenidas exitosamente',
-        );
-    }
-
-    // Helper method
-    private extractTokenFromHeader(request: Request): string | undefined {
-        const authHeader = request.headers.authorization;
-        if (!authHeader) {
-            return undefined;
-        }
-
-        const [type, token] = authHeader.split(' ');
-        return type === 'Bearer' ? token : undefined;
-    }
+    const [type, token] = authHeader.split(' ');
+    return type === 'Bearer' ? token : undefined;
+  }
 }

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { validate } from './config/env.validation';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { AuthModule } from './presentation/modules/auth.module';
@@ -46,6 +47,9 @@ import { PdfModule } from './infrastructure/pdf/pdf.module';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: 'default', ttl: 60_000, limit: 300 }],
+    }),
     // Configuración global de variables de entorno
     ConfigModule.forRoot({
       isGlobal: true,
@@ -100,5 +104,4 @@ import { PdfModule } from './infrastructure/pdf/pdf.module';
     MailModule.register(),
   ],
 })
-export class AppModule { }
-
+export class AppModule {}

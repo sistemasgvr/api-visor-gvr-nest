@@ -20,10 +20,11 @@ export class ExportarRegistroArchivosPdfUseCase {
       folderId,
       dto,
     );
-    const safe = (dto.titulo || 'registro')
-      .replace(/[^a-zA-Z0-9áéíóúüñÑ _-]+/g, '_')
-      .trim()
-      .slice(0, 60) || 'registro';
+    const safe =
+      (dto.titulo || 'registro')
+        .replace(/[^a-zA-Z0-9áéíóúüñÑ _-]+/g, '_')
+        .trim()
+        .slice(0, 60) || 'registro';
     return {
       data,
       contentType: 'application/pdf',

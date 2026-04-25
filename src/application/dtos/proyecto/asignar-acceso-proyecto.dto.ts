@@ -1,10 +1,10 @@
 import { IsInt, IsOptional } from 'class-validator';
 
 export class AsignarAccesoProyectoDto {
-    @IsInt()
-    idUsuario: number;
+  @IsInt()
+  idUsuario: number;
 
-    @IsOptional()
-    @IsInt()
-    idNivelAcceso?: number;
+  @IsOptional()
+  @IsInt()
+  idNivelAcceso?: number;
 }

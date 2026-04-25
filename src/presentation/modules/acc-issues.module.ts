@@ -44,62 +44,61 @@ import { DatabaseFunctionService } from '../../infrastructure/database/database-
 import { BroadcastModule } from './broadcast.module';
 
 @Module({
-    imports: [BroadcastModule],
-    controllers: [AccIssuesController],
-    providers: [
-        // Helper
-        ObtenerTokenValidoHelper,
+  imports: [BroadcastModule],
+  controllers: [AccIssuesController],
+  providers: [
+    // Helper
+    ObtenerTokenValidoHelper,
 
-        // Use Cases
-        ObtenerPerfilUsuarioUseCase,
-        ObtenerTiposIncidenciasUseCase,
-        ObtenerDefinicionesAtributosUseCase,
-        ObtenerMapeosAtributosUseCase,
-        ObtenerCategoriasRaizUseCase,
-        ObtenerIncidenciasPorDocumentoUseCase,
-        ObtenerUrlMiniaturaUseCase,
-        ObtenerIncidenciasUseCase,
-        CrearIncidenciaUseCase,
-        ObtenerIncidenciaPorIdUseCase,
-        ActualizarIncidenciaUseCase,
-        ObtenerComentariosUseCase,
-        CrearComentarioUseCase,
-        CrearAdjuntoUseCase,
-        ObtenerAdjuntosUseCase,
-        EliminarAdjuntoUseCase,
-        AsignarIncidenciaUseCase,
-        ObtenerUsuariosDisponiblesUseCase,
-        ExportarIncidenciasUseCase,
-        ObtenerActividadIncidenciaUseCase,
+    // Use Cases
+    ObtenerPerfilUsuarioUseCase,
+    ObtenerTiposIncidenciasUseCase,
+    ObtenerDefinicionesAtributosUseCase,
+    ObtenerMapeosAtributosUseCase,
+    ObtenerCategoriasRaizUseCase,
+    ObtenerIncidenciasPorDocumentoUseCase,
+    ObtenerUrlMiniaturaUseCase,
+    ObtenerIncidenciasUseCase,
+    CrearIncidenciaUseCase,
+    ObtenerIncidenciaPorIdUseCase,
+    ActualizarIncidenciaUseCase,
+    ObtenerComentariosUseCase,
+    CrearComentarioUseCase,
+    CrearAdjuntoUseCase,
+    ObtenerAdjuntosUseCase,
+    EliminarAdjuntoUseCase,
+    AsignarIncidenciaUseCase,
+    ObtenerUsuariosDisponiblesUseCase,
+    ExportarIncidenciasUseCase,
+    ObtenerActividadIncidenciaUseCase,
 
-        // Services
-        AutodeskApiService,
-        ExportacionIncidenciasService,
-        HttpClientService,
+    // Services
+    AutodeskApiService,
+    ExportacionIncidenciasService,
+    HttpClientService,
 
-        // Repositories
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
-        {
-            provide: AUDITORIA_REPOSITORY,
-            useClass: AuditoriaRepository,
-        },
-        {
-            provide: ACC_RECURSOS_REPOSITORY,
-            useClass: AccRecursosRepository,
-        },
-        {
-            provide: USUARIOS_REPOSITORY,
-            useClass: UsuariosRepository,
-        },
-        {
-            provide: AUTH_REPOSITORY,
-            useClass: AuthRepository,
-        },
-        DatabaseFunctionService,
-    ],
+    // Repositories
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
+    {
+      provide: AUDITORIA_REPOSITORY,
+      useClass: AuditoriaRepository,
+    },
+    {
+      provide: ACC_RECURSOS_REPOSITORY,
+      useClass: AccRecursosRepository,
+    },
+    {
+      provide: USUARIOS_REPOSITORY,
+      useClass: UsuariosRepository,
+    },
+    {
+      provide: AUTH_REPOSITORY,
+      useClass: AuthRepository,
+    },
+    DatabaseFunctionService,
+  ],
 })
-export class AccIssuesModule { }
-
+export class AccIssuesModule {}

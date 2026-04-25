@@ -9,15 +9,17 @@ import type { OutboundMailJobPayload } from '../../domain/mail/outbound-mail.typ
  */
 @Injectable()
 export class MailService {
-    constructor(
-        private readonly enqueueOutboundEmailUseCase: EnqueueOutboundEmailUseCase,
-    ) { }
+  constructor(
+    private readonly enqueueOutboundEmailUseCase: EnqueueOutboundEmailUseCase,
+  ) {}
 
-    async enqueue(dto: EnqueueOutboundEmailDto): Promise<{ jobId?: string }> {
-        return this.enqueueOutboundEmailUseCase.execute(dto);
-    }
+  async enqueue(dto: EnqueueOutboundEmailDto): Promise<{ jobId?: string }> {
+    return this.enqueueOutboundEmailUseCase.execute(dto);
+  }
 
-    async enqueuePayload(payload: OutboundMailJobPayload): Promise<{ jobId?: string }> {
-        return this.enqueueOutboundEmailUseCase.executePayload(payload);
-    }
+  async enqueuePayload(
+    payload: OutboundMailJobPayload,
+  ): Promise<{ jobId?: string }> {
+    return this.enqueueOutboundEmailUseCase.executePayload(payload);
+  }
 }

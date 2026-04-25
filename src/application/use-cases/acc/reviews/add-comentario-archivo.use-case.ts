@@ -4,26 +4,31 @@ import { AddComentarioArchivoDto } from '../../../dtos/acc/reviews/add-comentari
 
 @Injectable()
 export class AddComentarioArchivoUseCase {
-    constructor(
-        private readonly dbFunctionService: DatabaseFunctionService,
-    ) { }
+  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
 
-    async execute(
-        userId: number,
-        reviewId: number,
-        fileId: number,
-        dto: AddComentarioArchivoDto,
-    ): Promise<{ id: number; message: string }> {
-        const rows = await this.dbFunctionService.callFunction<{
-            success: boolean;
-            message: string;
-            id_result: number;
-        }>('acc_AddComentarioArchivoRevision', [reviewId, fileId, userId, dto.contenido]);
+  async execute(
+    userId: number,
+    reviewId: number,
+    fileId: number,
+    dto: AddComentarioArchivoDto,
+  ): Promise<{ id: number; message: string }> {
+    const rows = await this.dbFunctionService.callFunction<{
+      success: boolean;
+      message: string;
+      id_result: number;
+    }>('acc_AddComentarioArchivoRevision', [
+      reviewId,
+      fileId,
+      userId,
+      dto.contenido,
+    ]);
 
-        const row = rows?.[0];
-        if (!row?.success) {
-            throw new BadRequestException(row?.message ?? 'Error al añadir el comentario');
-        }
-        return { id: row.id_result, message: row.message };
+    const row = rows?.[0];
+    if (!row?.success) {
+      throw new BadRequestException(
+        row?.message ?? 'Error al añadir el comentario',
+      );
     }
+    return { id: row.id_result, message: row.message };
+  }
 }

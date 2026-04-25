@@ -5,26 +5,27 @@ import { SincronizarPermisosRolDto } from '../../../dtos/acc/resources/sincroniz
 
 @Injectable()
 export class SincronizarPermisosRolUseCase {
-    constructor(
-        @Inject(ACC_RESOURCES_REPOSITORY)
-        private readonly accResourcesRepository: IAccResourcesRepository,
-    ) { }
+  constructor(
+    @Inject(ACC_RESOURCES_REPOSITORY)
+    private readonly accResourcesRepository: IAccResourcesRepository,
+  ) {}
 
-    async execute(dto: SincronizarPermisosRolDto, idUsuarioModificacion: number) {
-        const resultado = await this.accResourcesRepository.sincronizarPermisosRol({
-            role_id: dto.role_id,
-            resource_ids: dto.resource_ids,
-            idUsuarioModificacion,
-        });
+  async execute(dto: SincronizarPermisosRolDto, idUsuarioModificacion: number) {
+    const resultado = await this.accResourcesRepository.sincronizarPermisosRol({
+      role_id: dto.role_id,
+      resource_ids: dto.resource_ids,
+      idUsuarioModificacion,
+    });
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al sincronizar los permisos');
-        }
-
-        return {
-            asignados: resultado.asignados,
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al sincronizar los permisos',
+      );
     }
-}
 
+    return {
+      asignados: resultado.asignados,
+      message: resultado.message,
+    };
+  }
+}

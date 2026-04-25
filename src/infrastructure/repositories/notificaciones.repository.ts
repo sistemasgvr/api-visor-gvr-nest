@@ -4,18 +4,18 @@ import { DatabaseFunctionService } from '../database/database-function.service';
 
 @Injectable()
 export class NotificacionesRepository implements INotificacionesRepository {
-    constructor(
-        private readonly databaseFunctionService: DatabaseFunctionService,
-    ) {}
+  constructor(
+    private readonly databaseFunctionService: DatabaseFunctionService,
+  ) {}
 
-    async guardarNotificacionPendiente(
-        idUsuario: number,
-        tipo: string,
-        titulo: string,
-        mensaje: string | null,
-        datos: any,
-    ): Promise<any> {
-        const query = `
+  async guardarNotificacionPendiente(
+    idUsuario: number,
+    tipo: string,
+    titulo: string,
+    mensaje: string | null,
+    datos: any,
+  ): Promise<any> {
+    const query = `
             INSERT INTO notificacionespendientes (
                 idusuario, tipo, titulo, mensaje, datos
             ) VALUES ($1, $2, $3, $4, $5)
@@ -23,19 +23,22 @@ export class NotificacionesRepository implements INotificacionesRepository {
                       entregada, fechaentrega, fechacreacion
         `;
 
-        const result = await this.databaseFunctionService.executeQuery(query, [
-            idUsuario,
-            tipo,
-            titulo,
-            mensaje,
-            JSON.stringify(datos || {}),
-        ]);
+    const result = await this.databaseFunctionService.executeQuery(query, [
+      idUsuario,
+      tipo,
+      titulo,
+      mensaje,
+      JSON.stringify(datos || {}),
+    ]);
 
-        return result[0] || null;
-    }
+    return result[0] || null;
+  }
 
-    async obtenerNotificacionesPendientes(idUsuario: number, tipo?: string): Promise<any[]> {
-        let query = `
+  async obtenerNotificacionesPendientes(
+    idUsuario: number,
+    tipo?: string,
+  ): Promise<any[]> {
+    let query = `
             SELECT 
                 id, idusuario, tipo, titulo, mensaje, datos,
                 entregada, fechaentrega, fechacreacion
@@ -44,22 +47,28 @@ export class NotificacionesRepository implements INotificacionesRepository {
               AND entregada = FALSE 
               AND estado = 1
         `;
-        
-        const params: any[] = [idUsuario];
-        
-        if (tipo) {
-            query += ` AND tipo = $2`;
-            params.push(tipo);
-        }
-        
-        query += ` ORDER BY fechacreacion DESC LIMIT 50`;
 
-        const result = await this.databaseFunctionService.executeQuery(query, params);
-        return result || [];
+    const params: any[] = [idUsuario];
+
+    if (tipo) {
+      query += ` AND tipo = $2`;
+      params.push(tipo);
     }
 
-    async obtenerNotificaciones(idUsuario: number, tipo?: string): Promise<any[]> {
-        let query = `
+    query += ` ORDER BY fechacreacion DESC LIMIT 50`;
+
+    const result = await this.databaseFunctionService.executeQuery(
+      query,
+      params,
+    );
+    return result || [];
+  }
+
+  async obtenerNotificaciones(
+    idUsuario: number,
+    tipo?: string,
+  ): Promise<any[]> {
+    let query = `
             SELECT 
                 id, idusuario, tipo, titulo, mensaje, datos,
                 entregada, fechaentrega, fechacreacion
@@ -67,22 +76,25 @@ export class NotificacionesRepository implements INotificacionesRepository {
             WHERE idusuario = $1 
               AND estado = 1
         `;
-        
-        const params: any[] = [idUsuario];
-        
-        if (tipo) {
-            query += ` AND tipo = $2`;
-            params.push(tipo);
-        }
-        
-        query += ` ORDER BY fechacreacion DESC LIMIT 50`;
 
-        const result = await this.databaseFunctionService.executeQuery(query, params);
-        return result || [];
+    const params: any[] = [idUsuario];
+
+    if (tipo) {
+      query += ` AND tipo = $2`;
+      params.push(tipo);
     }
 
-    async marcarComoEntregada(id: number): Promise<void> {
-        const query = `
+    query += ` ORDER BY fechacreacion DESC LIMIT 50`;
+
+    const result = await this.databaseFunctionService.executeQuery(
+      query,
+      params,
+    );
+    return result || [];
+  }
+
+  async marcarComoEntregada(id: number): Promise<void> {
+    const query = `
             UPDATE notificacionespendientes
             SET entregada = TRUE,
                 fechaentrega = CURRENT_TIMESTAMP,
@@ -90,11 +102,11 @@ export class NotificacionesRepository implements INotificacionesRepository {
             WHERE id = $1
         `;
 
-        await this.databaseFunctionService.executeQuery(query, [id]);
-    }
+    await this.databaseFunctionService.executeQuery(query, [id]);
+  }
 
-    async marcarTodasComoEntregadas(idUsuario: number): Promise<void> {
-        const query = `
+  async marcarTodasComoEntregadas(idUsuario: number): Promise<void> {
+    const query = `
             UPDATE notificacionespendientes
             SET entregada = TRUE,
                 fechaentrega = CURRENT_TIMESTAMP,
@@ -103,29 +115,30 @@ export class NotificacionesRepository implements INotificacionesRepository {
               AND entregada = FALSE
         `;
 
-        await this.databaseFunctionService.executeQuery(query, [idUsuario]);
-    }
+    await this.databaseFunctionService.executeQuery(query, [idUsuario]);
+  }
 
-    async eliminarNotificacion(id: number, idUsuario: number): Promise<boolean> {
-        const query = `
+  async eliminarNotificacion(id: number, idUsuario: number): Promise<boolean> {
+    const query = `
             UPDATE notificacionespendientes
             SET estado = 0,
                 fechamodificacion = CURRENT_TIMESTAMP
             WHERE id = $1 AND idusuario = $2 AND estado = 1
             RETURNING id
         `;
-        const result = await this.databaseFunctionService.executeQuery<{ id: number }>(query, [id, idUsuario]);
-        return (result?.length ?? 0) > 0;
-    }
+    const result = await this.databaseFunctionService.executeQuery<{
+      id: number;
+    }>(query, [id, idUsuario]);
+    return (result?.length ?? 0) > 0;
+  }
 
-    async eliminarTodasNotificaciones(idUsuario: number): Promise<void> {
-        const query = `
+  async eliminarTodasNotificaciones(idUsuario: number): Promise<void> {
+    const query = `
             UPDATE notificacionespendientes
             SET estado = 0,
                 fechamodificacion = CURRENT_TIMESTAMP
             WHERE idusuario = $1 AND estado = 1
         `;
-        await this.databaseFunctionService.executeQuery(query, [idUsuario]);
-    }
+    await this.databaseFunctionService.executeQuery(query, [idUsuario]);
+  }
 }
-

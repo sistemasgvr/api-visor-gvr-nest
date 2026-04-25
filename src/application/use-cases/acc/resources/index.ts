@@ -16,4 +16,3 @@ export { ActualizarNivelPermisoUsuarioUseCase } from './actualizar-nivel-permiso
 export { RemoverPermisoUsuarioUseCase } from './remover-permiso-usuario.use-case';
 export { SincronizarPermisosUsuarioUseCase } from './sincronizar-permisos-usuario.use-case';
 export { ListarNivelesPermisoUseCase } from './listar-niveles-permiso.use-case';
-

@@ -16,38 +16,41 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
-                },
-            }),
-            inject: [ConfigService],
-        }),
-    ],
-    controllers: [TrabajadorController],
-    providers: [
-        // Repositories
-        {
-            provide: TRABAJADOR_REPOSITORY,
-            useClass: TrabajadorRepository,
+  imports: [
+    DatabaseModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'default-secret-key-change-in-production',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '1d') as any,
         },
-        // Use cases
-        ListarTrabajadoresUseCase,
-        ListarAdministrativosUseCase,
-        ObtenerTrabajadorUseCase,
-        CrearTrabajadorUseCase,
-        EditarTrabajadorUseCase,
-        EliminarTrabajadorUseCase,
-        ResetearContrasenaUseCase,
-        // JWT Strategy
-        JwtStrategy,
-    ],
-    exports: [TRABAJADOR_REPOSITORY],
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [TrabajadorController],
+  providers: [
+    // Repositories
+    {
+      provide: TRABAJADOR_REPOSITORY,
+      useClass: TrabajadorRepository,
+    },
+    // Use cases
+    ListarTrabajadoresUseCase,
+    ListarAdministrativosUseCase,
+    ObtenerTrabajadorUseCase,
+    CrearTrabajadorUseCase,
+    EditarTrabajadorUseCase,
+    EliminarTrabajadorUseCase,
+    ResetearContrasenaUseCase,
+    // JWT Strategy
+    JwtStrategy,
+  ],
+  exports: [TRABAJADOR_REPOSITORY],
 })
-export class TrabajadorModule { }
+export class TrabajadorModule {}

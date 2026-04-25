@@ -5,24 +5,30 @@ import { UpdateRolDto } from '../../dtos/rol/update-rol.dto';
 
 @Injectable()
 export class EditarRolUseCase {
-    constructor(
-        @Inject(ROL_REPOSITORY)
-        private readonly rolRepository: IRolRepository,
-    ) { }
+  constructor(
+    @Inject(ROL_REPOSITORY)
+    private readonly rolRepository: IRolRepository,
+  ) {}
 
-    async execute(idRol: number, updateDto: UpdateRolDto, idUsuarioModificacion: number) {
-        const resultado = await this.rolRepository.editarRol({
-            idRol,
-            ...updateDto,
-            idUsuarioModificacion,
-        });
+  async execute(
+    idRol: number,
+    updateDto: UpdateRolDto,
+    idUsuarioModificacion: number,
+  ) {
+    const resultado = await this.rolRepository.editarRol({
+      idRol,
+      ...updateDto,
+      idUsuarioModificacion,
+    });
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al editar el rol');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al editar el rol',
+      );
     }
+
+    return {
+      message: resultado.message,
+    };
+  }
 }

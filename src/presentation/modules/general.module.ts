@@ -16,37 +16,40 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
-                },
-            }),
-            inject: [ConfigService],
-        }),
-    ],
-    controllers: [GeneralController, UbicacionController],
-    providers: [
-        // Repositories
-        {
-            provide: MENU_REPOSITORY,
-            useClass: MenuRepository,
+  imports: [
+    DatabaseModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'default-secret-key-change-in-production',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '1d') as any,
         },
-        // Use cases
-        ListarMenuOpcionesUseCase,
-        ObtenerMenuOpcionUseCase,
-        ObtenerOpcionesListaUseCase,
-        CrearOpcionListaUseCase,
-        ObtenerCatalogosTrabajadorUseCase,
-        ListarMenuRecursivoUseCase,
-        // JWT Strategy
-        JwtStrategy,
-    ],
-    exports: [MENU_REPOSITORY],
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [GeneralController, UbicacionController],
+  providers: [
+    // Repositories
+    {
+      provide: MENU_REPOSITORY,
+      useClass: MenuRepository,
+    },
+    // Use cases
+    ListarMenuOpcionesUseCase,
+    ObtenerMenuOpcionUseCase,
+    ObtenerOpcionesListaUseCase,
+    CrearOpcionListaUseCase,
+    ObtenerCatalogosTrabajadorUseCase,
+    ListarMenuRecursivoUseCase,
+    // JWT Strategy
+    JwtStrategy,
+  ],
+  exports: [MENU_REPOSITORY],
 })
-export class GeneralModule { }
+export class GeneralModule {}

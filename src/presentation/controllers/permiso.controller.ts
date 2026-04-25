@@ -1,18 +1,18 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Put,
-    Delete,
-    Body,
-    Param,
-    Query,
-    HttpCode,
-    HttpStatus,
-    Req,
-    UseGuards,
-    UnauthorizedException,
-    ParseIntPipe,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  HttpCode,
+  HttpStatus,
+  Req,
+  UseGuards,
+  UnauthorizedException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { ListarPermisosUseCase } from '../../application/use-cases/permiso/listar-permisos.use-case';
@@ -29,78 +29,92 @@ import { JwtService } from '@nestjs/jwt';
 @Controller('permisos')
 @UseGuards(JwtAuthGuard)
 export class PermisoController {
-    constructor(
-        private readonly listarPermisosUseCase: ListarPermisosUseCase,
-        private readonly obtenerPermisoUseCase: ObtenerPermisoUseCase,
-        private readonly crearPermisoUseCase: CrearPermisoUseCase,
-        private readonly editarPermisoUseCase: EditarPermisoUseCase,
-        private readonly eliminarPermisoUseCase: EliminarPermisoUseCase,
-        private readonly jwtService: JwtService,
-    ) { }
+  constructor(
+    private readonly listarPermisosUseCase: ListarPermisosUseCase,
+    private readonly obtenerPermisoUseCase: ObtenerPermisoUseCase,
+    private readonly crearPermisoUseCase: CrearPermisoUseCase,
+    private readonly editarPermisoUseCase: EditarPermisoUseCase,
+    private readonly eliminarPermisoUseCase: EliminarPermisoUseCase,
+    private readonly jwtService: JwtService,
+  ) {}
 
-    @Get()
-    @HttpCode(HttpStatus.OK)
-    async listarPermisos(
-        @Query('busqueda') busqueda?: string,
-        @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-        @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
-    ) {
-        const data = await this.listarPermisosUseCase.execute({ busqueda, limit, offset });
-        return ApiResponseDto.success(data, 'Permisos obtenidos exitosamente');
-    }
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  async listarPermisos(
+    @Query('busqueda') busqueda?: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
+  ) {
+    const data = await this.listarPermisosUseCase.execute({
+      busqueda,
+      limit,
+      offset,
+    });
+    return ApiResponseDto.success(data, 'Permisos obtenidos exitosamente');
+  }
 
-    @Get(':id')
-    @HttpCode(HttpStatus.OK)
-    async obtenerPermiso(@Param('id', ParseIntPipe) id: number) {
-        const data = await this.obtenerPermisoUseCase.execute(id);
-        return ApiResponseDto.success(data, 'Permiso obtenido exitosamente');
-    }
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  async obtenerPermiso(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.obtenerPermisoUseCase.execute(id);
+    return ApiResponseDto.success(data, 'Permiso obtenido exitosamente');
+  }
 
-    @Post()
-    @HttpCode(HttpStatus.CREATED)
-    async crearPermiso(@Body() createDto: CreatePermisoDto, @Req() request: Request) {
-        const token = this.extractTokenFromHeader(request);
-        if (!token) throw new UnauthorizedException('Token no proporcionado');
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async crearPermiso(
+    @Body() createDto: CreatePermisoDto,
+    @Req() request: Request,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+    if (!token) throw new UnauthorizedException('Token no proporcionado');
 
-        const payload = await this.jwtService.verifyAsync(token);
-        const data = await this.crearPermisoUseCase.execute(createDto, payload.sub);
+    const payload = await this.jwtService.verifyAsync(token);
+    const data = await this.crearPermisoUseCase.execute(createDto, payload.sub);
 
-        return ApiResponseDto.created(data, 'Permiso creado exitosamente');
-    }
+    return ApiResponseDto.created(data, 'Permiso creado exitosamente');
+  }
 
-    @Put(':id')
-    @HttpCode(HttpStatus.OK)
-    async editarPermiso(
-        @Param('id', ParseIntPipe) id: number,
-        @Body() updateDto: UpdatePermisoDto,
-        @Req() request: Request,
-    ) {
-        const token = this.extractTokenFromHeader(request);
-        if (!token) throw new UnauthorizedException('Token no proporcionado');
+  @Put(':id')
+  @HttpCode(HttpStatus.OK)
+  async editarPermiso(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateDto: UpdatePermisoDto,
+    @Req() request: Request,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+    if (!token) throw new UnauthorizedException('Token no proporcionado');
 
-        const payload = await this.jwtService.verifyAsync(token);
-        const data = await this.editarPermisoUseCase.execute(id, updateDto, payload.sub);
+    const payload = await this.jwtService.verifyAsync(token);
+    const data = await this.editarPermisoUseCase.execute(
+      id,
+      updateDto,
+      payload.sub,
+    );
 
-        return ApiResponseDto.success(data, 'Permiso actualizado exitosamente');
-    }
+    return ApiResponseDto.success(data, 'Permiso actualizado exitosamente');
+  }
 
-    @Delete(':id')
-    @HttpCode(HttpStatus.OK)
-    async eliminarPermiso(@Param('id', ParseIntPipe) id: number, @Req() request: Request) {
-        const token = this.extractTokenFromHeader(request);
-        if (!token) throw new UnauthorizedException('Token no proporcionado');
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  async eliminarPermiso(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: Request,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+    if (!token) throw new UnauthorizedException('Token no proporcionado');
 
-        const payload = await this.jwtService.verifyAsync(token);
-        const data = await this.eliminarPermisoUseCase.execute(id, payload.sub);
+    const payload = await this.jwtService.verifyAsync(token);
+    const data = await this.eliminarPermisoUseCase.execute(id, payload.sub);
 
-        return ApiResponseDto.success(data, 'Permiso eliminado exitosamente');
-    }
+    return ApiResponseDto.success(data, 'Permiso eliminado exitosamente');
+  }
 
-    private extractTokenFromHeader(request: Request): string | undefined {
-        const authHeader = request.headers.authorization;
-        if (!authHeader) return undefined;
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const authHeader = request.headers.authorization;
+    if (!authHeader) return undefined;
 
-        const [type, token] = authHeader.split(' ');
-        return type === 'Bearer' ? token : undefined;
-    }
+    const [type, token] = authHeader.split(' ');
+    return type === 'Bearer' ? token : undefined;
+  }
 }

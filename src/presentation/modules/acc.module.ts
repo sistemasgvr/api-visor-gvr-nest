@@ -16,32 +16,29 @@ import { HttpClientService } from '../../shared/services/http-client.service';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 
 @Module({
-    imports: [
-        ConfigModule,
-        DatabaseModule,
-    ],
-    controllers: [AccController],
-    providers: [
-        // Shared Services
-        HttpClientService,
-        AutodeskApiService,
+  imports: [ConfigModule, DatabaseModule],
+  controllers: [AccController],
+  providers: [
+    // Shared Services
+    HttpClientService,
+    AutodeskApiService,
 
-        // Repository
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
+    // Repository
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
 
-        // Use Cases
-        ObtenerToken2LeggedUseCase,
-        GenerarUrlAutorizacionUseCase,
-        ObtenerMiTokenUseCase,
-        CallbackAutorizacionUseCase,
-        RefrescarToken3LeggedUseCase,
-        CronRefrescarTokensAccUseCase,
-        RevocarTokenUseCase,
-        ValidarExpiracionUseCase,
-    ],
-    exports: [ACC_REPOSITORY, AutodeskApiService],
+    // Use Cases
+    ObtenerToken2LeggedUseCase,
+    GenerarUrlAutorizacionUseCase,
+    ObtenerMiTokenUseCase,
+    CallbackAutorizacionUseCase,
+    RefrescarToken3LeggedUseCase,
+    CronRefrescarTokensAccUseCase,
+    RevocarTokenUseCase,
+    ValidarExpiracionUseCase,
+  ],
+  exports: [ACC_REPOSITORY, AutodeskApiService],
 })
-export class AccModule { }
+export class AccModule {}

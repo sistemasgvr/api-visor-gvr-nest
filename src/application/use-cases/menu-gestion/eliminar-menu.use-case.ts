@@ -4,20 +4,25 @@ import { MENU_GESTION_REPOSITORY } from '../../../domain/repositories/menu-gesti
 
 @Injectable()
 export class EliminarMenuUseCase {
-    constructor(
-        @Inject(MENU_GESTION_REPOSITORY)
-        private readonly menuRepository: IMenuGestionRepository,
-    ) { }
+  constructor(
+    @Inject(MENU_GESTION_REPOSITORY)
+    private readonly menuRepository: IMenuGestionRepository,
+  ) {}
 
-    async execute(idMenu: number, idUsuarioModificacion: number) {
-        const resultado = await this.menuRepository.eliminarMenu(idMenu, idUsuarioModificacion);
+  async execute(idMenu: number, idUsuarioModificacion: number) {
+    const resultado = await this.menuRepository.eliminarMenu(
+      idMenu,
+      idUsuarioModificacion,
+    );
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al eliminar el menú');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al eliminar el menú',
+      );
     }
+
+    return {
+      message: resultado.message,
+    };
+  }
 }

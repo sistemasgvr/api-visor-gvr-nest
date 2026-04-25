@@ -1,4 +1,11 @@
-import { Controller, Post, Body, Req, UseGuards, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
@@ -22,15 +29,20 @@ export class BroadcastController {
 
   @Post('auth')
   @UseGuards(JwtAuthGuard)
-  async authenticateChannel(@Body() body: ChannelAuthRequest, @Req() request: Request) {
+  async authenticateChannel(
+    @Body() body: ChannelAuthRequest,
+    @Req() request: Request,
+  ) {
     const { socket_id, channel_name } = body;
 
     if (!socket_id || !channel_name) {
-      throw new UnauthorizedException('socket_id y channel_name son requeridos');
+      throw new UnauthorizedException(
+        'socket_id y channel_name son requeridos',
+      );
     }
 
     // Obtener el usuario del request (inyectado por JwtAuthGuard)
-    const user = (request as any).user;
+    const user = request.user!;
     if (!user) {
       throw new UnauthorizedException('Usuario no autenticado');
     }
@@ -76,4 +88,3 @@ export class BroadcastController {
     return false;
   }
 }
-

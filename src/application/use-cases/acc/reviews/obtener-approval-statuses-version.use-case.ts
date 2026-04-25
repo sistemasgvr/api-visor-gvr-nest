@@ -5,18 +5,28 @@ import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
 
 @Injectable()
 export class ObtenerApprovalStatusesVersionUseCase {
-    constructor(
-        private readonly autodeskApiService: AutodeskApiService,
-        private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    ) { }
+  constructor(
+    private readonly autodeskApiService: AutodeskApiService,
+    private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
+  ) {}
 
-    async execute(userId: number, projectId: string, versionId: string, dto: ObtenerApprovalStatusesDto): Promise<any> {
-        const accessToken = await this.obtenerTokenValidoHelper.execute(userId);
+  async execute(
+    userId: number,
+    projectId: string,
+    versionId: string,
+    dto: ObtenerApprovalStatusesDto,
+  ): Promise<any> {
+    const accessToken = await this.obtenerTokenValidoHelper.execute(userId);
 
-        const filters: Record<string, any> = {};
-        if (dto.limit !== undefined)  filters['limit'] = dto.limit;
-        if (dto.offset !== undefined) filters['offset'] = dto.offset;
+    const filters: Record<string, any> = {};
+    if (dto.limit !== undefined) filters['limit'] = dto.limit;
+    if (dto.offset !== undefined) filters['offset'] = dto.offset;
 
-        return this.autodeskApiService.obtenerApprovalStatusesVersion(accessToken, projectId, versionId, filters);
-    }
+    return this.autodeskApiService.obtenerApprovalStatusesVersion(
+      accessToken,
+      projectId,
+      versionId,
+      filters,
+    );
+  }
 }

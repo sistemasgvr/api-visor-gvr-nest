@@ -4,9 +4,7 @@ import { AnularRevisionDto } from '../../../dtos/acc/reviews/anular-revision.dto
 
 @Injectable()
 export class AnularRevisionEntireUseCase {
-  constructor(
-    private readonly dbFunctionService: DatabaseFunctionService,
-  ) { }
+  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
 
   async execute(
     userId: number,
@@ -27,10 +25,11 @@ export class AnularRevisionEntireUseCase {
 
     const row = rows?.[0];
     if (!row?.success) {
-      throw new BadRequestException(row?.message ?? 'Error al anular la revisión');
+      throw new BadRequestException(
+        row?.message ?? 'Error al anular la revisión',
+      );
     }
 
     return { id: row.id_result, message: row.message };
   }
 }
-

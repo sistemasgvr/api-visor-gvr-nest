@@ -20,10 +20,11 @@ export class ExportarPermisosCarpetaPdfUseCase {
       folderId,
       dto,
     );
-    const safe = (dto.titulo || 'permisos-carpeta')
-      .replace(/[^a-zA-Z0-9áéíóúüñÑ _-]+/g, '_')
-      .trim()
-      .slice(0, 60) || 'permisos-carpeta';
+    const safe =
+      (dto.titulo || 'permisos-carpeta')
+        .replace(/[^a-zA-Z0-9áéíóúüñÑ _-]+/g, '_')
+        .trim()
+        .slice(0, 60) || 'permisos-carpeta';
     return {
       data,
       contentType: 'application/pdf',

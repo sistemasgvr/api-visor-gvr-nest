@@ -5,24 +5,30 @@ import { AsignarRolesMenuDto } from '../../dtos/menu-gestion/asignar-roles-menu.
 
 @Injectable()
 export class AsignarRolesMenuUseCase {
-    constructor(
-        @Inject(MENU_GESTION_REPOSITORY)
-        private readonly menuRepository: IMenuGestionRepository,
-    ) { }
+  constructor(
+    @Inject(MENU_GESTION_REPOSITORY)
+    private readonly menuRepository: IMenuGestionRepository,
+  ) {}
 
-    async execute(idMenu: number, asignarDto: AsignarRolesMenuDto, idUsuarioCreacion: number) {
-        const resultado = await this.menuRepository.asignarRolesMenu({
-            idMenu,
-            roles: asignarDto.roles,
-            idUsuarioCreacion,
-        });
+  async execute(
+    idMenu: number,
+    asignarDto: AsignarRolesMenuDto,
+    idUsuarioCreacion: number,
+  ) {
+    const resultado = await this.menuRepository.asignarRolesMenu({
+      idMenu,
+      roles: asignarDto.roles,
+      idUsuarioCreacion,
+    });
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al asignar los roles');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al asignar los roles',
+      );
     }
+
+    return {
+      message: resultado.message,
+    };
+  }
 }

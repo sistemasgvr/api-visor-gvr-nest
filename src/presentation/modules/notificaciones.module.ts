@@ -10,19 +10,18 @@ import { NOTIFICACIONES_REPOSITORY } from '../../domain/repositories/notificacio
 import { DatabaseFunctionService } from '../../infrastructure/database/database-function.service';
 
 @Module({
-    controllers: [NotificacionesController],
-    providers: [
-        ObtenerNotificacionesPendientesUseCase,
-        ObtenerNotificacionesUseCase,
-        MarcarNotificacionesEntregadasUseCase,
-        EliminarNotificacionUseCase,
-        EliminarTodasNotificacionesUseCase,
-        DatabaseFunctionService,
-        {
-            provide: NOTIFICACIONES_REPOSITORY,
-            useClass: NotificacionesRepository,
-        },
-    ],
+  controllers: [NotificacionesController],
+  providers: [
+    ObtenerNotificacionesPendientesUseCase,
+    ObtenerNotificacionesUseCase,
+    MarcarNotificacionesEntregadasUseCase,
+    EliminarNotificacionUseCase,
+    EliminarTodasNotificacionesUseCase,
+    DatabaseFunctionService,
+    {
+      provide: NOTIFICACIONES_REPOSITORY,
+      useClass: NotificacionesRepository,
+    },
+  ],
 })
 export class NotificacionesModule {}
-

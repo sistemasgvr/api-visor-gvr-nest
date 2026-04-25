@@ -6,41 +6,51 @@ import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.in
 import type { ListarDesempenoResult } from '../../../domain/repositories/control-operativo.repository.interface';
 
 export interface ListarDesempenoInput {
-    idUsuario: number;
-    idProyecto: number;
-    fechaInicio: string;
-    fechaFin: string;
-    /** IDs de roles considerados admin (enviados por el front desde ROLES_ADMIN_CONTROL_OPERATIVO). */
-    rolesAdminPermitidos: number[];
-    /** Opcional: filtrar por un solo trabajador. */
-    idTrabajador?: number | null;
+  idUsuario: number;
+  idProyecto: number;
+  fechaInicio: string;
+  fechaFin: string;
+  /** IDs de roles considerados admin (enviados por el front desde ROLES_ADMIN_CONTROL_OPERATIVO). */
+  rolesAdminPermitidos: number[];
+  /** Opcional: filtrar por un solo trabajador. */
+  idTrabajador?: number | null;
 }
 
 @Injectable()
 export class ListarDesempenoUseCase {
-    constructor(
-        @Inject(CONTROL_OPERATIVO_REPOSITORY)
-        private readonly controlOperativoRepository: IControlOperativoRepository,
-        @Inject(AUTH_REPOSITORY)
-        private readonly authRepository: IAuthRepository,
-    ) {}
+  constructor(
+    @Inject(CONTROL_OPERATIVO_REPOSITORY)
+    private readonly controlOperativoRepository: IControlOperativoRepository,
+    @Inject(AUTH_REPOSITORY)
+    private readonly authRepository: IAuthRepository,
+  ) {}
 
-    async execute(input: ListarDesempenoInput): Promise<ListarDesempenoResult> {
-        const perfil = await this.authRepository.obtenerPerfilUsuario(input.idUsuario);
-        if (!perfil?.roles || !Array.isArray(perfil.roles)) {
-            throw new UnauthorizedException('Solo administradores pueden acceder a la evaluación de desempeño');
-        }
-        const rolesIds = (perfil.roles as { id?: number }[]).map((r) => r?.id).filter((id): id is number => id != null);
-        const permitidos = input.rolesAdminPermitidos?.length ? input.rolesAdminPermitidos : [1, 5, 11];
-        const esAdmin = permitidos.some((id) => rolesIds.includes(id));
-        if (!esAdmin) {
-            throw new UnauthorizedException('Solo administradores pueden acceder a la evaluación de desempeño');
-        }
-        return this.controlOperativoRepository.listarDesempeno({
-            idProyecto: input.idProyecto,
-            fechaInicio: input.fechaInicio,
-            fechaFin: input.fechaFin,
-            idTrabajador: input.idTrabajador ?? undefined,
-        });
+  async execute(input: ListarDesempenoInput): Promise<ListarDesempenoResult> {
+    const perfil = await this.authRepository.obtenerPerfilUsuario(
+      input.idUsuario,
+    );
+    if (!perfil?.roles || !Array.isArray(perfil.roles)) {
+      throw new UnauthorizedException(
+        'Solo administradores pueden acceder a la evaluación de desempeño',
+      );
     }
+    const rolesIds = (perfil.roles as { id?: number }[])
+      .map((r) => r?.id)
+      .filter((id): id is number => id != null);
+    const permitidos = input.rolesAdminPermitidos?.length
+      ? input.rolesAdminPermitidos
+      : [1, 5, 11];
+    const esAdmin = permitidos.some((id) => rolesIds.includes(id));
+    if (!esAdmin) {
+      throw new UnauthorizedException(
+        'Solo administradores pueden acceder a la evaluación de desempeño',
+      );
+    }
+    return this.controlOperativoRepository.listarDesempeno({
+      idProyecto: input.idProyecto,
+      fechaInicio: input.fechaInicio,
+      fechaFin: input.fechaFin,
+      idTrabajador: input.idTrabajador ?? undefined,
+    });
+  }
 }

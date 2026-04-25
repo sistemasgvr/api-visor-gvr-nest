@@ -8,17 +8,17 @@ import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interfa
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 
 @Module({
-    imports: [DatabaseModule],
-    controllers: [OfficeDocumentController],
-    providers: [
-        DocumentTokenService,
-        AutodeskApiService,
-        HttpClientService,
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
-    ],
-    exports: [DocumentTokenService],
+  imports: [DatabaseModule],
+  controllers: [OfficeDocumentController],
+  providers: [
+    DocumentTokenService,
+    AutodeskApiService,
+    HttpClientService,
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
+  ],
+  exports: [DocumentTokenService],
 })
-export class OfficeDocumentModule { }
+export class OfficeDocumentModule {}

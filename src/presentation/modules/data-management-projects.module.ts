@@ -21,29 +21,29 @@ import { AccResourcesRepository } from '../../infrastructure/repositories/acc-re
 import { ACC_RESOURCES_REPOSITORY } from '../../domain/repositories/acc-resources.repository.interface';
 
 @Module({
-    imports: [DatabaseModule],
-    controllers: [DataManagementProjectsController],
-    providers: [
-        // Use cases
-        ObtenerProyectosHubUseCase,
-        ObtenerProyectoHubPorIdUseCase,
-        ObtenerHubDeProyectoUseCase,
-        ObtenerCarpetasPrincipalesUseCase,
-        CrearStorageUseCase,
-        CrearDescargaUseCase,
-        ObtenerEstadoDescargaUseCase,
-        ObtenerEstadoJobUseCase,
-        // Infrastructure
-        AutodeskApiService,
-        HttpClientService,
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
-        {
-            provide: ACC_RESOURCES_REPOSITORY,
-            useClass: AccResourcesRepository,
-        },
-    ],
+  imports: [DatabaseModule],
+  controllers: [DataManagementProjectsController],
+  providers: [
+    // Use cases
+    ObtenerProyectosHubUseCase,
+    ObtenerProyectoHubPorIdUseCase,
+    ObtenerHubDeProyectoUseCase,
+    ObtenerCarpetasPrincipalesUseCase,
+    CrearStorageUseCase,
+    CrearDescargaUseCase,
+    ObtenerEstadoDescargaUseCase,
+    ObtenerEstadoJobUseCase,
+    // Infrastructure
+    AutodeskApiService,
+    HttpClientService,
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
+    {
+      provide: ACC_RESOURCES_REPOSITORY,
+      useClass: AccResourcesRepository,
+    },
+  ],
 })
-export class DataManagementProjectsModule { }
+export class DataManagementProjectsModule {}

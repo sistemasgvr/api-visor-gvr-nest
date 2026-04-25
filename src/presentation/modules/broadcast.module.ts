@@ -24,4 +24,3 @@ import { DatabaseFunctionService } from '../../infrastructure/database/database-
   exports: [BroadcastService],
 })
 export class BroadcastModule {}
-

@@ -1,6 +1,6 @@
 /**
  * EJEMPLOS DE USO - ApiResponseDto
- * 
+ *
  * Este archivo muestra cómo usar todos los métodos helper disponibles
  * en ApiResponseDto para mantener respuestas consistentes en toda la API.
  */
@@ -13,8 +13,8 @@ import { ApiResponseDto } from './api-response.dto';
 
 // 200 - Success (GET, general)
 const successExample = ApiResponseDto.success(
-    { id: 1, nombre: 'Usuario' },
-    'Usuario obtenido exitosamente'
+  { id: 1, nombre: 'Usuario' },
+  'Usuario obtenido exitosamente',
 );
 // Resultado:
 // {
@@ -25,25 +25,25 @@ const successExample = ApiResponseDto.success(
 
 // 201 - Created (POST)
 const createdExample = ApiResponseDto.created(
-    { id: 1, nombre: 'Nuevo Usuario' },
-    'Usuario creado exitosamente'
+  { id: 1, nombre: 'Nuevo Usuario' },
+  'Usuario creado exitosamente',
 );
 
 // 200 - Updated (PUT/PATCH)
 const updatedExample = ApiResponseDto.updated(
-    { id: 1, nombre: 'Usuario Actualizado' },
-    'Usuario actualizado exitosamente'
+  { id: 1, nombre: 'Usuario Actualizado' },
+  'Usuario actualizado exitosamente',
 );
 
 // 200 - Deleted (DELETE con respuesta)
 const deletedExample = ApiResponseDto.deleted(
-    { id: 1 },
-    'Usuario eliminado exitosamente'
+  { id: 1 },
+  'Usuario eliminado exitosamente',
 );
 
 // 204 - No Content (DELETE sin respuesta)
 const noContentExample = ApiResponseDto.noContent(
-    'Usuario eliminado exitosamente'
+  'Usuario eliminado exitosamente',
 );
 
 // ============================================
@@ -51,17 +51,17 @@ const noContentExample = ApiResponseDto.noContent(
 // ============================================
 
 const paginatedExample = ApiResponseDto.paginated(
-    [
-        { id: 1, nombre: 'Usuario 1' },
-        { id: 2, nombre: 'Usuario 2' },
-    ],
-    {
-        currentPage: 1,
-        itemsPerPage: 10,
-        totalItems: 50,
-        totalPages: 5,
-    },
-    'Usuarios obtenidos exitosamente'
+  [
+    { id: 1, nombre: 'Usuario 1' },
+    { id: 2, nombre: 'Usuario 2' },
+  ],
+  {
+    currentPage: 1,
+    itemsPerPage: 10,
+    totalItems: 50,
+    totalPages: 5,
+  },
+  'Usuarios obtenidos exitosamente',
 );
 // Resultado:
 // {
@@ -82,42 +82,36 @@ const paginatedExample = ApiResponseDto.paginated(
 
 // 400 - Bad Request
 const badRequestExample = ApiResponseDto.badRequest(
-    'Los datos proporcionados son inválidos'
+  'Los datos proporcionados son inválidos',
 );
 
 // 401 - Unauthorized
 const unauthorizedExample = ApiResponseDto.unauthorized(
-    'Credenciales inválidas'
+  'Credenciales inválidas',
 );
 
 // 403 - Forbidden
 const forbiddenExample = ApiResponseDto.forbidden(
-    'No tienes permisos para acceder a este recurso'
+  'No tienes permisos para acceder a este recurso',
 );
 
 // 404 - Not Found
-const notFoundExample = ApiResponseDto.notFound(
-    'Usuario no encontrado'
-);
+const notFoundExample = ApiResponseDto.notFound('Usuario no encontrado');
 
 // 409 - Conflict
-const conflictExample = ApiResponseDto.conflict(
-    'El correo ya está registrado'
-);
+const conflictExample = ApiResponseDto.conflict('El correo ya está registrado');
 
 // ============================================
 // RESPUESTAS DE ERROR DEL SERVIDOR (5xx)
 // ============================================
 
 // 500 - Internal Server Error
-const errorExample = ApiResponseDto.error(
-    'Error al procesar la solicitud'
-);
+const errorExample = ApiResponseDto.error('Error al procesar la solicitud');
 
 // Error personalizado con código específico
 const customErrorExample = ApiResponseDto.error(
-    'Servicio temporalmente no disponible',
-    503
+  'Servicio temporalmente no disponible',
+  503,
 );
 
 // ============================================
@@ -125,9 +119,9 @@ const customErrorExample = ApiResponseDto.error(
 // ============================================
 
 const customExample = ApiResponseDto.custom(
-    { procesado: true },
-    'Operación procesada',
-    202, // Accepted
+  { procesado: true },
+  'Operación procesada',
+  202, // Accepted
 );
 
 // ============================================

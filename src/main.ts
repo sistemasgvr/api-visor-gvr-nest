@@ -13,7 +13,9 @@ import { apiReference } from '@scalar/nestjs-api-reference';
 import { json, urlencoded, raw } from 'express';
 import { join } from 'path';
 import { DataSource } from 'typeorm';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { useRequestId } from './bootstrap/apply-core-middlewares';
 import { envs } from './config';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
@@ -22,6 +24,15 @@ import { spanishValidationExceptionFactory } from './shared/validation/spanish-v
 async function bootstrap() {
   const logger = new Logger('Main.ts');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  useRequestId(app);
+  // CSP desactivada: la API y Scalar se sirven en el mismo host; el foco es cabeceras de seguridad básicas.
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
 
   // WOPI PutFile: Collabora envía el archivo como body binario (no JSON). Hay que leerlo como raw ANTES de json().
   app.use((req: any, res, next) => {
@@ -41,14 +52,20 @@ async function bootstrap() {
   });
 
   // Configurar validación global (json solo aplica a application/json; WOPI PutFile ya tiene req.rawBody)
-  app.use(json({
-    limit: '50mb',
-    verify: (req: any, res, buf) => {
-      if (req.url && req.url.includes('/collabora/wopi/files/') && req.url.includes('/contents')) {
-        req.rawBody = req.rawBody || buf;
-      }
-    },
-  }));
+  app.use(
+    json({
+      limit: '50mb',
+      verify: (req: any, res, buf) => {
+        if (
+          req.url &&
+          req.url.includes('/collabora/wopi/files/') &&
+          req.url.includes('/contents')
+        ) {
+          req.rawBody = req.rawBody || buf;
+        }
+      },
+    }),
+  );
   app.use(urlencoded({ extended: true, limit: '50mb' }));
   app.useGlobalPipes(
     new ValidationPipe({
@@ -74,10 +91,17 @@ async function bootstrap() {
   }
 
   app.enableCors({
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin) return callback(null, true); // Collabora server-to-server sin Origin
       const normalized = origin.replace(/\/$/, '');
-      if (allowedOrigins.some((o) => origin === o || normalized === o.replace(/\/$/, '')))
+      if (
+        allowedOrigins.some(
+          (o) => origin === o || normalized === o.replace(/\/$/, ''),
+        )
+      )
         return callback(null, true);
       callback(null, false);
     },
@@ -101,7 +125,9 @@ async function bootstrap() {
   // Documentación OpenAPI con Scalar (https://scalar.com)
   const config = new DocumentBuilder()
     .setTitle('API Visor GVR')
-    .setDescription('Documentación de la API del sistema Visor GVR. Usa **Authorize** para ingresar tu JWT Bearer token y probar las rutas protegidas.')
+    .setDescription(
+      'Documentación de la API del sistema Visor GVR. Usa **Authorize** para ingresar tu JWT Bearer token y probar las rutas protegidas.',
+    )
     .setVersion('1.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
@@ -140,7 +166,9 @@ async function bootstrap() {
   try {
     const dataSource = app.get(DataSource);
     const isConnected = dataSource.isInitialized;
-    logger.log(`📊 Database: ${isConnected ? '✅ Connected' : '❌ Not connected'}`);
+    logger.log(
+      `📊 Database: ${isConnected ? '✅ Connected' : '❌ Not connected'}`,
+    );
   } catch (error) {
     logger.log(`📊 Database: ❌ Connection check failed`);
   }

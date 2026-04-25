@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class ObtenerTokenPublicoDto {
-    @IsNotEmpty()
-    @IsString()
-    urn: string;
+  @IsNotEmpty()
+  @IsString()
+  urn: string;
 }

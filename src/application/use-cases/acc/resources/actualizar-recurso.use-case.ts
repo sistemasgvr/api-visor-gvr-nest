@@ -5,26 +5,31 @@ import { ActualizarRecursoDto } from '../../../dtos/acc/resources/actualizar-rec
 
 @Injectable()
 export class ActualizarRecursoUseCase {
-    constructor(
-        @Inject(ACC_RESOURCES_REPOSITORY)
-        private readonly accResourcesRepository: IAccResourcesRepository,
-    ) { }
+  constructor(
+    @Inject(ACC_RESOURCES_REPOSITORY)
+    private readonly accResourcesRepository: IAccResourcesRepository,
+  ) {}
 
-    async execute(id: number, dto: ActualizarRecursoDto, idUsuarioModificacion: number) {
-        const resultado = await this.accResourcesRepository.actualizarRecurso(id, {
-            name: dto.name,
-            parent_id: dto.parent_id,
-            account_id: dto.account_id,
-            idUsuarioModificacion,
-        });
+  async execute(
+    id: number,
+    dto: ActualizarRecursoDto,
+    idUsuarioModificacion: number,
+  ) {
+    const resultado = await this.accResourcesRepository.actualizarRecurso(id, {
+      name: dto.name,
+      parent_id: dto.parent_id,
+      account_id: dto.account_id,
+      idUsuarioModificacion,
+    });
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al actualizar el recurso');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al actualizar el recurso',
+      );
     }
-}
 
+    return {
+      message: resultado.message,
+    };
+  }
+}

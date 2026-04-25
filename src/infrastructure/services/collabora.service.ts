@@ -8,7 +8,7 @@ export class CollaboraService {
 
   constructor(private readonly configService: ConfigService) {
     this.collaboraUrl = this.configService.get<string>('COLLABORA_URL') || '';
-    
+
     if (!this.collaboraUrl) {
       this.logger.warn('COLLABORA_URL no está configurada');
     } else {
@@ -22,7 +22,10 @@ export class CollaboraService {
    * @param mode Modo de edición: 'edit' o 'view'
    * @returns URL completa para el iframe de Collabora
    */
-  generateCollaboraUrl(wopiSrcUrl: string, mode: 'edit' | 'view' = 'edit'): string {
+  generateCollaboraUrl(
+    wopiSrcUrl: string,
+    mode: 'edit' | 'view' = 'edit',
+  ): string {
     if (!this.collaboraUrl) {
       throw new Error('COLLABORA_URL no está configurada');
     }
@@ -30,12 +33,12 @@ export class CollaboraService {
     // Formato WOPI estándar con idioma español:
     // https://collabora-server/browser/dist/cool.html?WOPISrc=<encoded_wopi_endpoint>&permission=<edit|view>&lang=es-ES
     // El WOPISrc debe apuntar al endpoint que implementa CheckFileInfo
-    
+
     const encodedWopiSrc = encodeURIComponent(wopiSrcUrl);
     const browserUrl = `${this.collaboraUrl}/browser/dist/cool.html?WOPISrc=${encodedWopiSrc}&permission=${mode}&lang=es-ES`;
-    
+
     this.logger.log(`URL de Collabora generada: ${browserUrl}`);
-    
+
     return browserUrl;
   }
 

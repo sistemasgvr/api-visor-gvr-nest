@@ -33,48 +33,46 @@ import { ACC_RECURSOS_REPOSITORY } from '../../domain/repositories/acc-recursos.
 import { DatabaseFunctionService } from '../../infrastructure/database/database-function.service';
 
 @Module({
-    controllers: [IssuesBim360Controller],
-    providers: [
-        // Helper
-        ObtenerTokenValidoHelper,
+  controllers: [IssuesBim360Controller],
+  providers: [
+    // Helper
+    ObtenerTokenValidoHelper,
 
-        // Use Cases
-        ObtenerPerfilUsuarioBim360UseCase,
-        ObtenerTiposIncidenciasBim360UseCase,
-        ObtenerDefinicionesAtributosBim360UseCase,
-        ObtenerMapeosAtributosBim360UseCase,
-        ObtenerCategoriasRaizBim360UseCase,
-        ObtenerIncidenciasPorDocumentoBim360UseCase,
-        ObtenerIncidenciasBim360UseCase,
-        CrearIncidenciaBim360UseCase,
-        ObtenerIncidenciaPorIdBim360UseCase,
-        ActualizarIncidenciaBim360UseCase,
-        ObtenerComentariosBim360UseCase,
-        CrearComentarioBim360UseCase,
-        ObtenerAdjuntosBim360UseCase,
-        CrearAdjuntoBim360UseCase,
-        ActualizarAdjuntoBim360UseCase,
+    // Use Cases
+    ObtenerPerfilUsuarioBim360UseCase,
+    ObtenerTiposIncidenciasBim360UseCase,
+    ObtenerDefinicionesAtributosBim360UseCase,
+    ObtenerMapeosAtributosBim360UseCase,
+    ObtenerCategoriasRaizBim360UseCase,
+    ObtenerIncidenciasPorDocumentoBim360UseCase,
+    ObtenerIncidenciasBim360UseCase,
+    CrearIncidenciaBim360UseCase,
+    ObtenerIncidenciaPorIdBim360UseCase,
+    ActualizarIncidenciaBim360UseCase,
+    ObtenerComentariosBim360UseCase,
+    CrearComentarioBim360UseCase,
+    ObtenerAdjuntosBim360UseCase,
+    CrearAdjuntoBim360UseCase,
+    ActualizarAdjuntoBim360UseCase,
 
-        // Services
-        AutodeskApiService,
-        HttpClientService,
+    // Services
+    AutodeskApiService,
+    HttpClientService,
 
-        // Repositories
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
-        {
-            provide: AUDITORIA_REPOSITORY,
-            useClass: AuditoriaRepository,
-        },
-        {
-            provide: ACC_RECURSOS_REPOSITORY,
-            useClass: AccRecursosRepository,
-        },
-        DatabaseFunctionService,
-    ],
+    // Repositories
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
+    {
+      provide: AUDITORIA_REPOSITORY,
+      useClass: AuditoriaRepository,
+    },
+    {
+      provide: ACC_RECURSOS_REPOSITORY,
+      useClass: AccRecursosRepository,
+    },
+    DatabaseFunctionService,
+  ],
 })
-export class IssuesBim360Module { }
-
-
+export class IssuesBim360Module {}

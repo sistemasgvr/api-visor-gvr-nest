@@ -1,25 +1,26 @@
 import {
-    Controller,
-    Post,
-    Get,
-    Patch,
-    Body,
-    HttpCode,
-    HttpStatus,
-    Req,
-    UseGuards,
-    UseInterceptors,
-    UploadedFile,
-    UnauthorizedException,
-    BadRequestException,
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Req,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { RegisterUseCase } from '../../application/use-cases/register.use-case';
 import { LoginUseCase } from '../../application/use-cases/login.use-case';
 import {
-    RefreshTokenUseCase,
-    AUTH_REFRESH_ERROR_CODE,
+  RefreshTokenUseCase,
+  AUTH_REFRESH_ERROR_CODE,
 } from '../../application/use-cases/auth/refresh-token.use-case';
 import { LogoutUseCase } from '../../application/use-cases/auth/logout.use-case';
 import { ObtenerPerfilUseCase } from '../../application/use-cases/auth/obtener-perfil.use-case';
@@ -36,235 +37,236 @@ import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-    constructor(
-        private readonly registerUseCase: RegisterUseCase,
-        private readonly loginUseCase: LoginUseCase,
-        private readonly refreshTokenUseCase: RefreshTokenUseCase,
-        private readonly logoutUseCase: LogoutUseCase,
-        private readonly obtenerPerfilUseCase: ObtenerPerfilUseCase,
-        private readonly subirFotoPerfilUseCase: SubirFotoPerfilUseCase,
-        private readonly validarSesionUseCase: ValidarSesionUseCase,
-        private readonly cerrarTodasSesionesUseCase: CerrarTodasSesionesUseCase,
-        private readonly obtenerEstadisticasUsuariosUseCase: ObtenerEstadisticasUsuariosUseCase,
-    ) { }
+  constructor(
+    private readonly registerUseCase: RegisterUseCase,
+    private readonly loginUseCase: LoginUseCase,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
+    private readonly obtenerPerfilUseCase: ObtenerPerfilUseCase,
+    private readonly subirFotoPerfilUseCase: SubirFotoPerfilUseCase,
+    private readonly validarSesionUseCase: ValidarSesionUseCase,
+    private readonly cerrarTodasSesionesUseCase: CerrarTodasSesionesUseCase,
+    private readonly obtenerEstadisticasUsuariosUseCase: ObtenerEstadisticasUsuariosUseCase,
+  ) {}
 
-    @Post('register')
-    @HttpCode(HttpStatus.CREATED)
-    @ApiOperation({ summary: 'Registrar usuario', security: [] })
-    async register(@Body() registerDto: RegisterDto) {
-        const user = await this.registerUseCase.execute(registerDto);
+  @Post('register')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 15, ttl: 60_000 } })
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Registrar usuario', security: [] })
+  async register(@Body() registerDto: RegisterDto) {
+    const user = await this.registerUseCase.execute(registerDto);
 
-        // Remove password from response
-        const { contrasena, ...userWithoutPassword } = user;
+    // Remove password from response
+    const { contrasena: _omitPassword, ...userWithoutPassword } = user;
+    void _omitPassword;
 
-        return ApiResponseDto.created(
-            userWithoutPassword,
-            'Usuario registrado exitosamente',
-        );
+    return ApiResponseDto.created(
+      userWithoutPassword,
+      'Usuario registrado exitosamente',
+    );
+  }
+
+  @Post('login')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Iniciar sesión', security: [] })
+  async login(@Body() loginDto: LoginDto, @Req() request: Request) {
+    const ip = this.getIpAddress(request);
+    const userAgent = request.headers['user-agent'];
+
+    const result = await this.loginUseCase.execute(loginDto, ip, userAgent);
+
+    return ApiResponseDto.success(result, 'Inicio de sesión exitoso');
+  }
+
+  /**
+   * Refrescar token JWT (acepta access token expirado si sigue siendo la sesión activa en BD).
+   * POST /auth/refresh-token
+   */
+  @Post('refresh-token')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 40, ttl: 60_000 } })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Refrescar JWT',
+    description:
+      'Envía el Bearer actual (aunque esté expirado). Se valida firma y que el token coincida con la sesión en base de datos.',
+    security: [],
+  })
+  async refreshToken(@Req() request: Request) {
+    const token = this.extractTokenFromHeader(request);
+
+    if (!token) {
+      throw new UnauthorizedException({
+        message: 'Token no proporcionado',
+        code: AUTH_REFRESH_ERROR_CODE.NO_BEARER,
+      });
     }
 
-    @Post('login')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Iniciar sesión', security: [] })
-    async login(@Body() loginDto: LoginDto, @Req() request: Request) {
-        const ip = this.getIpAddress(request);
-        const userAgent = request.headers['user-agent'];
+    const ip = this.getIpAddress(request);
+    const userAgent = request.headers['user-agent'];
 
-        const result = await this.loginUseCase.execute(loginDto, ip, userAgent);
+    const resultado = await this.refreshTokenUseCase.execute(
+      token,
+      ip,
+      userAgent,
+    );
 
-        return ApiResponseDto.success(
-            result,
-            'Inicio de sesión exitoso',
-        );
+    return ApiResponseDto.success(resultado, 'Token refrescado exitosamente');
+  }
+
+  /**
+   * Cerrar sesión actual
+   * POST /auth/logout
+   */
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async logout(@Req() request: Request) {
+    const token = this.extractTokenFromHeader(request);
+
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
     }
 
-    /**
-     * Refrescar token JWT (acepta access token expirado si sigue siendo la sesión activa en BD).
-     * POST /auth/refresh-token
-     */
-    @Post('refresh-token')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({
-        summary: 'Refrescar JWT',
-        description:
-            'Envía el Bearer actual (aunque esté expirado). Se valida firma y que el token coincida con la sesión en base de datos.',
-        security: [],
-    })
-    async refreshToken(@Req() request: Request) {
-        const token = this.extractTokenFromHeader(request);
+    await this.logoutUseCase.execute(token);
 
-        if (!token) {
-            throw new UnauthorizedException({
-                message: 'Token no proporcionado',
-                code: AUTH_REFRESH_ERROR_CODE.NO_BEARER,
-            });
-        }
+    return ApiResponseDto.success(null, 'Logout exitoso');
+  }
 
-        const ip = this.getIpAddress(request);
-        const userAgent = request.headers['user-agent'];
+  /**
+   * Obtener perfil del usuario autenticado
+   * GET /auth/perfil
+   */
+  @Get('perfil')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async obtenerPerfil(@Req() request: Request) {
+    const token = this.extractTokenFromHeader(request);
 
-        const resultado = await this.refreshTokenUseCase.execute(token, ip, userAgent);
-
-        return ApiResponseDto.success(
-            resultado,
-            'Token refrescado exitosamente',
-        );
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
     }
 
-    /**
-     * Cerrar sesión actual
-     * POST /auth/logout
-     */
-    @Post('logout')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async logout(@Req() request: Request) {
-        const token = this.extractTokenFromHeader(request);
+    const perfil: unknown = await this.obtenerPerfilUseCase.execute(token);
 
-        if (!token) {
-            throw new UnauthorizedException('Token no proporcionado');
-        }
+    return ApiResponseDto.success(perfil, 'Perfil obtenido exitosamente');
+  }
 
-        await this.logoutUseCase.execute(token);
+  /**
+   * Subir foto de perfil del usuario autenticado
+   * PATCH /auth/perfil/foto
+   */
+  @Patch('perfil/foto')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('foto'))
+  async subirFotoPerfil(
+    @Req() request: Request,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const token = this.extractTokenFromHeader(request);
 
-        return ApiResponseDto.success(
-            null,
-            'Logout exitoso',
-        );
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
     }
 
-    /**
-     * Obtener perfil del usuario autenticado
-     * GET /auth/perfil
-     */
-    @Get('perfil')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async obtenerPerfil(@Req() request: Request) {
-        const token = this.extractTokenFromHeader(request);
-
-        if (!token) {
-            throw new UnauthorizedException('Token no proporcionado');
-        }
-
-        const perfil = await this.obtenerPerfilUseCase.execute(token);
-
-        return ApiResponseDto.success(
-            perfil,
-            'Perfil obtenido exitosamente',
-        );
+    if (!file) {
+      throw new BadRequestException(
+        'Se requiere el archivo de imagen (campo "foto")',
+      );
     }
 
-    /**
-     * Subir foto de perfil del usuario autenticado
-     * PATCH /auth/perfil/foto
-     */
-    @Patch('perfil/foto')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    @UseInterceptors(FileInterceptor('foto'))
-    async subirFotoPerfil(
-        @Req() request: Request,
-        @UploadedFile() file: Express.Multer.File,
-    ) {
-        const token = this.extractTokenFromHeader(request);
+    const result = await this.subirFotoPerfilUseCase.execute(token, file);
 
-        if (!token) {
-            throw new UnauthorizedException('Token no proporcionado');
-        }
+    return ApiResponseDto.success(
+      result,
+      'Foto de perfil actualizada exitosamente',
+    );
+  }
 
-        if (!file) {
-            throw new BadRequestException('Se requiere el archivo de imagen (campo "foto")');
-        }
+  /**
+   * Validar si la sesión está activa
+   * GET /validar-sesion
+   */
+  @Get('/validar-sesion')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async validarSesion(@Req() request: Request) {
+    const token = this.extractTokenFromHeader(request);
 
-        const result = await this.subirFotoPerfilUseCase.execute(token, file);
-
-        return ApiResponseDto.success(
-            result,
-            'Foto de perfil actualizada exitosamente',
-        );
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
     }
 
-    /**
-     * Validar si la sesión está activa
-     * GET /validar-sesion
-     */
-    @Get('/validar-sesion')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async validarSesion(@Req() request: Request) {
-        const token = this.extractTokenFromHeader(request);
+    const resultado = await this.validarSesionUseCase.execute(token);
 
-        if (!token) {
-            throw new UnauthorizedException('Token no proporcionado');
-        }
-
-        const resultado = await this.validarSesionUseCase.execute(token);
-
-        if (!resultado.valida) {
-            throw new UnauthorizedException('Sesión inválida o expirada');
-        }
-
-        return ApiResponseDto.success(
-            resultado,
-            'Sesión activa',
-        );
+    if (!resultado.valida) {
+      throw new UnauthorizedException('Sesión inválida o expirada');
     }
 
-    /**
-     * Estadísticas de usuarios (total y conectados). Solo Administrador GVR, Administrador Sistema, Gerencia.
-     * GET /auth/estadisticas-usuarios
-     */
-    @Get('estadisticas-usuarios')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async estadisticasUsuarios(@Req() request: Request & { user?: { id?: number; sub?: number } }) {
-        const userId = request.user?.sub ?? request.user?.id;
-        if (userId == null) {
-            throw new UnauthorizedException('Usuario no identificado');
-        }
-        const result = await this.obtenerEstadisticasUsuariosUseCase.execute(Number(userId));
-        return ApiResponseDto.success(result, 'Estadísticas de usuarios');
+    return ApiResponseDto.success(resultado, 'Sesión activa');
+  }
+
+  /**
+   * Estadísticas de usuarios (total y conectados). Solo Administrador GVR, Administrador Sistema, Gerencia.
+   * GET /auth/estadisticas-usuarios
+   */
+  @Get('estadisticas-usuarios')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async estadisticasUsuarios(
+    @Req() request: Request & { user?: { id?: number; sub?: number } },
+  ) {
+    const userId = request.user?.sub ?? request.user?.id;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no identificado');
+    }
+    const result = await this.obtenerEstadisticasUsuariosUseCase.execute(
+      Number(userId),
+    );
+    return ApiResponseDto.success(result, 'Estadísticas de usuarios');
+  }
+
+  /**
+   * Cerrar todas las sesiones del usuario
+   * POST /cerrar-todas-sesiones
+   */
+  @Post('/cerrar-todas-sesiones')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async cerrarTodasSesiones(@Req() request: Request) {
+    const token = this.extractTokenFromHeader(request);
+
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
     }
 
-    /**
-     * Cerrar todas las sesiones del usuario
-     * POST /cerrar-todas-sesiones
-     */
-    @Post('/cerrar-todas-sesiones')
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(HttpStatus.OK)
-    async cerrarTodasSesiones(@Req() request: Request) {
-        const token = this.extractTokenFromHeader(request);
+    await this.cerrarTodasSesionesUseCase.execute(token);
 
-        if (!token) {
-            throw new UnauthorizedException('Token no proporcionado');
-        }
+    return ApiResponseDto.success(null, 'Todas las sesiones han sido cerradas');
+  }
 
-        await this.cerrarTodasSesionesUseCase.execute(token);
-
-        return ApiResponseDto.success(
-            null,
-            'Todas las sesiones han sido cerradas',
-        );
+  // Helper methods
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
+      return undefined;
     }
 
-    // Helper methods
-    private extractTokenFromHeader(request: Request): string | undefined {
-        const authHeader = request.headers.authorization;
-        if (!authHeader) {
-            return undefined;
-        }
+    const [type, token] = authHeader.split(' ');
+    return type === 'Bearer' ? token : undefined;
+  }
 
-        const [type, token] = authHeader.split(' ');
-        return type === 'Bearer' ? token : undefined;
+  private getIpAddress(request: Request): string | undefined {
+    const forwarded = request.headers['x-forwarded-for'];
+    if (forwarded) {
+      return typeof forwarded === 'string'
+        ? forwarded.split(',')[0]
+        : forwarded[0];
     }
-
-    private getIpAddress(request: Request): string | undefined {
-        const forwarded = request.headers['x-forwarded-for'];
-        if (forwarded) {
-            return typeof forwarded === 'string' ? forwarded.split(',')[0] : forwarded[0];
-        }
-        return request.ip;
-    }
+    return request.ip;
+  }
 }

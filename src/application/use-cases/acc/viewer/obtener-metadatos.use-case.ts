@@ -3,11 +3,9 @@ import { AutodeskApiService } from '../../../../infrastructure/services/autodesk
 
 @Injectable()
 export class ObtenerMetadatosUseCase {
-    constructor(
-        private readonly autodeskApiService: AutodeskApiService,
-    ) { }
+  constructor(private readonly autodeskApiService: AutodeskApiService) {}
 
-    async execute(urn: string): Promise<any> {
-        return await this.autodeskApiService.obtenerMetadatos(urn);
-    }
+  async execute(urn: string): Promise<any> {
+    return await this.autodeskApiService.obtenerMetadatos(urn);
+  }
 }

@@ -5,14 +5,14 @@ import { getDatabaseConfig } from '../../config/database.config';
 import { DatabaseFunctionService } from './database-function.service';
 
 @Module({
-    imports: [
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: getDatabaseConfig,
-            inject: [ConfigService],
-        }),
-    ],
-    providers: [DatabaseFunctionService],
-    exports: [DatabaseFunctionService],
+  imports: [
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: getDatabaseConfig,
+      inject: [ConfigService],
+    }),
+  ],
+  providers: [DatabaseFunctionService],
+  exports: [DatabaseFunctionService],
 })
-export class DatabaseModule { }
+export class DatabaseModule {}

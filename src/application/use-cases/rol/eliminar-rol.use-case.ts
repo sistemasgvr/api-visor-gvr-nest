@@ -4,20 +4,25 @@ import { ROL_REPOSITORY } from '../../../domain/repositories/rol.repository.inte
 
 @Injectable()
 export class EliminarRolUseCase {
-    constructor(
-        @Inject(ROL_REPOSITORY)
-        private readonly rolRepository: IRolRepository,
-    ) { }
+  constructor(
+    @Inject(ROL_REPOSITORY)
+    private readonly rolRepository: IRolRepository,
+  ) {}
 
-    async execute(idRol: number, idUsuarioModificacion: number) {
-        const resultado = await this.rolRepository.eliminarRol(idRol, idUsuarioModificacion);
+  async execute(idRol: number, idUsuarioModificacion: number) {
+    const resultado = await this.rolRepository.eliminarRol(
+      idRol,
+      idUsuarioModificacion,
+    );
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al eliminar el rol');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al eliminar el rol',
+      );
     }
+
+    return {
+      message: resultado.message,
+    };
+  }
 }

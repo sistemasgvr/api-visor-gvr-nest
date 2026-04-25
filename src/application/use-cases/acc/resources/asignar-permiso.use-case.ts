@@ -5,26 +5,27 @@ import { AsignarPermisoDto } from '../../../dtos/acc/resources/asignar-permiso.d
 
 @Injectable()
 export class AsignarPermisoUseCase {
-    constructor(
-        @Inject(ACC_RESOURCES_REPOSITORY)
-        private readonly accResourcesRepository: IAccResourcesRepository,
-    ) { }
+  constructor(
+    @Inject(ACC_RESOURCES_REPOSITORY)
+    private readonly accResourcesRepository: IAccResourcesRepository,
+  ) {}
 
-    async execute(dto: AsignarPermisoDto, idUsuarioCreacion: number) {
-        const resultado = await this.accResourcesRepository.asignarPermiso({
-            role_id: dto.role_id,
-            resource_id: dto.resource_id,
-            idUsuarioCreacion,
-        });
+  async execute(dto: AsignarPermisoDto, idUsuarioCreacion: number) {
+    const resultado = await this.accResourcesRepository.asignarPermiso({
+      role_id: dto.role_id,
+      resource_id: dto.resource_id,
+      idUsuarioCreacion,
+    });
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al asignar el permiso');
-        }
-
-        return {
-            id: resultado.id,
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al asignar el permiso',
+      );
     }
-}
 
+    return {
+      id: resultado.id,
+      message: resultado.message,
+    };
+  }
+}

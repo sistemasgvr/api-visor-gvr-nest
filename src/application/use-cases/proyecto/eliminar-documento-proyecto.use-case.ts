@@ -4,12 +4,15 @@ import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repos
 
 @Injectable()
 export class EliminarDocumentoProyectoUseCase {
-    constructor(
-        @Inject(PROYECTO_REPOSITORY)
-        private readonly proyectoRepository: IProyectoRepository,
-    ) {}
+  constructor(
+    @Inject(PROYECTO_REPOSITORY)
+    private readonly proyectoRepository: IProyectoRepository,
+  ) {}
 
-    async execute(idDocumento: number, idUsuarioModificacion: number) {
-        return this.proyectoRepository.eliminarDocumentoProyecto(idDocumento, idUsuarioModificacion);
-    }
+  async execute(idDocumento: number, idUsuarioModificacion: number) {
+    return this.proyectoRepository.eliminarDocumentoProyecto(
+      idDocumento,
+      idUsuarioModificacion,
+    );
+  }
 }

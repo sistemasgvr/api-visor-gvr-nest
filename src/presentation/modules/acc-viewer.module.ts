@@ -12,16 +12,16 @@ import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.s
 import { HttpClientService } from '../../shared/services/http-client.service';
 
 @Module({
-    controllers: [AccViewerController],
-    providers: [
-        // Use cases
-        GenerarTokenViewerUseCase,
-        ObtenerTokenPublicoUseCase,
-        ObtenerManifiestoUseCase,
-        ObtenerMetadatosUseCase,
-        // Infrastructure
-        AutodeskApiService,
-        HttpClientService,
-    ],
+  controllers: [AccViewerController],
+  providers: [
+    // Use cases
+    GenerarTokenViewerUseCase,
+    ObtenerTokenPublicoUseCase,
+    ObtenerManifiestoUseCase,
+    ObtenerMetadatosUseCase,
+    // Infrastructure
+    AutodeskApiService,
+    HttpClientService,
+  ],
 })
-export class AccViewerModule { }
+export class AccViewerModule {}

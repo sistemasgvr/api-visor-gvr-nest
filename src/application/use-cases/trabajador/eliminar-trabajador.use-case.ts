@@ -4,20 +4,25 @@ import { TRABAJADOR_REPOSITORY } from '../../../domain/repositories/trabajador.r
 
 @Injectable()
 export class EliminarTrabajadorUseCase {
-    constructor(
-        @Inject(TRABAJADOR_REPOSITORY)
-        private readonly trabajadorRepository: ITrabajadorRepository,
-    ) { }
+  constructor(
+    @Inject(TRABAJADOR_REPOSITORY)
+    private readonly trabajadorRepository: ITrabajadorRepository,
+  ) {}
 
-    async execute(idTrabajador: number, idUsuarioModificacion: number) {
-        const resultado = await this.trabajadorRepository.eliminarTrabajador(idTrabajador, idUsuarioModificacion);
+  async execute(idTrabajador: number, idUsuarioModificacion: number) {
+    const resultado = await this.trabajadorRepository.eliminarTrabajador(
+      idTrabajador,
+      idUsuarioModificacion,
+    );
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al eliminar el trabajador');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al eliminar el trabajador',
+      );
     }
+
+    return {
+      message: resultado.message,
+    };
+  }
 }

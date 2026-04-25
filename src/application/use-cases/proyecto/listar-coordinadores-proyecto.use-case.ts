@@ -4,12 +4,12 @@ import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repos
 
 @Injectable()
 export class ListarCoordinadoresProyectoUseCase {
-    constructor(
-        @Inject(PROYECTO_REPOSITORY)
-        private readonly proyectoRepository: IProyectoRepository,
-    ) {}
+  constructor(
+    @Inject(PROYECTO_REPOSITORY)
+    private readonly proyectoRepository: IProyectoRepository,
+  ) {}
 
-    async execute(idProyecto: number) {
-        return this.proyectoRepository.listarCoordinadoresProyecto(idProyecto);
-    }
+  async execute(idProyecto: number) {
+    return this.proyectoRepository.listarCoordinadoresProyecto(idProyecto);
+  }
 }

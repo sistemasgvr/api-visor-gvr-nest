@@ -39,7 +39,9 @@ export class BroadcastService {
    */
   emitMenuDeleted(menuId: number) {
     // Emitir sin el punto inicial (Socket.IO no necesita el punto)
-    this.broadcastGateway.emitToChannel('menus', 'menu.deleted', { menu_id: menuId });
+    this.broadcastGateway.emitToChannel('menus', 'menu.deleted', {
+      menu_id: menuId,
+    });
   }
 
   /**
@@ -65,7 +67,9 @@ export class BroadcastService {
     data: { projectId: string; itemId: string; fileName: string },
   ) {
     this.broadcastGateway.emitToUser(userId, 'document.save_started', data);
-    this.logger.log(`[DOC] document.save_started emitido a usuario ${userId} para ${data.fileName}`);
+    this.logger.log(
+      `[DOC] document.save_started emitido a usuario ${userId} para ${data.fileName}`,
+    );
   }
 
   /**
@@ -77,7 +81,9 @@ export class BroadcastService {
     data: { projectId: string; itemId: string; fileName: string },
   ) {
     this.broadcastGateway.emitToUser(userId, 'document.saved', data);
-    this.logger.log(`[DOC] document.saved emitido a usuario ${userId} para ${data.fileName}`);
+    this.logger.log(
+      `[DOC] document.saved emitido a usuario ${userId} para ${data.fileName}`,
+    );
   }
 
   /**
@@ -97,27 +103,37 @@ export class BroadcastService {
 
     try {
       // 1) Siempre guardar en BD para que aparezca en el sistema y al cargar pendientes
-      const saved = await this.notificacionesRepository.guardarNotificacionPendiente(
-        userId,
-        tipo,
-        titulo,
-        mensaje,
-        notification,
+      const saved =
+        await this.notificacionesRepository.guardarNotificacionPendiente(
+          userId,
+          tipo,
+          titulo,
+          mensaje,
+          notification,
+        );
+      this.logger.log(
+        `[NOTIF] Guardada en BD para userId=${userId} → id=${saved?.id ?? 'N/A'}`,
       );
-      this.logger.log(`[NOTIF] Guardada en BD para userId=${userId} → id=${saved?.id ?? 'N/A'}`);
     } catch (err: any) {
-      this.logger.error(`[NOTIF] Error al guardar en BD userId=${userId}: ${err?.message ?? err}`);
+      this.logger.error(
+        `[NOTIF] Error al guardar en BD userId=${userId}: ${err?.message ?? err}`,
+      );
       throw err;
     }
 
     // 2) Si está conectado, enviar también por WebSocket
     const isConnected = this.broadcastGateway.isUserConnected(userId);
-    this.logger.log(`[NOTIF] Usuario userId=${userId} conectado por socket: ${isConnected}`);
+    this.logger.log(
+      `[NOTIF] Usuario userId=${userId} conectado por socket: ${isConnected}`,
+    );
     if (isConnected) {
       const channel = `App.Models.User.${userId}`;
-      this.broadcastGateway.emitToChannel(channel, 'notification', notification);
+      this.broadcastGateway.emitToChannel(
+        channel,
+        'notification',
+        notification,
+      );
       this.logger.log(`[NOTIF] Emitido por socket al canal ${channel}`);
     }
   }
 }
-

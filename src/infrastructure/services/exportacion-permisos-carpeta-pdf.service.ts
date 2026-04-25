@@ -1,6 +1,17 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
-import { ACC_RESOURCES_REPOSITORY, type IAccResourcesRepository } from '../../domain/repositories/acc-resources.repository.interface';
-import { ACC_REPOSITORY, type IAccRepository } from '../../domain/repositories/acc.repository.interface';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
+import {
+  ACC_RESOURCES_REPOSITORY,
+  type IAccResourcesRepository,
+} from '../../domain/repositories/acc-resources.repository.interface';
+import {
+  ACC_REPOSITORY,
+  type IAccRepository,
+} from '../../domain/repositories/acc.repository.interface';
 import { normalizeExternalId } from '../../shared/utils/normalize-external-id.util';
 import { AutodeskApiService } from './autodesk-api.service';
 import {
@@ -53,10 +64,13 @@ export class ExportacionPermisosCarpetaPdfService {
     dto: ExportarPermisosCarpetaPdfDto,
   ): Promise<Buffer> {
     if (dto.alcance === 'all_project_folders' && !dto.hubId?.trim()) {
-      throw new BadRequestException('hubId es requerido para exportar permisos de todas las carpetas del proyecto.');
+      throw new BadRequestException(
+        'hubId es requerido para exportar permisos de todas las carpetas del proyecto.',
+      );
     }
 
-    const token = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
+    const token =
+      await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
     if (!token) {
       throw new ForbiddenException(
         'No se encontró token de acceso. Autoriza Autodesk primero.',
@@ -79,7 +93,9 @@ export class ExportacionPermisosCarpetaPdfService {
         normalizeExternalId(id) || id,
       );
       if (!rec?.id) continue;
-      const ures = await this.accResourcesRepository.listarUsuariosRecurso(rec.id);
+      const ures = await this.accResourcesRepository.listarUsuariosRecurso(
+        rec.id,
+      );
       const us = ures.data || ures;
       const lista = Array.isArray(us) ? us : (us as { data?: unknown[] })?.data;
       if (!Array.isArray(lista)) continue;
@@ -87,9 +103,13 @@ export class ExportacionPermisosCarpetaPdfService {
         if (filas.length >= MAX_FILAS) break;
         filas.push({
           carpeta: nombreCarpeta,
-          usuario: String((u as { nombreusuario?: string }).nombreusuario || '—'),
+          usuario: String(
+            (u as { nombreusuario?: string }).nombreusuario || '—',
+          ),
           email: String((u as { emailusuario?: string }).emailusuario || '—'),
-          nivel: String((u as { permissionlevelname?: string }).permissionlevelname || '—'),
+          nivel: String(
+            (u as { permissionlevelname?: string }).permissionlevelname || '—',
+          ),
         });
       }
     }
@@ -131,7 +151,13 @@ export class ExportacionPermisosCarpetaPdfService {
     truncated: boolean;
   }> {
     if (dto.alcance === 'current_tree') {
-      return this.bfsCarpetas(accessToken, projectId, startFolderId, true, MAX_CARPETAS);
+      return this.bfsCarpetas(
+        accessToken,
+        projectId,
+        startFolderId,
+        true,
+        MAX_CARPETAS,
+      );
     }
 
     const top = await this.autodeskApiService.obtenerCarpetasPrincipales(
@@ -168,7 +194,13 @@ export class ExportacionPermisosCarpetaPdfService {
     if (out.length > 0) {
       return { carpetas: out, truncated };
     }
-    return this.bfsCarpetas(accessToken, projectId, startFolderId, true, MAX_CARPETAS);
+    return this.bfsCarpetas(
+      accessToken,
+      projectId,
+      startFolderId,
+      true,
+      MAX_CARPETAS,
+    );
   }
 
   private async bfsCarpetas(
@@ -186,10 +218,15 @@ export class ExportacionPermisosCarpetaPdfService {
       const meta = await this.autodeskApiService
         .obtenerCarpetaPorId(accessToken, projectId, rootId)
         .catch(() => ({ data: null as unknown }));
-      const m = (meta as { data?: { attributes?: { displayName?: string; name?: string } } })
-        .data;
+      const m = (
+        meta as {
+          data?: { attributes?: { displayName?: string; name?: string } };
+        }
+      ).data;
       const nombre =
-        m?.attributes?.displayName || m?.attributes?.name || rootId.slice(0, 12) + '…';
+        m?.attributes?.displayName ||
+        m?.attributes?.name ||
+        rootId.slice(0, 12) + '…';
       cola.push({ id: rootId, ruta: '', nombre });
     }
 
@@ -201,9 +238,7 @@ export class ExportacionPermisosCarpetaPdfService {
       const cur = cola.shift()!;
       if (visto.has(cur.id)) continue;
       visto.add(cur.id);
-      const nombreCarpeta = cur.ruta
-        ? `${cur.ruta}/${cur.nombre}`
-        : cur.nombre;
+      const nombreCarpeta = cur.ruta ? `${cur.ruta}/${cur.nombre}` : cur.nombre;
       resultado.push(conNombre(cur.id, nombreCarpeta));
 
       if (resultado.length >= maxCarpetas) {
@@ -211,16 +246,18 @@ export class ExportacionPermisosCarpetaPdfService {
         break;
       }
 
-      const { data: subFolders } = await this.autodeskApiService.obtenerContenidoCarpetaTodasLasPaginas(
-        accessToken,
-        projectId,
-        cur.id,
-        { 'filter[type]': 'folders' },
-      );
+      const { data: subFolders } =
+        await this.autodeskApiService.obtenerContenidoCarpetaTodasLasPaginas(
+          accessToken,
+          projectId,
+          cur.id,
+          { 'filter[type]': 'folders' },
+        );
 
       for (const it of subFolders) {
         if (it.type === 'folders') {
-          const nom = it.attributes?.displayName || it.attributes?.name || it.id;
+          const nom =
+            it.attributes?.displayName || it.attributes?.name || it.id;
           const nextRuta = cur.ruta ? `${cur.ruta}/${cur.nombre}` : cur.nombre;
           cola.push({ id: it.id, ruta: nextRuta, nombre: nom });
         }
@@ -230,6 +267,9 @@ export class ExportacionPermisosCarpetaPdfService {
   }
 }
 
-function conNombre(id: string, nombreCarpeta: string): { id: string; nombreCarpeta: string } {
+function conNombre(
+  id: string,
+  nombreCarpeta: string,
+): { id: string; nombreCarpeta: string } {
   return { id, nombreCarpeta };
 }

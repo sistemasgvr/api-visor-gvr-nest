@@ -5,24 +5,30 @@ import { UpdateEmpresaDto } from '../../dtos/empresa/update-empresa.dto';
 
 @Injectable()
 export class EditarEmpresaUseCase {
-    constructor(
-        @Inject(EMPRESA_REPOSITORY)
-        private readonly empresaRepository: IEmpresaRepository,
-    ) { }
+  constructor(
+    @Inject(EMPRESA_REPOSITORY)
+    private readonly empresaRepository: IEmpresaRepository,
+  ) {}
 
-    async execute(idEmpresa: number, updateDto: UpdateEmpresaDto, idUsuarioModificacion: number) {
-        const resultado = await this.empresaRepository.editarEmpresa({
-            idEmpresa,
-            ...updateDto,
-            idUsuarioModificacion,
-        });
+  async execute(
+    idEmpresa: number,
+    updateDto: UpdateEmpresaDto,
+    idUsuarioModificacion: number,
+  ) {
+    const resultado = await this.empresaRepository.editarEmpresa({
+      idEmpresa,
+      ...updateDto,
+      idUsuarioModificacion,
+    });
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al editar la empresa');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al editar la empresa',
+      );
     }
+
+    return {
+      message: resultado.message,
+    };
+  }
 }

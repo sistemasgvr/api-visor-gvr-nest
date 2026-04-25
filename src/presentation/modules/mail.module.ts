@@ -2,7 +2,10 @@ import { DynamicModule, Module, Provider, Type } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
-import { MAIL_JOB_PUBLISHER, MAIL_QUEUE_NAME } from '../../domain/services/mail-job-publisher.interface';
+import {
+  MAIL_JOB_PUBLISHER,
+  MAIL_QUEUE_NAME,
+} from '../../domain/services/mail-job-publisher.interface';
 import { MAIL_RENDERER } from '../../domain/services/mail-renderer.interface';
 import { MAIL_TRANSPORT } from '../../domain/services/mail-transport.interface';
 import { EMAIL_DISPATCH_LOG_REPOSITORY } from '../../domain/repositories/email-dispatch-log.repository.interface';
@@ -17,68 +20,70 @@ import { BullMailJobPublisher } from '../../infrastructure/mail/bull-mail-job-pu
 import { MailQueueProcessor } from '../../infrastructure/mail/mail-queue.processor';
 
 function isMailQueueEnabled(): boolean {
-    return (
-        process.env.MAIL_USE_QUEUE === 'true' &&
-        !!(process.env.REDIS_HOST ?? '').trim()
-    );
+  return (
+    process.env.MAIL_USE_QUEUE === 'true' &&
+    !!(process.env.REDIS_HOST ?? '').trim()
+  );
 }
 
 @Module({})
 export class MailModule {
-    static register(): DynamicModule {
-        const useQueue = isMailQueueEnabled();
+  static register(): DynamicModule {
+    const useQueue = isMailQueueEnabled();
 
-        const imports: Array<Type | DynamicModule> = [ConfigModule, DatabaseModule];
+    const imports: Array<Type | DynamicModule> = [ConfigModule, DatabaseModule];
 
-        if (useQueue) {
-            imports.push(
-                BullModule.forRootAsync({
-                    imports: [ConfigModule],
-                    useFactory: (config: ConfigService) => ({
-                        connection: {
-                            host: config.get<string>('REDIS_HOST'),
-                            port: Number(config.get('REDIS_PORT')) || 6379,
-                            password: config.get<string>('REDIS_PASSWORD') || undefined,
-                            maxRetriesPerRequest: null,
-                        },
-                    }),
-                    inject: [ConfigService],
-                }),
-                BullModule.registerQueue({
-                    name: MAIL_QUEUE_NAME,
-                }),
-            );
-        }
-
-        const publisherImpl = useQueue ? BullMailJobPublisher : InlineMailJobPublisher;
-
-        const providers: Provider[] = [
-            EmailDispatchLogRepository,
-            {
-                provide: EMAIL_DISPATCH_LOG_REPOSITORY,
-                useExisting: EmailDispatchLogRepository,
+    if (useQueue) {
+      imports.push(
+        BullModule.forRootAsync({
+          imports: [ConfigModule],
+          useFactory: (config: ConfigService) => ({
+            connection: {
+              host: config.get<string>('REDIS_HOST'),
+              port: Number(config.get('REDIS_PORT')) || 6379,
+              password: config.get<string>('REDIS_PASSWORD') || undefined,
+              maxRetriesPerRequest: null,
             },
-            HandlebarsMailRendererService,
-            { provide: MAIL_RENDERER, useExisting: HandlebarsMailRendererService },
-            NodemailerMailTransportService,
-            { provide: MAIL_TRANSPORT, useExisting: NodemailerMailTransportService },
-            SendOutboundEmailUseCase,
-            publisherImpl,
-            { provide: MAIL_JOB_PUBLISHER, useExisting: publisherImpl },
-            EnqueueOutboundEmailUseCase,
-            MailService,
-        ];
-
-        if (useQueue) {
-            providers.push(MailQueueProcessor);
-        }
-
-        return {
-            module: MailModule,
-            global: true,
-            imports,
-            providers,
-            exports: [MailService, EnqueueOutboundEmailUseCase, MAIL_JOB_PUBLISHER],
-        };
+          }),
+          inject: [ConfigService],
+        }),
+        BullModule.registerQueue({
+          name: MAIL_QUEUE_NAME,
+        }),
+      );
     }
+
+    const publisherImpl = useQueue
+      ? BullMailJobPublisher
+      : InlineMailJobPublisher;
+
+    const providers: Provider[] = [
+      EmailDispatchLogRepository,
+      {
+        provide: EMAIL_DISPATCH_LOG_REPOSITORY,
+        useExisting: EmailDispatchLogRepository,
+      },
+      HandlebarsMailRendererService,
+      { provide: MAIL_RENDERER, useExisting: HandlebarsMailRendererService },
+      NodemailerMailTransportService,
+      { provide: MAIL_TRANSPORT, useExisting: NodemailerMailTransportService },
+      SendOutboundEmailUseCase,
+      publisherImpl,
+      { provide: MAIL_JOB_PUBLISHER, useExisting: publisherImpl },
+      EnqueueOutboundEmailUseCase,
+      MailService,
+    ];
+
+    if (useQueue) {
+      providers.push(MailQueueProcessor);
+    }
+
+    return {
+      module: MailModule,
+      global: true,
+      imports,
+      providers,
+      exports: [MailService, EnqueueOutboundEmailUseCase, MAIL_JOB_PUBLISHER],
+    };
+  }
 }

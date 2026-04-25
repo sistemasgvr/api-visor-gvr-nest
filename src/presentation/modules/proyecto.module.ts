@@ -26,45 +26,48 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
-                },
-            }),
-            inject: [ConfigService],
-        }),
-    ],
-    controllers: [ProyectoController],
-    providers: [
-        {
-            provide: PROYECTO_REPOSITORY,
-            useClass: ProyectoRepository,
+  imports: [
+    DatabaseModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'default-secret-key-change-in-production',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '1d') as any,
         },
-        ListarProyectosUseCase,
-        ObtenerProyectoUseCase,
-        CrearProyectoUseCase,
-        EditarProyectoUseCase,
-        EliminarProyectoUseCase,
-        ListarUsuariosProyectoUseCase,
-        AsignarAccesoProyectoUseCase,
-        ActualizarNivelAccesoProyectoUseCase,
-        RemoverAccesoProyectoUseCase,
-        ListarUsuariosDisponiblesProyectoUseCase,
-        ListarDocumentosProyectoUseCase,
-        CrearDocumentoProyectoUseCase,
-        ActualizarDocumentoProyectoUseCase,
-        EliminarDocumentoProyectoUseCase,
-        ListarCoordinadoresProyectoUseCase,
-        GuardarCoordinadoresProyectoUseCase,
-        ListarEstadisticasProyectosPorEstadoUseCase,
-        JwtStrategy,
-    ],
-    exports: [PROYECTO_REPOSITORY],
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [ProyectoController],
+  providers: [
+    {
+      provide: PROYECTO_REPOSITORY,
+      useClass: ProyectoRepository,
+    },
+    ListarProyectosUseCase,
+    ObtenerProyectoUseCase,
+    CrearProyectoUseCase,
+    EditarProyectoUseCase,
+    EliminarProyectoUseCase,
+    ListarUsuariosProyectoUseCase,
+    AsignarAccesoProyectoUseCase,
+    ActualizarNivelAccesoProyectoUseCase,
+    RemoverAccesoProyectoUseCase,
+    ListarUsuariosDisponiblesProyectoUseCase,
+    ListarDocumentosProyectoUseCase,
+    CrearDocumentoProyectoUseCase,
+    ActualizarDocumentoProyectoUseCase,
+    EliminarDocumentoProyectoUseCase,
+    ListarCoordinadoresProyectoUseCase,
+    GuardarCoordinadoresProyectoUseCase,
+    ListarEstadisticasProyectosPorEstadoUseCase,
+    JwtStrategy,
+  ],
+  exports: [PROYECTO_REPOSITORY],
 })
-export class ProyectoModule { }
+export class ProyectoModule {}

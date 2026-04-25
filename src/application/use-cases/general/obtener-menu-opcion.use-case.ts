@@ -4,18 +4,18 @@ import { MENU_REPOSITORY } from '../../../domain/repositories/menu.repository.in
 
 @Injectable()
 export class ObtenerMenuOpcionUseCase {
-    constructor(
-        @Inject(MENU_REPOSITORY)
-        private readonly menuRepository: IMenuRepository,
-    ) { }
+  constructor(
+    @Inject(MENU_REPOSITORY)
+    private readonly menuRepository: IMenuRepository,
+  ) {}
 
-    async execute(id: number): Promise<any> {
-        const menuOpcion = await this.menuRepository.obtenerMenuOpcionPorId(id);
+  async execute(id: number): Promise<any> {
+    const menuOpcion = await this.menuRepository.obtenerMenuOpcionPorId(id);
 
-        if (!menuOpcion) {
-            throw new NotFoundException('Opción de menú no encontrada');
-        }
-
-        return menuOpcion;
+    if (!menuOpcion) {
+      throw new NotFoundException('Opción de menú no encontrada');
     }
+
+    return menuOpcion;
+  }
 }

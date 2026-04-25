@@ -4,18 +4,19 @@ import { TRABAJADOR_REPOSITORY } from '../../../domain/repositories/trabajador.r
 
 @Injectable()
 export class ObtenerTrabajadorUseCase {
-    constructor(
-        @Inject(TRABAJADOR_REPOSITORY)
-        private readonly trabajadorRepository: ITrabajadorRepository,
-    ) { }
+  constructor(
+    @Inject(TRABAJADOR_REPOSITORY)
+    private readonly trabajadorRepository: ITrabajadorRepository,
+  ) {}
 
-    async execute(idTrabajador: number) {
-        const trabajador = await this.trabajadorRepository.obtenerTrabajadorPorId(idTrabajador);
+  async execute(idTrabajador: number) {
+    const trabajador =
+      await this.trabajadorRepository.obtenerTrabajadorPorId(idTrabajador);
 
-        if (!trabajador) {
-            throw new NotFoundException('Trabajador no encontrado');
-        }
-
-        return trabajador;
+    if (!trabajador) {
+      throw new NotFoundException('Trabajador no encontrado');
     }
+
+    return trabajador;
+  }
 }

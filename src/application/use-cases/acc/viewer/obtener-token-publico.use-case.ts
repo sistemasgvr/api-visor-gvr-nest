@@ -4,12 +4,12 @@ import { ObtenerTokenPublicoDto } from '../../../dtos/acc/viewer/obtener-token-p
 
 @Injectable()
 export class ObtenerTokenPublicoUseCase {
-    constructor(
-        private readonly autodeskApiService: AutodeskApiService,
-    ) { }
+  constructor(private readonly autodeskApiService: AutodeskApiService) {}
 
-    async execute(dto: ObtenerTokenPublicoDto): Promise<any> {
-        // Token público con scope viewables:read
-        return await this.autodeskApiService.obtenerToken2Legged(['viewables:read']);
-    }
+  async execute(dto: ObtenerTokenPublicoDto): Promise<any> {
+    // Token público con scope viewables:read
+    return await this.autodeskApiService.obtenerToken2Legged([
+      'viewables:read',
+    ]);
+  }
 }

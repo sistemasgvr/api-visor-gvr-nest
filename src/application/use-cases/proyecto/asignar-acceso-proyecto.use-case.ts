@@ -5,26 +5,32 @@ import { AsignarAccesoProyectoDto } from '../../dtos/proyecto/asignar-acceso-pro
 
 @Injectable()
 export class AsignarAccesoProyectoUseCase {
-    constructor(
-        @Inject(PROYECTO_REPOSITORY)
-        private readonly proyectoRepository: IProyectoRepository,
-    ) {}
+  constructor(
+    @Inject(PROYECTO_REPOSITORY)
+    private readonly proyectoRepository: IProyectoRepository,
+  ) {}
 
-    async execute(idProyecto: number, dto: AsignarAccesoProyectoDto, idUsuarioCreacion: number) {
-        const resultado = await this.proyectoRepository.asignarAccesoProyecto(
-            idProyecto,
-            dto.idUsuario,
-            dto.idNivelAcceso ?? null,
-            idUsuarioCreacion,
-        );
+  async execute(
+    idProyecto: number,
+    dto: AsignarAccesoProyectoDto,
+    idUsuarioCreacion: number,
+  ) {
+    const resultado = await this.proyectoRepository.asignarAccesoProyecto(
+      idProyecto,
+      dto.idUsuario,
+      dto.idNivelAcceso ?? null,
+      idUsuarioCreacion,
+    );
 
-        if (!resultado?.success) {
-            throw new BadRequestException(resultado?.message ?? 'Error al asignar acceso');
-        }
-
-        return {
-            message: resultado.message,
-            id: resultado.id,
-        };
+    if (!resultado?.success) {
+      throw new BadRequestException(
+        resultado?.message ?? 'Error al asignar acceso',
+      );
     }
+
+    return {
+      message: resultado.message,
+      id: resultado.id,
+    };
+  }
 }

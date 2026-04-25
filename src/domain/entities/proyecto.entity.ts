@@ -1,36 +1,36 @@
 export class Proyecto {
-    id: number;
-    nombreProyecto: string;
-    nroProyecto: string;
-    idTipoProyecto: number;
-    idPais: number;
-    direccion1?: string;
-    direccion2?: string;
-    ciudad?: string;
-    provincia?: string;
-    codigoPostal?: string;
-    idZonaHoraria?: number;
-    fechaInicio?: Date;
-    fechaFinalizacion?: Date;
-    valorProyecto?: number;
-    idTipoMoneda?: number;
-    diaValorizar?: number;
-    idCliente?: number;
-    clienteNombre?: string;
-    observaciones?: string;
-    idModalidad?: number;
-    modalidad?: string;
-    idEstadoProyecto?: number;
-    estadoProyecto?: string;
-    idEstadoCotizacion?: number;
-    estadoCotizacion?: string;
-    estado: number;
-    fechaCreacion?: Date;
-    fechaModificacion?: Date;
-    idUsuarioCreacion?: number;
-    idUsuarioModificacion?: number;
+  id: number;
+  nombreProyecto: string;
+  nroProyecto: string;
+  idTipoProyecto: number;
+  idPais: number;
+  direccion1?: string;
+  direccion2?: string;
+  ciudad?: string;
+  provincia?: string;
+  codigoPostal?: string;
+  idZonaHoraria?: number;
+  fechaInicio?: Date;
+  fechaFinalizacion?: Date;
+  valorProyecto?: number;
+  idTipoMoneda?: number;
+  diaValorizar?: number;
+  idCliente?: number;
+  clienteNombre?: string;
+  observaciones?: string;
+  idModalidad?: number;
+  modalidad?: string;
+  idEstadoProyecto?: number;
+  estadoProyecto?: string;
+  idEstadoCotizacion?: number;
+  estadoCotizacion?: string;
+  estado: number;
+  fechaCreacion?: Date;
+  fechaModificacion?: Date;
+  idUsuarioCreacion?: number;
+  idUsuarioModificacion?: number;
 
-    constructor(data: Partial<Proyecto>) {
-        Object.assign(this, data);
-    }
+  constructor(data: Partial<Proyecto>) {
+    Object.assign(this, data);
+  }
 }

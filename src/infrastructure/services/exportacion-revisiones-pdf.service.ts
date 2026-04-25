@@ -49,7 +49,8 @@ function nextActionSummary(row: RevisionRow): string {
     };
   } | null;
   if (!next) return '—';
-  if (next.claimedBy?.length) return next.claimedBy.map((u) => u.name).join(', ');
+  if (next.claimedBy?.length)
+    return next.claimedBy.map((u) => u.name).join(', ');
   const users = next.candidates?.users;
   if (users?.length) return users.map((u) => u.name).join(', ');
   const roles = next.candidates?.roles;
@@ -79,7 +80,11 @@ export class ExportacionRevisionesPdfService {
     projectId: string,
     query: ExportarRevisionesPdfQueryDto,
   ): Promise<Buffer> {
-    const lista = await this.obtenerTodasLasRevisionesFiltradas(userId, projectId, query);
+    const lista = await this.obtenerTodasLasRevisionesFiltradas(
+      userId,
+      projectId,
+      query,
+    );
     const totalEnSistema = lista.totalResults;
     const rows = lista.rows.map((r) => ({
       estado: statusLabel(r.status as string),
@@ -118,16 +123,30 @@ export class ExportacionRevisionesPdfService {
     );
   }
 
-  private buildFiltrosResumen(q: ExportarRevisionesPdfQueryDto): { etiqueta: string; valor: string }[] {
+  private buildFiltrosResumen(
+    q: ExportarRevisionesPdfQueryDto,
+  ): { etiqueta: string; valor: string }[] {
     const out: { etiqueta: string; valor: string }[] = [];
-    if (q.filter_name?.trim()) out.push({ etiqueta: 'Nombre', valor: q.filter_name.trim() });
-    if (q.filter_status?.trim()) out.push({ etiqueta: 'Estado', valor: statusLabel(q.filter_status) });
-    if (q.filter_workflowId?.trim()) out.push({ etiqueta: 'Flujo (ID)', valor: q.filter_workflowId.trim() });
-    if (q.filter_createdAt?.trim()) out.push({ etiqueta: 'Creado', valor: q.filter_createdAt.trim() });
-    if (q.filter_finishedAt?.trim()) out.push({ etiqueta: 'Finalizado', valor: q.filter_finishedAt.trim() });
+    if (q.filter_name?.trim())
+      out.push({ etiqueta: 'Nombre', valor: q.filter_name.trim() });
+    if (q.filter_status?.trim())
+      out.push({ etiqueta: 'Estado', valor: statusLabel(q.filter_status) });
+    if (q.filter_workflowId?.trim())
+      out.push({ etiqueta: 'Flujo (ID)', valor: q.filter_workflowId.trim() });
+    if (q.filter_createdAt?.trim())
+      out.push({ etiqueta: 'Creado', valor: q.filter_createdAt.trim() });
+    if (q.filter_finishedAt?.trim())
+      out.push({ etiqueta: 'Finalizado', valor: q.filter_finishedAt.trim() });
     if (q.filter_currentStepDueDate?.trim())
-      out.push({ etiqueta: 'Vence (paso actual)', valor: q.filter_currentStepDueDate.trim() });
-    if (!out.length) out.push({ etiqueta: 'Filtros', valor: 'Ninguno (todas las revisiones del proyecto)' });
+      out.push({
+        etiqueta: 'Vence (paso actual)',
+        valor: q.filter_currentStepDueDate.trim(),
+      });
+    if (!out.length)
+      out.push({
+        etiqueta: 'Filtros',
+        valor: 'Ninguno (todas las revisiones del proyecto)',
+      });
     return out;
   }
 
@@ -135,7 +154,11 @@ export class ExportacionRevisionesPdfService {
     userId: number,
     projectId: string,
     query: ExportarRevisionesPdfQueryDto,
-  ): Promise<{ rows: RevisionRow[]; totalResults: number; truncated: boolean }> {
+  ): Promise<{
+    rows: RevisionRow[];
+    totalResults: number;
+    truncated: boolean;
+  }> {
     const baseDto: ObtenerRevisionesDto = {
       limit: PAGE_SIZE,
       offset: 0,
@@ -147,16 +170,30 @@ export class ExportacionRevisionesPdfService {
       filter_workflowId: query.filter_workflowId,
     };
 
-    const first = await this.obtenerRevisionesUseCase.execute(userId, projectId, baseDto);
-    const totalResults = first.pagination?.totalResults ?? (first.results?.length ?? 0);
-    const results: RevisionRow[] = [...((first.results ?? []) as RevisionRow[])];
+    const first = await this.obtenerRevisionesUseCase.execute(
+      userId,
+      projectId,
+      baseDto,
+    );
+    const totalResults =
+      first.pagination?.totalResults ?? first.results?.length ?? 0;
+    const results: RevisionRow[] = [
+      ...((first.results ?? []) as RevisionRow[]),
+    ];
     let offset = PAGE_SIZE;
 
-    while (results.length < Math.min(totalResults, MAX_EXPORT_ROWS) && offset < totalResults) {
-      const batch = await this.obtenerRevisionesUseCase.execute(userId, projectId, {
-        ...baseDto,
-        offset,
-      });
+    while (
+      results.length < Math.min(totalResults, MAX_EXPORT_ROWS) &&
+      offset < totalResults
+    ) {
+      const batch = await this.obtenerRevisionesUseCase.execute(
+        userId,
+        projectId,
+        {
+          ...baseDto,
+          offset,
+        },
+      );
       const chunk = (batch.results ?? []) as RevisionRow[];
       if (!chunk.length) break;
       for (const row of chunk) {

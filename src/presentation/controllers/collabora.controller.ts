@@ -58,23 +58,32 @@ export class CollaboraController {
     @Req() req: any,
   ) {
     try {
-      this.logger.log(`Generando configuración Collabora para item: ${itemId}${versionId ? `, versión: ${versionId}` : ''}`);
+      this.logger.log(
+        `Generando configuración Collabora para item: ${itemId}${versionId ? `, versión: ${versionId}` : ''}`,
+      );
 
       const userId = Number(req.user?.sub) || 0;
       if (!userId || userId < 1) {
-        this.logger.error(`[Collabora] userId inválido o ausente (sub=${req.user?.sub}). Necesario para auditoría al guardar.`);
+        this.logger.error(
+          `[Collabora] userId inválido o ausente (sub=${req.user?.sub}). Necesario para auditoría al guardar.`,
+        );
         return {
           status: 401,
-          message: 'Identificación de usuario no disponible. No se puede abrir el documento.',
+          message:
+            'Identificación de usuario no disponible. No se puede abrir el documento.',
         };
       }
 
-      const accToken = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
+      const accToken =
+        await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
       if (!accToken) {
-        this.logger.error(`Token de Autodesk no encontrado para usuario: ${userId}`);
+        this.logger.error(
+          `Token de Autodesk no encontrado para usuario: ${userId}`,
+        );
         return {
           status: 401,
-          message: 'Token de Autodesk no encontrado. Por favor, reconecta tu cuenta de Autodesk.',
+          message:
+            'Token de Autodesk no encontrado. Por favor, reconecta tu cuenta de Autodesk.',
         };
       }
 
@@ -82,7 +91,8 @@ export class CollaboraController {
         this.logger.warn(`Token de Autodesk expirado para usuario: ${userId}`);
         return {
           status: 401,
-          message: 'Token de Autodesk expirado. Por favor, reconecta tu cuenta de Autodesk.',
+          message:
+            'Token de Autodesk expirado. Por favor, reconecta tu cuenta de Autodesk.',
         };
       }
 
@@ -93,11 +103,12 @@ export class CollaboraController {
       let effectiveItemId: string;
 
       if (versionId) {
-        const versionFileInfo = await this.autodeskApiService.obtenerStorageUrlPorVersion(
-          accessToken,
-          projectId,
-          versionId,
-        );
+        const versionFileInfo =
+          await this.autodeskApiService.obtenerStorageUrlPorVersion(
+            accessToken,
+            projectId,
+            versionId,
+          );
         if (!versionFileInfo?.storageUrl) {
           return {
             status: 404,
@@ -106,7 +117,10 @@ export class CollaboraController {
         }
         fileInfo = versionFileInfo;
         effectiveItemId = versionFileInfo.itemId || itemId;
-        stableDocId = this.documentTokenService.generateStableDocIdForVersion(projectId, versionId);
+        stableDocId = this.documentTokenService.generateStableDocIdForVersion(
+          projectId,
+          versionId,
+        );
       } else {
         const itemFileInfo = await this.autodeskApiService.obtenerStorageUrl(
           accessToken,
@@ -121,11 +135,16 @@ export class CollaboraController {
         }
         fileInfo = itemFileInfo;
         effectiveItemId = itemId;
-        stableDocId = this.documentTokenService.generateStableDocId(projectId, itemId);
+        stableDocId = this.documentTokenService.generateStableDocId(
+          projectId,
+          itemId,
+        );
       }
 
       const wopiPermission =
-        permission && String(permission).toLowerCase() === 'view' ? 'view' : 'edit';
+        permission && String(permission).toLowerCase() === 'view'
+          ? 'view'
+          : 'edit';
 
       const userSessionToken = this.documentTokenService.createUserSessionToken(
         userId,
@@ -138,7 +157,8 @@ export class CollaboraController {
         wopiPermission,
       );
 
-      const backendUrl = process.env.BACKEND_PUBLIC_URL || 'http://localhost:4001';
+      const backendUrl =
+        process.env.BACKEND_PUBLIC_URL || 'http://localhost:4001';
       const wopiSrcUrl = `${backendUrl}/api/collabora/wopi/files/${stableDocId}?access_token=${encodeURIComponent(userSessionToken)}`;
 
       const collaboraUrl = this.collaboraService.generateCollaboraUrl(
@@ -186,7 +206,8 @@ export class CollaboraController {
       }
     }
     const auth = req.headers?.authorization;
-    if (typeof auth === 'string' && auth.startsWith('Bearer ')) return auth.slice(7);
+    if (typeof auth === 'string' && auth.startsWith('Bearer '))
+      return auth.slice(7);
     return null;
   }
 
@@ -206,13 +227,16 @@ export class CollaboraController {
       const stableDocId = fileId;
       const accessToken = this.getWopiAccessToken(req);
 
-      this.logger.log(`[WOPI CheckFileInfo] docId: ${stableDocId}, access_token: ${accessToken ? 'present' : 'missing'}`);
+      this.logger.log(
+        `[WOPI CheckFileInfo] docId: ${stableDocId}, access_token: ${accessToken ? 'present' : 'missing'}`,
+      );
 
       if (!accessToken) {
         return res.status(401).json({ error: 'access_token requerido' });
       }
 
-      const tokenData = this.documentTokenService.validateUserSessionToken(accessToken);
+      const tokenData =
+        this.documentTokenService.validateUserSessionToken(accessToken);
       if (!tokenData) {
         this.logger.error('[WOPI CheckFileInfo] Sesión inválida o expirada');
         return res.status(403).json({
@@ -221,20 +245,34 @@ export class CollaboraController {
       }
 
       const expectedDocId = tokenData.versionId
-        ? this.documentTokenService.generateStableDocIdForVersion(tokenData.projectId, tokenData.versionId)
-        : this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
+        ? this.documentTokenService.generateStableDocIdForVersion(
+            tokenData.projectId,
+            tokenData.versionId,
+          )
+        : this.documentTokenService.generateStableDocId(
+            tokenData.projectId,
+            tokenData.itemId,
+          );
       if (expectedDocId !== stableDocId) {
-        this.logger.error('[WOPI CheckFileInfo] docId no coincide con la sesión');
+        this.logger.error(
+          '[WOPI CheckFileInfo] docId no coincide con la sesión',
+        );
         return res.status(403).json({ error: 'Documento no autorizado' });
       }
 
       if (!tokenData.accessToken) {
-        return res.status(401).json({ error: 'Token de Autodesk no disponible' });
+        return res
+          .status(401)
+          .json({ error: 'Token de Autodesk no disponible' });
       }
 
-      this.logger.log(`[WOPI CheckFileInfo] Sesión válida - Archivo: ${tokenData.fileName}, UserId: ${tokenData.userId}`);
+      this.logger.log(
+        `[WOPI CheckFileInfo] Sesión válida - Archivo: ${tokenData.fileName}, UserId: ${tokenData.userId}`,
+      );
 
-      const projectIdNorm = tokenData.projectId.startsWith('b.') ? tokenData.projectId : `b.${tokenData.projectId}`;
+      const projectIdNorm = tokenData.projectId.startsWith('b.')
+        ? tokenData.projectId
+        : `b.${tokenData.projectId}`;
 
       let wopiVersion = stableDocId;
       if (tokenData.versionId) {
@@ -251,7 +289,9 @@ export class CollaboraController {
             wopiVersion = tipVersionId;
           }
         } catch (error) {
-          this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener tip version, usando docId como versión estable');
+          this.logger.warn(
+            '[WOPI CheckFileInfo] No se pudo obtener tip version, usando docId como versión estable',
+          );
         }
       }
 
@@ -268,7 +308,9 @@ export class CollaboraController {
           );
 
       if (!fileInfo || !fileInfo.storageUrl) {
-        this.logger.error('[WOPI CheckFileInfo] No se pudo obtener info del archivo');
+        this.logger.error(
+          '[WOPI CheckFileInfo] No se pudo obtener info del archivo',
+        );
         return res.status(404).json({
           error: 'Archivo no encontrado',
         });
@@ -279,21 +321,37 @@ export class CollaboraController {
         const headResponse = await axios.head(fileInfo.storageUrl);
         fileSize = parseInt(headResponse.headers['content-length'] || '0', 10);
       } catch (error) {
-        this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener tamaño del archivo');
+        this.logger.warn(
+          '[WOPI CheckFileInfo] No se pudo obtener tamaño del archivo',
+        );
       }
 
       let userFriendlyName = `Usuario ${tokenData.userId}`;
       try {
-        const usuario = await this.authRepository.obtenerPerfilUsuario(tokenData.userId);
+        const usuario = await this.authRepository.obtenerPerfilUsuario(
+          tokenData.userId,
+        );
         if (usuario) {
-          const trabajador = usuario.trabajador && typeof usuario.trabajador === 'object' ? usuario.trabajador : null;
+          const trabajador =
+            usuario.trabajador && typeof usuario.trabajador === 'object'
+              ? usuario.trabajador
+              : null;
           const nombres = trabajador?.nombres ?? '';
           const apellidos = trabajador?.apellidos ?? '';
-          const nombreCompleto = [nombres, apellidos].filter(Boolean).join(' ').trim();
-          userFriendlyName = nombreCompleto || usuario.nombre || usuario.correo || userFriendlyName;
+          const nombreCompleto = [nombres, apellidos]
+            .filter(Boolean)
+            .join(' ')
+            .trim();
+          userFriendlyName =
+            nombreCompleto ||
+            usuario.nombre ||
+            usuario.correo ||
+            userFriendlyName;
         }
       } catch (error) {
-        this.logger.warn('[WOPI CheckFileInfo] No se pudo obtener información del usuario');
+        this.logger.warn(
+          '[WOPI CheckFileInfo] No se pudo obtener información del usuario',
+        );
       }
 
       const canWrite = (tokenData.wopiPermission ?? 'edit') === 'edit';
@@ -311,19 +369,19 @@ export class CollaboraController {
         SupportsCoauth: canWrite,
         SupportsLocks: false,
         SupportsGetLock: false,
-        
+
         // Información adicional del usuario
         UserFriendlyName: userFriendlyName,
         IsAnonymousUser: false,
         IsEduUser: false,
         LicenseCheckForEditIsEnabled: false,
-        
+
         // Idioma de la interfaz de usuario (español)
         // Algunos sistemas usan es-ES, otros es_ES, agregamos ambos por compatibilidad
         UserInterfaceLanguage: 'es-ES',
         UILanguage: 'es',
         Lang: 'es-ES',
-        
+
         // URLs para acciones
         CloseUrl: '',
         DownloadUrl: '',
@@ -334,12 +392,18 @@ export class CollaboraController {
       };
 
       this.logger.log('[WOPI CheckFileInfo] Respuesta enviada exitosamente');
-      
+
       // Headers CORS para WOPI
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
-      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-      
+      res.setHeader(
+        'Access-Control-Allow-Methods',
+        'GET, HEAD, OPTIONS, POST, PUT',
+      );
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+      );
+
       return res.json(wopiResponse);
     } catch (error) {
       this.logger.error('[WOPI CheckFileInfo] Error:', error);
@@ -367,24 +431,35 @@ export class CollaboraController {
         return res.status(401).json({ error: 'access_token requerido' });
       }
 
-      const tokenData = this.documentTokenService.validateUserSessionToken(accessToken);
+      const tokenData =
+        this.documentTokenService.validateUserSessionToken(accessToken);
       if (!tokenData) {
         this.logger.error('[WOPI GetFile] Sesión inválida o expirada');
         return res.status(403).json({ error: 'Token inválido o expirado' });
       }
 
       const expectedDocId = tokenData.versionId
-        ? this.documentTokenService.generateStableDocIdForVersion(tokenData.projectId, tokenData.versionId)
-        : this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
+        ? this.documentTokenService.generateStableDocIdForVersion(
+            tokenData.projectId,
+            tokenData.versionId,
+          )
+        : this.documentTokenService.generateStableDocId(
+            tokenData.projectId,
+            tokenData.itemId,
+          );
       if (expectedDocId !== stableDocId) {
         return res.status(403).json({ error: 'Documento no autorizado' });
       }
 
       if (!tokenData.accessToken) {
-        return res.status(401).json({ error: 'Token de Autodesk no disponible' });
+        return res
+          .status(401)
+          .json({ error: 'Token de Autodesk no disponible' });
       }
 
-      this.logger.log(`[WOPI GetFile] Descargando archivo: ${tokenData.fileName}`);
+      this.logger.log(
+        `[WOPI GetFile] Descargando archivo: ${tokenData.fileName}`,
+      );
 
       const fileInfo = tokenData.versionId
         ? await this.autodeskApiService.obtenerStorageUrlPorVersion(
@@ -399,7 +474,9 @@ export class CollaboraController {
           );
 
       if (!fileInfo || !fileInfo.storageUrl) {
-        this.logger.error('[WOPI GetFile] No se pudo obtener URL de descarga de Autodesk');
+        this.logger.error(
+          '[WOPI GetFile] No se pudo obtener URL de descarga de Autodesk',
+        );
         return res.status(404).json({
           error: 'Archivo no encontrado en Autodesk',
         });
@@ -435,12 +512,23 @@ export class CollaboraController {
       );
       // Headers CORS permisivos para Collabora
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
-      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-      res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
+      res.setHeader(
+        'Access-Control-Allow-Methods',
+        'GET, HEAD, OPTIONS, POST, PUT',
+      );
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+      );
+      res.setHeader(
+        'Access-Control-Expose-Headers',
+        'Content-Length, Content-Type',
+      );
 
       res.send(fileBuffer);
-      this.logger.log('[WOPI GetFile] Archivo enviado a Collabora exitosamente');
+      this.logger.log(
+        '[WOPI GetFile] Archivo enviado a Collabora exitosamente',
+      );
     } catch (error) {
       this.logger.error('[WOPI GetFile] Error:', error);
       if (!res.headersSent) {
@@ -470,30 +558,49 @@ export class CollaboraController {
     try {
       const stableDocId = fileId;
       const accessToken = this.getWopiAccessToken(req);
-      this.logger.log(`[WOPI PutFile] access_token: ${accessToken ? 'present' : 'MISSING'}, query: ${!!req.query?.access_token}, url: ${req.url?.substring(0, 80)}...`);
+      this.logger.log(
+        `[WOPI PutFile] access_token: ${accessToken ? 'present' : 'MISSING'}, query: ${!!req.query?.access_token}, url: ${req.url?.substring(0, 80)}...`,
+      );
 
       const setWopiCors = () => {
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-WOPI-Override, X-WOPI-Lock');
+        res.setHeader(
+          'Access-Control-Allow-Methods',
+          'GET, HEAD, OPTIONS, POST, PUT',
+        );
+        res.setHeader(
+          'Access-Control-Allow-Headers',
+          'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-WOPI-Override, X-WOPI-Lock',
+        );
       };
 
       if (!accessToken) {
-        this.logger.warn('[WOPI PutFile] Rechazado: access_token requerido (Collabora debe enviarlo en la URL del POST)');
+        this.logger.warn(
+          '[WOPI PutFile] Rechazado: access_token requerido (Collabora debe enviarlo en la URL del POST)',
+        );
         setWopiCors();
         return res.status(401).json({ error: 'access_token requerido' });
       }
 
-      const tokenData = this.documentTokenService.validateUserSessionToken(accessToken);
+      const tokenData =
+        this.documentTokenService.validateUserSessionToken(accessToken);
       if (!tokenData) {
-        this.logger.error('[WOPI PutFile] Sesión inválida o expirada - el usuario debe volver a abrir el documento');
+        this.logger.error(
+          '[WOPI PutFile] Sesión inválida o expirada - el usuario debe volver a abrir el documento',
+        );
         setWopiCors();
         return res.status(403).json({ error: 'Token inválido o expirado' });
       }
 
       const expectedDocId = tokenData.versionId
-        ? this.documentTokenService.generateStableDocIdForVersion(tokenData.projectId, tokenData.versionId)
-        : this.documentTokenService.generateStableDocId(tokenData.projectId, tokenData.itemId);
+        ? this.documentTokenService.generateStableDocIdForVersion(
+            tokenData.projectId,
+            tokenData.versionId,
+          )
+        : this.documentTokenService.generateStableDocId(
+            tokenData.projectId,
+            tokenData.itemId,
+          );
       if (expectedDocId !== stableDocId) {
         setWopiCors();
         return res.status(403).json({ error: 'Documento no autorizado' });
@@ -501,33 +608,50 @@ export class CollaboraController {
 
       if ((tokenData.wopiPermission ?? 'edit') === 'view') {
         setWopiCors();
-        return res.status(403).json({ error: 'Documento abierto en modo solo lectura' });
+        return res
+          .status(403)
+          .json({ error: 'Documento abierto en modo solo lectura' });
       }
 
       if (!tokenData.accessToken) {
         setWopiCors();
-        return res.status(401).json({ error: 'Token de Autodesk no disponible' });
+        return res
+          .status(401)
+          .json({ error: 'Token de Autodesk no disponible' });
       }
 
-      const isAutosaveRequest = (isAutosave && String(isAutosave).toLowerCase() === 'true');
-      this.logger.log(`[WOPI PutFile] FileId: ${fileId}, Override: ${wopiOverride}, IsAutosave: ${isAutosave} (solo guardado manual crea versión en ACC)`);
+      const isAutosaveRequest =
+        isAutosave && String(isAutosave).toLowerCase() === 'true';
+      this.logger.log(
+        `[WOPI PutFile] FileId: ${fileId}, Override: ${wopiOverride}, IsAutosave: ${isAutosave} (solo guardado manual crea versión en ACC)`,
+      );
 
       const fileBuffer = (req as any).rawBody || req.body;
 
       if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
-        this.logger.error('[WOPI PutFile] No se recibió contenido del archivo o no es un Buffer');
+        this.logger.error(
+          '[WOPI PutFile] No se recibió contenido del archivo o no es un Buffer',
+        );
         setWopiCors();
         return res.status(400).json({
           error: 'Contenido del archivo no válido',
         });
       }
 
-      this.logger.log(`[WOPI PutFile] Archivo recibido: ${fileBuffer.length} bytes`);
+      this.logger.log(
+        `[WOPI PutFile] Archivo recibido: ${fileBuffer.length} bytes`,
+      );
 
       if (isAutosaveRequest) {
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-WOPI-Override, X-WOPI-Lock');
+        res.setHeader(
+          'Access-Control-Allow-Methods',
+          'GET, HEAD, OPTIONS, POST, PUT',
+        );
+        res.setHeader(
+          'Access-Control-Allow-Headers',
+          'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-WOPI-Override, X-WOPI-Lock',
+        );
         return res.status(200).json({
           LastModifiedTime: new Date().toISOString(),
         });
@@ -540,19 +664,26 @@ export class CollaboraController {
           fileName: tokenData.fileName,
         });
       } catch (e) {
-        this.logger.warn('[WOPI PutFile] No se pudo emitir document.save_started', e);
+        this.logger.warn(
+          '[WOPI PutFile] No se pudo emitir document.save_started',
+          e,
+        );
       }
 
-      this.logger.log(`[WOPI PutFile] Guardado manual: creando nueva versión en ACC...`);
-      this.logger.log(`[WOPI PutFile] ItemId: ${tokenData.itemId}, ProjectId: ${tokenData.projectId}`);
+      this.logger.log(
+        `[WOPI PutFile] Guardado manual: creando nueva versión en ACC...`,
+      );
+      this.logger.log(
+        `[WOPI PutFile] ItemId: ${tokenData.itemId}, ProjectId: ${tokenData.projectId}`,
+      );
 
-      const projectIdNorm = tokenData.projectId.startsWith('b.') 
-        ? tokenData.projectId 
+      const projectIdNorm = tokenData.projectId.startsWith('b.')
+        ? tokenData.projectId
         : `b.${tokenData.projectId}`;
 
       // PASO 1: Crear storage en ACC (igual que en subir-archivo.use-case.ts)
       this.logger.log('[WOPI PutFile] Creando storage para nueva versión...');
-      
+
       // Necesitamos el folderId del item actual, pero como itemId es el URN del item,
       // vamos a obtener información del item primero
       const itemInfo = await this.autodeskApiService.obtenerItemPorId(
@@ -562,16 +693,20 @@ export class CollaboraController {
       );
 
       if (!itemInfo?.data) {
-        this.logger.error('[WOPI PutFile] No se pudo obtener información del item');
+        this.logger.error(
+          '[WOPI PutFile] No se pudo obtener información del item',
+        );
         return res.status(404).json({
           error: 'Item no encontrado en ACC',
         });
       }
 
       const folderId = itemInfo.data.relationships?.parent?.data?.id;
-      
+
       if (!folderId) {
-        this.logger.error('[WOPI PutFile] No se pudo obtener el folderId del item');
+        this.logger.error(
+          '[WOPI PutFile] No se pudo obtener el folderId del item',
+        );
         return res.status(500).json({
           error: 'No se pudo obtener el folderId del item',
         });
@@ -595,10 +730,14 @@ export class CollaboraController {
       this.logger.log(`[WOPI PutFile] Storage creado: ${storageId}`);
 
       // Extraer bucketKey y objectKey del storage ID (igual que en subir-archivo.use-case.ts)
-      const storageIdMatch = storageId.match(/urn:adsk\.objects:os\.object:([^\/]+)\/(.+)/);
+      const storageIdMatch = storageId.match(
+        /urn:adsk\.objects:os\.object:([^\/]+)\/(.+)/,
+      );
 
       if (!storageIdMatch || storageIdMatch.length !== 3) {
-        this.logger.error(`[WOPI PutFile] Formato de storage ID inválido: ${storageId}`);
+        this.logger.error(
+          `[WOPI PutFile] Formato de storage ID inválido: ${storageId}`,
+        );
         return res.status(500).json({
           error: 'Formato de storage ID inválido',
         });
@@ -609,7 +748,7 @@ export class CollaboraController {
 
       // PASO 2: Obtener URL firmada de S3
       this.logger.log('[WOPI PutFile] Obteniendo URL firmada de S3...');
-      
+
       const signedResult = await this.autodeskApiService.obtenerUrlFirmadaS3(
         tokenData.accessToken,
         bucketKey,
@@ -618,7 +757,9 @@ export class CollaboraController {
       );
 
       if (!signedResult.urls || !signedResult.urls[0]) {
-        this.logger.error('[WOPI PutFile] No se pudo obtener la URL firmada de S3');
+        this.logger.error(
+          '[WOPI PutFile] No se pudo obtener la URL firmada de S3',
+        );
         return res.status(500).json({
           error: 'No se pudo obtener la URL firmada de S3',
         });
@@ -629,14 +770,17 @@ export class CollaboraController {
 
       // PASO 3: Subir archivo a S3
       this.logger.log('[WOPI PutFile] Subiendo archivo a S3...');
-      
-      await this.autodeskApiService.subirArchivoAUrlFirmada(signedUrl, fileBuffer);
+
+      await this.autodeskApiService.subirArchivoAUrlFirmada(
+        signedUrl,
+        fileBuffer,
+      );
 
       this.logger.log('[WOPI PutFile] Archivo subido exitosamente a S3');
 
       // PASO 4: Completar la subida
       this.logger.log('[WOPI PutFile] Completando subida...');
-      
+
       await this.autodeskApiService.completarSubida(
         tokenData.accessToken,
         bucketKey,
@@ -646,7 +790,7 @@ export class CollaboraController {
 
       // PASO 5: Crear nueva versión del item existente (igual que en subir-archivo.use-case.ts líneas 128-159)
       this.logger.log('[WOPI PutFile] Creando nueva versión en ACC...');
-      
+
       const versionData = {
         type: 'versions',
         attributes: {
@@ -673,40 +817,77 @@ export class CollaboraController {
         versionData,
       );
       const rawVersionId = versionResult?.data?.id ?? versionResult?.id;
-      const newVersionId = (rawVersionId != null && rawVersionId !== '') ? String(rawVersionId).trim() || null : null;
-      if (newVersionId) this.logger.log(`[WOPI PutFile] Nueva versión id: ${newVersionId}`);
+      const newVersionId =
+        rawVersionId != null && rawVersionId !== ''
+          ? String(rawVersionId).trim() || null
+          : null;
+      if (newVersionId)
+        this.logger.log(`[WOPI PutFile] Nueva versión id: ${newVersionId}`);
 
-      this.logger.log(`[WOPI PutFile] Nueva versión creada exitosamente para item: ${tokenData.itemId}`);
+      this.logger.log(
+        `[WOPI PutFile] Nueva versión creada exitosamente para item: ${tokenData.itemId}`,
+      );
 
       // Collabora no envía identificador de usuario en PutFile; el userId viene de nuestra sesión
       // (creada al abrir el documento con JWT req.user.sub). Registramos en auditoría quién guardó para historial de versiones y "última actualización".
       const auditUserId = Number(tokenData.userId);
       if (!Number.isInteger(auditUserId) || auditUserId < 1) {
-        this.logger.warn(`[WOPI PutFile] userId inválido para auditoría: ${tokenData.userId} (no se registrará auditoría)`);
+        this.logger.warn(
+          `[WOPI PutFile] userId inválido para auditoría: ${tokenData.userId} (no se registrará auditoría)`,
+        );
       } else {
         try {
-          const ip = typeof (req as any).ip === 'string' ? (req as any).ip : (req as any).socket?.remoteAddress ?? '';
-          const userAgent = typeof (req as any).get === 'function' ? (req as any).get('user-agent') : (req as any).headers?.['user-agent'] ?? '';
+          const ip =
+            typeof (req as any).ip === 'string'
+              ? (req as any).ip
+              : ((req as any).socket?.remoteAddress ?? '');
+          const userAgent =
+            typeof (req as any).get === 'function'
+              ? (req as any).get('user-agent')
+              : ((req as any).headers?.['user-agent'] ?? '');
           // Obtener perfil del usuario para empresa y rol (historial de versiones / última actualización)
           let idEmpresaUsuario: number | null = null;
           let nombreEmpresaUsuario: string | null = null;
           let rolNombre: string | null = null;
           let nombreUsuarioAudit: string | null = null;
           try {
-            const perfil = await this.authRepository.obtenerPerfilUsuario(auditUserId);
+            const perfil =
+              await this.authRepository.obtenerPerfilUsuario(auditUserId);
             if (perfil) {
-              idEmpresaUsuario = perfil.idempresa ?? perfil.idEmpresaUsuario ?? null;
-              nombreEmpresaUsuario = perfil.nombreempresa ?? perfil.nombreEmpresa ?? perfil.empresa ?? null;
-              const roles = perfil.roles && Array.isArray(perfil.roles) ? perfil.roles : [];
-              rolNombre = roles[0]?.nombre ?? roles[0]?.name ?? perfil.rol ?? null;
-              const trabajador = perfil.trabajador && typeof perfil.trabajador === 'object' ? perfil.trabajador : null;
-              const nombreCompleto = trabajador?.nombreCompleto ?? trabajador?.nombrecompleto;
-              nombreUsuarioAudit = (nombreCompleto ?? perfil.nombre ?? perfil.correo ?? '').trim() || null;
+              idEmpresaUsuario =
+                perfil.idempresa ?? perfil.idEmpresaUsuario ?? null;
+              nombreEmpresaUsuario =
+                perfil.nombreempresa ??
+                perfil.nombreEmpresa ??
+                perfil.empresa ??
+                null;
+              const roles =
+                perfil.roles && Array.isArray(perfil.roles) ? perfil.roles : [];
+              rolNombre =
+                roles[0]?.nombre ?? roles[0]?.name ?? perfil.rol ?? null;
+              const trabajador =
+                perfil.trabajador && typeof perfil.trabajador === 'object'
+                  ? perfil.trabajador
+                  : null;
+              const nombreCompleto =
+                trabajador?.nombreCompleto ?? trabajador?.nombrecompleto;
+              nombreUsuarioAudit =
+                (
+                  nombreCompleto ??
+                  perfil.nombre ??
+                  perfil.correo ??
+                  ''
+                ).trim() || null;
             }
           } catch (profileErr) {
-            this.logger.warn('[WOPI PutFile] No se pudo obtener perfil para empresa/rol:', (profileErr as Error)?.message);
+            this.logger.warn(
+              '[WOPI PutFile] No se pudo obtener perfil para empresa/rol:',
+              (profileErr as Error)?.message,
+            );
           }
-          this.logger.log(`[WOPI PutFile] Registrando auditoría idUsuario=${auditUserId}, ip=${ip || '(vacío)'}, userAgent=${userAgent ? 'present' : '(vacío)'}`);
+          this.logger.log(
+            `[WOPI PutFile] Registrando auditoría idUsuario=${auditUserId}, ip=${ip || '(vacío)'}, userAgent=${userAgent ? 'present' : '(vacío)'}`,
+          );
           const auditResult = await this.auditoriaRepository.registrarAccion(
             auditUserId,
             'FILE_VERSION_SAVE',
@@ -733,11 +914,16 @@ export class CollaboraController {
             idEmpresaUsuario ?? undefined,
             nombreEmpresaUsuario ?? undefined,
           );
-          const success = auditResult && (auditResult as any).success !== false;
+          const success = auditResult && auditResult.success !== false;
           if (!success) {
-            this.logger.warn('[WOPI PutFile] Auditoría devolvió error:', (auditResult as any)?.message ?? auditResult);
+            this.logger.warn(
+              '[WOPI PutFile] Auditoría devolvió error:',
+              auditResult?.message ?? auditResult,
+            );
           } else {
-            this.logger.log(`[WOPI PutFile] Auditoría registrada (id_auditoria=${(auditResult as any)?.id_auditoria ?? 'ok'})`);
+            this.logger.log(
+              `[WOPI PutFile] Auditoría registrada (id_auditoria=${auditResult?.id_auditoria ?? 'ok'})`,
+            );
           }
         } catch (e) {
           this.logger.warn('[WOPI PutFile] Error registrando auditoría:', e);
@@ -751,35 +937,53 @@ export class CollaboraController {
           fileName: tokenData.fileName,
         });
       } catch (e) {
-        this.logger.warn('[WOPI PutFile] No se pudo emitir document.saved por WebSocket', e);
+        this.logger.warn(
+          '[WOPI PutFile] No se pudo emitir document.saved por WebSocket',
+          e,
+        );
       }
 
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
-      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-WOPI-Override, X-WOPI-Lock');
-      
+      res.setHeader(
+        'Access-Control-Allow-Methods',
+        'GET, HEAD, OPTIONS, POST, PUT',
+      );
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-WOPI-Override, X-WOPI-Lock',
+      );
+
       return res.status(200).json({
         LastModifiedTime: new Date().toISOString(),
       });
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number; data?: unknown }; message?: string };
+      const err = error as {
+        response?: { status?: number; data?: unknown };
+        message?: string;
+      };
       const status = err.response?.status;
       const details = err.response?.data;
 
       this.logger.error('[WOPI PutFile] Error:', err.message ?? error);
-      if (status) this.logger.error(`[WOPI PutFile] ACC/HTTP status: ${status}`);
-      if (details) this.logger.error(`[WOPI PutFile] Detalles: ${JSON.stringify(details)}`);
+      if (status)
+        this.logger.error(`[WOPI PutFile] ACC/HTTP status: ${status}`);
+      if (details)
+        this.logger.error(
+          `[WOPI PutFile] Detalles: ${JSON.stringify(details)}`,
+        );
 
       if (res.headersSent) return;
 
       if (status === 403) {
         return res.status(403).json({
-          error: 'Sin permiso en el proyecto de ACC para crear versión. Verifica que tu usuario tenga permiso de edición/subida en el proyecto.',
+          error:
+            'Sin permiso en el proyecto de ACC para crear versión. Verifica que tu usuario tenga permiso de edición/subida en el proyecto.',
         });
       }
       if (status === 401) {
         return res.status(401).json({
-          error: 'Token de Autodesk expirado o inválido. Reconecta tu cuenta de Autodesk.',
+          error:
+            'Token de Autodesk expirado o inválido. Reconecta tu cuenta de Autodesk.',
         });
       }
 
@@ -796,7 +1000,10 @@ export class CollaboraController {
    * Este endpoint sirve el archivo directamente con headers CORS para Collabora
    */
   @Get('download/:token')
-  async downloadFile(@Param('token') token: string, @Res() res: express.Response) {
+  async downloadFile(
+    @Param('token') token: string,
+    @Res() res: express.Response,
+  ) {
     try {
       this.logger.log(`[Collabora Download] Token recibido: ${token}`);
 
@@ -817,7 +1024,9 @@ export class CollaboraController {
 
       // Validar que tenemos accessToken
       if (!tokenData.accessToken) {
-        this.logger.error('[Collabora Download] Token no contiene accessToken de Autodesk');
+        this.logger.error(
+          '[Collabora Download] Token no contiene accessToken de Autodesk',
+        );
         return res.status(401).json({
           status: 401,
           message: 'Token de Autodesk no disponible',
@@ -832,7 +1041,9 @@ export class CollaboraController {
       );
 
       if (!fileInfo || !fileInfo.storageUrl) {
-        this.logger.error('[Collabora Download] No se pudo obtener URL de descarga de Autodesk');
+        this.logger.error(
+          '[Collabora Download] No se pudo obtener URL de descarga de Autodesk',
+        );
         return res.status(404).json({
           status: 404,
           message: 'Archivo no encontrado en Autodesk',
@@ -847,7 +1058,9 @@ export class CollaboraController {
       const fileBuffer = await this.downloadFileFromUrl(fileInfo.storageUrl);
 
       if (!fileBuffer) {
-        this.logger.error('[Collabora Download] Error al descargar archivo desde S3');
+        this.logger.error(
+          '[Collabora Download] Error al descargar archivo desde S3',
+        );
         return res.status(500).json({
           status: 500,
           message: 'Error al descargar archivo desde storage',
@@ -870,14 +1083,25 @@ export class CollaboraController {
       );
       // Headers CORS permisivos para Collabora
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS, POST, PUT');
-      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-      res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
+      res.setHeader(
+        'Access-Control-Allow-Methods',
+        'GET, HEAD, OPTIONS, POST, PUT',
+      );
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+      );
+      res.setHeader(
+        'Access-Control-Expose-Headers',
+        'Content-Length, Content-Type',
+      );
       // Cache control
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
       res.send(fileBuffer);
-      this.logger.log('[Collabora Download] Archivo enviado a Collabora exitosamente');
+      this.logger.log(
+        '[Collabora Download] Archivo enviado a Collabora exitosamente',
+      );
     } catch (error) {
       this.logger.error('[Collabora Download] Error:', error);
       if (!res.headersSent) {
@@ -899,7 +1123,9 @@ export class CollaboraController {
     const isHealthy = await this.collaboraService.checkCollaboraHealth();
     return {
       status: isHealthy ? 200 : 503,
-      message: isHealthy ? 'Collabora está disponible' : 'Collabora no está disponible',
+      message: isHealthy
+        ? 'Collabora está disponible'
+        : 'Collabora no está disponible',
       collaboraAvailable: isHealthy,
     };
   }

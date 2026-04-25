@@ -4,77 +4,84 @@ import { DatabaseFunctionService } from '../database/database-function.service';
 
 @Injectable()
 export class AuditoriaRepository implements IAuditoriaRepository {
-    constructor(
-        private readonly databaseFunctionService: DatabaseFunctionService,
-    ) { }
+  constructor(
+    private readonly databaseFunctionService: DatabaseFunctionService,
+  ) {}
 
-    async listarAuditorias(
-        idUsuario: number | null,
-        accion: string | null,
-        entidad: string | null,
-        fechaDesde: string | null,
-        fechaHasta: string | null,
-        limit: number,
-        offset: number,
-    ): Promise<any[]> {
-        const result = await this.databaseFunctionService.callFunction<any>(
-            'aud_ListarAuditorias',
-            [idUsuario, accion, entidad, fechaDesde, fechaHasta, limit, offset],
-        );
+  async listarAuditorias(
+    idUsuario: number | null,
+    accion: string | null,
+    entidad: string | null,
+    fechaDesde: string | null,
+    fechaHasta: string | null,
+    limit: number,
+    offset: number,
+  ): Promise<any[]> {
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'aud_ListarAuditorias',
+      [idUsuario, accion, entidad, fechaDesde, fechaHasta, limit, offset],
+    );
 
-        return result || [];
+    return result || [];
+  }
+
+  async obtenerAuditoriaPorId(id: number): Promise<any | null> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'aud_ObtenerAuditoriaPorId',
+      [id],
+    );
+
+    return result || null;
+  }
+
+  async obtenerHistorialEntidad(
+    entidad: string,
+    identidad: string,
+  ): Promise<any[]> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'aud_ObtenerHistorialEntidad',
+      [entidad, identidad],
+    );
+
+    // La función retorna un JSONB directamente, necesitamos extraerlo
+    if (!result) {
+      return [];
     }
 
-    async obtenerAuditoriaPorId(id: number): Promise<any | null> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'aud_ObtenerAuditoriaPorId',
-            [id],
-        );
+    // Si el resultado es un objeto con una propiedad que contiene el JSONB
+    const jsonbResult =
+      result.aud_obtenerhistorialentidad ??
+      result.audobtenerhistorialentidad ??
+      result.audObtenerHistorialEntidad ??
+      result;
 
-        return result || null;
-    }
-
-    async obtenerHistorialEntidad(entidad: string, identidad: string): Promise<any[]> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'aud_ObtenerHistorialEntidad',
-            [entidad, identidad],
-        );
-
-        // La función retorna un JSONB directamente, necesitamos extraerlo
-        if (!result) {
-            return [];
-        }
-
-        // Si el resultado es un objeto con una propiedad que contiene el JSONB
-        const jsonbResult = result.aud_obtenerhistorialentidad ?? result.audobtenerhistorialentidad ?? result.audObtenerHistorialEntidad ?? result;
-
-        // Si es un string JSON, parsearlo
-        if (typeof jsonbResult === 'string') {
-            try {
-                return JSON.parse(jsonbResult);
-            } catch {
-                return [];
-            }
-        }
-
-        // Si ya es un array, retornarlo directamente
-        if (Array.isArray(jsonbResult)) {
-            return jsonbResult;
-        }
-
+    // Si es un string JSON, parsearlo
+    if (typeof jsonbResult === 'string') {
+      try {
+        return JSON.parse(jsonbResult);
+      } catch {
         return [];
+      }
     }
 
-    async obtenerAuditoriaPorMetadatos(
-        entidad: string,
-        accion: string,
-        metadatoKey: string,
-        metadatoValue: string,
-    ): Promise<any | null> {
-        // Buscar en auditoría usando metadatos JSONB
-        // Incluir el rol del usuario desde la relación con authUsuariosRoles y authRoles
-        // PostgreSQL convierte los nombres a minúsculas si no se usan comillas
-        const query = `
+    // Si ya es un array, retornarlo directamente
+    if (Array.isArray(jsonbResult)) {
+      return jsonbResult;
+    }
+
+    return [];
+  }
+
+  async obtenerAuditoriaPorMetadatos(
+    entidad: string,
+    accion: string,
+    metadatoKey: string,
+    metadatoValue: string,
+  ): Promise<any | null> {
+    // Buscar en auditoría usando metadatos JSONB
+    // Incluir el rol del usuario desde la relación con authUsuariosRoles y authRoles
+    // PostgreSQL convierte los nombres a minúsculas si no se usan comillas
+    const query = `
             SELECT 
                 a.id,
                 a.idusuario,
@@ -111,37 +118,46 @@ export class AuditoriaRepository implements IAuditoriaRepository {
             LIMIT 1
         `;
 
-        const result = await this.databaseFunctionService.executeQuery<any>(
-            query,
-            [entidad, accion, metadatoKey, metadatoValue],
-        );
+    const result = await this.databaseFunctionService.executeQuery<any>(query, [
+      entidad,
+      accion,
+      metadatoKey,
+      metadatoValue,
+    ]);
 
-        return result.length > 0 ? result[0] : null;
-    }
+    return result.length > 0 ? result[0] : null;
+  }
 
-    async obtenerHistorialUsuario(idUsuario: number, limit: number, offset: number): Promise<any[]> {
-        const result = await this.databaseFunctionService.callFunction<any>(
-            'aud_ObtenerHistorialUsuario',
-            [idUsuario, limit, offset],
-        );
+  async obtenerHistorialUsuario(
+    idUsuario: number,
+    limit: number,
+    offset: number,
+  ): Promise<any[]> {
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'aud_ObtenerHistorialUsuario',
+      [idUsuario, limit, offset],
+    );
 
-        return result || [];
-    }
+    return result || [];
+  }
 
-    async obtenerEstadisticas(fechaDesde: string | null, fechaHasta: string | null): Promise<any | null> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'aud_ObtenerEstadisticas',
-            [fechaDesde, fechaHasta],
-        );
+  async obtenerEstadisticas(
+    fechaDesde: string | null,
+    fechaHasta: string | null,
+  ): Promise<any | null> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'aud_ObtenerEstadisticas',
+      [fechaDesde, fechaHasta],
+    );
 
-        return result || null;
-    }
+    return result || null;
+  }
 
-    async obtenerAuditoriasPorItemId(itemId: string): Promise<any[]> {
-        // Buscar todas las auditorías relacionadas con un archivo específico:
-        // 1. Auditorías de archivo usando accItemId en metadatos
-        // 2. Auditorías de incidencias vinculadas al archivo (usando documentUrn o itemId en metadatos)
-        const query = `
+  async obtenerAuditoriasPorItemId(itemId: string): Promise<any[]> {
+    // Buscar todas las auditorías relacionadas con un archivo específico:
+    // 1. Auditorías de archivo usando accItemId en metadatos
+    // 2. Auditorías de incidencias vinculadas al archivo (usando documentUrn o itemId en metadatos)
+    const query = `
             SELECT 
                 a.id,
                 a.idusuario,
@@ -190,16 +206,15 @@ export class AuditoriaRepository implements IAuditoriaRepository {
             ORDER BY a.fechacreacion DESC
         `;
 
-        const result = await this.databaseFunctionService.executeQuery<any>(
-            query,
-            [itemId],
-        );
+    const result = await this.databaseFunctionService.executeQuery<any>(query, [
+      itemId,
+    ]);
 
-        return result || [];
-    }
+    return result || [];
+  }
 
-    async obtenerAuditoriasPorFolderId(folderId: string): Promise<any[]> {
-        const query = `
+  async obtenerAuditoriasPorFolderId(folderId: string): Promise<any[]> {
+    const query = `
             SELECT 
                 a.id,
                 a.idusuario,
@@ -231,16 +246,18 @@ export class AuditoriaRepository implements IAuditoriaRepository {
             ORDER BY a.fechacreacion DESC
         `;
 
-        const result = await this.databaseFunctionService.executeQuery<any>(
-            query,
-            [folderId],
-        );
+    const result = await this.databaseFunctionService.executeQuery<any>(query, [
+      folderId,
+    ]);
 
-        return result || [];
-    }
+    return result || [];
+  }
 
-    async obtenerAuditoriasPorAccIssueId(issueId: string, limit = 200): Promise<any[]> {
-        const query = `
+  async obtenerAuditoriasPorAccIssueId(
+    issueId: string,
+    limit = 200,
+  ): Promise<any[]> {
+    const query = `
             SELECT
                 a.id,
                 a.idusuario,
@@ -262,61 +279,67 @@ export class AuditoriaRepository implements IAuditoriaRepository {
             ORDER BY a.fechacreacion DESC
             LIMIT $2
         `;
-        const result = await this.databaseFunctionService.executeQuery<any>(query, [issueId, limit]);
-        return result || [];
+    const result = await this.databaseFunctionService.executeQuery<any>(query, [
+      issueId,
+      limit,
+    ]);
+    return result || [];
+  }
+
+  async registrarAccion(
+    idUsuario: number,
+    accion: string,
+    entidad: string,
+    identidad: string | null,
+    descripcion: string | null,
+    datosAnteriores: any | null,
+    datosNuevos: any | null,
+    ipAddress: string,
+    userAgent: string,
+    metadatos: any,
+    idEmpresaUsuario?: number | null,
+    nombreEmpresaUsuario?: string | null,
+  ): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'aud_RegistrarAccion',
+      [
+        idUsuario,
+        accion,
+        entidad,
+        identidad,
+        descripcion,
+        datosAnteriores ? JSON.stringify(datosAnteriores) : null,
+        datosNuevos ? JSON.stringify(datosNuevos) : null,
+        ipAddress,
+        userAgent,
+        JSON.stringify(metadatos),
+        idEmpresaUsuario ?? null,
+        nombreEmpresaUsuario ?? null,
+      ],
+    );
+
+    // La función retorna un JSONB, necesitamos extraerlo correctamente
+    if (!result) {
+      return null;
     }
 
-    async registrarAccion(
-        idUsuario: number,
-        accion: string,
-        entidad: string,
-        identidad: string | null,
-        descripcion: string | null,
-        datosAnteriores: any | null,
-        datosNuevos: any | null,
-        ipAddress: string,
-        userAgent: string,
-        metadatos: any,
-        idEmpresaUsuario?: number | null,
-        nombreEmpresaUsuario?: string | null,
-    ): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'aud_RegistrarAccion',
-            [
-                idUsuario,
-                accion,
-                entidad,
-                identidad,
-                descripcion,
-                datosAnteriores ? JSON.stringify(datosAnteriores) : null,
-                datosNuevos ? JSON.stringify(datosNuevos) : null,
-                ipAddress,
-                userAgent,
-                JSON.stringify(metadatos),
-                idEmpresaUsuario ?? null,
-                nombreEmpresaUsuario ?? null,
-            ],
-        );
+    // Si el resultado es un objeto con una propiedad que contiene el JSONB
+    const jsonbResult =
+      result.aud_registraraccion ??
+      result.audregistraraccion ??
+      result.audRegistrarAccion ??
+      result;
 
-        // La función retorna un JSONB, necesitamos extraerlo correctamente
-        if (!result) {
-            return null;
-        }
-
-        // Si el resultado es un objeto con una propiedad que contiene el JSONB
-        const jsonbResult = result.aud_registraraccion ?? result.audregistraraccion ?? result.audRegistrarAccion ?? result;
-
-        // Si es un string JSON, parsearlo
-        if (typeof jsonbResult === 'string') {
-            try {
-                return JSON.parse(jsonbResult);
-            } catch {
-                return jsonbResult;
-            }
-        }
-
-        // Si ya es un objeto, retornarlo directamente
+    // Si es un string JSON, parsearlo
+    if (typeof jsonbResult === 'string') {
+      try {
+        return JSON.parse(jsonbResult);
+      } catch {
         return jsonbResult;
+      }
     }
-}
 
+    // Si ya es un objeto, retornarlo directamente
+    return jsonbResult;
+  }
+}

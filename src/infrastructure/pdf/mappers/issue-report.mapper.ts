@@ -109,14 +109,26 @@ export class IssueReportMapper {
   static async toTemplateData(
     input: IssueReportMapperInput,
   ): Promise<IssueReportMapperResult> {
-    const { dto, incidencias, nombreProyecto, usuarioCreador, emailCreador, fechaCreacion } =
-      input;
+    const {
+      dto,
+      incidencias,
+      nombreProyecto,
+      usuarioCreador,
+      emailCreador,
+      fechaCreacion,
+    } = input;
 
     const fechaFormateada = IssueReportMapper.formatDate(fechaCreacion, true);
 
     const issueItems = await Promise.all(
       incidencias.map((inc) =>
-        IssueReportMapper.mapIssue(inc, usuarioCreador, emailCreador, dto, input),
+        IssueReportMapper.mapIssue(
+          inc,
+          usuarioCreador,
+          emailCreador,
+          dto,
+          input,
+        ),
       ),
     );
 
@@ -143,7 +155,8 @@ export class IssueReportMapper {
         incluirFotos: dto.incluirFotos ?? true,
         tamañoFotos: dto.tamañoFotos || 'normal',
         incluirComentarios: dto.incluirComentarios ?? true,
-        incluirInformacionGeneralPlano: dto.incluirInformacionGeneralPlano ?? false,
+        incluirInformacionGeneralPlano:
+          dto.incluirInformacionGeneralPlano ?? false,
         incluirCamposPersonalizados: dto.incluirCamposPersonalizados ?? true,
         incluirVinculosArchivo: dto.incluirVinculosArchivo ?? true,
         incluirOtrasReferencias: dto.incluirOtrasReferencias ?? true,
@@ -154,8 +167,14 @@ export class IssueReportMapper {
     const renderOptions: PdfRenderOptions = {
       format: 'A4',
       displayHeaderFooter: true,
-      headerTemplate: IssueReportMapper.buildHeaderTemplate(nombreProyecto, dto.titulo || 'Detalle de la incidencia'),
-      footerTemplate: IssueReportMapper.buildFooterTemplate(usuarioCreador, fechaFormateada),
+      headerTemplate: IssueReportMapper.buildHeaderTemplate(
+        nombreProyecto,
+        dto.titulo || 'Detalle de la incidencia',
+      ),
+      footerTemplate: IssueReportMapper.buildFooterTemplate(
+        usuarioCreador,
+        fechaFormateada,
+      ),
       margin: { top: '28mm', right: '15mm', bottom: '22mm', left: '15mm' },
     };
 
@@ -171,12 +190,15 @@ export class IssueReportMapper {
     dto: ExportarIncidenciasDto,
     input: IssueReportMapperInput,
   ): Promise<IssueTemplateItem> {
-    const camposEstandar = IssueReportMapper.buildCamposEstandar(inc, usuarioCreador, emailCreador);
+    const camposEstandar = IssueReportMapper.buildCamposEstandar(
+      inc,
+      usuarioCreador,
+      emailCreador,
+    );
 
-    const informacionPlano =
-      dto.incluirInformacionGeneralPlano
-        ? IssueReportMapper.buildInformacionPlano(inc)
-        : [];
+    const informacionPlano = dto.incluirInformacionGeneralPlano
+      ? IssueReportMapper.buildInformacionPlano(inc)
+      : [];
 
     const camposPersonalizados =
       dto.incluirCamposPersonalizados && inc.customAttributes?.length > 0
@@ -188,15 +210,13 @@ export class IssueReportMapper {
         ? IssueReportMapper.buildVinculosArchivo(inc.linkedDocuments)
         : [];
 
-    const fotos =
-      dto.incluirFotos
-        ? await IssueReportMapper.buildFotos(inc, dto, input)
-        : [];
+    const fotos = dto.incluirFotos
+      ? await IssueReportMapper.buildFotos(inc, dto, input)
+      : [];
 
-    const otrasReferencias =
-      dto.incluirOtrasReferencias
-        ? IssueReportMapper.buildOtrasReferencias(inc)
-        : [];
+    const otrasReferencias = dto.incluirOtrasReferencias
+      ? IssueReportMapper.buildOtrasReferencias(inc)
+      : [];
 
     const comentarios =
       dto.incluirComentarios && inc.comentarios?.length > 0
@@ -227,7 +247,11 @@ export class IssueReportMapper {
       label: string,
       value: string,
       tipo?: 'estado' | 'tipo' | 'posicion',
-      extra?: { statusCssClass?: string; tipoLetra?: string; isVencido?: boolean },
+      extra?: {
+        statusCssClass?: string;
+        tipoLetra?: string;
+        isVencido?: boolean;
+      },
     ): FieldRow => ({
       label,
       value,
@@ -250,7 +274,8 @@ export class IssueReportMapper {
 
     const asignadoA =
       inc.assignedToRealMultiple?.map((u: any) => u.usuario).join(', ') ||
-      inc.assignedToReal || '—';
+      inc.assignedToReal ||
+      '—';
 
     const creadoPor = `${inc.createdByReal || usuarioCreador} (${emailCreador})`;
 
@@ -274,7 +299,8 @@ export class IssueReportMapper {
 
     const posicion =
       inc.linkedDocuments?.[0]?.details?.viewable?.name ||
-      inc.linkedDocuments?.[0]?.urn?.split('/').pop() || '—';
+      inc.linkedDocuments?.[0]?.urn?.split('/').pop() ||
+      '—';
 
     return [
       f('Estado', statusLabel, 'estado', { statusCssClass }),
@@ -294,23 +320,40 @@ export class IssueReportMapper {
 
   // ── Información del plano ─────────────────────────────────────
 
-  private static buildInformacionPlano(inc: any): { label: string; value: string }[] {
+  private static buildInformacionPlano(
+    inc: any,
+  ): { label: string; value: string }[] {
     const campos: { label: string; value: string }[] = [];
     const ld = inc.linkedDocuments?.[0];
     if (!ld) return campos;
-    if (ld.details?.viewable?.name) campos.push({ label: 'Nombre del documento', value: ld.details.viewable.name });
+    if (ld.details?.viewable?.name)
+      campos.push({
+        label: 'Nombre del documento',
+        value: ld.details.viewable.name,
+      });
     if (ld.urn) campos.push({ label: 'URN', value: ld.urn });
-    if (ld.createdAt) campos.push({ label: 'Fecha de creación', value: IssueReportMapper.formatDate(new Date(ld.createdAt), true) });
+    if (ld.createdAt)
+      campos.push({
+        label: 'Fecha de creación',
+        value: IssueReportMapper.formatDate(new Date(ld.createdAt), true),
+      });
     if (ld.createdBy) campos.push({ label: 'Creado por', value: ld.createdBy });
     return campos;
   }
 
   // ── Campos personalizados ─────────────────────────────────────
 
-  private static buildCamposPersonalizados(attrs: any[]): { label: string; value: string }[] {
+  private static buildCamposPersonalizados(
+    attrs: any[],
+  ): { label: string; value: string }[] {
     return attrs.map((a) => ({
       label: a.name || a.label || a.id || 'Campo',
-      value: a.value != null ? (typeof a.value === 'object' ? JSON.stringify(a.value) : String(a.value)) : '—',
+      value:
+        a.value != null
+          ? typeof a.value === 'object'
+            ? JSON.stringify(a.value)
+            : String(a.value)
+          : '—',
     }));
   }
 
@@ -321,9 +364,15 @@ export class IssueReportMapper {
       const campos: { label: string; value: string }[] = [];
       if (ld.type) campos.push({ label: 'Tipo', value: ld.type });
       if (ld.urn) campos.push({ label: 'URN', value: ld.urn });
-      if (ld.createdAt) campos.push({ label: 'Fecha de creación', value: IssueReportMapper.formatDate(new Date(ld.createdAt), true) });
-      if (ld.createdBy) campos.push({ label: 'Creado por', value: ld.createdBy });
-      if (ld.createdAtVersion) campos.push({ label: 'Versión', value: String(ld.createdAtVersion) });
+      if (ld.createdAt)
+        campos.push({
+          label: 'Fecha de creación',
+          value: IssueReportMapper.formatDate(new Date(ld.createdAt), true),
+        });
+      if (ld.createdBy)
+        campos.push({ label: 'Creado por', value: ld.createdBy });
+      if (ld.createdAtVersion)
+        campos.push({ label: 'Versión', value: String(ld.createdAtVersion) });
       return { titulo: `Documento ${idx + 1}`, campos };
     });
   }
@@ -337,10 +386,19 @@ export class IssueReportMapper {
   ): Promise<FotoItem[]> {
     const adjuntos: any[] = inc.adjuntos || [];
     const fotos = adjuntos.filter((a: any) => {
-      if (a.type === 'photo' || a.attachmentType === 'photo' || a.attachmentType === 'issue-attachment') return true;
+      if (
+        a.type === 'photo' ||
+        a.attachmentType === 'photo' ||
+        a.attachmentType === 'issue-attachment'
+      )
+        return true;
       if (a.mimeType?.startsWith('image/')) return true;
-      const ext = (a.fileName || a.displayName || a.name || '').toLowerCase().split('.').pop();
-      if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext)) return true;
+      const ext = (a.fileName || a.displayName || a.name || '')
+        .toLowerCase()
+        .split('.')
+        .pop();
+      if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext))
+        return true;
       if (a.snapshotUrn || a.storageUrn || a.urn || a.thumbnailUrn) return true;
       return false;
     });
@@ -361,11 +419,17 @@ export class IssueReportMapper {
               base64 = `data:${mime};base64,${buf.toString('base64')}`;
             }
           }
-        } catch { /* continuar sin imagen */ }
+        } catch {
+          /* continuar sin imagen */
+        }
 
-        const nombre = adj.displayName || adj.fileName || adj.name || 'Thumbnail';
-        const creadoEl = adj.createdAt ? IssueReportMapper.formatDate(new Date(adj.createdAt), true) : '';
-        const creadoPor = adj.createdByReal || adj.createdBy || input.usuarioCreador;
+        const nombre =
+          adj.displayName || adj.fileName || adj.name || 'Thumbnail';
+        const creadoEl = adj.createdAt
+          ? IssueReportMapper.formatDate(new Date(adj.createdAt), true)
+          : '';
+        const creadoPor =
+          adj.createdByReal || adj.createdBy || input.usuarioCreador;
 
         return { nombre, creadoEl, creadoPor, base64 };
       }),
@@ -374,29 +438,49 @@ export class IssueReportMapper {
 
   // ── Otras referencias ─────────────────────────────────────────
 
-  private static buildOtrasReferencias(inc: any): { label: string; value: string }[] {
+  private static buildOtrasReferencias(
+    inc: any,
+  ): { label: string; value: string }[] {
     const campos: { label: string; value: string }[] = [];
-    if (inc.issueTypeId)     campos.push({ label: 'Issue Type ID',    value: inc.issueTypeId });
-    if (inc.issueSubtypeId)  campos.push({ label: 'Issue Subtype ID', value: inc.issueSubtypeId });
-    if (inc.containerId)     campos.push({ label: 'Container ID',     value: inc.containerId });
-    if (inc.issueTemplateId) campos.push({ label: 'Template ID',      value: inc.issueTemplateId });
-    if (inc.gpsCoordinates)  campos.push({ label: 'Coordenadas GPS',  value: inc.gpsCoordinates });
+    if (inc.issueTypeId)
+      campos.push({ label: 'Issue Type ID', value: inc.issueTypeId });
+    if (inc.issueSubtypeId)
+      campos.push({ label: 'Issue Subtype ID', value: inc.issueSubtypeId });
+    if (inc.containerId)
+      campos.push({ label: 'Container ID', value: inc.containerId });
+    if (inc.issueTemplateId)
+      campos.push({ label: 'Template ID', value: inc.issueTemplateId });
+    if (inc.gpsCoordinates)
+      campos.push({ label: 'Coordenadas GPS', value: inc.gpsCoordinates });
     if (inc.watchers?.length > 0) {
-      campos.push({ label: 'Observadores', value: inc.watchers.map((w: any) => w.name || w.id).join(', ') });
+      campos.push({
+        label: 'Observadores',
+        value: inc.watchers.map((w: any) => w.name || w.id).join(', '),
+      });
     }
     return campos;
   }
 
   // ── Comentarios ───────────────────────────────────────────────
 
-  private static buildComentarios(comentarios: any[], usuarioCreador: string): ComentarioItem[] {
+  private static buildComentarios(
+    comentarios: any[],
+    usuarioCreador: string,
+  ): ComentarioItem[] {
     return comentarios.map((c: any): ComentarioItem => {
       const textoCompleto = c.comment || c.body || '';
       const texto = IssueReportMapper.procesarTextoComentario(textoCompleto);
       const gvr = c.gvrUsuario;
       const firmaInfo = IssueReportMapper.extraerFirmaInfo(textoCompleto);
-      const creador = gvr?.nombre || firmaInfo.nombre || c.createdByReal || c.createdBy || usuarioCreador;
-      const fecha = c.createdAt ? IssueReportMapper.formatDate(new Date(c.createdAt), true) : '';
+      const creador =
+        gvr?.nombre ||
+        firmaInfo.nombre ||
+        c.createdByReal ||
+        c.createdBy ||
+        usuarioCreador;
+      const fecha = c.createdAt
+        ? IssueReportMapper.formatDate(new Date(c.createdAt), true)
+        : '';
 
       let avatarBase64: string | null = null;
       if (gvr?.fotoPerfilBuffer) {
@@ -405,7 +489,9 @@ export class IssueReportMapper {
           if (buf.length <= 2 * 1024 * 1024) {
             avatarBase64 = `data:image/jpeg;base64,${buf.toString('base64')}`;
           }
-        } catch { /* sin foto */ }
+        } catch {
+          /* sin foto */
+        }
       }
 
       return {
@@ -464,7 +550,20 @@ export class IssueReportMapper {
   // ── Helpers ───────────────────────────────────────────────────
 
   private static formatDate(date: Date, withTime: boolean): string {
-    const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    const meses = [
+      'ene',
+      'feb',
+      'mar',
+      'abr',
+      'may',
+      'jun',
+      'jul',
+      'ago',
+      'sep',
+      'oct',
+      'nov',
+      'dic',
+    ];
     let s = `${date.getDate()} de ${meses[date.getMonth()]}. de ${date.getFullYear()}`;
     if (withTime) {
       const hh = String(date.getHours()).padStart(2, '0');
@@ -494,12 +593,12 @@ export class IssueReportMapper {
    *  in_review=púrpura, closed=verde. */
   private static getStatusCssClass(status: string): string {
     const m: Record<string, string> = {
-      draft:       'issue-status-draft',
-      open:        'issue-status-open',
-      pending:     'issue-status-pending',
+      draft: 'issue-status-draft',
+      open: 'issue-status-open',
+      pending: 'issue-status-pending',
       'in-progress': 'issue-status-in-progress',
-      in_review:   'issue-status-in-review',
-      closed:      'issue-status-closed',
+      in_review: 'issue-status-in-review',
+      closed: 'issue-status-closed',
     };
     return m[status] ?? 'issue-status-default';
   }
@@ -507,8 +606,12 @@ export class IssueReportMapper {
   private static buildFiltrosTexto(dto: ExportarIncidenciasDto): string {
     const filtros: string[] = [];
     if (dto.filter_status) {
-      const estados = Array.isArray(dto.filter_status) ? dto.filter_status : [dto.filter_status];
-      filtros.push(`Estado (${estados.map(IssueReportMapper.getStatusLabel).join(', ')})`);
+      const estados = Array.isArray(dto.filter_status)
+        ? dto.filter_status
+        : [dto.filter_status];
+      filtros.push(
+        `Estado (${estados.map(IssueReportMapper.getStatusLabel).join(', ')})`,
+      );
     }
     if (dto.filter_linkedDocumentUrn) filtros.push('Documento vinculado');
     return filtros.length > 0 ? filtros.join(', ') : 'Ninguno';
@@ -517,7 +620,14 @@ export class IssueReportMapper {
   private static guessMime(adj: any): string {
     const name: string = adj.fileName || adj.displayName || adj.name || '';
     const ext = name.toLowerCase().split('.').pop();
-    const map: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp' };
+    const map: Record<string, string> = {
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      gif: 'image/gif',
+      webp: 'image/webp',
+      bmp: 'image/bmp',
+    };
     return map[ext || ''] || 'image/jpeg';
   }
 
@@ -531,23 +641,35 @@ export class IssueReportMapper {
 
   private static getAvatarToneClass(nombre: string): string {
     let h = 0;
-    for (let i = 0; i < nombre.length; i++) h = nombre.charCodeAt(i) + ((h << 5) - h);
+    for (let i = 0; i < nombre.length; i++)
+      h = nombre.charCodeAt(i) + ((h << 5) - h);
     return `avatar-tone-${Math.abs(h) % 10}`;
   }
 
   private static procesarTextoComentario(texto: string): string {
     if (!texto) return '';
-    texto = texto.replace(/<---?FIRMA_GVR---?>[\s\S]*?<---?FIN_FIRMA_GVR---?>/gi, '');
-    texto = texto.replace(/---?FIRMA_GVR---?[\s\S]*?---?FIN_FIRMA_GVR---?/gi, '');
+    texto = texto.replace(
+      /<---?FIRMA_GVR---?>[\s\S]*?<---?FIN_FIRMA_GVR---?>/gi,
+      '',
+    );
+    texto = texto.replace(
+      /---?FIRMA_GVR---?[\s\S]*?---?FIN_FIRMA_GVR---?/gi,
+      '',
+    );
     return texto.replace(/\s+/g, ' ').trim();
   }
 
-  private static extraerFirmaInfo(texto: string): { nombre: string | null; rol: string | null } {
-    const m = texto.match(/<---?FIRMA_GVR---?>([\s\S]*?)<---?FIN_FIRMA_GVR---?>/i)
-      || texto.match(/---?FIRMA_GVR---?([\s\S]*?)---?FIN_FIRMA_GVR---?/i);
+  private static extraerFirmaInfo(texto: string): {
+    nombre: string | null;
+    rol: string | null;
+  } {
+    const m =
+      texto.match(/<---?FIRMA_GVR---?>([\s\S]*?)<---?FIN_FIRMA_GVR---?>/i) ||
+      texto.match(/---?FIRMA_GVR---?([\s\S]*?)---?FIN_FIRMA_GVR---?/i);
     if (!m) return { nombre: null, rol: null };
-    const nombre = m[1].match(/Nombre:\s*([^R\n]+?)(?:\s*Rol:|$)/i)?.[1]?.trim() ?? null;
-    const rol    = m[1].match(/Rol:\s*(.+?)(?:\s*$|\s*<)/i)?.[1]?.trim() ?? null;
+    const nombre =
+      m[1].match(/Nombre:\s*([^R\n]+?)(?:\s*Rol:|$)/i)?.[1]?.trim() ?? null;
+    const rol = m[1].match(/Rol:\s*(.+?)(?:\s*$|\s*<)/i)?.[1]?.trim() ?? null;
     return { nombre, rol };
   }
 }
