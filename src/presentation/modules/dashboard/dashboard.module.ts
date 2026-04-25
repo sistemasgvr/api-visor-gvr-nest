@@ -23,39 +23,42 @@ import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from 'src/application/us
 import { ObtenerProyectosConProgresoUseCase } from 'src/application/use-cases/dashboard/obtener-proyectos-con-progreso.use-case';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
-                },
-            }),
-            inject: [ConfigService],
-        }),
-    ],
-    controllers: [DashboardController],
-    providers: [
-        {
-            provide: DASHBOARD_REPOSITORY,
-            useClass: DashboardRepository,
+  imports: [
+    DatabaseModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'default-secret-key-change-in-production',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '1d') as any,
         },
-        ObtenerCantidadProyectosVigentesUseCase,
-        ObtenerCantidadTrabajadoresActivosUseCase,
-        ObtenerCantidadActividadesPendientesUseCase,
-        ObtenerCantidadActividadesObservadasUseCase,
-        ObtenerCantidadActividadesRechazadasUseCase,
-        ObtenerCantidadTrabajadoresPorProyectoUseCase,
-        ObtenerCantidadJornadasCompletasSemanaUseCase,
-        ObtenerTopTrabajadoresHorasMesUseCase,
-        ObtenerCantidadTrabajadoresConectadoSemanaUseCase,
-        ObtenerHorasEsperadasVsRegistradasMesUseCase,
-        ObtenerProyectosConProgresoUseCase,
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [DashboardController],
+  providers: [
+    {
+      provide: DASHBOARD_REPOSITORY,
+      useClass: DashboardRepository,
+    },
+    ObtenerCantidadProyectosVigentesUseCase,
+    ObtenerCantidadTrabajadoresActivosUseCase,
+    ObtenerCantidadActividadesPendientesUseCase,
+    ObtenerCantidadActividadesObservadasUseCase,
+    ObtenerCantidadActividadesRechazadasUseCase,
+    ObtenerCantidadTrabajadoresPorProyectoUseCase,
+    ObtenerCantidadJornadasCompletasSemanaUseCase,
+    ObtenerTopTrabajadoresHorasMesUseCase,
+    ObtenerCantidadTrabajadoresConectadoSemanaUseCase,
+    ObtenerHorasEsperadasVsRegistradasMesUseCase,
+    ObtenerProyectosConProgresoUseCase,
 
-        JwtStrategy,
-    ],
+    JwtStrategy,
+  ],
 })
-export class DashboardModule { }
+export class DashboardModule {}

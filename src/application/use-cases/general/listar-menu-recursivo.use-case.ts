@@ -5,22 +5,24 @@ import { MENU_REPOSITORY } from '../../../domain/repositories/menu.repository.in
 
 @Injectable()
 export class ListarMenuRecursivoUseCase {
-    constructor(
-        @Inject(MENU_REPOSITORY)
-        private readonly menuRepository: IMenuRepository,
-        private readonly jwtService: JwtService,
-    ) { }
+  constructor(
+    @Inject(MENU_REPOSITORY)
+    private readonly menuRepository: IMenuRepository,
+    private readonly jwtService: JwtService,
+  ) {}
 
-    async execute(token: string): Promise<any> {
-        // Validate and decode token to get user ID
-        const payload = await this.jwtService.verifyAsync(token);
+  async execute(token: string): Promise<any> {
+    // Validate and decode token to get user ID
+    const payload = await this.jwtService.verifyAsync(token);
 
-        if (!payload || !payload.sub) {
-            throw new Error('Token inválido');
-        }
-
-        const menuOpciones = await this.menuRepository.listarMenuRecursivo(payload.sub);
-
-        return menuOpciones || [];
+    if (!payload || !payload.sub) {
+      throw new Error('Token inválido');
     }
+
+    const menuOpciones = await this.menuRepository.listarMenuRecursivo(
+      payload.sub,
+    );
+
+    return menuOpciones || [];
+  }
 }

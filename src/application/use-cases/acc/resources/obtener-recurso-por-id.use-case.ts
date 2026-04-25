@@ -4,19 +4,18 @@ import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-re
 
 @Injectable()
 export class ObtenerRecursoPorIdUseCase {
-    constructor(
-        @Inject(ACC_RESOURCES_REPOSITORY)
-        private readonly accResourcesRepository: IAccResourcesRepository,
-    ) { }
+  constructor(
+    @Inject(ACC_RESOURCES_REPOSITORY)
+    private readonly accResourcesRepository: IAccResourcesRepository,
+  ) {}
 
-    async execute(id: number) {
-        const resultado = await this.accResourcesRepository.obtenerRecursoPorId(id);
+  async execute(id: number) {
+    const resultado = await this.accResourcesRepository.obtenerRecursoPorId(id);
 
-        if (!resultado) {
-            throw new NotFoundException('Recurso no encontrado');
-        }
-
-        return resultado;
+    if (!resultado) {
+      throw new NotFoundException('Recurso no encontrado');
     }
-}
 
+    return resultado;
+  }
+}

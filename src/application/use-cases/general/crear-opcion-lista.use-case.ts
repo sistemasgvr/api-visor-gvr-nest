@@ -4,13 +4,13 @@ import { MENU_REPOSITORY } from '../../../domain/repositories/menu.repository.in
 
 @Injectable()
 export class CrearOpcionListaUseCase {
-    constructor(
-        @Inject(MENU_REPOSITORY)
-        private readonly menuRepository: IMenuRepository,
-    ) {}
+  constructor(
+    @Inject(MENU_REPOSITORY)
+    private readonly menuRepository: IMenuRepository,
+  ) {}
 
-    async execute(idLista: number, nombre: string): Promise<any> {
-        const created = await this.menuRepository.crearOpcionLista(idLista, nombre);
-        return created;
-    }
+  async execute(idLista: number, nombre: string): Promise<any> {
+    const created = await this.menuRepository.crearOpcionLista(idLista, nombre);
+    return created;
+  }
 }

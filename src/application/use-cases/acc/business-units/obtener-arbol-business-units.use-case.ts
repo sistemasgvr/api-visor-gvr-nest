@@ -4,19 +4,23 @@ import { ObtenerBusinessUnitsDto } from '../../../dtos/acc/business-units/obtene
 
 @Injectable()
 export class ObtenerArbolBusinessUnitsUseCase {
-    constructor(
-        private readonly autodeskApiService: AutodeskApiService,
-    ) { }
+  constructor(private readonly autodeskApiService: AutodeskApiService) {}
 
-    async execute(accountId: string, dto: ObtenerBusinessUnitsDto): Promise<any> {
-        const token = await this.autodeskApiService.obtenerToken2Legged(['account:read']);
+  async execute(accountId: string, dto: ObtenerBusinessUnitsDto): Promise<any> {
+    const token = await this.autodeskApiService.obtenerToken2Legged([
+      'account:read',
+    ]);
 
-        if (this.autodeskApiService.esTokenExpirado(token.expires_at)) {
-            throw new BadRequestException('El token ha expirado. Por favor, genera un nuevo token.');
-        }
-
-        return await this.autodeskApiService.obtenerArbolBusinessUnits(token.access_token, accountId, dto.region);
+    if (this.autodeskApiService.esTokenExpirado(token.expires_at)) {
+      throw new BadRequestException(
+        'El token ha expirado. Por favor, genera un nuevo token.',
+      );
     }
+
+    return await this.autodeskApiService.obtenerArbolBusinessUnits(
+      token.access_token,
+      accountId,
+      dto.region,
+    );
+  }
 }
-
-

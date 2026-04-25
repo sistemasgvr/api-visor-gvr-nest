@@ -4,18 +4,18 @@ import { PERMISO_REPOSITORY } from '../../../domain/repositories/permiso.reposit
 
 @Injectable()
 export class ObtenerPermisoUseCase {
-    constructor(
-        @Inject(PERMISO_REPOSITORY)
-        private readonly permisoRepository: IPermisoRepository,
-    ) { }
+  constructor(
+    @Inject(PERMISO_REPOSITORY)
+    private readonly permisoRepository: IPermisoRepository,
+  ) {}
 
-    async execute(idPermiso: number) {
-        const permiso = await this.permisoRepository.obtenerPermisoPorId(idPermiso);
+  async execute(idPermiso: number) {
+    const permiso = await this.permisoRepository.obtenerPermisoPorId(idPermiso);
 
-        if (!permiso) {
-            throw new NotFoundException('Permiso no encontrado');
-        }
-
-        return permiso;
+    if (!permiso) {
+      throw new NotFoundException('Permiso no encontrado');
     }
+
+    return permiso;
+  }
 }

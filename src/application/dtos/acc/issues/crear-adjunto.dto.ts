@@ -1,32 +1,30 @@
 import { IsString, IsOptional } from 'class-validator';
 
 export class CrearAdjuntoDto {
-    @IsString()
-    issueId: string;
+  @IsString()
+  issueId: string;
 
-    @IsOptional()
-    @IsString()
-    urn?: string;
+  @IsOptional()
+  @IsString()
+  urn?: string;
 
-    @IsOptional()
-    @IsString()
-    name?: string;
+  @IsOptional()
+  @IsString()
+  name?: string;
 
-    @IsOptional()
-    @IsString()
-    fileName?: string;
+  @IsOptional()
+  @IsString()
+  fileName?: string;
 
-    @IsOptional()
-    @IsString()
-    displayName?: string;
+  @IsOptional()
+  @IsString()
+  displayName?: string;
 
-    @IsOptional()
-    @IsString()
-    type?: string;
+  @IsOptional()
+  @IsString()
+  type?: string;
 
-    @IsOptional()
-    @IsString()
-    fileType?: string;
+  @IsOptional()
+  @IsString()
+  fileType?: string;
 }
-
-

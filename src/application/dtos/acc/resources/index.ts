@@ -10,4 +10,3 @@ export { ActualizarNivelPermisoUsuarioDto } from './actualizar-nivel-permiso-usu
 export { SincronizarPermisosUsuarioDto } from './sincronizar-permisos-usuario.dto';
 export { ListarUsuariosDisponiblesRecursoDto } from './listar-usuarios-disponibles-recurso.dto';
 export { ListarNivelesPermisoDto } from './listar-niveles-permiso.dto';
-

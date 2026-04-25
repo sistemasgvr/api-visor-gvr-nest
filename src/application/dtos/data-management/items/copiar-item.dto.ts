@@ -1,19 +1,19 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CopiarItemDto {
-    @IsNotEmpty()
-    @IsString()
-    sourceItemId: string;
+  @IsNotEmpty()
+  @IsString()
+  sourceItemId: string;
 
-    @IsNotEmpty()
-    @IsString()
-    sourceVersionId: string;
+  @IsNotEmpty()
+  @IsString()
+  sourceVersionId: string;
 
-    @IsNotEmpty()
-    @IsString()
-    targetFolderId: string;
+  @IsNotEmpty()
+  @IsString()
+  targetFolderId: string;
 
-    @IsNotEmpty()
-    @IsString()
-    fileName: string;
+  @IsNotEmpty()
+  @IsString()
+  fileName: string;
 }

@@ -16,12 +16,7 @@ import { AuditoriaRepository } from '../../infrastructure/repositories/auditoria
 import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.repository.interface';
 
 @Module({
-  imports: [
-    ConfigModule,
-    AuthModule,
-    DatabaseModule,
-    BroadcastModule,
-  ],
+  imports: [ConfigModule, AuthModule, DatabaseModule, BroadcastModule],
   controllers: [CollaboraController],
   providers: [
     CollaboraService,

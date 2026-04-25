@@ -5,7 +5,7 @@ export const getDatabaseConfig = (
   configService: ConfigService,
 ): TypeOrmModuleOptions => {
   const databaseUrl = configService.get<string>('DATABASE_URL');
-  
+
   if (databaseUrl) {
     return {
       type: 'postgres',
@@ -23,7 +23,7 @@ export const getDatabaseConfig = (
       retryDelay: 3000,
     };
   }
-  
+
   // Fallback a configuración individual
   return {
     type: 'postgres',

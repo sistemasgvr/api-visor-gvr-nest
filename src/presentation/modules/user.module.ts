@@ -11,33 +11,36 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
-                },
-            }),
-            inject: [ConfigService],
-        }),
-    ],
-    controllers: [UserController],
-    providers: [
-        // Repositories
-        {
-            provide: AUTH_REPOSITORY,
-            useClass: AuthRepository,
+  imports: [
+    DatabaseModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'default-secret-key-change-in-production',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '1d') as any,
         },
-        // Use cases
-        ActualizarCredencialesUseCase,
-        ObtenerPerfilUsuarioUseCase,
-        // JWT Strategy
-        JwtStrategy,
-    ],
-    exports: [AUTH_REPOSITORY],
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [UserController],
+  providers: [
+    // Repositories
+    {
+      provide: AUTH_REPOSITORY,
+      useClass: AuthRepository,
+    },
+    // Use cases
+    ActualizarCredencialesUseCase,
+    ObtenerPerfilUsuarioUseCase,
+    // JWT Strategy
+    JwtStrategy,
+  ],
+  exports: [AUTH_REPOSITORY],
 })
-export class UserModule { }
+export class UserModule {}

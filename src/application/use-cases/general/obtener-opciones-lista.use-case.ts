@@ -4,18 +4,19 @@ import { MENU_REPOSITORY } from '../../../domain/repositories/menu.repository.in
 
 @Injectable()
 export class ObtenerOpcionesListaUseCase {
-    constructor(
-        @Inject(MENU_REPOSITORY)
-        private readonly menuRepository: IMenuRepository,
-    ) { }
+  constructor(
+    @Inject(MENU_REPOSITORY)
+    private readonly menuRepository: IMenuRepository,
+  ) {}
 
-    async execute(idLista: number): Promise<any[]> {
-        const listaOpciones = await this.menuRepository.obtenerOpcionesPorLista(idLista);
+  async execute(idLista: number): Promise<any[]> {
+    const listaOpciones =
+      await this.menuRepository.obtenerOpcionesPorLista(idLista);
 
-        if (!listaOpciones) {
-            throw new NotFoundException('Opciones no encontradas');
-        }
-
-        return listaOpciones;
+    if (!listaOpciones) {
+      throw new NotFoundException('Opciones no encontradas');
     }
+
+    return listaOpciones;
+  }
 }

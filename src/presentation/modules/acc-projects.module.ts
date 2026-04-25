@@ -30,43 +30,43 @@ import { DatabaseFunctionService } from '../../infrastructure/database/database-
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 
 @Module({
-    imports: [DatabaseModule],
-    controllers: [AccProjectsController],
-    providers: [
-        // Helpers
-        ObtenerTokenValidoHelper,
+  imports: [DatabaseModule],
+  controllers: [AccProjectsController],
+  providers: [
+    // Helpers
+    ObtenerTokenValidoHelper,
 
-        // Use Cases
-        GetProyectosUseCase,
-        GetProyectoPorIdUseCase,
-        GetPlantillasUseCase,
-        GetProyectosPorTipoUseCase,
-        GetProyectosActivosUseCase,
-        CrearProyectoUseCase,
-        ClonarProyectoUseCase,
-        ActualizarProyectoUseCase,
-        SubirImagenProyectoUseCase,
-        ActivarServicioProyectoUseCase,
-        DesactivarServicioProyectoUseCase,
+    // Use Cases
+    GetProyectosUseCase,
+    GetProyectoPorIdUseCase,
+    GetPlantillasUseCase,
+    GetProyectosPorTipoUseCase,
+    GetProyectosActivosUseCase,
+    CrearProyectoUseCase,
+    ClonarProyectoUseCase,
+    ActualizarProyectoUseCase,
+    SubirImagenProyectoUseCase,
+    ActivarServicioProyectoUseCase,
+    DesactivarServicioProyectoUseCase,
 
-        // Services
-        AutodeskApiService,
-        HttpClientService,
+    // Services
+    AutodeskApiService,
+    HttpClientService,
 
-        // Repositories
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
-        {
-            provide: AUDITORIA_REPOSITORY,
-            useClass: AuditoriaRepository,
-        },
-        {
-            provide: ACC_RESOURCES_REPOSITORY,
-            useClass: AccResourcesRepository,
-        },
-        DatabaseFunctionService,
-    ],
+    // Repositories
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
+    {
+      provide: AUDITORIA_REPOSITORY,
+      useClass: AuditoriaRepository,
+    },
+    {
+      provide: ACC_RESOURCES_REPOSITORY,
+      useClass: AccResourcesRepository,
+    },
+    DatabaseFunctionService,
+  ],
 })
-export class AccProjectsModule { }
+export class AccProjectsModule {}

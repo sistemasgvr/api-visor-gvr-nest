@@ -4,18 +4,18 @@ import { ROL_REPOSITORY } from '../../../domain/repositories/rol.repository.inte
 
 @Injectable()
 export class ObtenerRolUseCase {
-    constructor(
-        @Inject(ROL_REPOSITORY)
-        private readonly rolRepository: IRolRepository,
-    ) { }
+  constructor(
+    @Inject(ROL_REPOSITORY)
+    private readonly rolRepository: IRolRepository,
+  ) {}
 
-    async execute(idRol: number) {
-        const rol = await this.rolRepository.obtenerRolPorId(idRol);
+  async execute(idRol: number) {
+    const rol = await this.rolRepository.obtenerRolPorId(idRol);
 
-        if (!rol) {
-            throw new NotFoundException('Rol no encontrado');
-        }
-
-        return rol;
+    if (!rol) {
+      throw new NotFoundException('Rol no encontrado');
     }
+
+    return rol;
+  }
 }

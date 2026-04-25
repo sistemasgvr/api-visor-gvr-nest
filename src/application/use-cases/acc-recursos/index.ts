@@ -4,4 +4,3 @@ export { ActualizarRecursoUseCase } from './actualizar-recurso.use-case';
 export { ObtenerRecursosUsuarioUseCase } from './obtener-recursos-usuario.use-case';
 export { ObtenerRecursosProyectoUseCase } from './obtener-recursos-proyecto.use-case';
 export { ObtenerRecursosHijosUseCase } from './obtener-recursos-hijos.use-case';
-

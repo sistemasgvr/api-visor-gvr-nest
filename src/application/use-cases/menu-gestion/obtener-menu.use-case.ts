@@ -4,18 +4,18 @@ import { MENU_GESTION_REPOSITORY } from '../../../domain/repositories/menu-gesti
 
 @Injectable()
 export class ObtenerMenuUseCase {
-    constructor(
-        @Inject(MENU_GESTION_REPOSITORY)
-        private readonly menuRepository: IMenuGestionRepository,
-    ) { }
+  constructor(
+    @Inject(MENU_GESTION_REPOSITORY)
+    private readonly menuRepository: IMenuGestionRepository,
+  ) {}
 
-    async execute(idMenu: number) {
-        const menu = await this.menuRepository.obtenerMenuPorId(idMenu);
+  async execute(idMenu: number) {
+    const menu = await this.menuRepository.obtenerMenuPorId(idMenu);
 
-        if (!menu) {
-            throw new NotFoundException('Menú no encontrado');
-        }
-
-        return menu;
+    if (!menu) {
+      throw new NotFoundException('Menú no encontrado');
     }
+
+    return menu;
+  }
 }

@@ -36,57 +36,60 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProyectoModule } from './proyecto.module';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        BroadcastModule,
-        ProyectoModule,
-        PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
-                },
-            }),
-            inject: [ConfigService],
-        }),
-    ],
-    controllers: [ControlOperativoController],
-    providers: [
-        {
-            provide: CONTROL_OPERATIVO_REPOSITORY,
-            useClass: ControlOperativoRepository,
+  imports: [
+    DatabaseModule,
+    BroadcastModule,
+    ProyectoModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'default-secret-key-change-in-production',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '1d') as any,
         },
-        {
-            provide: AUTH_REPOSITORY,
-            useClass: AuthRepository,
-        },
-        ListarJornadasTrabajadorUseCase,
-        ListarTrabajadoresParaFiltroUseCase,
-        CrearJornadaUseCase,
-        ListarActividadesUseCase,
-        CronCierreJornadasUseCase,
-        ActualizarEstadoJornadaUseCase,
-        ListarProyectosAccesoTrabajadorUseCase,
-        ListarProyectosParaValidacionUseCase,
-        ListarTrabajadoresSinJornadaHoyUseCase,
-        ListarTrabajadoresSinActividadesHoyUseCase,
-        CrearActividadUseCase,
-        ObtenerActividadUseCase,
-        ListarObservacionesActividadUseCase,
-        ActualizarActividadUseCase,
-        EliminarActividadUseCase,
-        ListarActividadesValidacionUseCase,
-        ListarValorizacionUseCase,
-        ListarDesempenoUseCase,
-        ListarTrabajadoresPorProyectoUseCase,
-        ValidarActividadUseCase,
-        ListarReporteGeneralUseCase,
-        ListarLideresEquipoReporteGeneralUseCase,
-        CronAlertaActividadesSinValidarUseCase,
-        JwtStrategy,
-    ],
-    exports: [CONTROL_OPERATIVO_REPOSITORY],
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [ControlOperativoController],
+  providers: [
+    {
+      provide: CONTROL_OPERATIVO_REPOSITORY,
+      useClass: ControlOperativoRepository,
+    },
+    {
+      provide: AUTH_REPOSITORY,
+      useClass: AuthRepository,
+    },
+    ListarJornadasTrabajadorUseCase,
+    ListarTrabajadoresParaFiltroUseCase,
+    CrearJornadaUseCase,
+    ListarActividadesUseCase,
+    CronCierreJornadasUseCase,
+    ActualizarEstadoJornadaUseCase,
+    ListarProyectosAccesoTrabajadorUseCase,
+    ListarProyectosParaValidacionUseCase,
+    ListarTrabajadoresSinJornadaHoyUseCase,
+    ListarTrabajadoresSinActividadesHoyUseCase,
+    CrearActividadUseCase,
+    ObtenerActividadUseCase,
+    ListarObservacionesActividadUseCase,
+    ActualizarActividadUseCase,
+    EliminarActividadUseCase,
+    ListarActividadesValidacionUseCase,
+    ListarValorizacionUseCase,
+    ListarDesempenoUseCase,
+    ListarTrabajadoresPorProyectoUseCase,
+    ValidarActividadUseCase,
+    ListarReporteGeneralUseCase,
+    ListarLideresEquipoReporteGeneralUseCase,
+    CronAlertaActividadesSinValidarUseCase,
+    JwtStrategy,
+  ],
+  exports: [CONTROL_OPERATIVO_REPOSITORY],
 })
 export class ControlOperativoModule {}

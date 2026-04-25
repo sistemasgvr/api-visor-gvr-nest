@@ -4,21 +4,25 @@ import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-re
 
 @Injectable()
 export class RemoverPermisoUseCase {
-    constructor(
-        @Inject(ACC_RESOURCES_REPOSITORY)
-        private readonly accResourcesRepository: IAccResourcesRepository,
-    ) { }
+  constructor(
+    @Inject(ACC_RESOURCES_REPOSITORY)
+    private readonly accResourcesRepository: IAccResourcesRepository,
+  ) {}
 
-    async execute(id: number, idUsuarioModificacion: number) {
-        const resultado = await this.accResourcesRepository.removerPermiso(id, idUsuarioModificacion);
+  async execute(id: number, idUsuarioModificacion: number) {
+    const resultado = await this.accResourcesRepository.removerPermiso(
+      id,
+      idUsuarioModificacion,
+    );
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al remover el permiso');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al remover el permiso',
+      );
     }
-}
 
+    return {
+      message: resultado.message,
+    };
+  }
+}

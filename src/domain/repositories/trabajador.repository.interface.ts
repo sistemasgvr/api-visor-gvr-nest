@@ -1,107 +1,119 @@
 export interface ListarTrabajadoresParams {
-    idUsuario: number;
-    idEmpresa?: number;
-    busqueda?: string;
-    limit?: number;
-    offset?: number;
-    idRol?: number;
-    estado?: number | null;
+  idUsuario: number;
+  idEmpresa?: number;
+  busqueda?: string;
+  limit?: number;
+  offset?: number;
+  idRol?: number;
+  estado?: number | null;
 }
 
 export interface ListarTrabajadoresResponse {
-    data: any[];
-    pagination: {
-        total: number;
-        limit: number;
-        offset: number;
-        total_pages: number;
-        current_page: number;
-    };
+  data: any[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    total_pages: number;
+    current_page: number;
+  };
 }
 
 export interface CrearTrabajadorData {
-    nombres: string;
-    apellidos: string;
-    idTipoDocumento: number;
-    nroDocumento: string;
-    correo: string;
-    idEmpresa: number;
-    idUsuarioCreacion: number;
-    idResponsable?: number;
-    idRol?: number;
-    fechaNacimiento?: string;
-    celular?: string;
-    telefonoEmergencia?: string;
-    contactoEmergenciaNombre?: string;
-    idContactoEmergenciaParentesco?: number;
-    direccionDomiciliaria?: string;
-    idPais?: number;
-    idDepartamento?: number;
-    idProvincia?: number;
-    idDistrito?: number;
-    nroRuc?: string;
-    idGradoInstruccion?: number;
-    idCarrera?: number;
-    idEntidadBancaria?: number;
-    nroCuentaCorriente?: string;
-    nroCci?: string;
-    remuneracion?: number;
-    idTipoContrato?: number;
-    idDuracionContrato?: number;
-    fechaInicioLabores?: string;
-    fechaInicioContrato?: string;
-    fechaFinContrato?: string;
-    idModalidad?: number;
-    adjuntos?: { idTipoAdjunto: number; ruta: string }[];
+  nombres: string;
+  apellidos: string;
+  idTipoDocumento: number;
+  nroDocumento: string;
+  correo: string;
+  idEmpresa: number;
+  idUsuarioCreacion: number;
+  idResponsable?: number;
+  idRol?: number;
+  fechaNacimiento?: string;
+  celular?: string;
+  telefonoEmergencia?: string;
+  contactoEmergenciaNombre?: string;
+  idContactoEmergenciaParentesco?: number;
+  direccionDomiciliaria?: string;
+  idPais?: number;
+  idDepartamento?: number;
+  idProvincia?: number;
+  idDistrito?: number;
+  nroRuc?: string;
+  idGradoInstruccion?: number;
+  idCarrera?: number;
+  idEntidadBancaria?: number;
+  nroCuentaCorriente?: string;
+  nroCci?: string;
+  remuneracion?: number;
+  idTipoContrato?: number;
+  idDuracionContrato?: number;
+  fechaInicioLabores?: string;
+  fechaInicioContrato?: string;
+  fechaFinContrato?: string;
+  idModalidad?: number;
+  adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 
 export interface EditarTrabajadorData {
-    idTrabajador: number;
-    nombres: string;
-    apellidos: string;
-    idTipoDocumento: number;
-    nroDocumento: string;
-    correo: string;
-    idEmpresa: number;
-    idUsuarioModificacion: number;
-    idResponsable?: number;
-    idRol?: number;
-    fechaNacimiento?: string;
-    celular?: string;
-    telefonoEmergencia?: string;
-    contactoEmergenciaNombre?: string;
-    idContactoEmergenciaParentesco?: number;
-    direccionDomiciliaria?: string;
-    idPais?: number;
-    idDepartamento?: number;
-    idProvincia?: number;
-    idDistrito?: number;
-    nroRuc?: string;
-    idGradoInstruccion?: number;
-    idCarrera?: number;
-    idEntidadBancaria?: number;
-    nroCuentaCorriente?: string;
-    nroCci?: string;
-    remuneracion?: number;
-    idTipoContrato?: number;
-    idDuracionContrato?: number;
-    fechaInicioLabores?: string;
-    fechaInicioContrato?: string;
-    fechaFinContrato?: string;
-    idModalidad?: number;
-    adjuntos?: { idTipoAdjunto: number; ruta: string }[];
+  idTrabajador: number;
+  nombres: string;
+  apellidos: string;
+  idTipoDocumento: number;
+  nroDocumento: string;
+  correo: string;
+  idEmpresa: number;
+  idUsuarioModificacion: number;
+  idResponsable?: number;
+  idRol?: number;
+  fechaNacimiento?: string;
+  celular?: string;
+  telefonoEmergencia?: string;
+  contactoEmergenciaNombre?: string;
+  idContactoEmergenciaParentesco?: number;
+  direccionDomiciliaria?: string;
+  idPais?: number;
+  idDepartamento?: number;
+  idProvincia?: number;
+  idDistrito?: number;
+  nroRuc?: string;
+  idGradoInstruccion?: number;
+  idCarrera?: number;
+  idEntidadBancaria?: number;
+  nroCuentaCorriente?: string;
+  nroCci?: string;
+  remuneracion?: number;
+  idTipoContrato?: number;
+  idDuracionContrato?: number;
+  fechaInicioLabores?: string;
+  fechaInicioContrato?: string;
+  fechaFinContrato?: string;
+  idModalidad?: number;
+  adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 
 export interface ITrabajadorRepository {
-    listarTrabajadores(params: ListarTrabajadoresParams): Promise<ListarTrabajadoresResponse>;
-    listarTrabajadoresAdministrativos(): Promise<any[]>;
-    obtenerTrabajadorPorId(idTrabajador: number): Promise<any>;
-    crearTrabajador(data: CrearTrabajadorData): Promise<any>;
-    editarTrabajador(data: EditarTrabajadorData): Promise<any>;
-    eliminarTrabajador(idTrabajador: number, idUsuarioModificacion: number): Promise<any>;
-    resetearContrasena(idTrabajador: number, idUsuarioModificacion: number): Promise<any>;
-    eliminarAdjuntosPorTrabajador(idTrabajador: number): Promise<void>;
-    insertarAdjuntos(idTrabajador: number, adjuntos: { idTipoAdjunto: number; ruta: string }[], idUsuarioCreacion?: number): Promise<void>;
+  listarTrabajadores(
+    params: ListarTrabajadoresParams,
+  ): Promise<ListarTrabajadoresResponse>;
+  listarTrabajadoresAdministrativos(): Promise<any[]>;
+  obtenerTrabajadorPorId(idTrabajador: number): Promise<any>;
+  crearTrabajador(data: CrearTrabajadorData): Promise<any>;
+  editarTrabajador(data: EditarTrabajadorData): Promise<any>;
+  eliminarTrabajador(
+    idTrabajador: number,
+    idUsuarioModificacion: number,
+  ): Promise<any>;
+  resetearContrasena(
+    idTrabajador: number,
+    idUsuarioModificacion: number,
+  ): Promise<any>;
+  eliminarAdjuntosPorTrabajador(idTrabajador: number): Promise<void>;
+  insertarAdjuntos(
+    idTrabajador: number,
+    adjuntos: { idTipoAdjunto: number; ruta: string }[],
+    idUsuarioCreacion?: number,
+  ): Promise<void>;
 }
 
 export const TRABAJADOR_REPOSITORY = 'TRABAJADOR_REPOSITORY';

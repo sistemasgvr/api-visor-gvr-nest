@@ -6,5 +6,3 @@ export { ObtenerProyectoPorIdNewUseCase } from './obtener-proyecto-por-id-new.us
 export { ActualizarProyectoBim360UseCase } from './actualizar-proyecto.use-case';
 export { ActualizarImagenProyectoBim360UseCase } from './actualizar-imagen-proyecto.use-case';
 export { ObtenerIssueContainerIdUseCase } from './obtener-issue-container-id.use-case';
-
-

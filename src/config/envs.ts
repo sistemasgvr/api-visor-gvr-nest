@@ -36,7 +36,10 @@ const envSchema = joi
   .object<EnvsVars>({
     PORT: joi.number().default(4001),
     HOST: joi.string().default('0.0.0.0'),
-    NODE_ENV: joi.string().valid('development', 'production', 'test').default('development'),
+    NODE_ENV: joi
+      .string()
+      .valid('development', 'production', 'test')
+      .default('development'),
     DB_HOST: joi.string().optional().allow(''),
     DB_PORT: joi.number().optional(),
     DB_USERNAME: joi.string().optional().allow(''),
@@ -75,7 +78,9 @@ export const envs = {
   dbSynchronize: envsVars.DB_SYNCHRONIZE,
   dbLogging: envsVars.DB_LOGGING,
   databaseUrl: envsVars.DATABASE_URL,
-  frontendUrls: envsVars.FRONTEND_URLS.split(',').map((u) => u.trim()).filter(Boolean),
+  frontendUrls: envsVars.FRONTEND_URLS.split(',')
+    .map((u) => u.trim())
+    .filter(Boolean),
   collaboraUrl: envsVars.COLLABORA_URL?.trim() || '',
   jwtSecret: envsVars.JWT_SECRET,
   jwtExpiresIn: envsVars.JWT_EXPIRES_IN,
@@ -83,4 +88,3 @@ export const envs = {
   autodeskClientSecret: envsVars.AUTODESK_CLIENT_SECRET,
   autodeskCallbackUrl: envsVars.AUTODESK_CALLBACK_URL,
 };
-

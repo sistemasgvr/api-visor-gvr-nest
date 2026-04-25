@@ -1,201 +1,229 @@
 import { Injectable } from '@nestjs/common';
 import type {
-    IMenuGestionRepository,
-    ListarMenusParams,
-    ListarMenusResponse,
-    CrearMenuData,
-    EditarMenuData,
-    AsignarRolMenuData,
-    AsignarRolesMenuData,
-    SincronizarRolesMenuData,
-    ClonarMenuData,
-    MoverMenuData,
-    ReordenarMenuData,
+  IMenuGestionRepository,
+  ListarMenusParams,
+  ListarMenusResponse,
+  CrearMenuData,
+  EditarMenuData,
+  AsignarRolMenuData,
+  AsignarRolesMenuData,
+  SincronizarRolesMenuData,
+  ClonarMenuData,
+  MoverMenuData,
+  ReordenarMenuData,
 } from '../../domain/repositories/menu-gestion.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
 
 @Injectable()
 export class MenuGestionRepository implements IMenuGestionRepository {
-    constructor(
-        private readonly databaseFunctionService: DatabaseFunctionService,
-    ) { }
+  constructor(
+    private readonly databaseFunctionService: DatabaseFunctionService,
+  ) {}
 
-    async listarMenus(params: ListarMenusParams): Promise<ListarMenusResponse> {
-        const { busqueda = '', limit = 10, offset = 0 } = params;
+  async listarMenus(params: ListarMenusParams): Promise<ListarMenusResponse> {
+    const { busqueda = '', limit = 10, offset = 0 } = params;
 
-        const result = await this.databaseFunctionService.callFunction<any>(
-            'gen_ListarMenuRecursivo',
-            [busqueda, limit, offset],
-        );
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'gen_ListarMenuRecursivo',
+      [busqueda, limit, offset],
+    );
 
-        if (!result || result.length === 0) {
-            return {
-                data: [],
-                pagination: {
-                    total: 0,
-                    limit,
-                    offset,
-                    total_pages: 0,
-                    current_page: 1,
-                },
-            };
-        }
-
-        const totalRegistros = result[0]?.total_registros || 0;
-
-        return {
-            data: result,
-            pagination: {
-                total: totalRegistros,
-                limit,
-                offset,
-                total_pages: limit > 0 ? Math.ceil(totalRegistros / limit) : 0,
-                current_page: limit > 0 ? Math.floor(offset / limit) + 1 : 1,
-            },
-        };
+    if (!result || result.length === 0) {
+      return {
+        data: [],
+        pagination: {
+          total: 0,
+          limit,
+          offset,
+          total_pages: 0,
+          current_page: 1,
+        },
+      };
     }
 
-    async listarMenusTree(): Promise<any[]> {
-        const result = await this.databaseFunctionService.callFunction<any>(
-            'gen_ListarMenuRecursivoTree',
-            [],
-        );
+    const totalRegistros = result[0]?.total_registros || 0;
 
-        return result || [];
-    }
+    return {
+      data: result,
+      pagination: {
+        total: totalRegistros,
+        limit,
+        offset,
+        total_pages: limit > 0 ? Math.ceil(totalRegistros / limit) : 0,
+        current_page: limit > 0 ? Math.floor(offset / limit) + 1 : 1,
+      },
+    };
+  }
 
-    async listarMenuPadresDisponibles(idMenuActual?: number): Promise<any[]> {
-        const result = await this.databaseFunctionService.callFunction<any>(
-            'gen_ListarMenuPadresDisponibles',
-            [idMenuActual],
-        );
+  async listarMenusTree(): Promise<any[]> {
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'gen_ListarMenuRecursivoTree',
+      [],
+    );
 
-        return result || [];
-    }
+    return result || [];
+  }
 
-    async obtenerMenuPorId(idMenu: number): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_ObtenerMenuPorId',
-            [idMenu],
-        );
+  async listarMenuPadresDisponibles(idMenuActual?: number): Promise<any[]> {
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'gen_ListarMenuPadresDisponibles',
+      [idMenuActual],
+    );
 
-        return result;
-    }
+    return result || [];
+  }
 
-    async obtenerDetalleMenu(idMenu: number): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_ObtenerDetalleMenu',
-            [idMenu],
-        );
+  async obtenerMenuPorId(idMenu: number): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_ObtenerMenuPorId',
+      [idMenu],
+    );
 
-        return result;
-    }
+    return result;
+  }
 
-    async crearMenu(data: CrearMenuData): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_CrearMenuRecursivo',
-            [data.nombre, data.url, data.icono, data.idPadre, data.orden, data.idUsuarioCreacion],
-        );
+  async obtenerDetalleMenu(idMenu: number): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_ObtenerDetalleMenu',
+      [idMenu],
+    );
 
-        return result;
-    }
+    return result;
+  }
 
-    async editarMenu(data: EditarMenuData): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_EditarMenuRecursivo',
-            [data.idMenu, data.nombre, data.url, data.icono, data.idPadre, data.orden, data.idUsuarioModificacion],
-        );
+  async crearMenu(data: CrearMenuData): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_CrearMenuRecursivo',
+      [
+        data.nombre,
+        data.url,
+        data.icono,
+        data.idPadre,
+        data.orden,
+        data.idUsuarioCreacion,
+      ],
+    );
 
-        return result;
-    }
+    return result;
+  }
 
-    async eliminarMenu(idMenu: number, idUsuarioModificacion: number): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_EliminarMenuRecursivo',
-            [idMenu, idUsuarioModificacion],
-        );
+  async editarMenu(data: EditarMenuData): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_EditarMenuRecursivo',
+      [
+        data.idMenu,
+        data.nombre,
+        data.url,
+        data.icono,
+        data.idPadre,
+        data.orden,
+        data.idUsuarioModificacion,
+      ],
+    );
 
-        return result;
-    }
+    return result;
+  }
 
-    async clonarMenu(data: ClonarMenuData): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_ClonarMenu',
-            [data.idMenu, data.nombreNuevo, data.idPadreNuevo, data.clonarRoles, data.idUsuarioCreacion],
-        );
+  async eliminarMenu(
+    idMenu: number,
+    idUsuarioModificacion: number,
+  ): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_EliminarMenuRecursivo',
+      [idMenu, idUsuarioModificacion],
+    );
 
-        return result;
-    }
+    return result;
+  }
 
-    async moverMenu(data: MoverMenuData): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_MoverMenu',
-            [data.idMenu, data.idPadreNuevo, data.idUsuarioModificacion],
-        );
+  async clonarMenu(data: ClonarMenuData): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_ClonarMenu',
+      [
+        data.idMenu,
+        data.nombreNuevo,
+        data.idPadreNuevo,
+        data.clonarRoles,
+        data.idUsuarioCreacion,
+      ],
+    );
 
-        return result;
-    }
+    return result;
+  }
 
-    async reordenarMenu(data: ReordenarMenuData): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_ReordenarMenu',
-            [data.idMenu, data.ordenNuevo, data.idUsuarioModificacion],
-        );
+  async moverMenu(data: MoverMenuData): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_MoverMenu',
+      [data.idMenu, data.idPadreNuevo, data.idUsuarioModificacion],
+    );
 
-        return result;
-    }
+    return result;
+  }
 
-    async listarRolesMenu(idMenu: number): Promise<any[]> {
-        const result = await this.databaseFunctionService.callFunction<any>(
-            'gen_ListarRolesMenu',
-            [idMenu],
-        );
+  async reordenarMenu(data: ReordenarMenuData): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_ReordenarMenu',
+      [data.idMenu, data.ordenNuevo, data.idUsuarioModificacion],
+    );
 
-        return result || [];
-    }
+    return result;
+  }
 
-    async listarRolesDisponibles(idMenu: number): Promise<any[]> {
-        const result = await this.databaseFunctionService.callFunction<any>(
-            'gen_ListarRolesDisponibles',
-            [idMenu],
-        );
+  async listarRolesMenu(idMenu: number): Promise<any[]> {
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'gen_ListarRolesMenu',
+      [idMenu],
+    );
 
-        return result || [];
-    }
+    return result || [];
+  }
 
-    async asignarRolMenu(data: AsignarRolMenuData): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_AsignarRolMenu',
-            [data.idMenu, data.idRol, data.idUsuarioCreacion],
-        );
+  async listarRolesDisponibles(idMenu: number): Promise<any[]> {
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'gen_ListarRolesDisponibles',
+      [idMenu],
+    );
 
-        return result;
-    }
+    return result || [];
+  }
 
-    async asignarRolesMenu(data: AsignarRolesMenuData): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_AsignarRolesMenu',
-            [data.idMenu, JSON.stringify(data.roles), data.idUsuarioCreacion],
-        );
+  async asignarRolMenu(data: AsignarRolMenuData): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_AsignarRolMenu',
+      [data.idMenu, data.idRol, data.idUsuarioCreacion],
+    );
 
-        return result;
-    }
+    return result;
+  }
 
-    async removerRolMenu(idMenu: number, idRol: number, idUsuarioModificacion: number): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_RemoverRolMenu',
-            [idMenu, idRol, idUsuarioModificacion],
-        );
+  async asignarRolesMenu(data: AsignarRolesMenuData): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_AsignarRolesMenu',
+      [data.idMenu, JSON.stringify(data.roles), data.idUsuarioCreacion],
+    );
 
-        return result;
-    }
+    return result;
+  }
 
-    async sincronizarRolesMenu(data: SincronizarRolesMenuData): Promise<any> {
-        const result = await this.databaseFunctionService.callFunctionSingle<any>(
-            'gen_SincronizarRolesMenu',
-            [data.idMenu, JSON.stringify(data.roles), data.idUsuarioModificacion],
-        );
+  async removerRolMenu(
+    idMenu: number,
+    idRol: number,
+    idUsuarioModificacion: number,
+  ): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_RemoverRolMenu',
+      [idMenu, idRol, idUsuarioModificacion],
+    );
 
-        return result;
-    }
+    return result;
+  }
+
+  async sincronizarRolesMenu(data: SincronizarRolesMenuData): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_SincronizarRolesMenu',
+      [data.idMenu, JSON.stringify(data.roles), data.idUsuarioModificacion],
+    );
+
+    return result;
+  }
 }

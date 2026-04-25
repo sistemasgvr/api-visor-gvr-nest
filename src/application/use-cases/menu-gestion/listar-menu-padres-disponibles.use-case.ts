@@ -4,12 +4,12 @@ import { MENU_GESTION_REPOSITORY } from '../../../domain/repositories/menu-gesti
 
 @Injectable()
 export class ListarMenuPadresDisponiblesUseCase {
-    constructor(
-        @Inject(MENU_GESTION_REPOSITORY)
-        private readonly menuRepository: IMenuGestionRepository,
-    ) { }
+  constructor(
+    @Inject(MENU_GESTION_REPOSITORY)
+    private readonly menuRepository: IMenuGestionRepository,
+  ) {}
 
-    async execute(idMenuActual?: number) {
-        return await this.menuRepository.listarMenuPadresDisponibles(idMenuActual);
-    }
+  async execute(idMenuActual?: number) {
+    return await this.menuRepository.listarMenuPadresDisponibles(idMenuActual);
+  }
 }

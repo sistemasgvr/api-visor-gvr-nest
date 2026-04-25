@@ -21,6 +21,7 @@ import { EliminarAdjuntoUseCase } from '../../application/use-cases/acc/issues/e
 import { AsignarIncidenciaUseCase } from '../../application/use-cases/acc/issues/asignar-incidencia.use-case';
 import { ObtenerUsuariosDisponiblesUseCase } from '../../application/use-cases/acc/issues/obtener-usuarios-disponibles.use-case';
 import { ExportarIncidenciasUseCase } from '../../application/use-cases/acc/issues/exportar-incidencias.use-case';
+import { ObtenerActividadIncidenciaUseCase } from '../../application/use-cases/acc/issues/obtener-actividad-incidencia.use-case';
 import ObtenerTokenValidoHelper from '../../application/use-cases/acc/issues/obtener-token-valido.helper';
 
 // Services
@@ -43,61 +44,61 @@ import { DatabaseFunctionService } from '../../infrastructure/database/database-
 import { BroadcastModule } from './broadcast.module';
 
 @Module({
-    imports: [BroadcastModule],
-    controllers: [AccIssuesController],
-    providers: [
-        // Helper
-        ObtenerTokenValidoHelper,
+  imports: [BroadcastModule],
+  controllers: [AccIssuesController],
+  providers: [
+    // Helper
+    ObtenerTokenValidoHelper,
 
-        // Use Cases
-        ObtenerPerfilUsuarioUseCase,
-        ObtenerTiposIncidenciasUseCase,
-        ObtenerDefinicionesAtributosUseCase,
-        ObtenerMapeosAtributosUseCase,
-        ObtenerCategoriasRaizUseCase,
-        ObtenerIncidenciasPorDocumentoUseCase,
-        ObtenerUrlMiniaturaUseCase,
-        ObtenerIncidenciasUseCase,
-        CrearIncidenciaUseCase,
-        ObtenerIncidenciaPorIdUseCase,
-        ActualizarIncidenciaUseCase,
-        ObtenerComentariosUseCase,
-        CrearComentarioUseCase,
-        CrearAdjuntoUseCase,
-        ObtenerAdjuntosUseCase,
-        EliminarAdjuntoUseCase,
-        AsignarIncidenciaUseCase,
-        ObtenerUsuariosDisponiblesUseCase,
-        ExportarIncidenciasUseCase,
+    // Use Cases
+    ObtenerPerfilUsuarioUseCase,
+    ObtenerTiposIncidenciasUseCase,
+    ObtenerDefinicionesAtributosUseCase,
+    ObtenerMapeosAtributosUseCase,
+    ObtenerCategoriasRaizUseCase,
+    ObtenerIncidenciasPorDocumentoUseCase,
+    ObtenerUrlMiniaturaUseCase,
+    ObtenerIncidenciasUseCase,
+    CrearIncidenciaUseCase,
+    ObtenerIncidenciaPorIdUseCase,
+    ActualizarIncidenciaUseCase,
+    ObtenerComentariosUseCase,
+    CrearComentarioUseCase,
+    CrearAdjuntoUseCase,
+    ObtenerAdjuntosUseCase,
+    EliminarAdjuntoUseCase,
+    AsignarIncidenciaUseCase,
+    ObtenerUsuariosDisponiblesUseCase,
+    ExportarIncidenciasUseCase,
+    ObtenerActividadIncidenciaUseCase,
 
-        // Services
-        AutodeskApiService,
-        ExportacionIncidenciasService,
-        HttpClientService,
+    // Services
+    AutodeskApiService,
+    ExportacionIncidenciasService,
+    HttpClientService,
 
-        // Repositories
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
-        {
-            provide: AUDITORIA_REPOSITORY,
-            useClass: AuditoriaRepository,
-        },
-        {
-            provide: ACC_RECURSOS_REPOSITORY,
-            useClass: AccRecursosRepository,
-        },
-        {
-            provide: USUARIOS_REPOSITORY,
-            useClass: UsuariosRepository,
-        },
-        {
-            provide: AUTH_REPOSITORY,
-            useClass: AuthRepository,
-        },
-        DatabaseFunctionService,
-    ],
+    // Repositories
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
+    {
+      provide: AUDITORIA_REPOSITORY,
+      useClass: AuditoriaRepository,
+    },
+    {
+      provide: ACC_RECURSOS_REPOSITORY,
+      useClass: AccRecursosRepository,
+    },
+    {
+      provide: USUARIOS_REPOSITORY,
+      useClass: UsuariosRepository,
+    },
+    {
+      provide: AUTH_REPOSITORY,
+      useClass: AuthRepository,
+    },
+    DatabaseFunctionService,
+  ],
 })
-export class AccIssuesModule { }
-
+export class AccIssuesModule {}

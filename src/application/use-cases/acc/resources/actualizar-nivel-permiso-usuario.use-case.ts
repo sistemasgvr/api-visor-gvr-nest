@@ -5,24 +5,31 @@ import { ActualizarNivelPermisoUsuarioDto } from '../../../dtos/acc/resources/ac
 
 @Injectable()
 export class ActualizarNivelPermisoUsuarioUseCase {
-    constructor(
-        @Inject(ACC_RESOURCES_REPOSITORY)
-        private readonly accResourcesRepository: IAccResourcesRepository,
-    ) { }
+  constructor(
+    @Inject(ACC_RESOURCES_REPOSITORY)
+    private readonly accResourcesRepository: IAccResourcesRepository,
+  ) {}
 
-    async execute(userAccAccessId: number, dto: ActualizarNivelPermisoUsuarioDto, idUsuarioModificacion: number) {
-        const resultado = await this.accResourcesRepository.actualizarNivelPermisoUsuario({
-            userAccAccessId,
-            permission_level_id: dto.permission_level_id,
-            idUsuarioModificacion,
-        });
+  async execute(
+    userAccAccessId: number,
+    dto: ActualizarNivelPermisoUsuarioDto,
+    idUsuarioModificacion: number,
+  ) {
+    const resultado =
+      await this.accResourcesRepository.actualizarNivelPermisoUsuario({
+        userAccAccessId,
+        permission_level_id: dto.permission_level_id,
+        idUsuarioModificacion,
+      });
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al actualizar el nivel de permiso');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al actualizar el nivel de permiso',
+      );
     }
+
+    return {
+      message: resultado.message,
+    };
+  }
 }

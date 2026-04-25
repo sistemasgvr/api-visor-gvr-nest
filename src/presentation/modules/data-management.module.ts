@@ -14,29 +14,26 @@ import { HttpClientService } from '../../shared/services/http-client.service';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 
 @Module({
-    imports: [
-        ConfigModule,
-        DatabaseModule,
-    ],
-    controllers: [DataManagementController],
-    providers: [
-        // Shared Services
-        HttpClientService,
-        AutodeskApiService,
+  imports: [ConfigModule, DatabaseModule],
+  controllers: [DataManagementController],
+  providers: [
+    // Shared Services
+    HttpClientService,
+    AutodeskApiService,
 
-        // Repository
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
+    // Repository
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
 
-        // Use Cases
-        ObtenerHubsUseCase,
-        ObtenerProyectosUseCase,
-        ObtenerProyectoPorIdUseCase,
-        ObtenerItemsUseCase,
-        ObtenerItemPorIdUseCase,
-        ObtenerVersionesItemUseCase,
-    ],
+    // Use Cases
+    ObtenerHubsUseCase,
+    ObtenerProyectosUseCase,
+    ObtenerProyectoPorIdUseCase,
+    ObtenerItemsUseCase,
+    ObtenerItemPorIdUseCase,
+    ObtenerVersionesItemUseCase,
+  ],
 })
-export class DataManagementModule { }
+export class DataManagementModule {}

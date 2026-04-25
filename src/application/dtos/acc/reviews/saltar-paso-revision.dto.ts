@@ -1,7 +1,7 @@
 import { IsOptional, IsString } from 'class-validator';
 
 export class SaltarPasoRevisionDto {
-    @IsOptional()
-    @IsString()
-    notas?: string;
+  @IsOptional()
+  @IsString()
+  notas?: string;
 }

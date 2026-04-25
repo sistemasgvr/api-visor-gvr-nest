@@ -1,4 +1,10 @@
-import { IsString, IsInt, IsBoolean, IsEnum, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export enum Environment {

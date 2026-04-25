@@ -1,69 +1,77 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength, IsArray, IsBoolean, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  MaxLength,
+  IsArray,
+  IsBoolean,
+  IsIn,
+} from 'class-validator';
 
 /** Candidato GVR para un paso (usuario que puede iniciar/revisar/aprobar) */
 export interface WorkflowCandidatoInput {
-    idUsuario: number;
-    tipoPaso: 'INITIATOR' | 'REVIEWER' | 'APPROVER';
-    nombrePaso: string;
-    ordenPaso: number;
-    esOpcional?: boolean;
+  idUsuario: number;
+  tipoPaso: 'INITIATOR' | 'REVIEWER' | 'APPROVER';
+  nombrePaso: string;
+  ordenPaso: number;
+  esOpcional?: boolean;
 }
 
 export class CrearWorkflowDto {
-    @IsString()
-    @IsNotEmpty()
-    @MaxLength(255)
-    name: string;
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  name: string;
 
-    @IsOptional()
-    @IsString()
-    @MaxLength(4096)
-    description?: string;
+  @IsOptional()
+  @IsString()
+  @MaxLength(4096)
+  description?: string;
 
-    @IsOptional()
-    @IsString()
-    @MaxLength(4096)
-    notes?: string;
+  @IsOptional()
+  @IsString()
+  @MaxLength(4096)
+  notes?: string;
 
-    @IsOptional()
-    additionalOptions?: {
-        allowInitiatorToEdit?: boolean;
-    };
+  @IsOptional()
+  additionalOptions?: {
+    allowInitiatorToEdit?: boolean;
+  };
 
-    @IsOptional()
-    @IsArray()
-    steps?: any[];
+  @IsOptional()
+  @IsArray()
+  steps?: any[];
 
-    /** Candidatos GVR por paso (idUsuario, tipoPaso, ordenPaso). Se integran en el flujo al crear en BD. */
-    @IsOptional()
-    @IsArray()
-    candidatos?: WorkflowCandidatoInput[];
+  /** Candidatos GVR por paso (idUsuario, tipoPaso, ordenPaso). Se integran en el flujo al crear en BD. */
+  @IsOptional()
+  @IsArray()
+  candidatos?: WorkflowCandidatoInput[];
 
-    @IsOptional()
-    @IsArray()
-    approvalStatusOptions?: any[];
+  @IsOptional()
+  @IsArray()
+  approvalStatusOptions?: any[];
 
-    @IsOptional()
-    @IsArray()
-    additionalApprovalStatusOptions?: { label: string; value: string }[];
+  @IsOptional()
+  @IsArray()
+  additionalApprovalStatusOptions?: { label: string; value: string }[];
 
-    @IsOptional()
-    copyFilesOptions?: any;
+  @IsOptional()
+  copyFilesOptions?: any;
 
-    @IsOptional()
-    @IsArray()
-    attachedAttributes?: any[];
+  @IsOptional()
+  @IsArray()
+  attachedAttributes?: any[];
 
-    @IsOptional()
-    updateAttributesOptions?: any;
+  @IsOptional()
+  updateAttributesOptions?: any;
 
-    /** Si true, el flujo se crea como Borrador (acc_flujo_estado). */
-    @IsOptional()
-    @IsBoolean()
-    saveAsDraft?: boolean;
+  /** Si true, el flujo se crea como Borrador (acc_flujo_estado). */
+  @IsOptional()
+  @IsBoolean()
+  saveAsDraft?: boolean;
 
-    /** Estado explícito (listado UI ACTIVE/INACTIVE). Tiene prioridad sobre saveAsDraft al crear. */
-    @IsOptional()
-    @IsIn(['ACTIVE', 'INACTIVE'])
-    workflowStatus?: 'ACTIVE' | 'INACTIVE';
+  /** Estado explícito (listado UI ACTIVE/INACTIVE). Tiene prioridad sobre saveAsDraft al crear. */
+  @IsOptional()
+  @IsIn(['ACTIVE', 'INACTIVE'])
+  workflowStatus?: 'ACTIVE' | 'INACTIVE';
 }

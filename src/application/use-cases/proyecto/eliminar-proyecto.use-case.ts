@@ -4,20 +4,25 @@ import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repos
 
 @Injectable()
 export class EliminarProyectoUseCase {
-    constructor(
-        @Inject(PROYECTO_REPOSITORY)
-        private readonly proyectoRepository: IProyectoRepository,
-    ) { }
+  constructor(
+    @Inject(PROYECTO_REPOSITORY)
+    private readonly proyectoRepository: IProyectoRepository,
+  ) {}
 
-    async execute(idProyecto: number, idUsuarioModificacion: number) {
-        const resultado = await this.proyectoRepository.eliminarProyecto(idProyecto, idUsuarioModificacion);
+  async execute(idProyecto: number, idUsuarioModificacion: number) {
+    const resultado = await this.proyectoRepository.eliminarProyecto(
+      idProyecto,
+      idUsuarioModificacion,
+    );
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al eliminar el proyecto');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al eliminar el proyecto',
+      );
     }
+
+    return {
+      message: resultado.message,
+    };
+  }
 }

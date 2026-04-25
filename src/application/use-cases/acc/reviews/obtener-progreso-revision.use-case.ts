@@ -4,13 +4,21 @@ import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
 
 @Injectable()
 export class ObtenerProgresoRevisionUseCase {
-    constructor(
-        private readonly autodeskApiService: AutodeskApiService,
-        private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    ) { }
+  constructor(
+    private readonly autodeskApiService: AutodeskApiService,
+    private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
+  ) {}
 
-    async execute(userId: number, projectId: string, reviewId: string): Promise<any> {
-        const accessToken = await this.obtenerTokenValidoHelper.execute(userId);
-        return this.autodeskApiService.obtenerProgresoRevision(accessToken, projectId, reviewId);
-    }
+  async execute(
+    userId: number,
+    projectId: string,
+    reviewId: string,
+  ): Promise<any> {
+    const accessToken = await this.obtenerTokenValidoHelper.execute(userId);
+    return this.autodeskApiService.obtenerProgresoRevision(
+      accessToken,
+      projectId,
+      reviewId,
+    );
+  }
 }

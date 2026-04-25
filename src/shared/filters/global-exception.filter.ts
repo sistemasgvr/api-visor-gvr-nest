@@ -1,48 +1,51 @@
 import {
-    ExceptionFilter,
-    Catch,
-    ArgumentsHost,
-    HttpException,
-    HttpStatus,
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiResponseDto } from '../dtos/api-response.dto';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-    catch(exception: unknown, host: ArgumentsHost) {
-        const ctx = host.switchToHttp();
-        const response = ctx.getResponse<Response>();
+  catch(exception: unknown, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
 
-        let status = HttpStatus.INTERNAL_SERVER_ERROR;
-        let message = 'Error interno del servidor';
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
+    let message = 'Error interno del servidor';
 
-        let code: string | undefined;
+    let code: string | undefined;
 
-        if (exception instanceof HttpException) {
-            status = exception.getStatus();
-            const exceptionResponse = exception.getResponse();
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      const exceptionResponse = exception.getResponse();
 
-            if (typeof exceptionResponse === 'string') {
-                message = exceptionResponse;
-            } else if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
-                const responseObj = exceptionResponse as Record<string, unknown>;
-                const rawMsg = responseObj.message;
-                if (Array.isArray(rawMsg)) {
-                    message = rawMsg.join(', ');
-                } else if (typeof rawMsg === 'string') {
-                    message = rawMsg;
-                }
-                if (typeof responseObj.code === 'string') {
-                    code = responseObj.code;
-                }
-            }
-        } else if (exception instanceof Error) {
-            message = exception.message;
+      if (typeof exceptionResponse === 'string') {
+        message = exceptionResponse;
+      } else if (
+        typeof exceptionResponse === 'object' &&
+        exceptionResponse !== null
+      ) {
+        const responseObj = exceptionResponse as Record<string, unknown>;
+        const rawMsg = responseObj.message;
+        if (Array.isArray(rawMsg)) {
+          message = rawMsg.join(', ');
+        } else if (typeof rawMsg === 'string') {
+          message = rawMsg;
         }
-
-        const errorResponse = ApiResponseDto.error(message, status, code);
-
-        response.status(status).json(errorResponse);
+        if (typeof responseObj.code === 'string') {
+          code = responseObj.code;
+        }
+      }
+    } else if (exception instanceof Error) {
+      message = exception.message;
     }
+
+    const errorResponse = ApiResponseDto.error(message, status, code);
+
+    response.status(status).json(errorResponse);
+  }
 }

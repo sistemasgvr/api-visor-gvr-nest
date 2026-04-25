@@ -4,13 +4,12 @@ import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-re
 
 @Injectable()
 export class ListarUsuariosRecursoUseCase {
-    constructor(
-        @Inject(ACC_RESOURCES_REPOSITORY)
-        private readonly accResourcesRepository: IAccResourcesRepository,
-    ) { }
+  constructor(
+    @Inject(ACC_RESOURCES_REPOSITORY)
+    private readonly accResourcesRepository: IAccResourcesRepository,
+  ) {}
 
-    async execute(resourceId: number) {
-        return await this.accResourcesRepository.listarUsuariosRecurso(resourceId);
-    }
+  async execute(resourceId: number) {
+    return await this.accResourcesRepository.listarUsuariosRecurso(resourceId);
+  }
 }
-

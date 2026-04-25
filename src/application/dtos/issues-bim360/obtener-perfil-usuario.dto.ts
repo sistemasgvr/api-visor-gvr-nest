@@ -1,3 +1,1 @@
-export class ObtenerPerfilUsuarioDto {
-}
-
+export class ObtenerPerfilUsuarioDto {}

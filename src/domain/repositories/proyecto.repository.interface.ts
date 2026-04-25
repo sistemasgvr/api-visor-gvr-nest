@@ -1,118 +1,161 @@
 export interface ListarProyectosParams {
-    idUsuario: number;
-    idTipoProyecto?: number;
-    idPais?: number;
-    idCliente?: number;
-    busqueda?: string;
-    limit?: number;
-    offset?: number;
+  idUsuario: number;
+  idTipoProyecto?: number;
+  idPais?: number;
+  idCliente?: number;
+  busqueda?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface ListarProyectosResponse {
-    data: any[];
-    pagination: {
-        total: number;
-        limit: number;
-        offset: number;
-        total_pages: number;
-        current_page: number;
-    };
+  data: any[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    total_pages: number;
+    current_page: number;
+  };
 }
 
 export interface CrearProyectoData {
-    nombreProyecto: string;
-    nroProyecto: string;
-    idTipoProyecto: number;
-    idPais: number;
-    direccion1?: string;
-    direccion2?: string;
-    ciudad?: string;
-    provincia?: string;
-    codigoPostal?: string;
-    idZonaHoraria?: number;
-    fechaInicio?: string;
-    fechaFinalizacion?: string;
-    valorProyecto?: number;
-    idTipoMoneda?: number;
-    diaValorizar?: number;
-    idCliente?: number;
-    observaciones?: string;
-    idModalidad?: number;
-    idEstadoProyecto?: number;
-    idEstadoCotizacion?: number;
-    idUsuarioCreacion: number;
+  nombreProyecto: string;
+  nroProyecto: string;
+  idTipoProyecto: number;
+  idPais: number;
+  direccion1?: string;
+  direccion2?: string;
+  ciudad?: string;
+  provincia?: string;
+  codigoPostal?: string;
+  idZonaHoraria?: number;
+  fechaInicio?: string;
+  fechaFinalizacion?: string;
+  valorProyecto?: number;
+  idTipoMoneda?: number;
+  diaValorizar?: number;
+  idCliente?: number;
+  observaciones?: string;
+  idModalidad?: number;
+  idEstadoProyecto?: number;
+  idEstadoCotizacion?: number;
+  idUsuarioCreacion: number;
 }
 
 export interface EditarProyectoData extends CrearProyectoData {
-    idProyecto: number;
-    idUsuarioModificacion: number;
+  idProyecto: number;
+  idUsuarioModificacion: number;
 }
 
 export interface AsignarAccesoProyectoResult {
-    success: boolean;
-    message: string;
-    id?: number;
+  success: boolean;
+  message: string;
+  id?: number;
 }
 
 export interface ListarUsuariosDisponiblesParams {
-    idProyecto: number;
-    busqueda?: string;
-    limit?: number;
-    offset?: number;
-    idRol?: number;
+  idProyecto: number;
+  busqueda?: string;
+  limit?: number;
+  offset?: number;
+  idRol?: number;
 }
 
 export interface CrearDocumentoProyectoData {
-    idTipoDocumento: number;
-    nombre: string;
-    linkDocumento?: string;
+  idTipoDocumento: number;
+  nombre: string;
+  linkDocumento?: string;
 }
 
 export interface ActualizarDocumentoProyectoData {
-    idTipoDocumento: number;
-    nombre: string;
-    linkDocumento?: string;
+  idTipoDocumento: number;
+  nombre: string;
+  linkDocumento?: string;
 }
 
 /** Coordinador con sus miembros del equipo (proListarCoordinadoresProyecto) */
 export interface CoordinadorProyectoItem {
-    id_proyectocoordinador: number;
+  id_proyectocoordinador: number;
+  idtrabajador: number;
+  nombrecoordinador: string;
+  miembrosEquipo: {
+    id: number;
     idtrabajador: number;
-    nombrecoordinador: string;
-    miembrosEquipo: { id: number; idtrabajador: number; nombretrabajador: string }[];
+    nombretrabajador: string;
+  }[];
 }
 
 /** Payload para guardar coordinadores (proGuardarCoordinadoresProyecto) */
 export interface GuardarCoordinadoresProyectoPayload {
-    idtrabajador: number;
-    miembrosEquipo: number[];
+  idtrabajador: number;
+  miembrosEquipo: number[];
 }
 
 export interface ProyectoPorEstadoItem {
-    nombre_estado: string;
-    cantidad: number;
+  nombre_estado: string;
+  cantidad: number;
 }
 
 export interface IProyectoRepository {
-    listarProyectos(params: ListarProyectosParams): Promise<ListarProyectosResponse>;
-    contarProyectosPorEstado(): Promise<ProyectoPorEstadoItem[]>;
-    obtenerProyectoPorId(idProyecto: number): Promise<any>;
-    crearProyecto(data: CrearProyectoData): Promise<any>;
-    editarProyecto(data: EditarProyectoData): Promise<any>;
-    eliminarProyecto(idProyecto: number, idUsuarioModificacion: number): Promise<any>;
-    listarUsuariosProyecto(idProyecto: number): Promise<any[]>;
-    asignarAccesoProyecto(idProyecto: number, idUsuario: number, idNivelAcceso: number | null, idUsuarioCreacion: number): Promise<AsignarAccesoProyectoResult>;
-    actualizarNivelAccesoProyecto(idAcceso: number, idNivelAcceso: number, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }>;
-    removerAccesoProyecto(idAcceso: number, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }>;
-    listarUsuariosDisponiblesProyecto(params: ListarUsuariosDisponiblesParams): Promise<{ data: any[]; total: number }>;
-    listarDocumentosProyecto(idProyecto: number): Promise<any[]>;
-    crearDocumentoProyecto(idProyecto: number, data: CrearDocumentoProyectoData, idUsuarioCreacion: number): Promise<AsignarAccesoProyectoResult>;
-    actualizarDocumentoProyecto(idDocumento: number, data: ActualizarDocumentoProyectoData, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }>;
-    eliminarDocumentoProyecto(idDocumento: number, idUsuarioModificacion: number): Promise<{ success: boolean; message: string }>;
-    listarCoordinadoresProyecto(idProyecto: number): Promise<CoordinadorProyectoItem[]>;
-    guardarCoordinadoresProyecto(idProyecto: number, coordinadores: GuardarCoordinadoresProyectoPayload[], idUsuario: number): Promise<{ success: boolean; message: string }>;
-    obtenerCoordinadorParaTrabajadorEnProyecto(idProyecto: number, idTrabajador: number): Promise<number | null>;
-    obtenerPrimerCoordinadorProyecto(idProyecto: number): Promise<number | null>;
+  listarProyectos(
+    params: ListarProyectosParams,
+  ): Promise<ListarProyectosResponse>;
+  contarProyectosPorEstado(): Promise<ProyectoPorEstadoItem[]>;
+  obtenerProyectoPorId(idProyecto: number): Promise<any>;
+  crearProyecto(data: CrearProyectoData): Promise<any>;
+  editarProyecto(data: EditarProyectoData): Promise<any>;
+  eliminarProyecto(
+    idProyecto: number,
+    idUsuarioModificacion: number,
+  ): Promise<any>;
+  listarUsuariosProyecto(idProyecto: number): Promise<any[]>;
+  asignarAccesoProyecto(
+    idProyecto: number,
+    idUsuario: number,
+    idNivelAcceso: number | null,
+    idUsuarioCreacion: number,
+  ): Promise<AsignarAccesoProyectoResult>;
+  actualizarNivelAccesoProyecto(
+    idAcceso: number,
+    idNivelAcceso: number,
+    idUsuarioModificacion: number,
+  ): Promise<{ success: boolean; message: string }>;
+  removerAccesoProyecto(
+    idAcceso: number,
+    idUsuarioModificacion: number,
+  ): Promise<{ success: boolean; message: string }>;
+  listarUsuariosDisponiblesProyecto(
+    params: ListarUsuariosDisponiblesParams,
+  ): Promise<{ data: any[]; total: number }>;
+  listarDocumentosProyecto(idProyecto: number): Promise<any[]>;
+  crearDocumentoProyecto(
+    idProyecto: number,
+    data: CrearDocumentoProyectoData,
+    idUsuarioCreacion: number,
+  ): Promise<AsignarAccesoProyectoResult>;
+  actualizarDocumentoProyecto(
+    idDocumento: number,
+    data: ActualizarDocumentoProyectoData,
+    idUsuarioModificacion: number,
+  ): Promise<{ success: boolean; message: string }>;
+  eliminarDocumentoProyecto(
+    idDocumento: number,
+    idUsuarioModificacion: number,
+  ): Promise<{ success: boolean; message: string }>;
+  listarCoordinadoresProyecto(
+    idProyecto: number,
+  ): Promise<CoordinadorProyectoItem[]>;
+  guardarCoordinadoresProyecto(
+    idProyecto: number,
+    coordinadores: GuardarCoordinadoresProyectoPayload[],
+    idUsuario: number,
+  ): Promise<{ success: boolean; message: string }>;
+  obtenerCoordinadorParaTrabajadorEnProyecto(
+    idProyecto: number,
+    idTrabajador: number,
+  ): Promise<number | null>;
+  obtenerPrimerCoordinadorProyecto(idProyecto: number): Promise<number | null>;
 }
 
 export const PROYECTO_REPOSITORY = 'PROYECTO_REPOSITORY';

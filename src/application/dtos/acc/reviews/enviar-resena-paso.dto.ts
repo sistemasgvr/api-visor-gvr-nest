@@ -1,22 +1,28 @@
-import { IsArray, IsInt, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class DocStatusDto {
-    @IsInt()
-    idArchivo!: number;
+  @IsInt()
+  idArchivo!: number;
 
-    @IsString()
-    estado!: string;
+  @IsString()
+  estado!: string;
 }
 
 export class EnviarResenaPasoDto {
-    @IsOptional()
-    @IsString()
-    notas?: string;
+  @IsOptional()
+  @IsString()
+  notas?: string;
 
-    @IsOptional()
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => DocStatusDto)
-    docStatuses?: DocStatusDto[];
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => DocStatusDto)
+  docStatuses?: DocStatusDto[];
 }

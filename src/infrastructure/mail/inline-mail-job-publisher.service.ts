@@ -8,12 +8,12 @@ import { SendOutboundEmailUseCase } from '../../application/use-cases/mail/send-
  */
 @Injectable()
 export class InlineMailJobPublisher implements IMailJobPublisher {
-    constructor(
-        private readonly sendOutboundEmailUseCase: SendOutboundEmailUseCase,
-    ) { }
+  constructor(
+    private readonly sendOutboundEmailUseCase: SendOutboundEmailUseCase,
+  ) {}
 
-    async enqueue(payload: OutboundMailJobPayload): Promise<string | undefined> {
-        await this.sendOutboundEmailUseCase.execute({ ...payload });
-        return undefined;
-    }
+  async enqueue(payload: OutboundMailJobPayload): Promise<string | undefined> {
+    await this.sendOutboundEmailUseCase.execute({ ...payload });
+    return undefined;
+  }
 }

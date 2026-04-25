@@ -31,7 +31,9 @@ interface AuthenticatedSocket extends Socket {
   allowEIO3: true, // Compatibilidad con versiones anteriores
   path: '/socket.io/', // Ruta explícita para Socket.IO
 })
-export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class BroadcastGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -48,7 +50,9 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
   }
 
   afterInit(server: Server) {
-    this.logger.log('✅ WebSocket Gateway inicializado y listo para conexiones');
+    this.logger.log(
+      '✅ WebSocket Gateway inicializado y listo para conexiones',
+    );
     this.logger.log(`📡 Servidor Socket.IO escuchando en: /socket.io/`);
   }
 
@@ -57,11 +61,14 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
       this.logger.log(`Nueva conexión intentada: ${client.id}`);
       this.logger.debug(`Handshake auth:`, client.handshake.auth);
       this.logger.debug(`Handshake query:`, client.handshake.query);
-      this.logger.debug(`Handshake headers:`, client.handshake.headers.authorization);
-      
+      this.logger.debug(
+        `Handshake headers:`,
+        client.handshake.headers.authorization,
+      );
+
       // Extraer token del handshake
       const token = this.extractTokenFromSocket(client);
-      
+
       if (!token) {
         this.logger.warn(`Cliente ${client.id} intentó conectar sin token`);
         this.logger.warn(`Auth object:`, client.handshake.auth);
@@ -74,12 +81,17 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
 
       // Verificar token (sub = idUsuario de auth, no idTrabajador)
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
+        secret:
+          this.configService.get<string>('JWT_SECRET') ||
+          'default-secret-key-change-in-production',
       });
 
-      const idUsuario = typeof payload.sub === 'number' ? payload.sub : Number(payload.sub);
+      const idUsuario =
+        typeof payload.sub === 'number' ? payload.sub : Number(payload.sub);
       if (!Number.isInteger(idUsuario) || idUsuario < 1) {
-        this.logger.warn(`JWT sub inválido para cliente ${client.id}: ${payload.sub}`);
+        this.logger.warn(
+          `JWT sub inválido para cliente ${client.id}: ${payload.sub}`,
+        );
         client.disconnect();
         return;
       }
@@ -98,15 +110,23 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
       // Unir al canal privado del usuario por idUsuario (sesión) para que reciba notificaciones sin depender del "subscribe" del front
       const userChannel = `App.Models.User.${idUsuario}`;
       client.join(userChannel);
-      this.logger.log(`✅ Cliente autenticado conectado: ${client.id} (idUsuario=${idUsuario}) → unido a ${userChannel}`);
+      this.logger.log(
+        `✅ Cliente autenticado conectado: ${client.id} (idUsuario=${idUsuario}) → unido a ${userChannel}`,
+      );
 
       try {
         await this.authRepository.setUsuarioConectado(idUsuario, true);
       } catch (err) {
-        this.logger.warn(`No se pudo actualizar isconnected para usuario ${idUsuario}:`, err?.message);
+        this.logger.warn(
+          `No se pudo actualizar isconnected para usuario ${idUsuario}:`,
+          err?.message,
+        );
       }
     } catch (error) {
-      this.logger.error(`❌ Error al autenticar cliente ${client.id}:`, error.message || error);
+      this.logger.error(
+        `❌ Error al autenticar cliente ${client.id}:`,
+        error.message || error,
+      );
       if (error.stack) {
         this.logger.error(`Stack trace:`, error.stack);
       }
@@ -118,10 +138,15 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
     const userId = client.userId;
     this.connectedClients.delete(client.id);
     if (userId != null) {
-      const tieneOtraConexion = Array.from(this.connectedClients.values()).some((c) => c.userId === userId);
+      const tieneOtraConexion = Array.from(this.connectedClients.values()).some(
+        (c) => c.userId === userId,
+      );
       if (!tieneOtraConexion) {
         this.authRepository.setUsuarioConectado(userId, false).catch((err) => {
-          this.logger.warn(`No se pudo actualizar isconnected=false para usuario ${userId}:`, err?.message);
+          this.logger.warn(
+            `No se pudo actualizar isconnected=false para usuario ${userId}:`,
+            err?.message,
+          );
         });
       }
     }
@@ -137,19 +162,23 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
     @MessageBody() data: { channel: string },
   ) {
     if (!client.userId) {
-      this.logger.warn(`Cliente ${client.id} intentó suscribirse sin autenticación`);
+      this.logger.warn(
+        `Cliente ${client.id} intentó suscribirse sin autenticación`,
+      );
       return { success: false, error: 'Usuario no autenticado' };
     }
 
     const { channel } = data;
-    
+
     // Verificar que el canal sea público o que el usuario tenga permisos
     if (this.canSubscribeToChannel(client, channel)) {
       client.join(channel);
       this.logger.log(`Cliente ${client.id} suscrito al canal: ${channel}`);
       return { success: true, channel };
     } else {
-      this.logger.warn(`Cliente ${client.id} intentó suscribirse a canal no autorizado: ${channel}`);
+      this.logger.warn(
+        `Cliente ${client.id} intentó suscribirse a canal no autorizado: ${channel}`,
+      );
       return { success: false, error: 'No autorizado para este canal' };
     }
   }
@@ -187,7 +216,10 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
   /**
    * Verifica si un usuario puede suscribirse a un canal
    */
-  private canSubscribeToChannel(client: AuthenticatedSocket, channel: string): boolean {
+  private canSubscribeToChannel(
+    client: AuthenticatedSocket,
+    channel: string,
+  ): boolean {
     // Canal público 'menus' - cualquier usuario autenticado puede suscribirse
     if (channel === 'menus') {
       return true;
@@ -247,4 +279,3 @@ export class BroadcastGateway implements OnGatewayInit, OnGatewayConnection, OnG
     return null;
   }
 }
-

@@ -14,36 +14,39 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
-                },
-            }),
-            inject: [ConfigService],
-        }),
-    ],
-    controllers: [EmpresaController],
-    providers: [
-        // Repositories
-        {
-            provide: EMPRESA_REPOSITORY,
-            useClass: EmpresaRepository,
+  imports: [
+    DatabaseModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'default-secret-key-change-in-production',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '1d') as any,
         },
-        // Use cases
-        ListarEmpresasUseCase,
-        ObtenerEmpresaUseCase,
-        CrearEmpresaUseCase,
-        EditarEmpresaUseCase,
-        EliminarEmpresaUseCase,
-        // JWT Strategy
-        JwtStrategy,
-    ],
-    exports: [EMPRESA_REPOSITORY],
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [EmpresaController],
+  providers: [
+    // Repositories
+    {
+      provide: EMPRESA_REPOSITORY,
+      useClass: EmpresaRepository,
+    },
+    // Use cases
+    ListarEmpresasUseCase,
+    ObtenerEmpresaUseCase,
+    CrearEmpresaUseCase,
+    EditarEmpresaUseCase,
+    EliminarEmpresaUseCase,
+    // JWT Strategy
+    JwtStrategy,
+  ],
+  exports: [EMPRESA_REPOSITORY],
 })
-export class EmpresaModule { }
+export class EmpresaModule {}

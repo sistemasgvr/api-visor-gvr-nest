@@ -5,5 +5,5 @@ import { Transform } from 'class-transformer';
  * @IsOptional() no omite validadores para string vacío; convertir a undefined.
  */
 export function EmptyStringToUndefined(): ReturnType<typeof Transform> {
-    return Transform(({ value }) => (value === '' ? undefined : value));
+  return Transform(({ value }) => (value === '' ? undefined : value));
 }

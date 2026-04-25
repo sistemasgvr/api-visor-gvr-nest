@@ -1,16 +1,16 @@
 import { IsNotEmpty, IsObject } from 'class-validator';
 
 export class CrearReferenciaDto {
-    @IsNotEmpty()
-    @IsObject()
-    data: {
+  @IsNotEmpty()
+  @IsObject()
+  data: {
+    type: string;
+    id?: string;
+    meta: {
+      extension?: {
         type: string;
-        id?: string;
-        meta: {
-            extension?: {
-                type: string;
-                version: string;
-            };
-        };
+        version: string;
+      };
     };
+  };
 }

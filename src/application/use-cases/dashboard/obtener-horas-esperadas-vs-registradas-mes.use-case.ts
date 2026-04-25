@@ -1,11 +1,17 @@
 import { Injectable, Inject } from '@nestjs/common';
-import type { IDashboardRepository, DashboardHorasEsperadasVsRegistradasMes } from '../../../domain/repositories/dashboard/dashboard.repository.interface';
+import type {
+  IDashboardRepository,
+  DashboardHorasEsperadasVsRegistradasMes,
+} from '../../../domain/repositories/dashboard/dashboard.repository.interface';
 import { DASHBOARD_REPOSITORY } from '../../../domain/repositories/dashboard/dashboard.repository.interface';
 
 @Injectable()
 export class ObtenerHorasEsperadasVsRegistradasMesUseCase {
-    constructor(@Inject(DASHBOARD_REPOSITORY) private readonly dashboardRepository: IDashboardRepository) {}
-    async execute(): Promise<DashboardHorasEsperadasVsRegistradasMes[]> {
-        return this.dashboardRepository.horasEsperadasVsRegistradasMes();
-    }
+  constructor(
+    @Inject(DASHBOARD_REPOSITORY)
+    private readonly dashboardRepository: IDashboardRepository,
+  ) {}
+  async execute(): Promise<DashboardHorasEsperadasVsRegistradasMes[]> {
+    return this.dashboardRepository.horasEsperadasVsRegistradasMes();
+  }
 }

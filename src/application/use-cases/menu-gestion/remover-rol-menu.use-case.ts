@@ -4,20 +4,26 @@ import { MENU_GESTION_REPOSITORY } from '../../../domain/repositories/menu-gesti
 
 @Injectable()
 export class RemoverRolMenuUseCase {
-    constructor(
-        @Inject(MENU_GESTION_REPOSITORY)
-        private readonly menuRepository: IMenuGestionRepository,
-    ) { }
+  constructor(
+    @Inject(MENU_GESTION_REPOSITORY)
+    private readonly menuRepository: IMenuGestionRepository,
+  ) {}
 
-    async execute(idMenu: number, idRol: number, idUsuarioModificacion: number) {
-        const resultado = await this.menuRepository.removerRolMenu(idMenu, idRol, idUsuarioModificacion);
+  async execute(idMenu: number, idRol: number, idUsuarioModificacion: number) {
+    const resultado = await this.menuRepository.removerRolMenu(
+      idMenu,
+      idRol,
+      idUsuarioModificacion,
+    );
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al remover el rol del menú');
-        }
-
-        return {
-            message: resultado.message,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al remover el rol del menú',
+      );
     }
+
+    return {
+      message: resultado.message,
+    };
+  }
 }

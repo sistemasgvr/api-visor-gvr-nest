@@ -5,36 +5,47 @@ import { CreateTrabajadorDto } from '../../dtos/trabajador/create-trabajador.dto
 
 @Injectable()
 export class CrearTrabajadorUseCase {
-    constructor(
-        @Inject(TRABAJADOR_REPOSITORY)
-        private readonly trabajadorRepository: ITrabajadorRepository,
-    ) { }
+  constructor(
+    @Inject(TRABAJADOR_REPOSITORY)
+    private readonly trabajadorRepository: ITrabajadorRepository,
+  ) {}
 
-    async execute(createDto: CreateTrabajadorDto, idUsuarioCreacion: number) {
-        const { adjuntos, ...rest } = createDto as CreateTrabajadorDto & { adjuntos?: { idTipoAdjunto: number; ruta: string }[] };
-        const resultado = await this.trabajadorRepository.crearTrabajador({
-            ...rest,
-            idUsuarioCreacion,
-        });
+  async execute(createDto: CreateTrabajadorDto, idUsuarioCreacion: number) {
+    const { adjuntos, ...rest } = createDto as CreateTrabajadorDto & {
+      adjuntos?: { idTipoAdjunto: number; ruta: string }[];
+    };
+    const resultado = await this.trabajadorRepository.crearTrabajador({
+      ...rest,
+      idUsuarioCreacion,
+    });
 
-        if (!resultado || !resultado.success) {
-            throw new BadRequestException(resultado?.message || 'Error al crear el trabajador');
-        }
-
-        const idTrabajador = resultado.id_trabajador;
-        if (idTrabajador && adjuntos?.length) {
-            const valid = adjuntos.filter(
-                (a) => a?.idTipoAdjunto != null && a?.ruta != null && String(a.ruta).trim() !== '',
-            );
-            if (valid.length) {
-                await this.trabajadorRepository.insertarAdjuntos(idTrabajador, valid, idUsuarioCreacion);
-            }
-        }
-
-        return {
-            message: resultado.message,
-            id_trabajador: resultado.id_trabajador,
-            id_usuario: resultado.id_usuario,
-        };
+    if (!resultado || !resultado.success) {
+      throw new BadRequestException(
+        resultado?.message || 'Error al crear el trabajador',
+      );
     }
+
+    const idTrabajador = resultado.id_trabajador;
+    if (idTrabajador && adjuntos?.length) {
+      const valid = adjuntos.filter(
+        (a) =>
+          a?.idTipoAdjunto != null &&
+          a?.ruta != null &&
+          String(a.ruta).trim() !== '',
+      );
+      if (valid.length) {
+        await this.trabajadorRepository.insertarAdjuntos(
+          idTrabajador,
+          valid,
+          idUsuarioCreacion,
+        );
+      }
+    }
+
+    return {
+      message: resultado.message,
+      id_trabajador: resultado.id_trabajador,
+      id_usuario: resultado.id_usuario,
+    };
+  }
 }

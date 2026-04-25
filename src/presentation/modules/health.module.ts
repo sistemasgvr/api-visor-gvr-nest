@@ -5,4 +5,3 @@ import { HealthController } from '../controllers/health.controller';
   controllers: [HealthController],
 })
 export class HealthModule {}
-

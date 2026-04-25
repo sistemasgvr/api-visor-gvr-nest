@@ -4,12 +4,12 @@ import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/contr
 
 @Injectable()
 export class EliminarActividadUseCase {
-    constructor(
-        @Inject(CONTROL_OPERATIVO_REPOSITORY)
-        private readonly controlOperativoRepository: IControlOperativoRepository,
-    ) {}
+  constructor(
+    @Inject(CONTROL_OPERATIVO_REPOSITORY)
+    private readonly controlOperativoRepository: IControlOperativoRepository,
+  ) {}
 
-    async execute(idActividad: number): Promise<boolean> {
-        return this.controlOperativoRepository.eliminarActividad(idActividad);
-    }
+  async execute(idActividad: number): Promise<boolean> {
+    return this.controlOperativoRepository.eliminarActividad(idActividad);
+  }
 }

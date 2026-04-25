@@ -34,45 +34,45 @@ import { AuthRepository } from '../../infrastructure/repositories/auth.repositor
 import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
 
 @Module({
-    imports: [DatabaseModule],
-    controllers: [DataManagementItemsController],
-    providers: [
-        // Use cases - Grupo 1
-        ObtenerItemPorIdUseCase,
-        DescargarItemUseCase,
-        ObtenerStorageUrlItemUseCase,
-        ObtenerItemPadreUseCase,
-        ObtenerReferenciasItemUseCase,
-        ObtenerRelacionesLinksItemUseCase,
-        // Use cases - Grupo 2
-        ObtenerRelacionesRefsItemUseCase,
-        ObtenerTipVersionUseCase,
-        ObtenerVersionesUseCase,
-        ObtenerActividadesArchivoUseCase,
-        // Upload
-        SubirArchivoUseCase,
-        // Create/Update/Delete
-        CrearItemUseCase,
-        CrearReferenciaItemUseCase,
-        ActualizarItemUseCase,
-        EliminarItemUseCase,
-        DesplazarItemUseCase,
-        CopiarItemUseCase,
-        // Infrastructure
-        AutodeskApiService,
-        HttpClientService,
-        {
-            provide: ACC_REPOSITORY,
-            useClass: AccRepository,
-        },
-        {
-            provide: AUDITORIA_REPOSITORY,
-            useClass: AuditoriaRepository,
-        },
-        {
-            provide: AUTH_REPOSITORY,
-            useClass: AuthRepository,
-        },
-    ],
+  imports: [DatabaseModule],
+  controllers: [DataManagementItemsController],
+  providers: [
+    // Use cases - Grupo 1
+    ObtenerItemPorIdUseCase,
+    DescargarItemUseCase,
+    ObtenerStorageUrlItemUseCase,
+    ObtenerItemPadreUseCase,
+    ObtenerReferenciasItemUseCase,
+    ObtenerRelacionesLinksItemUseCase,
+    // Use cases - Grupo 2
+    ObtenerRelacionesRefsItemUseCase,
+    ObtenerTipVersionUseCase,
+    ObtenerVersionesUseCase,
+    ObtenerActividadesArchivoUseCase,
+    // Upload
+    SubirArchivoUseCase,
+    // Create/Update/Delete
+    CrearItemUseCase,
+    CrearReferenciaItemUseCase,
+    ActualizarItemUseCase,
+    EliminarItemUseCase,
+    DesplazarItemUseCase,
+    CopiarItemUseCase,
+    // Infrastructure
+    AutodeskApiService,
+    HttpClientService,
+    {
+      provide: ACC_REPOSITORY,
+      useClass: AccRepository,
+    },
+    {
+      provide: AUDITORIA_REPOSITORY,
+      useClass: AuditoriaRepository,
+    },
+    {
+      provide: AUTH_REPOSITORY,
+      useClass: AuthRepository,
+    },
+  ],
 })
-export class DataManagementItemsModule { }
+export class DataManagementItemsModule {}

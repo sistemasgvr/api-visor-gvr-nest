@@ -24,7 +24,10 @@ function formatDateEs(iso: string | Date | null | undefined): string {
 }
 
 /** ID numérico interno (GVR) para comentarios y referencias; null si no aplica (p. ej. solo ACC). */
-function resolveInternalRevisionId(reviewIdParam: string, sequenceId: number): number | null {
+function resolveInternalRevisionId(
+  reviewIdParam: string,
+  sequenceId: number,
+): number | null {
   const cleaned = String(reviewIdParam).replace(/^GVR-/i, '').trim();
   const parsed = parseInt(cleaned, 10);
   if (!Number.isNaN(parsed) && parsed > 0) return parsed;
@@ -42,16 +45,24 @@ export class ExportacionRevisionDetallePdfService {
     private readonly htmlPdfGenerator: IHtmlPdfGenerator,
   ) {}
 
-  async generarPdf(userId: number, projectId: string, reviewIdParam: string): Promise<Buffer> {
-    const detail = await this.obtenerRevisionPorIdUseCase.execute(userId, projectId, reviewIdParam);
+  async generarPdf(
+    userId: number,
+    projectId: string,
+    reviewIdParam: string,
+  ): Promise<Buffer> {
+    const detail = await this.obtenerRevisionPorIdUseCase.execute(
+      userId,
+      projectId,
+      reviewIdParam,
+    );
     if (!detail || typeof detail !== 'object') {
       throw new BadRequestException('No se encontró la revisión.');
     }
 
-    const sequenceId = Number((detail as any).sequenceId ?? 0);
+    const sequenceId = Number(detail.sequenceId ?? 0);
     const internalId = resolveInternalRevisionId(reviewIdParam, sequenceId);
 
-    const filesRaw: any[] = Array.isArray((detail as any).files) ? (detail as any).files : [];
+    const filesRaw: any[] = Array.isArray(detail.files) ? detail.files : [];
     const fileRows: Record<string, unknown>[] = [];
 
     for (const f of filesRaw) {
@@ -59,7 +70,10 @@ export class ExportacionRevisionDetallePdfService {
       let commentsHtml = '';
       if (fileId > 0 && internalId != null) {
         try {
-          const comments = await this.getComentariosArchivoUseCase.execute(internalId, fileId);
+          const comments = await this.getComentariosArchivoUseCase.execute(
+            internalId,
+            fileId,
+          );
           commentsHtml = (comments ?? [])
             .map(
               (c) =>
@@ -85,7 +99,8 @@ export class ExportacionRevisionDetallePdfService {
     let referencias: Record<string, unknown>[] = [];
     try {
       if (internalId == null) throw new Error('skip refs');
-      const refs = await this.obtenerReferenciasRevisionUseCase.execute(internalId);
+      const refs =
+        await this.obtenerReferenciasRevisionUseCase.execute(internalId);
       referencias = (refs ?? []).map((r) => ({
         tipo: String(r.tipoReferencia ?? '—'),
         idExterno: String(r.idReferenciaExterna ?? '—'),
@@ -97,24 +112,28 @@ export class ExportacionRevisionDetallePdfService {
       referencias = [];
     }
 
-    const createdBy = (detail as any).createdBy;
+    const createdBy = detail.createdBy;
     const iniciadorNombre = String(createdBy?.nombre ?? createdBy?.name ?? '—');
     const iniciadorCorreo = String(createdBy?.correo ?? createdBy?.email ?? '');
 
-    const stepsRaw: any[] = Array.isArray((detail as any).workflow?.steps)
-      ? (detail as any).workflow.steps
+    const stepsRaw: any[] = Array.isArray(detail.workflow?.steps)
+      ? detail.workflow.steps
       : [];
     const pasos = stepsRaw.map((s, idx) => ({
       orden: String(s.order ?? idx + 1),
       nombre: String(s.name ?? `Paso ${idx + 1}`),
       tipo: String(s.type ?? '—'),
       candidatos: Array.isArray(s.candidates)
-        ? s.candidates.map((c: any) => String(c.nombre ?? c.name ?? '')).filter(Boolean).join(', ') ||
-          '—'
+        ? s.candidates
+            .map((c: any) => String(c.nombre ?? c.name ?? ''))
+            .filter(Boolean)
+            .join(', ') || '—'
         : '—',
     }));
 
-    const activityRaw: any[] = Array.isArray((detail as any).activity) ? (detail as any).activity : [];
+    const activityRaw: any[] = Array.isArray(detail.activity)
+      ? detail.activity
+      : [];
     const actividades = activityRaw.map((a) => ({
       autor: String(a.author ?? 'Sistema'),
       cuando: formatDateEs(a.createdAt),
@@ -122,20 +141,20 @@ export class ExportacionRevisionDetallePdfService {
       evento: String(a.eventType ?? ''),
     }));
 
-    const stats = (detail as any).stats ?? {};
-    const wf = (detail as any).workflow ?? {};
+    const stats = detail.stats ?? {};
+    const wf = detail.workflow ?? {};
 
     const templateData: Record<string, unknown> = {
-      titulo: String((detail as any).name ?? 'Revisión'),
+      titulo: String(detail.name ?? 'Revisión'),
       projectId,
-      reviewIdExterno: String((detail as any).id ?? reviewIdParam),
-      estado: String((detail as any).status ?? '—'),
+      reviewIdExterno: String(detail.id ?? reviewIdParam),
+      estado: String(detail.status ?? '—'),
       sequenceId: String(sequenceId || '—'),
-      ronda: String((detail as any).round ?? '1'),
-      creado: formatDateEs((detail as any).createdAt),
-      actualizado: formatDateEs((detail as any).updatedAt),
-      finalizado: formatDateEs((detail as any).finishedAt),
-      notasRevision: String((detail as any).notes ?? ''),
+      ronda: String(detail.round ?? '1'),
+      creado: formatDateEs(detail.createdAt),
+      actualizado: formatDateEs(detail.updatedAt),
+      finalizado: formatDateEs(detail.finishedAt),
+      notasRevision: String(detail.notes ?? ''),
       flujoNombre: String(wf.name ?? '—'),
       flujoNotas: String(wf.notes ?? ''),
       progresoPct: String(Number(stats.progressPercent ?? 0).toFixed(0)),

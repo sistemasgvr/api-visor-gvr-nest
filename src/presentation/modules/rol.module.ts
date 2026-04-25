@@ -24,43 +24,46 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 import { BroadcastModule } from './broadcast.module';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        BroadcastModule,
-        PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
-                },
-            }),
-            inject: [ConfigService],
-        }),
-    ],
-    controllers: [RolController],
-    providers: [
-        {
-            provide: ROL_REPOSITORY,
-            useClass: RolRepository,
+  imports: [
+    DatabaseModule,
+    BroadcastModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'default-secret-key-change-in-production',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '1d') as any,
         },
-        ListarRolesUseCase,
-        ListarRolesForListUseCase,
-        ObtenerRolUseCase,
-        CrearRolUseCase,
-        EditarRolUseCase,
-        EliminarRolUseCase,
-        ListarPermisosRolUseCase,
-        ListarPermisosDisponiblesUseCase,
-        AsignarPermisoRolUseCase,
-        AsignarPermisosRolUseCase,
-        RemoverPermisoRolUseCase,
-        SincronizarPermisosRolUseCase,
-        ObtenerDetalleRolUseCase,
-        GestionarRolesUsuarioUseCase,
-        JwtStrategy,
-    ],
-    exports: [ROL_REPOSITORY],
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [RolController],
+  providers: [
+    {
+      provide: ROL_REPOSITORY,
+      useClass: RolRepository,
+    },
+    ListarRolesUseCase,
+    ListarRolesForListUseCase,
+    ObtenerRolUseCase,
+    CrearRolUseCase,
+    EditarRolUseCase,
+    EliminarRolUseCase,
+    ListarPermisosRolUseCase,
+    ListarPermisosDisponiblesUseCase,
+    AsignarPermisoRolUseCase,
+    AsignarPermisosRolUseCase,
+    RemoverPermisoRolUseCase,
+    SincronizarPermisosRolUseCase,
+    ObtenerDetalleRolUseCase,
+    GestionarRolesUsuarioUseCase,
+    JwtStrategy,
+  ],
+  exports: [ROL_REPOSITORY],
 })
-export class RolModule { }
+export class RolModule {}

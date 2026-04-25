@@ -4,13 +4,12 @@ import type { INotificacionesRepository } from '../../../domain/repositories/not
 
 @Injectable()
 export class MarcarNotificacionesEntregadasUseCase {
-    constructor(
-        @Inject(NOTIFICACIONES_REPOSITORY)
-        private readonly notificacionesRepository: INotificacionesRepository,
-    ) {}
+  constructor(
+    @Inject(NOTIFICACIONES_REPOSITORY)
+    private readonly notificacionesRepository: INotificacionesRepository,
+  ) {}
 
-    async execute(userId: number): Promise<void> {
-        await this.notificacionesRepository.marcarTodasComoEntregadas(userId);
-    }
+  async execute(userId: number): Promise<void> {
+    await this.notificacionesRepository.marcarTodasComoEntregadas(userId);
+  }
 }
-

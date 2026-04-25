@@ -27,46 +27,49 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 import { BroadcastModule } from './broadcast.module';
 
 @Module({
-    imports: [
-        DatabaseModule,
-        BroadcastModule,
-        PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET') || 'default-secret-key-change-in-production',
-                signOptions: {
-                    expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
-                },
-            }),
-            inject: [ConfigService],
-        }),
-    ],
-    controllers: [MenuGestionController],
-    providers: [
-        {
-            provide: MENU_GESTION_REPOSITORY,
-            useClass: MenuGestionRepository,
+  imports: [
+    DatabaseModule,
+    BroadcastModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') ||
+          'default-secret-key-change-in-production',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '1d') as any,
         },
-        ListarMenusUseCase,
-        ListarMenusTreeUseCase,
-        ObtenerMenuUseCase,
-        CrearMenuUseCase,
-        EditarMenuUseCase,
-        EliminarMenuUseCase,
-        ListarRolesMenuUseCase,
-        ListarRolesDisponiblesMenuUseCase,
-        AsignarRolMenuUseCase,
-        AsignarRolesMenuUseCase,
-        RemoverRolMenuUseCase,
-        SincronizarRolesMenuUseCase,
-        ObtenerDetalleMenuUseCase,
-        ListarMenuPadresDisponiblesUseCase,
-        ClonarMenuUseCase,
-        MoverMenuUseCase,
-        ReordenarMenuUseCase,
-        JwtStrategy,
-    ],
-    exports: [MENU_GESTION_REPOSITORY],
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [MenuGestionController],
+  providers: [
+    {
+      provide: MENU_GESTION_REPOSITORY,
+      useClass: MenuGestionRepository,
+    },
+    ListarMenusUseCase,
+    ListarMenusTreeUseCase,
+    ObtenerMenuUseCase,
+    CrearMenuUseCase,
+    EditarMenuUseCase,
+    EliminarMenuUseCase,
+    ListarRolesMenuUseCase,
+    ListarRolesDisponiblesMenuUseCase,
+    AsignarRolMenuUseCase,
+    AsignarRolesMenuUseCase,
+    RemoverRolMenuUseCase,
+    SincronizarRolesMenuUseCase,
+    ObtenerDetalleMenuUseCase,
+    ListarMenuPadresDisponiblesUseCase,
+    ClonarMenuUseCase,
+    MoverMenuUseCase,
+    ReordenarMenuUseCase,
+    JwtStrategy,
+  ],
+  exports: [MENU_GESTION_REPOSITORY],
 })
-export class MenuGestionModule { }
+export class MenuGestionModule {}
