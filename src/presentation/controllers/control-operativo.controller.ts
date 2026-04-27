@@ -30,6 +30,7 @@ import { ListarProyectosParaValidacionUseCase } from '../../application/use-case
 import { ListarTrabajadoresSinJornadaHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-jornada-hoy.use-case';
 import { ListarTrabajadoresSinActividadesHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-actividades-hoy.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
+import { AgregarEvidenciasActividadUseCase } from '../../application/use-cases/control-operativo/agregar-evidencias-actividad.use-case';
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ListarObservacionesActividadUseCase } from '../../application/use-cases/control-operativo/listar-observaciones-actividad.use-case';
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
@@ -44,6 +45,7 @@ import { ListarLideresEquipoReporteGeneralUseCase } from '../../application/use-
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import { AgregarEvidenciasActividadDto } from '../../application/dtos/control-operativo/agregar-evidencias-actividad.dto';
 
 @Controller('control-operativo')
 export class ControlOperativoController {
@@ -59,6 +61,7 @@ export class ControlOperativoController {
     private readonly listarTrabajadoresSinJornadaHoyUseCase: ListarTrabajadoresSinJornadaHoyUseCase,
     private readonly listarTrabajadoresSinActividadesHoyUseCase: ListarTrabajadoresSinActividadesHoyUseCase,
     private readonly crearActividadUseCase: CrearActividadUseCase,
+    private readonly agregarEvidenciasActividadUseCase: AgregarEvidenciasActividadUseCase,
     private readonly obtenerActividadUseCase: ObtenerActividadUseCase,
     private readonly listarObservacionesActividadUseCase: ListarObservacionesActividadUseCase,
     private readonly actualizarActividadUseCase: ActualizarActividadUseCase,
@@ -393,6 +396,30 @@ export class ControlOperativoController {
       return ApiResponseDto.badRequest('No se pudo crear la actividad');
     }
     return ApiResponseDto.created(data, 'Actividad creada exitosamente');
+  }
+
+  /**
+   * Registrar URLs de evidencias (enlaces o URLs devueltas por storage) para una actividad del trabajador en sesión.
+   * POST /control-operativo/actividades/:id/evidencias
+   */
+  @Post('actividades/:id/evidencias')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async agregarEvidenciasActividad(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AgregarEvidenciasActividadDto,
+    @Req() req: Request & { user?: { id?: number; sub?: number } },
+  ) {
+    const userId = req.user?.sub ?? req.user?.id;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no identificado');
+    }
+    const inserted = await this.agregarEvidenciasActividadUseCase.execute({
+      idActividad: id,
+      urls: dto.urls ?? [],
+      idUsuario: Number(userId),
+    });
+    return ApiResponseDto.success({ inserted }, 'Evidencias registradas');
   }
 
   /**

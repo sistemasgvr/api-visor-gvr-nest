@@ -60,6 +60,14 @@ export interface ListarActividadesParams {
   offset?: number;
 }
 
+/** Fila de conActividadEvidencia expuesta en listados y detalle (URL desde genArchivo). */
+export interface ActividadEvidenciaItem {
+  id: number;
+  idArchivo: number;
+  url: string;
+  orden: number;
+}
+
 export interface ActividadListItem {
   id: number;
   idjornada: number;
@@ -78,6 +86,7 @@ export interface ActividadListItem {
   estadoactividad: string | null;
   idmodalidad?: number | null;
   nombremodalidad?: string | null;
+  evidencias?: ActividadEvidenciaItem[];
 }
 
 /** Item de actividad para listado Validación (incluye nombre del modelador/trabajador). */
@@ -282,6 +291,14 @@ export interface ActividadDetalle {
   horasesperadas: number | null;
   fechacreacion: string | null;
   fechamodificacion: string | null;
+  evidencias?: ActividadEvidenciaItem[];
+}
+
+/** Registrar URLs de evidencias (con_AgregarEvidenciasActividad). */
+export interface AgregarEvidenciasActividadParams {
+  idActividad: number;
+  urls: string[];
+  idUsuario: number;
 }
 
 /** Resultado de listar actividades: filas + totales + meta de jornada (horasesperadas, diajornada, idestadojornada, estadojornada). */
@@ -485,6 +502,9 @@ export interface IControlOperativoRepository {
   /** Nombre completo del trabajador (nombres + apellidos) para mostrar en notificaciones. */
   obtenerNombreTrabajadorPorId(idTrabajador: number): Promise<string | null>;
   crearActividad(params: CrearActividadParams): Promise<ActividadCreada | null>;
+  agregarEvidenciasActividad(
+    params: AgregarEvidenciasActividadParams,
+  ): Promise<number>;
   actualizarActividad(
     params: ActualizarActividadParams,
   ): Promise<ActividadCreada | null>;

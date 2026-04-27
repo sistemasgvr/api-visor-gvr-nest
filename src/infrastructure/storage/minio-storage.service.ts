@@ -179,7 +179,7 @@ export class MinioStorageService {
   }
 
   /**
-   * Ruta estándar evidencias/usuarios/... con nombre de archivo único.
+   * Ruta estándar evidencias-actividades/usuarios/... con nombre de archivo único.
    */
   async uploadEvidenciaUsuarioActividad(params: {
     userId: number;

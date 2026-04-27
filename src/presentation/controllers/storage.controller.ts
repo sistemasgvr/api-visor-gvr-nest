@@ -82,7 +82,7 @@ export class StorageController {
   @ApiOperation({
     summary: 'Subir evidencia (MinIO)',
     description:
-      'Guarda en `evidencias/usuarios/{id}-{nombre}/{actividadId}-{slug}/...` y devuelve la URL pública (si el bucket es legible) y la clave del objeto.',
+      'Guarda en `evidencias-actividades/usuarios/{id}-{nombre}/{actividadId}-{slug}/...` y devuelve la URL pública (si el bucket es legible) y la clave del objeto.',
   })
   @ApiBody({
     schema: {

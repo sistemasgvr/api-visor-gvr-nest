@@ -1,6 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { DatabaseFunctionService } from '../database/database-function.service';
 import type {
   IControlOperativoRepository,
   ListarJornadasTrabajadorParams,
@@ -37,6 +38,8 @@ import type {
   ReporteGeneralResult,
   ReporteGeneralItem,
   LiderEquipoReporteGeneralItem,
+  ActividadEvidenciaItem,
+  AgregarEvidenciasActividadParams,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -54,7 +57,35 @@ function queryDateOrNull(v: string | null | undefined): string | null {
   const t = String(v).trim();
   return t === '' ? null : t;
 }
-import { DatabaseFunctionService } from '../database/database-function.service';
+
+function parseActividadEvidencias(raw: unknown): ActividadEvidenciaItem[] {
+  if (raw == null) return [];
+  if (Array.isArray(raw)) {
+    const out: ActividadEvidenciaItem[] = [];
+    for (const x of raw) {
+      if (x == null || typeof x !== 'object') continue;
+      const o = x as Record<string, unknown>;
+      const url = o.url != null ? String(o.url).trim() : '';
+      if (!url) continue;
+      const idArchivo = Number(o.idArchivo ?? o['idarchivo'] ?? 0);
+      out.push({
+        id: Number(o.id ?? 0),
+        idArchivo: Number.isFinite(idArchivo) ? idArchivo : 0,
+        url,
+        orden: Number(o.orden ?? 0),
+      });
+    }
+    return out;
+  }
+  if (typeof raw === 'string') {
+    try {
+      return parseActividadEvidencias(JSON.parse(raw) as unknown);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
 
 @Injectable()
 export class ControlOperativoRepository implements IControlOperativoRepository {
@@ -332,9 +363,13 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         diajornada: _dj,
         idestadojornada: _ej,
         estadojornada: _ejs,
+        evidencias: evRaw,
         ...rest
       } = row;
-      return rest as ActividadListItem;
+      return {
+        ...rest,
+        evidencias: parseActividadEvidencias(evRaw),
+      } as ActividadListItem;
     });
     return {
       data,
@@ -462,9 +497,13 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         total_count: _tc,
         total_horas: _th,
         total_por_aprobar: _tpa,
+        evidencias: evRaw,
         ...rest
       } = row;
-      return rest as ActividadValidacionListItem;
+      return {
+        ...rest,
+        evidencias: parseActividadEvidencias(evRaw),
+      } as ActividadValidacionListItem;
     });
     return { data, totalCount, totalHoras, countPorAprobar, countVencidas };
   }
@@ -570,7 +609,12 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             .split('T')[0]
             .trim()
         : null;
-    return { ...row, diajornada } as ActividadDetalle;
+    const r = row as Record<string, unknown>;
+    return {
+      ...row,
+      diajornada,
+      evidencias: parseActividadEvidencias(r.evidencias),
+    } as ActividadDetalle;
   }
 
   async listarObservacionesActividad(
@@ -608,6 +652,21 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         ],
       );
     return rows?.[0] ?? null;
+  }
+
+  async agregarEvidenciasActividad(
+    params: AgregarEvidenciasActividadParams,
+  ): Promise<number> {
+    if (params.idActividad == null || params.idActividad < 1) return 0;
+    if (!params.urls?.length) return 0;
+    const row = await this.databaseFunctionService.callFunctionSingle<
+      Record<string, unknown>
+    >('con_AgregarEvidenciasActividad', [
+      params.idActividad,
+      params.urls,
+      params.idUsuario,
+    ]);
+    return getScalarInt(row);
   }
 
   async actualizarActividad(

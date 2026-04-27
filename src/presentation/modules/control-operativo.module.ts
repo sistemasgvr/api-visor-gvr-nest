@@ -11,6 +11,7 @@ import { ListarProyectosParaValidacionUseCase } from '../../application/use-case
 import { ListarTrabajadoresSinJornadaHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-jornada-hoy.use-case';
 import { ListarTrabajadoresSinActividadesHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-actividades-hoy.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
+import { AgregarEvidenciasActividadUseCase } from '../../application/use-cases/control-operativo/agregar-evidencias-actividad.use-case';
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ListarObservacionesActividadUseCase } from '../../application/use-cases/control-operativo/listar-observaciones-actividad.use-case';
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
@@ -76,6 +77,7 @@ import { ProyectoModule } from './proyecto.module';
     ListarTrabajadoresSinJornadaHoyUseCase,
     ListarTrabajadoresSinActividadesHoyUseCase,
     CrearActividadUseCase,
+    AgregarEvidenciasActividadUseCase,
     ObtenerActividadUseCase,
     ListarObservacionesActividadUseCase,
     ActualizarActividadUseCase,

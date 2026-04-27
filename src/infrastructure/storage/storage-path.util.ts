@@ -24,7 +24,7 @@ export function sanitizeFilename(originalName: string, maxBase = 120): string {
 }
 
 /**
- * evidencias/usuarios/{user_id}-{nombre}/{actividad_id}-{actividad_slug}/{archivo}
+ * evidencias-actividades/usuarios/{user_id}-{nombre}/{actividad_id}-{actividad_slug}/{archivo}
  */
 export function buildEvidenciaObjectKey(params: {
   userId: number;
@@ -36,5 +36,5 @@ export function buildEvidenciaObjectKey(params: {
   const userSeg = `${params.userId}-${slugifyPathSegment(params.userDisplayName, 60)}`;
   const actSeg = `${params.actividadId}-${slugifyPathSegment(params.actividadSlug, 80)}`;
   const file = sanitizeFilename(params.filename);
-  return `evidencias/usuarios/${userSeg}/${actSeg}/${file}`;
+  return `evidencias-actividades/usuarios/${userSeg}/${actSeg}/${file}`;
 }
