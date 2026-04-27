@@ -5,13 +5,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type {
+  ActividadEvidenciaEntrada,
   IControlOperativoRepository,
 } from '../../../domain/repositories/control-operativo.repository.interface';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
 
 export interface AgregarEvidenciasActividadInput {
   idActividad: number;
-  urls: string[];
+  evidencias: ActividadEvidenciaEntrada[];
   idUsuario: number;
 }
 
@@ -44,19 +45,29 @@ export class AgregarEvidenciasActividadUseCase {
         'Solo puede registrar evidencias en sus propias actividades',
       );
     }
-    const urls = [
-      ...new Set(
-        (input.urls ?? [])
-          .map((u) => (u != null ? String(u).trim() : ''))
-          .filter((u) => u.length > 0),
-      ),
-    ].slice(0, 50);
-    if (urls.length === 0) {
+    const seen = new Map<string, ActividadEvidenciaEntrada>();
+    for (const e of input.evidencias ?? []) {
+      const u = e?.url != null ? String(e.url).trim() : '';
+      if (!u) continue;
+      if (seen.has(u)) continue;
+      const tb = e.tamanoBytes;
+      seen.set(u, {
+        url: u,
+        nombreOriginal: e.nombreOriginal?.trim() || null,
+        tipoMime: e.tipoMime?.trim() || null,
+        tamanoBytes:
+          tb != null && Number.isFinite(tb)
+            ? Math.min(Math.trunc(tb as number), Number.MAX_SAFE_INTEGER)
+            : null,
+      });
+    }
+    const evidencias = [...seen.values()].slice(0, 50);
+    if (evidencias.length === 0) {
       return 0;
     }
     return this.controlOperativoRepository.agregarEvidenciasActividad({
       idActividad: input.idActividad,
-      urls,
+      evidencias,
       idUsuario: input.idUsuario,
     });
   }

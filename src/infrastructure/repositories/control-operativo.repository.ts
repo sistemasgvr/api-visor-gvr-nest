@@ -70,11 +70,27 @@ function parseActividadEvidencias(raw: unknown): ActividadEvidenciaItem[] {
       const url = o.url != null ? String(o.url).trim() : '';
       if (!url) continue;
       const idArchivo = Number(o.idArchivo ?? o['idarchivo'] ?? 0);
+      const tamRaw = o.tamanoBytes ?? o.tamanobytes;
+      const tam = tamRaw != null ? Number(tamRaw) : null;
       out.push({
         id: Number(o.id ?? 0),
         idArchivo: Number.isFinite(idArchivo) ? idArchivo : 0,
         url,
         orden: Number(o.orden ?? 0),
+        nombreOriginal:
+          o.nombreOriginal != null && o.nombreOriginal !== ''
+            ? String(o.nombreOriginal)
+            : o['nombreoriginal'] != null
+              ? String(o['nombreoriginal'])
+              : null,
+        tipoMime:
+          o.tipoMime != null
+            ? String(o.tipoMime)
+            : o['tipomime'] != null
+              ? String(o['tipomime'])
+              : null,
+        tamanoBytes:
+          tam != null && Number.isFinite(tam) ? tam : null,
       });
     }
     return out;
@@ -687,12 +703,21 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     params: AgregarEvidenciasActividadParams,
   ): Promise<number> {
     if (params.idActividad == null || params.idActividad < 1) return 0;
-    if (!params.urls?.length) return 0;
+    if (!params.evidencias?.length) return 0;
+    const payload = params.evidencias.map((e) => ({
+      url: e.url,
+      nombreOriginal: e.nombreOriginal ?? null,
+      tipoMime: e.tipoMime ?? null,
+      tamanoBytes:
+        e.tamanoBytes != null && Number.isFinite(e.tamanoBytes)
+          ? Math.trunc(e.tamanoBytes)
+          : null,
+    }));
     const row = await this.databaseFunctionService.callFunctionSingle<
       Record<string, unknown>
     >('con_AgregarEvidenciasActividad', [
       params.idActividad,
-      params.urls,
+      JSON.stringify(payload),
       params.idUsuario,
     ]);
     return getScalarInt(row);

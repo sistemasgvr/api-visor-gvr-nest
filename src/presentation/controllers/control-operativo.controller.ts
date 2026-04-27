@@ -47,6 +47,7 @@ import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { AgregarEvidenciasActividadDto } from '../../application/dtos/control-operativo/agregar-evidencias-actividad.dto';
+import type { ActividadEvidenciaEntrada } from '../../domain/repositories/control-operativo.repository.interface';
 
 @Controller('control-operativo')
 export class ControlOperativoController {
@@ -416,9 +417,30 @@ export class ControlOperativoController {
     if (userId == null) {
       throw new UnauthorizedException('Usuario no identificado');
     }
+    const evidencias: ActividadEvidenciaEntrada[] = [];
+    if (dto.evidencias?.length) {
+      for (const e of dto.evidencias) {
+        const url = (e?.url ?? '').trim();
+        if (!url) continue;
+        evidencias.push({
+          url,
+          nombreOriginal: e.nombreOriginal?.trim() || null,
+          tipoMime: e.tipoMime?.trim() || null,
+          tamanoBytes:
+            e.tamanoBytes != null && Number.isFinite(e.tamanoBytes)
+              ? e.tamanoBytes
+              : null,
+        });
+      }
+    } else {
+      for (const u of dto.urls ?? []) {
+        const t = (u != null ? String(u) : '').trim();
+        if (t) evidencias.push({ url: t });
+      }
+    }
     const inserted = await this.agregarEvidenciasActividadUseCase.execute({
       idActividad: id,
-      urls: dto.urls ?? [],
+      evidencias,
       idUsuario: Number(userId),
     });
     return ApiResponseDto.success({ inserted }, 'Evidencias registradas');

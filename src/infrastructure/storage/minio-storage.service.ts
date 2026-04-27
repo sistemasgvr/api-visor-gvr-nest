@@ -16,8 +16,11 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 import {
+  buildEvidenciaArchivoObjectName,
   buildEvidenciaObjectKey,
+  extensionDesdeArchivoEvidencia,
   isEvidenciaMinioObjectKey,
+  normalizeS3ObjectKey,
   objectKeyFromStoredFileUrl,
   sanitizeFilename,
   slugifyPathSegment,
@@ -197,7 +200,8 @@ export class MinioStorageService {
   }
 
   buildPublicUrl(bucket: string, key: string): string {
-    const encodedKey = key
+    const k = normalizeS3ObjectKey(key);
+    const encodedKey = k
       .split('/')
       .map((p) => encodeURIComponent(p))
       .join('/');
@@ -220,7 +224,8 @@ export class MinioStorageService {
     cacheControl?: string;
   }): Promise<UploadedObjectMeta> {
     const { client, bucket } = this.requireClient();
-    if (!params.key || params.key.includes('..')) {
+    const key = normalizeS3ObjectKey(params.key);
+    if (!key || key.includes('..')) {
       throw new BadRequestException('Clave de objeto inválida');
     }
     await this.ensureBucket();
@@ -228,17 +233,17 @@ export class MinioStorageService {
     await client.send(
       new PutObjectCommand({
         Bucket: bucket,
-        Key: params.key,
+        Key: key,
         Body: params.body,
         ContentType: params.contentType || 'application/octet-stream',
         CacheControl: params.cacheControl,
       }),
     );
 
-    const publicUrl = this.buildPublicUrl(bucket, params.key);
+    const publicUrl = this.buildPublicUrl(bucket, key);
     return {
       bucket,
-      key: params.key,
+      key,
       publicUrl,
       contentType: params.contentType || 'application/octet-stream',
       size: params.body.length,
@@ -246,7 +251,9 @@ export class MinioStorageService {
   }
 
   /**
-   * evidencias-actividades-gvr/{usuario}/2026-04-27/{idActividad}-{unique}-{archivo}
+   * evidencias-actividades-gvr/{usuario}/2026-04-27/{objectName}
+   * Con `indiceEvidencia` (≥1) el objectName es `{id}-Modulo Actividades (n).{ext}`.
+   * Sin índice: `{idActividad}-{timestamp}-{uuid8}-{archivo}` (comportamiento anterior).
    */
   async uploadEvidenciaUsuarioActividad(params: {
     userId: number;
@@ -255,10 +262,33 @@ export class MinioStorageService {
     /** Fecha de la jornada/actividad (YYYY-MM-DD) para la jerarquía por día en MinIO. */
     diaActividad: string;
     file: Express.Multer.File;
+    /** Orden 1..n de la evidencia; si se envía, nombres alineados con genArchivo (Modulo Actividades). */
+    indiceEvidencia?: number;
   }): Promise<UploadedObjectMeta> {
-    const base = sanitizeFilename(params.file.originalname || 'archivo');
-    const unique = `${Date.now()}-${randomUUID().slice(0, 8)}`;
-    const objectName = `${params.actividadId}-${unique}-${base}`;
+    const ext = extensionDesdeArchivoEvidencia(
+      params.file.originalname,
+      params.file.mimetype,
+    );
+    let objectName: string;
+    if (
+      params.indiceEvidencia != null &&
+      Number.isFinite(params.indiceEvidencia) &&
+      params.indiceEvidencia >= 1
+    ) {
+      const idx = Math.min(
+        500,
+        Math.max(1, Math.trunc(params.indiceEvidencia)),
+      );
+      objectName = buildEvidenciaArchivoObjectName(
+        params.actividadId,
+        idx,
+        ext,
+      );
+    } else {
+      const base = sanitizeFilename(params.file.originalname || 'archivo');
+      const unique = `${Date.now()}-${randomUUID().slice(0, 8)}`;
+      objectName = `${params.actividadId}-${unique}-${base}`;
+    }
     const key = buildEvidenciaObjectKey({
       userId: params.userId,
       userDisplayName: params.userDisplayName,
@@ -311,7 +341,8 @@ export class MinioStorageService {
 
   async deleteObject(key: string): Promise<void> {
     const { client, bucket } = this.requireClient();
-    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+    const k = normalizeS3ObjectKey(key);
+    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: k }));
   }
 
   async getPresignedGetUrl(
@@ -319,7 +350,8 @@ export class MinioStorageService {
     expiresInSeconds = 3600,
   ): Promise<string> {
     const { client, bucket } = this.requireClient();
-    const cmd = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const k = normalizeS3ObjectKey(key);
+    const cmd = new GetObjectCommand({ Bucket: bucket, Key: k });
     return getSignedUrl(client, cmd, { expiresIn: expiresInSeconds });
   }
 }

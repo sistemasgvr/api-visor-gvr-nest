@@ -92,6 +92,12 @@ export class StorageController {
         file: { type: 'string', format: 'binary' },
         actividadId: { type: 'integer', example: 250 },
         diaActividad: { type: 'string', example: '2026-04-27' },
+        indiceEvidencia: {
+          type: 'integer',
+          example: 1,
+          description:
+            'Orden 1..n. Si se envía, el archivo en MinIO se guarda como `{id}-Modulo Actividades (n).{ext}`.',
+        },
         actividadSlug: { type: 'string', description: 'Opcional, ignorado' },
       },
     },
@@ -108,6 +114,7 @@ export class StorageController {
       userDisplayName: displayName,
       actividadId: dto.actividadId,
       diaActividad: dto.diaActividad,
+      indiceEvidencia: dto.indiceEvidencia,
       file,
     });
     return ApiResponseDto.success(meta, 'Archivo subido correctamente');

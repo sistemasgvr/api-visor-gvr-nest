@@ -66,6 +66,10 @@ export interface ActividadEvidenciaItem {
   idArchivo: number;
   url: string;
   orden: number;
+  /** Nombre de visualización (incl. formato amigable) guardado en genArchivo. */
+  nombreOriginal?: string | null;
+  tipoMime?: string | null;
+  tamanoBytes?: number | null;
   /** URL de lectura (p. ej. presignada) para imágenes y descargas. */
   viewUrl?: string;
 }
@@ -297,9 +301,16 @@ export interface ActividadDetalle {
 }
 
 /** Registrar URLs de evidencias (con_AgregarEvidenciasActividad). */
+export interface ActividadEvidenciaEntrada {
+  url: string;
+  nombreOriginal?: string | null;
+  tipoMime?: string | null;
+  tamanoBytes?: number | null;
+}
+
 export interface AgregarEvidenciasActividadParams {
   idActividad: number;
-  urls: string[];
+  evidencias: ActividadEvidenciaEntrada[];
   idUsuario: number;
 }
 
