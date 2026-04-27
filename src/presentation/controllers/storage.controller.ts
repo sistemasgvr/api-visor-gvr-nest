@@ -82,16 +82,17 @@ export class StorageController {
   @ApiOperation({
     summary: 'Subir evidencia (MinIO)',
     description:
-      'Guarda en `evidencias-actividades/usuarios/{id}-{nombre}/{actividadId}-{slug}/...` y devuelve la URL pública (si el bucket es legible) y la clave del objeto.',
+      'Guarda en `evidencias-actividades-gvr/{usuario}/2026-04-27/{idActividad}-…-archivo` (una carpeta por fecha `YYYY-MM-DD`; el id de actividad inicia el nombre del archivo).',
   })
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['file', 'actividadId', 'actividadSlug'],
+      required: ['file', 'actividadId', 'diaActividad'],
       properties: {
         file: { type: 'string', format: 'binary' },
         actividadId: { type: 'integer', example: 250 },
-        actividadSlug: { type: 'string', example: 'instalacion-cableado' },
+        diaActividad: { type: 'string', example: '2026-04-27' },
+        actividadSlug: { type: 'string', description: 'Opcional, ignorado' },
       },
     },
   })
@@ -106,7 +107,7 @@ export class StorageController {
       userId: user.id,
       userDisplayName: displayName,
       actividadId: dto.actividadId,
-      actividadSlug: dto.actividadSlug,
+      diaActividad: dto.diaActividad,
       file,
     });
     return ApiResponseDto.success(meta, 'Archivo subido correctamente');

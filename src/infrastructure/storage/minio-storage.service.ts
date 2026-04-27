@@ -179,23 +179,24 @@ export class MinioStorageService {
   }
 
   /**
-   * Ruta estándar evidencias-actividades/usuarios/... con nombre de archivo único.
+   * evidencias-actividades-gvr/{usuario}/2026-04-27/{idActividad}-{unique}-{archivo}
    */
   async uploadEvidenciaUsuarioActividad(params: {
     userId: number;
     userDisplayName: string;
     actividadId: number;
-    actividadSlug: string;
+    /** Fecha de la jornada/actividad (YYYY-MM-DD) para la jerarquía por día en MinIO. */
+    diaActividad: string;
     file: Express.Multer.File;
   }): Promise<UploadedObjectMeta> {
-    const original = sanitizeFilename(params.file.originalname || 'archivo');
-    const unique = `${Date.now()}-${randomUUID().slice(0, 8)}-${original}`;
+    const base = sanitizeFilename(params.file.originalname || 'archivo');
+    const unique = `${Date.now()}-${randomUUID().slice(0, 8)}`;
+    const objectName = `${params.actividadId}-${unique}-${base}`;
     const key = buildEvidenciaObjectKey({
       userId: params.userId,
       userDisplayName: params.userDisplayName,
-      actividadId: params.actividadId,
-      actividadSlug: params.actividadSlug,
-      filename: unique,
+      diaActividad: params.diaActividad,
+      objectName,
     });
     const body = params.file.buffer;
     if (!body?.length) {

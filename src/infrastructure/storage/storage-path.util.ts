@@ -23,18 +23,28 @@ export function sanitizeFilename(originalName: string, maxBase = 120): string {
   return cleaned.length > 0 ? cleaned : 'archivo';
 }
 
+/** `YYYY-MM-DD` → un solo segmento de carpeta `2026-04-27` (no `año/mes/día` anidado). Inválido → `sin-fecha`. */
+export function yyyymmddToCarpetaFecha(yyyyMmDd: string): string {
+  const t = (yyyyMmDd ?? '').trim().split('T')[0] ?? '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
+  if (!m) return 'sin-fecha';
+  return `${m[1]}-${m[2]}-${m[3]}`;
+}
+
 /**
- * evidencias-actividades/usuarios/{user_id}-{nombre}/{actividad_id}-{actividad_slug}/{archivo}
+ * evidencias-actividades-gvr/{id-slug-usuario}/2026-04-27/{objectName}
+ * Organización por fecha: una sola “carpeta” por día. El id de actividad inicia el nombre del archivo.
  */
 export function buildEvidenciaObjectKey(params: {
   userId: number;
   userDisplayName: string;
-  actividadId: number;
-  actividadSlug: string;
-  filename: string;
+  diaActividad: string;
+  objectName: string;
 }): string {
   const userSeg = `${params.userId}-${slugifyPathSegment(params.userDisplayName, 60)}`;
-  const actSeg = `${params.actividadId}-${slugifyPathSegment(params.actividadSlug, 80)}`;
-  const file = sanitizeFilename(params.filename);
-  return `evidencias-actividades/usuarios/${userSeg}/${actSeg}/${file}`;
+  const dateSeg = yyyymmddToCarpetaFecha(params.diaActividad);
+  const name = params.objectName
+    .replace(/[/\\]/g, '')
+    .replace(/\.\.+/g, '.');
+  return `evidencias-actividades-gvr/${userSeg}/${dateSeg}/${name}`;
 }
