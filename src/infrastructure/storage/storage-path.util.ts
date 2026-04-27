@@ -48,3 +48,56 @@ export function buildEvidenciaObjectKey(params: {
     .replace(/\.\.+/g, '.');
   return `evidencias-actividades-gvr/${userSeg}/${dateSeg}/${name}`;
 }
+
+/**
+ * A partir de la URL almacenada en genArchivo (pública, relativa o absoluta) obtiene
+ * la clave del objeto S3/MinIO dentro del bucket configurado.
+ */
+export function objectKeyFromStoredFileUrl(
+  stored: string,
+  bucket: string | null | undefined,
+): string | null {
+  const s = (stored ?? '').trim();
+  if (!s) return null;
+  if (/^https?:\/\//i.test(s)) {
+    try {
+      const u = new URL(s);
+      let path = u.pathname.replace(/^\/+/, '');
+      if (bucket && path.startsWith(`${bucket}/`)) {
+        path = path.slice(bucket.length + 1);
+      } else {
+        const slash = path.indexOf('/');
+        if (slash > 0 && bucket) {
+          const first = path.slice(0, slash);
+          if (first === bucket) {
+            path = path.slice(slash + 1);
+          }
+        }
+      }
+      return path
+        ? path
+            .split('/')
+            .map((p) => {
+              try {
+                return decodeURIComponent(p);
+              } catch {
+                return p;
+              }
+            })
+            .join('/')
+        : null;
+    } catch {
+      return null;
+    }
+  }
+  return s.replace(/^\/+/, '') || null;
+}
+
+/** Suficiente para decidir presign/DELETE en nuestro bucket (no URLs externas). */
+export function isEvidenciaMinioObjectKey(key: string): boolean {
+  const k = (key ?? '').trim();
+  return (
+    k.startsWith('evidencias-actividades-gvr/') ||
+    k.startsWith('evidencias-actividades/')
+  );
+}

@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { DatabaseFunctionService } from '../database/database-function.service';
+import { MinioStorageService } from '../storage/minio-storage.service';
 import type {
   IControlOperativoRepository,
   ListarJornadasTrabajadorParams,
@@ -40,6 +41,7 @@ import type {
   LiderEquipoReporteGeneralItem,
   ActividadEvidenciaItem,
   AgregarEvidenciasActividadParams,
+  EliminarEvidenciaActividadParams,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -93,7 +95,21 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     private readonly databaseFunctionService: DatabaseFunctionService,
     @InjectDataSource()
     private readonly dataSource: DataSource,
+    private readonly minioStorage: MinioStorageService,
   ) {}
+
+  private async mapEvidenciasViewUrls(
+    items: ActividadEvidenciaItem[],
+  ): Promise<ActividadEvidenciaItem[]> {
+    if (!items?.length) return items;
+    return Promise.all(
+      items.map(async (e) => {
+        const viewUrl =
+          await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(e.url);
+        return { ...e, viewUrl };
+      }),
+    );
+  }
 
   async listarJornadasTrabajador(
     params: ListarJornadasTrabajadorParams,
@@ -355,22 +371,27 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         ? Number(result[0].idestadojornada)
         : null;
     const estadojornada = result[0].estadojornada ?? null;
-    const data: ActividadListItem[] = result.map((row) => {
-      const {
-        total_count: _tc,
-        total_horas: _th,
-        horasesperadas: _hm,
-        diajornada: _dj,
-        idestadojornada: _ej,
-        estadojornada: _ejs,
-        evidencias: evRaw,
-        ...rest
-      } = row;
-      return {
-        ...rest,
-        evidencias: parseActividadEvidencias(evRaw),
-      } as ActividadListItem;
-    });
+    const data: ActividadListItem[] = await Promise.all(
+      result.map(async (row) => {
+        const {
+          total_count: _tc,
+          total_horas: _th,
+          horasesperadas: _hm,
+          diajornada: _dj,
+          idestadojornada: _ej,
+          estadojornada: _ejs,
+          evidencias: evRaw,
+          ...rest
+        } = row;
+        const evidencias = await this.mapEvidenciasViewUrls(
+          parseActividadEvidencias(evRaw),
+        );
+        return {
+          ...rest,
+          evidencias,
+        } as ActividadListItem;
+      }),
+    );
     return {
       data,
       totalCount,
@@ -492,19 +513,24 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     const totalCount = Number(result[0].total_count ?? result.length);
     const totalHoras = Number(result[0].total_horas ?? 0);
     const countPorAprobar = Number(result[0].total_por_aprobar ?? 0);
-    const data: ActividadValidacionListItem[] = result.map((row) => {
-      const {
-        total_count: _tc,
-        total_horas: _th,
-        total_por_aprobar: _tpa,
-        evidencias: evRaw,
-        ...rest
-      } = row;
-      return {
-        ...rest,
-        evidencias: parseActividadEvidencias(evRaw),
-      } as ActividadValidacionListItem;
-    });
+    const data: ActividadValidacionListItem[] = await Promise.all(
+      result.map(async (row) => {
+        const {
+          total_count: _tc,
+          total_horas: _th,
+          total_por_aprobar: _tpa,
+          evidencias: evRaw,
+          ...rest
+        } = row;
+        const evidencias = await this.mapEvidenciasViewUrls(
+          parseActividadEvidencias(evRaw),
+        );
+        return {
+          ...rest,
+          evidencias,
+        } as ActividadValidacionListItem;
+      }),
+    );
     return { data, totalCount, totalHoras, countPorAprobar, countVencidas };
   }
 
@@ -610,10 +636,13 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             .trim()
         : null;
     const r = row as Record<string, unknown>;
+    const evidencias = await this.mapEvidenciasViewUrls(
+      parseActividadEvidencias(r.evidencias),
+    );
     return {
       ...row,
       diajornada,
-      evidencias: parseActividadEvidencias(r.evidencias),
+      evidencias,
     } as ActividadDetalle;
   }
 
@@ -667,6 +696,23 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
       params.idUsuario,
     ]);
     return getScalarInt(row);
+  }
+
+  async eliminarEvidenciaActividad(
+    params: EliminarEvidenciaActividadParams,
+  ): Promise<string | null> {
+    if (params.idActividad == null || params.idActividad < 1) return null;
+    if (params.idEvidencia == null || params.idEvidencia < 1) return null;
+    const row = await this.databaseFunctionService.callFunctionSingle<
+      Record<string, unknown>
+    >('con_EliminarEvidenciaActividad', [
+      params.idActividad,
+      params.idEvidencia,
+      params.idUsuario,
+    ]);
+    if (row == null) return null;
+    const v = Object.values(row)[0];
+    return v != null && String(v).trim() !== '' ? String(v).trim() : null;
   }
 
   async actualizarActividad(

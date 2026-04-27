@@ -31,6 +31,7 @@ import { ListarTrabajadoresSinJornadaHoyUseCase } from '../../application/use-ca
 import { ListarTrabajadoresSinActividadesHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-actividades-hoy.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
 import { AgregarEvidenciasActividadUseCase } from '../../application/use-cases/control-operativo/agregar-evidencias-actividad.use-case';
+import { EliminarEvidenciaActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-evidencia-actividad.use-case';
 import { ObtenerActividadUseCase } from '../../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ListarObservacionesActividadUseCase } from '../../application/use-cases/control-operativo/listar-observaciones-actividad.use-case';
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
@@ -62,6 +63,7 @@ export class ControlOperativoController {
     private readonly listarTrabajadoresSinActividadesHoyUseCase: ListarTrabajadoresSinActividadesHoyUseCase,
     private readonly crearActividadUseCase: CrearActividadUseCase,
     private readonly agregarEvidenciasActividadUseCase: AgregarEvidenciasActividadUseCase,
+    private readonly eliminarEvidenciaActividadUseCase: EliminarEvidenciaActividadUseCase,
     private readonly obtenerActividadUseCase: ObtenerActividadUseCase,
     private readonly listarObservacionesActividadUseCase: ListarObservacionesActividadUseCase,
     private readonly actualizarActividadUseCase: ActualizarActividadUseCase,
@@ -420,6 +422,30 @@ export class ControlOperativoController {
       idUsuario: Number(userId),
     });
     return ApiResponseDto.success({ inserted }, 'Evidencias registradas');
+  }
+
+  /**
+   * Eliminar una evidencia de archivo (registro + objeto en MinIO si aplica). Solo el trabajador dueño.
+   * DELETE /control-operativo/actividades/:id/evidencias/:idEvidencia
+   */
+  @Delete('actividades/:id/evidencias/:idEvidencia')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async eliminarEvidenciaActividad(
+    @Param('id', ParseIntPipe) idActividad: number,
+    @Param('idEvidencia', ParseIntPipe) idEvidencia: number,
+    @Req() req: Request & { user?: { id?: number; sub?: number } },
+  ) {
+    const userId = req.user?.sub ?? req.user?.id;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no identificado');
+    }
+    await this.eliminarEvidenciaActividadUseCase.execute({
+      idActividad,
+      idEvidencia,
+      idUsuario: Number(userId),
+    });
+    return ApiResponseDto.success(null, 'Evidencia eliminada');
   }
 
   /**

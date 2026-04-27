@@ -17,6 +17,8 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 import {
   buildEvidenciaObjectKey,
+  isEvidenciaMinioObjectKey,
+  objectKeyFromStoredFileUrl,
   sanitizeFilename,
   slugifyPathSegment,
 } from './storage-path.util';
@@ -94,6 +96,71 @@ export class MinioStorageService {
 
   isConfigured(): boolean {
     return this.client !== null && !!this.bucket;
+  }
+
+  getBucketName(): string | null {
+    return this.bucket;
+  }
+
+  /**
+   * URL para el cliente: presignada (bucket privado) cuando la ruta apunta a objetos en
+   * este MinIO; enlaces totalmente externos se dejan tal cual.
+   */
+  async resolveViewUrlForEvidenciaStoredUrl(
+    stored: string,
+    expiresInSeconds = 86_400,
+  ): Promise<string> {
+    const t = (stored ?? '').trim();
+    if (!t) return t;
+    const isHttp = /^https?:\/\//i.test(t);
+    if (isHttp && !this.isLikelyOurMinioUrl(t)) {
+      return t;
+    }
+    if (!this.isConfigured()) {
+      return t;
+    }
+    const key = objectKeyFromStoredFileUrl(t, this.bucket);
+    if (!key) return t;
+    if (!isEvidenciaMinioObjectKey(key) && isHttp) {
+      return t;
+    }
+    const exp = Math.min(Math.max(expiresInSeconds, 60), 7 * 24 * 3600);
+    return this.getPresignedGetUrl(key, exp);
+  }
+
+  private isLikelyOurMinioUrl(urlStr: string): boolean {
+    try {
+      const u = new URL(urlStr);
+      const pub = this.config.get<string>('MINIO_PUBLIC_BASE_URL')?.trim();
+      if (pub) {
+        return urlStr.startsWith(`${pub.replace(/\/$/, '')}/`);
+      }
+      const endpoint =
+        this.config.get<string>('MINIO_ENDPOINT')?.trim() ||
+        this.config.get<string>('MINIO_SERVER_URL')?.trim();
+      if (endpoint) {
+        return u.origin === new URL(endpoint).origin;
+      }
+    } catch {
+      return false;
+    }
+    return false;
+  }
+
+  /**
+   * Tras borrar el registro en BD: elimina el objeto en MinIO si la clave es de evidencias.
+   * No lanza si el objeto ya no existe o la URL es externa.
+   */
+  async tryDeleteEvidenciaStoredObject(stored: string): Promise<void> {
+    if (!this.isConfigured()) return;
+    const key = objectKeyFromStoredFileUrl(stored, this.bucket);
+    if (!key || !isEvidenciaMinioObjectKey(key)) return;
+    try {
+      await this.deleteObject(key);
+    } catch (err: unknown) {
+      this.logger.warn(`No se pudo eliminar objeto MinIO: ${key}`);
+      this.logger.debug(err);
+    }
   }
 
   private requireClient(): { client: S3Client; bucket: string } {

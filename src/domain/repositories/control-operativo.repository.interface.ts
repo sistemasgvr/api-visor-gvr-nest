@@ -66,6 +66,8 @@ export interface ActividadEvidenciaItem {
   idArchivo: number;
   url: string;
   orden: number;
+  /** URL de lectura (p. ej. presignada) para imágenes y descargas. */
+  viewUrl?: string;
 }
 
 export interface ActividadListItem {
@@ -301,6 +303,12 @@ export interface AgregarEvidenciasActividadParams {
   idUsuario: number;
 }
 
+export interface EliminarEvidenciaActividadParams {
+  idActividad: number;
+  idEvidencia: number;
+  idUsuario: number;
+}
+
 /** Resultado de listar actividades: filas + totales + meta de jornada (horasesperadas, diajornada, idestadojornada, estadojornada). */
 export interface ListarActividadesResult {
   data: ActividadListItem[];
@@ -505,6 +513,13 @@ export interface IControlOperativoRepository {
   agregarEvidenciasActividad(
     params: AgregarEvidenciasActividadParams,
   ): Promise<number>;
+  /**
+   * Baja lógica de una evidencia (conActividadEvidencia + genArchivo).
+   * Devuelve la URL almacenada o null si no aplica.
+   */
+  eliminarEvidenciaActividad(
+    params: EliminarEvidenciaActividadParams,
+  ): Promise<string | null>;
   actualizarActividad(
     params: ActualizarActividadParams,
   ): Promise<ActividadCreada | null>;

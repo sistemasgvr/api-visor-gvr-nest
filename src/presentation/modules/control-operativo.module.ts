@@ -35,12 +35,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProyectoModule } from './proyecto.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
+import { EliminarEvidenciaActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-evidencia-actividad.use-case';
 
 @Module({
   imports: [
     DatabaseModule,
     BroadcastModule,
     ProyectoModule,
+    StorageModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -78,6 +81,7 @@ import { ProyectoModule } from './proyecto.module';
     ListarTrabajadoresSinActividadesHoyUseCase,
     CrearActividadUseCase,
     AgregarEvidenciasActividadUseCase,
+    EliminarEvidenciaActividadUseCase,
     ObtenerActividadUseCase,
     ListarObservacionesActividadUseCase,
     ActualizarActividadUseCase,
