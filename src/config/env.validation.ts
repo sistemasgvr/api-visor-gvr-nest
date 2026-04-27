@@ -129,6 +129,55 @@ export class EnvironmentVariables {
   @IsOptional()
   @IsString()
   REDIS_PASSWORD?: string;
+
+  // --- MinIO (S3 compatible; opcional hasta que uses /api/storage/*) ---
+  @IsOptional()
+  @IsString()
+  MINIO_ENDPOINT?: string;
+
+  /** Alias típico en EasyPanel / despliegues Docker */
+  @IsOptional()
+  @IsString()
+  MINIO_SERVER_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  MINIO_ACCESS_KEY?: string;
+
+  /** Mismo valor que suele ir en MINIO_ROOT_USER del servidor MinIO */
+  @IsOptional()
+  @IsString()
+  MINIO_ROOT_USER?: string;
+
+  @IsOptional()
+  @IsString()
+  MINIO_SECRET_KEY?: string;
+
+  /** Mismo valor que suele ir en MINIO_ROOT_PASSWORD del servidor MinIO */
+  @IsOptional()
+  @IsString()
+  MINIO_ROOT_PASSWORD?: string;
+
+  @IsOptional()
+  @IsString()
+  MINIO_BUCKET?: string;
+
+  @IsOptional()
+  @IsString()
+  MINIO_REGION?: string;
+
+  /** true por defecto en MinIO self-hosted */
+  @IsOptional()
+  @IsString()
+  MINIO_FORCE_PATH_STYLE?: string;
+
+  /**
+   * URL base pública para armar enlaces guardados en BD (puede ser CDN o el mismo API de MinIO).
+   * Sin barra final. Si no se define, se usa MINIO_ENDPOINT + bucket + key (path-style).
+   */
+  @IsOptional()
+  @IsString()
+  MINIO_PUBLIC_BASE_URL?: string;
 }
 
 export function validate(config: Record<string, unknown>) {

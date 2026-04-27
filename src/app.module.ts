@@ -44,6 +44,7 @@ import { DashboardModule } from './presentation/modules/dashboard/dashboard.modu
 import { DemoModule } from './presentation/modules/demo.module';
 import { MailModule } from './presentation/modules/mail.module';
 import { PdfModule } from './infrastructure/pdf/pdf.module';
+import { StorageModule } from './infrastructure/storage/storage.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { PdfModule } from './infrastructure/pdf/pdf.module';
     // Módulo de base de datos
     DatabaseModule,
     PdfModule,
+    StorageModule,
     // Módulo de broadcasting
     BroadcastModule,
     // Módulo de health check
