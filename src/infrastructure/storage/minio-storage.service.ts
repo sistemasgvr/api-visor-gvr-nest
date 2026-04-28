@@ -3,6 +3,7 @@ import {
   Logger,
   ServiceUnavailableException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -25,6 +26,8 @@ import {
   sanitizeFilename,
   slugifyPathSegment,
 } from './storage-path.util';
+import type { IEvidenciaImageOptimizer } from '../../domain/services/evidencia-image-optimizer.interface';
+import { EVIDENCIA_IMAGE_OPTIMIZER } from '../../domain/services/evidencia-image-optimizer.interface';
 
 export interface UploadedObjectMeta {
   bucket: string;
@@ -42,7 +45,11 @@ export class MinioStorageService {
   private bucket: string | null = null;
   private publicBase: string | null = null;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    @Inject(EVIDENCIA_IMAGE_OPTIMIZER)
+    private readonly evidenciaImageOptimizer: IEvidenciaImageOptimizer,
+  ) {
     this.refreshFromConfig();
   }
 
@@ -265,9 +272,17 @@ export class MinioStorageService {
     /** Orden 1..n de la evidencia; si se envía, nombres alineados con genArchivo (Modulo Actividades). */
     indiceEvidencia?: number;
   }): Promise<UploadedObjectMeta> {
+    const opt = await this.evidenciaImageOptimizer.optimizeForStorage({
+      buffer: params.file.buffer,
+      mimetype: params.file.mimetype || 'application/octet-stream',
+      originalname: params.file.originalname || 'archivo',
+    });
+    if (!opt.buffer?.length) {
+      throw new BadRequestException('Archivo vacío o no recibido');
+    }
     const ext = extensionDesdeArchivoEvidencia(
-      params.file.originalname,
-      params.file.mimetype,
+      opt.originalname,
+      opt.mimetype,
     );
     let objectName: string;
     if (
@@ -285,7 +300,7 @@ export class MinioStorageService {
         ext,
       );
     } else {
-      const base = sanitizeFilename(params.file.originalname || 'archivo');
+      const base = sanitizeFilename(opt.originalname || 'archivo');
       const unique = `${Date.now()}-${randomUUID().slice(0, 8)}`;
       objectName = `${params.actividadId}-${unique}-${base}`;
     }
@@ -295,14 +310,10 @@ export class MinioStorageService {
       diaActividad: params.diaActividad,
       objectName,
     });
-    const body = params.file.buffer;
-    if (!body?.length) {
-      throw new BadRequestException('Archivo vacío o no recibido');
-    }
     return this.putObject({
       key,
-      body,
-      contentType: params.file.mimetype || undefined,
+      body: opt.buffer,
+      contentType: opt.mimetype || undefined,
     });
   }
 

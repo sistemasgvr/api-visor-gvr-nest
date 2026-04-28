@@ -178,6 +178,31 @@ export class EnvironmentVariables {
   @IsOptional()
   @IsString()
   MINIO_PUBLIC_BASE_URL?: string;
+
+  /** Evidencias: compresión con Sharp al subir (`false` desactiva). */
+  @IsOptional()
+  @IsString()
+  EVIDENCIA_IMAGE_OPTIMIZE?: string;
+
+  /** Lado largo máximo en px (2560 por defecto vía service). */
+  @IsOptional()
+  @IsString()
+  EVIDENCIA_IMAGE_MAX_EDGE_PX?: string;
+
+  /** (Legacy) no usado; salida WebP. Puede quedar en .env sin efecto. */
+  @IsOptional()
+  @IsString()
+  EVIDENCIA_JPEG_QUALITY?: string;
+
+  /** Calidad WebP 40-100 (por defecto ~82 en el servicio). */
+  @IsOptional()
+  @IsString()
+  EVIDENCIA_WEBP_QUALITY?: string;
+
+  /** Efuerzo WebP 0-6 (5 por defecto; más = archivo más pequeño, más CPU). */
+  @IsOptional()
+  @IsString()
+  EVIDENCIA_WEBP_EFFORT?: string;
 }
 
 export function validate(config: Record<string, unknown>) {
