@@ -54,9 +54,10 @@ import { DatabaseFunctionService } from '../../infrastructure/database/database-
 import { ExportacionRevisionesPdfService } from '../../infrastructure/services/exportacion-revisiones-pdf.service';
 import { ExportacionRevisionDetallePdfService } from '../../infrastructure/services/exportacion-revision-detalle-pdf.service';
 import { BroadcastModule } from './broadcast.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 
 @Module({
-  imports: [BroadcastModule],
+  imports: [BroadcastModule, StorageModule],
   controllers: [
     AccReviewsController,
     AccWorkflowsController,

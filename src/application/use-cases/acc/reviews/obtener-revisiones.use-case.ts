@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ObtenerRevisionesDto } from '../../../dtos/acc/reviews/obtener-revisiones.dto';
 import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
+import { MinioStorageService } from '../../../../infrastructure/storage/minio-storage.service';
 
 @Injectable()
 export class ObtenerRevisionesUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(
+    private readonly dbFunctionService: DatabaseFunctionService,
+    private readonly minioStorage: MinioStorageService,
+  ) {}
 
   async execute(
     userId: number,
@@ -90,7 +94,15 @@ export class ObtenerRevisionesUseCase {
       return 'OPEN';
     };
 
-    let mapped = rows.map((r) => {
+    let mapped = await Promise.all(
+      rows.map(async (r) => {
+        const fotoPerfilStored = r.foto_perfil_usuario_iniciador?.trim() || null;
+        const fotoPerfilViewUrl = fotoPerfilStored
+          ? await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
+              fotoPerfilStored,
+            )
+          : null;
+
       const reviewId =
         r.review_id && String(r.review_id).trim().length > 0
           ? String(r.review_id)
@@ -164,11 +176,13 @@ export class ObtenerRevisionesUseCase {
           idUsuario: r.id_usuario_iniciador,
           nombre: r.nombre_usuario_iniciador ?? 'Usuario',
           correo: r.correo_usuario_iniciador ?? '',
-          fotoPerfil: r.foto_perfil_usuario_iniciador ?? null,
+          fotoPerfil: fotoPerfilViewUrl ?? fotoPerfilStored,
+          fotoPerfilViewUrl,
         },
         gvrNextActionBy,
       };
-    });
+      }),
+    );
 
     if (dto.filter_workflowId)
       mapped = mapped.filter((x) => x.workflowId === dto.filter_workflowId);
