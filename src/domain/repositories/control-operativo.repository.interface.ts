@@ -419,6 +419,10 @@ export interface ReporteGeneralItem {
   idtipoactividad: number | null;
   nombretipoactividad: string | null;
   linkevidencia: string | null;
+  /** URLs de visualización/descarga de imágenes cargadas como evidencia. */
+  evidenciasImagenes?: string[];
+  /** Texto consolidado (una URL por línea) para exportaciones tipo Excel. */
+  evidenciasImagenesTexto?: string | null;
 }
 
 /** Resultado del reporte general de actividades. */

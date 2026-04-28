@@ -894,6 +894,34 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     }
     const totalCount = Number(rows[0].total_count ?? rows.length);
     const totalHoras = Number(rows[0].total_horas ?? 0);
+    const actividadesIds = rows
+      .map((r) => Number(r.id))
+      .filter((n) => Number.isFinite(n) && n >= 1);
+    const evidenciasPorActividad = new Map<number, string[]>();
+    if (actividadesIds.length) {
+      const evRows = await this.dataSource.query<
+        { idactividad: number; url: string }[]
+      >(
+        `SELECT cae.idactividad, ga.url
+         FROM conactividadevidencia cae
+         INNER JOIN genarchivo ga ON ga.id = cae.idarchivo AND ga.estado = 1
+         WHERE cae.estado = 1
+           AND cae.idactividad = ANY($1::int[])
+         ORDER BY cae.idactividad ASC, cae.orden ASC, cae.id ASC`,
+        [actividadesIds],
+      );
+      for (const ev of evRows ?? []) {
+        const idAct = Number(ev.idactividad);
+        const urlRaw = ev.url != null ? String(ev.url).trim() : '';
+        if (!Number.isFinite(idAct) || idAct < 1 || !urlRaw) continue;
+        const viewUrl =
+          await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(urlRaw);
+        const arr = evidenciasPorActividad.get(idAct) ?? [];
+        arr.push(viewUrl);
+        evidenciasPorActividad.set(idAct, arr);
+      }
+    }
+
     const data: ReporteGeneralItem[] = rows.map((row) => {
       const { total_count: _tc, total_horas: _th, ...rest } = row;
       const rawDia =
@@ -907,7 +935,15 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         })();
       const diajornadaNorm = this.formatFechaYYYYMMDD(rawDia);
       const diajornada = diajornadaNorm !== '' ? diajornadaNorm : null;
-      return { ...rest, diajornada } as ReporteGeneralItem;
+      const evidenciasImagenes = evidenciasPorActividad.get(Number(rest.id)) ?? [];
+      return {
+        ...rest,
+        diajornada,
+        evidenciasImagenes,
+        evidenciasImagenesTexto: evidenciasImagenes.length
+          ? evidenciasImagenes.join('\n')
+          : null,
+      } as ReporteGeneralItem;
     });
     return { data, totalCount, totalHoras };
   }
