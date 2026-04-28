@@ -131,9 +131,6 @@ export class MinioStorageService {
     }
     const key = objectKeyFromStoredFileUrl(t, this.bucket);
     if (!key) return t;
-    if (!isEvidenciaMinioObjectKey(key) && isHttp) {
-      return t;
-    }
     const exp = Math.min(Math.max(expiresInSeconds, 60), 7 * 24 * 3600);
     return this.getPresignedGetUrl(key, exp);
   }

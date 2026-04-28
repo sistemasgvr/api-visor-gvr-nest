@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
 import { ProfilePhotoStorageService } from '../../../infrastructure/services/profile-photo-storage.service';
+import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
 
 @Injectable()
 export class SubirFotoPerfilUseCase {
@@ -16,6 +17,7 @@ export class SubirFotoPerfilUseCase {
     private readonly authRepository: IAuthRepository,
     private readonly jwtService: JwtService,
     private readonly profilePhotoStorageService: ProfilePhotoStorageService,
+    private readonly minioStorage: MinioStorageService,
   ) {}
 
   async execute(
@@ -51,7 +53,13 @@ export class SubirFotoPerfilUseCase {
         saved.tipoMime,
         saved.tamanoBytes,
       );
-      return { fotoPerfil };
+      let view = fotoPerfil;
+      if (fotoPerfil?.trim()) {
+        view = await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
+          fotoPerfil,
+        );
+      }
+      return { fotoPerfil: view };
     } catch (error) {
       // Rollback: eliminar archivo si la BD falla
       await this.profilePhotoStorageService.delete(saved.url);
