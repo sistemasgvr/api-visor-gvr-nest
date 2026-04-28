@@ -6,6 +6,7 @@ import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.inter
 import type { ISesionRepository } from '../../domain/repositories/sesion.repository.interface';
 import { SESION_REPOSITORY } from '../../domain/repositories/sesion.repository.interface';
 import { AuthUser } from '../../domain/entities/auth-user.entity';
+import { MinioStorageService } from '../../infrastructure/storage/minio-storage.service';
 import type {
   Menu,
   Permission,
@@ -38,6 +39,7 @@ export class LoginUseCase {
     @Inject(SESION_REPOSITORY)
     private readonly sesionRepository: ISesionRepository,
     private readonly jwtService: JwtService,
+    private readonly minioStorage: MinioStorageService,
   ) {}
 
   async execute(
@@ -98,6 +100,12 @@ export class LoginUseCase {
       userAgent ?? null,
     );
 
+    const fotoPerfil = user.fotoPerfil?.trim()
+      ? await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
+          user.fotoPerfil,
+        )
+      : undefined;
+
     // Return user data without password (trabajador viene de la BD en authLoginUsuarioV2)
     return {
       access_token,
@@ -106,7 +114,7 @@ export class LoginUseCase {
         nombre: user.nombre,
         correo: user.correo,
         estado: user.estado,
-        fotoPerfil: user.fotoPerfil,
+        fotoPerfil,
         roles: user.roles,
         permisos: user.permisos,
         menus: user.menus,

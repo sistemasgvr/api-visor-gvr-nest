@@ -9,6 +9,7 @@ import type { ISesionRepository } from '../../../domain/repositories/sesion.repo
 import { SESION_REPOSITORY } from '../../../domain/repositories/sesion.repository.interface';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
+import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
 
 @Injectable()
 export class ObtenerPerfilUseCase {
@@ -18,6 +19,7 @@ export class ObtenerPerfilUseCase {
     @Inject(AUTH_REPOSITORY)
     private readonly authRepository: IAuthRepository,
     private readonly jwtService: JwtService,
+    private readonly minioStorage: MinioStorageService,
   ) {}
 
   async execute(token: string): Promise<any> {
@@ -41,6 +43,14 @@ export class ObtenerPerfilUseCase {
 
     if (!perfil) {
       throw new NotFoundException('Perfil no encontrado');
+    }
+
+    const fotoStored = perfil.fotoperfil != null ? String(perfil.fotoperfil) : '';
+    if (fotoStored.trim()) {
+      const viewUrl =
+        await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(fotoStored);
+      perfil.fotoperfil = viewUrl;
+      perfil.fotoperfilviewurl = viewUrl;
     }
 
     return perfil;

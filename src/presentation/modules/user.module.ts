@@ -9,10 +9,12 @@ import { AuthRepository } from '../../infrastructure/repositories/auth.repositor
 import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 
 @Module({
   imports: [
     DatabaseModule,
+    StorageModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

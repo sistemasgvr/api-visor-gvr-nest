@@ -10,6 +10,6 @@ import { StorageController } from '../../presentation/controllers/storage.contro
     { provide: EVIDENCIA_IMAGE_OPTIMIZER, useClass: SharpEvidenciaImageOptimizerService },
     MinioStorageService,
   ],
-  exports: [MinioStorageService],
+  exports: [EVIDENCIA_IMAGE_OPTIMIZER, MinioStorageService],
 })
 export class StorageModule {}

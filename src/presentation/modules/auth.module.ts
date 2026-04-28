@@ -19,10 +19,12 @@ import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.inter
 import { SESION_REPOSITORY } from '../../domain/repositories/sesion.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 
 @Module({
   imports: [
     DatabaseModule,
+    StorageModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

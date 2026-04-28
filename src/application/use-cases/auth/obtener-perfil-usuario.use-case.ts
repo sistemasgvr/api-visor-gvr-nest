@@ -2,6 +2,7 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
+import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
 
 @Injectable()
 export class ObtenerPerfilUsuarioUseCase {
@@ -9,6 +10,7 @@ export class ObtenerPerfilUsuarioUseCase {
     @Inject(AUTH_REPOSITORY)
     private readonly authRepository: IAuthRepository,
     private readonly jwtService: JwtService,
+    private readonly minioStorage: MinioStorageService,
   ) {}
 
   async execute(token: string): Promise<any> {
@@ -24,6 +26,14 @@ export class ObtenerPerfilUsuarioUseCase {
 
     if (!perfil) {
       throw new NotFoundException('Perfil no encontrado');
+    }
+
+    const fotoStored = perfil.fotoperfil != null ? String(perfil.fotoperfil) : '';
+    if (fotoStored.trim()) {
+      const viewUrl =
+        await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(fotoStored);
+      perfil.fotoperfil = viewUrl;
+      perfil.fotoperfilviewurl = viewUrl;
     }
 
     return perfil;

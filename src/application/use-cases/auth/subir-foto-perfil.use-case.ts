@@ -22,7 +22,7 @@ export class SubirFotoPerfilUseCase {
     token: string,
     file: Express.Multer.File,
   ): Promise<{ fotoPerfil: string }> {
-    let payload: { sub?: number };
+    let payload: { sub?: number; nombre?: string };
     try {
       payload = await this.jwtService.verifyAsync(token);
     } catch {
@@ -33,10 +33,12 @@ export class SubirFotoPerfilUseCase {
     if (!userId) {
       throw new UnauthorizedException('Token inválido');
     }
+    const userDisplayName = payload.nombre?.trim() || `usuario-${userId}`;
 
     // Guardar archivo primero
-    const relativePath = await this.profilePhotoStorageService.save(
+    const saved = await this.profilePhotoStorageService.save(
       userId,
+      userDisplayName,
       file,
     );
 
@@ -44,12 +46,15 @@ export class SubirFotoPerfilUseCase {
     try {
       const { fotoPerfil } = await this.authRepository.actualizarFotoPerfil(
         userId,
-        relativePath,
+        saved.url,
+        saved.nombreOriginal,
+        saved.tipoMime,
+        saved.tamanoBytes,
       );
       return { fotoPerfil };
     } catch (error) {
       // Rollback: eliminar archivo si la BD falla
-      await this.profilePhotoStorageService.delete(relativePath);
+      await this.profilePhotoStorageService.delete(saved.url);
       throw new InternalServerErrorException(
         'No se pudo actualizar la foto de perfil en la base de datos',
       );

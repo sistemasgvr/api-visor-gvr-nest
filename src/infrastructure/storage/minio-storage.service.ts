@@ -215,7 +215,9 @@ export class MinioStorageService {
     if (this.publicBase) {
       return `${this.publicBase.replace(/\/$/, '')}/${encodedKey}`;
     }
-    const endpoint = this.config.get<string>('MINIO_ENDPOINT')?.trim();
+    const endpoint =
+      this.config.get<string>('MINIO_ENDPOINT')?.trim() ||
+      this.config.get<string>('MINIO_SERVER_URL')?.trim();
     if (!endpoint) return encodedKey;
     const origin = new URL(endpoint).origin.replace(/\/$/, '');
     return `${origin}/${bucket}/${encodedKey}`;

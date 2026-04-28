@@ -21,6 +21,9 @@ export interface IAuthRepository {
   actualizarFotoPerfil(
     idUsuario: number,
     fotoPerfil: string,
+    nombreOriginal?: string | null,
+    tipoMime?: string | null,
+    tamanoBytes?: number | null,
   ): Promise<{ fotoPerfil: string }>;
 
   /**
