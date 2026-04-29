@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { translateAutodeskApiEnglishFragment } from '../utils/autodesk-error-i18n';
 import { HttpClientService } from '../../shared/services/http-client.service';
 
 export interface Token2LeggedResponse {
@@ -1620,8 +1621,11 @@ export class AutodeskApiService {
         data: response.data.data || null,
       };
     } catch (error: any) {
+      const raw = String(
+        error.response?.data?.message || error.message || 'Error desconocido',
+      );
       throw new Error(
-        `Error al crear storage: ${error.response?.data?.message || error.message}`,
+        `Error al crear storage: ${translateAutodeskApiEnglishFragment(raw)}`,
       );
     }
   }
@@ -6495,8 +6499,14 @@ export class AutodeskApiService {
         data: response.data.data || null,
       };
     } catch (error: any) {
+      const raw = String(
+        error.response?.data?.errors?.[0]?.detail ||
+          error.response?.data?.message ||
+          error.message ||
+          'Error desconocido',
+      );
       throw new Error(
-        `Error al crear storage: ${error.response?.data?.errors?.[0]?.detail || error.response?.data?.message || error.message}`,
+        `Error al crear storage: ${translateAutodeskApiEnglishFragment(raw)}`,
       );
     }
   }
