@@ -16,6 +16,7 @@ import { DesactivarServicioProyectoUseCase } from '../../application/use-cases/a
 
 // Services
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
+import { SharpAccProjectImagePreparerService } from '../../infrastructure/images/sharp-acc-project-image-preparer.service';
 import { HttpClientService } from '../../shared/services/http-client.service';
 import ObtenerTokenValidoHelper from '../../application/use-cases/acc/issues/obtener-token-valido.helper';
 
@@ -51,6 +52,7 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
 
     // Services
     AutodeskApiService,
+    SharpAccProjectImagePreparerService,
     HttpClientService,
 
     // Repositories

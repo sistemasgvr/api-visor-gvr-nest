@@ -20,6 +20,7 @@ import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { RequestInfoHelper } from '../../shared/helpers/request-info.helper';
+import { getAccProjectImageUploadMaxBytes } from '../../shared/constants/acc-project-image.constants';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import {
   ACC_REPOSITORY,
@@ -342,7 +343,11 @@ export class AccProjectsController {
    */
   @Post(':accountId/:projectId/imagen')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('imagen'))
+  @UseInterceptors(
+    FileInterceptor('imagen', {
+      limits: { fileSize: getAccProjectImageUploadMaxBytes() },
+    }),
+  )
   @HttpCode(HttpStatus.OK)
   async subirImagenProyecto(
     @Param('accountId') accountId: string,

@@ -203,6 +203,26 @@ export class EnvironmentVariables {
   @IsOptional()
   @IsString()
   EVIDENCIA_WEBP_EFFORT?: string;
+
+  /** Imagen proyecto ACC: tamaño máximo enviado a Autodesk tras comprimir (bytes). */
+  @IsOptional()
+  @IsString()
+  ACC_PROJECT_IMAGE_MAX_BYTES?: string;
+
+  /** Imagen proyecto ACC: tamaño máximo de subida al API antes de comprimir (bytes). */
+  @IsOptional()
+  @IsString()
+  ACC_PROJECT_IMAGE_UPLOAD_MAX_BYTES?: string;
+
+  /** Imagen proyecto ACC: `false` desactiva Sharp (se reenvía el archivo tal cual). */
+  @IsOptional()
+  @IsString()
+  ACC_PROJECT_IMAGE_OPTIMIZE?: string;
+
+  /** Imagen proyecto ACC: lado largo máximo en px al redimensionar (1920 por defecto). */
+  @IsOptional()
+  @IsString()
+  ACC_PROJECT_IMAGE_MAX_EDGE_PX?: string;
 }
 
 export function validate(config: Record<string, unknown>) {

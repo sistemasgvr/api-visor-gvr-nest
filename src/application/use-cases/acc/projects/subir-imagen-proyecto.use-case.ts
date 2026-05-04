@@ -1,5 +1,15 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Inject,
+  PayloadTooLargeException,
+} from '@nestjs/common';
 import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
+import { SharpAccProjectImagePreparerService } from '../../../../infrastructure/images/sharp-acc-project-image-preparer.service';
+import {
+  getAccProjectImageMaxBytes,
+  getAccProjectImageMaxLabel,
+} from '../../../../shared/constants/acc-project-image.constants';
 import {
   AUDITORIA_REPOSITORY,
   type IAuditoriaRepository,
@@ -9,6 +19,7 @@ import {
 export class SubirImagenProyectoUseCase {
   constructor(
     private readonly autodeskApiService: AutodeskApiService,
+    private readonly accProjectImagePreparer: SharpAccProjectImagePreparerService,
     @Inject(AUDITORIA_REPOSITORY)
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
@@ -40,10 +51,30 @@ export class SubirImagenProyectoUseCase {
       );
     }
 
+    const maxBytes = getAccProjectImageMaxBytes();
+    const prepared = await this.accProjectImagePreparer.prepareForAcc(
+      file,
+      maxBytes,
+    );
+
+    if (prepared.size > maxBytes) {
+      throw new PayloadTooLargeException(
+        `Tras optimizar la imagen aún supera ${getAccProjectImageMaxLabel()} (límite del servicio de Autodesk). Pruebe con otra imagen o menor resolución.`,
+      );
+    }
+
+    const fileForAcc: Express.Multer.File = {
+      ...file,
+      buffer: prepared.buffer,
+      size: prepared.size,
+      mimetype: prepared.mimetype,
+      originalname: prepared.originalname,
+    };
+
     const resultado = await this.autodeskApiService.uploadAccProjectImage(
       accountId,
       projectId,
-      file,
+      fileForAcc,
       token,
     );
 
@@ -74,8 +105,9 @@ export class SubirImagenProyectoUseCase {
             projectId,
             accountId,
             fileName: file.originalname,
-            fileSize: file.size,
-            mimeType: file.mimetype || 'unknown',
+            fileSizeOriginal: file.size,
+            fileSizeSentAcc: prepared.size,
+            mimeTypeSentAcc: prepared.mimetype || 'unknown',
           },
           ipAddress,
           userAgent,

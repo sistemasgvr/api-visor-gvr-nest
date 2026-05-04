@@ -40,6 +40,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           code = responseObj.code;
         }
       }
+    } else if (
+      typeof exception === 'object' &&
+      exception !== null &&
+      'code' in exception &&
+      (exception as { code: string }).code === 'LIMIT_FILE_SIZE'
+    ) {
+      status = HttpStatus.PAYLOAD_TOO_LARGE;
+      message =
+        'El archivo supera el tamaño máximo permitido para esta operación.';
     } else if (exception instanceof Error) {
       message = exception.message;
     }

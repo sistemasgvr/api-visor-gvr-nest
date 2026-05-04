@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, PayloadTooLargeException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { translateAutodeskApiEnglishFragment } from '../utils/autodesk-error-i18n';
 import { HttpClientService } from '../../shared/services/http-client.service';
@@ -823,6 +823,11 @@ export class AutodeskApiService {
 
       return response.data;
     } catch (error: any) {
+      if (error.response?.status === 413) {
+        throw new PayloadTooLargeException(
+          'La imagen supera el tamaño máximo admitido por Autodesk. Reduzca peso o resolución e inténtelo de nuevo.',
+        );
+      }
       throw new Error(
         `Error al subir imagen del proyecto: ${error.response?.data?.message || error.message}`,
       );
