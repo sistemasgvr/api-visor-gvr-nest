@@ -85,14 +85,9 @@ export class LoginUseCase {
 
     const access_token = await this.jwtService.signAsync(payload);
 
-    // Cerrar todas las sesiones anteriores del usuario (registro completo: fechaFin en authSesiones)
-    try {
-      await this.sesionRepository.cerrarTodasLasSesiones(user.id, user.id);
-    } catch (err) {
-      console.error('Error cerrando sesiones anteriores:', err);
-    }
-
-    // Registrar nueva sesión en authSesiones (si falla, el login falla para poder ver el error)
+    // Registrar nueva sesión en authSesiones.
+    // No se cierran sesiones previas para permitir múltiples sesiones concurrentes
+    // (p. ej. producción + local, o varias ventanas/dispositivos del mismo usuario).
     await this.sesionRepository.crearSesion(
       user.id,
       access_token,
