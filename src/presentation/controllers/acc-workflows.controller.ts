@@ -33,7 +33,10 @@ import { ObtenerWorkflowCandidatosUseCase } from '../../application/use-cases/ac
 import { ObtenerWorkflowsDto } from '../../application/dtos/acc/reviews/obtener-workflows.dto';
 import { CrearWorkflowDto } from '../../application/dtos/acc/reviews/crear-workflow.dto';
 import { CambiarEstadoWorkflowDto } from '../../application/dtos/acc/reviews/cambiar-estado-workflow.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc/projects/:projectId/workflows')
 export class AccWorkflowsController {
   constructor(
@@ -49,6 +52,7 @@ export class AccWorkflowsController {
   /**
    * GET /acc/projects/:projectId/workflows
    */
+  @ApiOperation({ summary: 'Listar flujos de revisión del proyecto' })
   @Get()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -89,6 +93,7 @@ export class AccWorkflowsController {
    * GET /acc/projects/:projectId/workflows/:workflowId/candidatos
    * (Ruta más específica antes que :workflowId)
    */
+  @ApiOperation({ summary: 'Obtener candidatos configurados para un workflow' })
   @Get(':workflowId/candidatos')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -116,6 +121,9 @@ export class AccWorkflowsController {
    * PATCH /acc/projects/:projectId/workflows/:workflowId/status
    * Activo / Borrador (flujos GVR numéricos)
    */
+  @ApiOperation({
+    summary: 'Cambiar estado del flujo (activo/borrador)',
+  })
   @Patch(':workflowId/status')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -146,6 +154,7 @@ export class AccWorkflowsController {
    * PUT /acc/projects/:projectId/workflows/:workflowId
    * Actualización completa (flujos GVR numéricos)
    */
+  @ApiOperation({ summary: 'Reemplazar definición completa del flujo GVR' })
   @Put(':workflowId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -186,6 +195,7 @@ export class AccWorkflowsController {
    * GET /acc/projects/:projectId/workflows/:workflowId
    * GVR (id numérico) desde BD; si no, Autodesk.
    */
+  @ApiOperation({ summary: 'Obtener detalle de workflow por ID' })
   @Get(':workflowId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -214,6 +224,7 @@ export class AccWorkflowsController {
   /**
    * POST /acc/projects/:projectId/workflows
    */
+  @ApiOperation({ summary: 'Crear flujo de revisión GVR' })
   @Post()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -249,6 +260,7 @@ export class AccWorkflowsController {
   /**
    * POST /acc/projects/:projectId/workflows/:workflowId/candidatos
    */
+  @ApiOperation({ summary: 'Guardar candidatos de un workflow de revisión' })
   @Post(':workflowId/candidatos')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

@@ -47,7 +47,10 @@ import { CrearComentarioDto } from '../../application/dtos/issues-bim360/crear-c
 import { CrearAdjuntoDto } from '../../application/dtos/issues-bim360/crear-adjunto.dto';
 import { ObtenerAdjuntosDto } from '../../application/dtos/issues-bim360/obtener-adjuntos.dto';
 import { ActualizarAdjuntoDto } from '../../application/dtos/issues-bim360/actualizar-adjunto.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('bim360')
+@ApiBearerAuth('access-token')
 @Controller('issues/projects/:projectId')
 export class IssuesBim360Controller {
   constructor(
@@ -72,6 +75,7 @@ export class IssuesBim360Controller {
    * GET - Obtener perfil de usuario
    * GET /issues/projects/:projectId/users/me
    */
+  @ApiOperation({ summary: 'Perfil APS del usuario en contexto proyecto BIM 360' })
   @Get('users/me')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -104,6 +108,7 @@ export class IssuesBim360Controller {
    * GET - Obtener tipos de incidencias
    * GET /issues/projects/:projectId/issue-types
    */
+  @ApiOperation({ summary: 'Listar tipos de incidencia BIM 360' })
   @Get('issue-types')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -147,6 +152,7 @@ export class IssuesBim360Controller {
    * GET - Obtener definiciones de atributos
    * GET /issues/projects/:projectId/issue-attribute-definitions
    */
+  @ApiOperation({ summary: 'Definiciones de atributos BIM 360' })
   @Get('issue-attribute-definitions')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -191,6 +197,7 @@ export class IssuesBim360Controller {
    * GET - Obtener mapeos de atributos
    * GET /issues/projects/:projectId/issue-attribute-mappings
    */
+  @ApiOperation({ summary: 'Mapeos campo personalizado BIM 360' })
   @Get('issue-attribute-mappings')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -234,6 +241,7 @@ export class IssuesBim360Controller {
    * GET - Obtener categorías de causa raíz
    * GET /issues/projects/:projectId/issue-root-cause-categories
    */
+  @ApiOperation({ summary: 'Categorías de causa raíz BIM 360' })
   @Get('issue-root-cause-categories')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -277,6 +285,9 @@ export class IssuesBim360Controller {
    * GET - Obtener incidencias por documento
    * GET /issues/projects/:projectId/issues/by-document
    */
+  @ApiOperation({
+    summary: 'Filtrar incidencias BIM 360 vinculadas a un modelo/documento',
+  })
   @Get('issues/by-document')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -327,6 +338,7 @@ export class IssuesBim360Controller {
    * GET - Obtener incidencias
    * GET /issues/projects/:projectId/issues
    */
+  @ApiOperation({ summary: 'Listar incidencias BIM 360 con filtros APS' })
   @Get('issues')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -370,6 +382,7 @@ export class IssuesBim360Controller {
    * POST - Crear incidencia
    * POST /issues/projects/:projectId/issues
    */
+  @ApiOperation({ summary: 'Registrar nueva incidencia BIM 360' })
   @Post('issues')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -405,6 +418,7 @@ export class IssuesBim360Controller {
    * GET - Obtener incidencia por ID
    * GET /issues/projects/:projectId/issues/:issueId
    */
+  @ApiOperation({ summary: 'Detalle de incidencia BIM 360 por ID' })
   @Get('issues/:issueId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -439,6 +453,7 @@ export class IssuesBim360Controller {
    * PATCH - Actualizar incidencia
    * PATCH /issues/projects/:projectId/issues/:issueId
    */
+  @ApiOperation({ summary: 'Actualizar campos de incidencia BIM 360' })
   @Patch('issues/:issueId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -475,6 +490,7 @@ export class IssuesBim360Controller {
    * GET - Obtener comentarios de una incidencia
    * GET /issues/projects/:projectId/issues/:issueId/comments
    */
+  @ApiOperation({ summary: 'Comentarios BIM 360 de la incidencia' })
   @Get('issues/:issueId/comments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -520,6 +536,7 @@ export class IssuesBim360Controller {
    * POST - Crear comentario en una incidencia
    * POST /issues/projects/:projectId/issues/:issueId/comments
    */
+  @ApiOperation({ summary: 'Añadir comentario BIM 360' })
   @Post('issues/:issueId/comments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -557,6 +574,7 @@ export class IssuesBim360Controller {
    * GET - Obtener adjuntos de una incidencia
    * GET /issues/projects/:projectId/issues/:issueId/attachments
    */
+  @ApiOperation({ summary: 'Adjuntos BIM 360 de la incidencia' })
   @Get('issues/:issueId/attachments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -602,6 +620,7 @@ export class IssuesBim360Controller {
    * POST - Crear adjunto para una incidencia
    * POST /issues/projects/:projectId/issues/:issueId/attachments
    */
+  @ApiOperation({ summary: 'Crear adjunto BIM 360' })
   @Post('issues/:issueId/attachments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -635,6 +654,7 @@ export class IssuesBim360Controller {
    * PATCH - Actualizar adjunto de una incidencia
    * PATCH /issues/projects/:projectId/issues/:issueId/attachments/:attachmentId
    */
+  @ApiOperation({ summary: 'Actualizar datos de adjunto BIM 360' })
   @Patch('issues/:issueId/attachments/:attachmentId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

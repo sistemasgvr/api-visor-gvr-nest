@@ -51,7 +51,10 @@ import { VolverPasoAnteriorRevisionDto } from '../../application/dtos/acc/review
 import { EnviarResenaPasoDto } from '../../application/dtos/acc/reviews/enviar-resena-paso.dto';
 import { NotificarRevisoresRevisionDto } from '../../application/dtos/acc/reviews/notificar-revisores-revision.dto';
 import { NotificarRevisoresRevisionUseCase } from '../../application/use-cases/acc/reviews/notificar-revisores-revision.use-case';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc/projects/:projectId/reviews')
 export class AccReviewsController {
   constructor(
@@ -81,6 +84,10 @@ export class AccReviewsController {
    * GET /acc/projects/:projectId/reviews
    * Lista todas las revisiones del proyecto con filtros opcionales
    */
+  @ApiOperation({
+    summary: 'Directorio de revisiones ACC con filtros',
+    description: 'Incluye metadatos de paginación si APS lo devolvió.',
+  })
   @Get()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -121,6 +128,10 @@ export class AccReviewsController {
    * GET /acc/projects/:projectId/reviews/export/pdf
    * PDF del listado de revisiones con los mismos filtros opcionales que el listado (sin paginar en cliente).
    */
+  @ApiOperation({
+    summary: 'Exportar tabla de revisiones a PDF binario',
+    description: 'Mismos filtros que lista sin paginar en cliente.',
+  })
   @Get('export/pdf')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -160,6 +171,7 @@ export class AccReviewsController {
    * POST /acc/projects/:projectId/reviews
    * Crea una nueva revisi?n
    */
+  @ApiOperation({ summary: 'Crear revisión nueva en proyecto ACC/BIM Collaborate Pro' })
   @Post()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -193,6 +205,10 @@ export class AccReviewsController {
    * GET /acc/projects/:projectId/reviews/:reviewId/export/pdf
    * PDF genérico con resumen, flujo, archivos, comentarios por archivo, referencias y actividad.
    */
+  @ApiOperation({
+    summary: 'Ficha ejecutiva revisión PDF',
+    description: 'Incluye flujo, adjuntos y comentarios por archivo ACC.',
+  })
   @Get(':reviewId/export/pdf')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -234,6 +250,7 @@ export class AccReviewsController {
    * GET /acc/projects/:projectId/reviews/:reviewId
    * Obtiene el detalle de una revisi?n
    */
+  @ApiOperation({ summary: 'Detalle APS de revisión por identificador' })
   @Get(':reviewId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -264,6 +281,7 @@ export class AccReviewsController {
    * GET /acc/projects/:projectId/reviews/:reviewId/workflow
    * Obtiene el workflow de una revisi?n
    */
+  @ApiOperation({ summary: 'Workflow estático Autodesk asociado a la revisión' })
   @Get(':reviewId/workflow')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -297,6 +315,7 @@ export class AccReviewsController {
    * GET /acc/projects/:projectId/reviews/:reviewId/progress
    * Obtiene el progreso de una revisi?n
    */
+  @ApiOperation({ summary: 'Avance (% pasos cerrados APS)' })
   @Get(':reviewId/progress')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -330,6 +349,7 @@ export class AccReviewsController {
    * GET /acc/projects/:projectId/reviews/:reviewId/versions
    * Obtiene las versiones de documentos vinculados a una revisi?n
    */
+  @ApiOperation({ summary: 'Versiones BIM360/ACC relacionadas revisión actual' })
   @Get(':reviewId/versions')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -363,6 +383,7 @@ export class AccReviewsController {
    * GET /acc/projects/:projectId/reviews/:reviewId/references
    * Lista las referencias de una revisi?n
    */
+  @ApiOperation({ summary: 'Referencias cruzadas almacenadas en GVR' })
   @Get(':reviewId/references')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -389,6 +410,7 @@ export class AccReviewsController {
    * POST /acc/projects/:projectId/reviews/:reviewId/references
    * Agrega una o varias referencias a una revisi?n
    */
+  @ApiOperation({ summary: 'Adjuntar referencias internas proyecto ↔ revisión ACC' })
   @Post(':reviewId/references')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -431,6 +453,9 @@ export class AccReviewsController {
    * DELETE /acc/projects/:projectId/reviews/:reviewId/references/:refId
    * Elimina una referencia de una revisi?n
    */
+  @ApiOperation({
+    summary: 'Eliminar referencia previamente persistida por id numérico GVR',
+  })
   @Delete(':reviewId/references/:refId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -453,6 +478,10 @@ export class AccReviewsController {
    * POST /acc/projects/:projectId/reviews/:reviewId/void
    * Anula completamente una revisi?n (Void entire review).
    */
+  @ApiOperation({
+    summary: 'Anular completamente revisión (void entire APS)',
+    description: 'Solo roles con permiso de owner según Autodesk.',
+  })
   @Post(':reviewId/void')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -488,6 +517,10 @@ export class AccReviewsController {
    * POST /acc/projects/:projectId/reviews/:reviewId/skip-step
    * Salta el paso actual y avanza al siguiente.
    */
+  @ApiOperation({
+    summary: 'Forzar paso siguiente sin completar chequeos Autodesk',
+    description: 'Útil automatizaciones aprobadas por PM.',
+  })
   @Post(':reviewId/skip-step')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -523,6 +556,10 @@ export class AccReviewsController {
    * POST /acc/projects/:projectId/reviews/:reviewId/return-step
    * Devuelve la revisi?n al paso anterior.
    */
+  @ApiOperation({
+    summary: 'Regresionar workflow al estado previo Autodesk',
+    description: 'Motivo debe ir en dto.body.',
+  })
   @Post(':reviewId/return-step')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -555,6 +592,10 @@ export class AccReviewsController {
   }
 
   /** POST /acc/projects/:projectId/reviews/:reviewId/claim-step ��� Inicia / reclama el paso actual */
+  @ApiOperation({
+    summary: 'Reclamar paso editable (equivalent a claim Autodesk)',
+    description: 'Usuario actual se bloquea escritura exclusiva APS.',
+  })
   @Post(':reviewId/claim-step')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -580,6 +621,10 @@ export class AccReviewsController {
   }
 
   /** POST /acc/projects/:projectId/reviews/:reviewId/delegate-step ��� Delega / libera el paso actual */
+  @ApiOperation({
+    summary: 'Delegar liberación paso Autodesk',
+    description: 'Útil cuando revisor debe ceder escritura concurrente.',
+  })
   @Post(':reviewId/delegate-step')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -605,6 +650,10 @@ export class AccReviewsController {
   }
 
   /** POST /acc/projects/:projectId/reviews/:reviewId/submit-step ��� Entrega la rese?a del paso actual */
+  @ApiOperation({
+    summary: 'Enviar reseña/cierre del paso activo Autodesk',
+    description: 'Fusiona contenido APS + payloads GVR (observaciones).',
+  })
   @Post(':reviewId/submit-step')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -635,6 +684,11 @@ export class AccReviewsController {
    * POST /acc/projects/:projectId/reviews/:reviewId/notify-reviewers
    * Encola correos a revisores (plantilla revision-reviewer-notify).
    */
+  @ApiOperation({
+    summary: 'Encolar emails a revisores (plantilla reviewer-notify)',
+    description:
+      'Procesamiento asíncrono vía infraestructura de correos proyecto.',
+  })
   @Post(':reviewId/notify-reviewers')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -665,6 +719,11 @@ export class AccReviewsController {
   }
 
   /** GET /acc/projects/:projectId/reviews/:reviewId/files/:fileId/comments */
+  @ApiOperation({
+    summary: 'Histórico de comentarios en archivo ACC embebidos en revisión GVR',
+    description:
+      'Resuelve id revision GVR-### antes de obtener comentarios.',
+  })
   @Get(':reviewId/files/:fileId/comments')
   @UseGuards(JwtAuthGuard)
   async getComentariosArchivo(
@@ -685,6 +744,11 @@ export class AccReviewsController {
   }
 
   /** POST /acc/projects/:projectId/reviews/:reviewId/files/:fileId/comments */
+  @ApiOperation({
+    summary: 'Agregar marcador/discusión BIM sobre archivo de revisión',
+    description:
+      'Sincroniza con ACC Markups según archivo numérico asociado.',
+  })
   @Post(':reviewId/files/:fileId/comments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)

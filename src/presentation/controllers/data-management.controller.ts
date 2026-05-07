@@ -20,7 +20,10 @@ import { ObtenerHubsDto } from '../../application/dtos/data-management/obtener-h
 import { ObtenerProyectosDto } from '../../application/dtos/data-management/obtener-proyectos.dto';
 import { ObtenerItemsDto } from '../../application/dtos/data-management/obtener-items.dto';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc-data')
+@ApiBearerAuth('access-token')
 @Controller('data-management')
 @UseGuards(JwtAuthGuard)
 export class DataManagementController {
@@ -37,6 +40,7 @@ export class DataManagementController {
    * Obtener todos los hubs accesibles
    * GET /data-management/hubs
    */
+  @ApiOperation({ summary: 'Listar hubs ACC a los que tiene acceso el usuario' })
   @Get('hubs')
   @HttpCode(HttpStatus.OK)
   async obtenerHubs(@Req() request: Request, @Query() dto: ObtenerHubsDto) {
@@ -53,6 +57,7 @@ export class DataManagementController {
    * Obtener proyectos de un hub específico
    * GET /data-management/hubs/:hubId/projects
    */
+  @ApiOperation({ summary: 'Proyectos contenidos en un hub' })
   @Get('hubs/:hubId/projects')
   @HttpCode(HttpStatus.OK)
   async obtenerProyectos(
@@ -77,6 +82,7 @@ export class DataManagementController {
    * Obtener un proyecto específico
    * GET /data-management/hubs/:hubId/projects/:projectId
    */
+  @ApiOperation({ summary: 'Detalle de proyecto dentro del hub' })
   @Get('hubs/:hubId/projects/:projectId')
   @HttpCode(HttpStatus.OK)
   async obtenerProyectoPorId(
@@ -101,6 +107,9 @@ export class DataManagementController {
    * Obtener items de un proyecto (carpetas/archivos)
    * GET /data-management/projects/:projectId/items
    */
+  @ApiOperation({
+    summary: 'Listar carpetas y archivos raíz o bajo carpeta (Data Management)',
+  })
   @Get('projects/:projectId/items')
   @HttpCode(HttpStatus.OK)
   async obtenerItems(
@@ -125,6 +134,7 @@ export class DataManagementController {
    * Obtener un item específico
    * GET /data-management/projects/:projectId/items/:itemId
    */
+  @ApiOperation({ summary: 'Obtener item (archivo/carpeta) por ID' })
   @Get('projects/:projectId/items/:itemId')
   @HttpCode(HttpStatus.OK)
   async obtenerItemPorId(
@@ -146,6 +156,7 @@ export class DataManagementController {
    * Obtener versiones de un item
    * GET /data-management/projects/:projectId/items/:itemId/versions
    */
+  @ApiOperation({ summary: 'Historial de versiones de un item' })
   @Get('projects/:projectId/items/:itemId/versions')
   @HttpCode(HttpStatus.OK)
   async obtenerVersionesItem(

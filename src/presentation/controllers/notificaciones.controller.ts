@@ -16,7 +16,10 @@ import { ObtenerNotificacionesUseCase } from '../../application/use-cases/notifi
 import { MarcarNotificacionesEntregadasUseCase } from '../../application/use-cases/notificaciones/marcar-notificaciones-entregadas.use-case';
 import { EliminarNotificacionUseCase } from '../../application/use-cases/notificaciones/eliminar-notificacion.use-case';
 import { EliminarTodasNotificacionesUseCase } from '../../application/use-cases/notificaciones/eliminar-todas-notificaciones.use-case';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('notificaciones')
+@ApiBearerAuth('access-token')
 @Controller('notificaciones')
 @UseGuards(JwtAuthGuard)
 export class NotificacionesController {
@@ -30,6 +33,10 @@ export class NotificacionesController {
     private readonly eliminarTodasNotificacionesUseCase: EliminarTodasNotificacionesUseCase,
   ) {}
 
+  @ApiOperation({
+    summary: 'Notificaciones no entregadas',
+    description: 'Opcional filtro `tipo`.',
+  })
   @Get('pendientes')
   async obtenerPendientes(@Request() req: any, @Query('tipo') tipo?: string) {
     const raw = req.user?.sub ?? req.user?.id ?? req.user?.idusuario;
@@ -53,6 +60,10 @@ export class NotificacionesController {
     };
   }
 
+  @ApiOperation({
+    summary: 'Marcar todas las pendientes como entregadas',
+    description: 'Tras mostrarlas en UI (badge/campana).',
+  })
   @Post('marcar-entregadas')
   async marcarEntregadas(@Request() req: any) {
     const raw = req.user?.sub ?? req.user?.id ?? req.user?.idusuario;
@@ -75,6 +86,10 @@ export class NotificacionesController {
   }
 
   /** Lista todas las notificaciones del usuario (pendientes y entregadas), estado = 1 */
+  @ApiOperation({
+    summary: 'Listar todas las notificaciones del usuario',
+    description: 'Incluye entregadas y pendientes con estado activo.',
+  })
   @Get()
   async listar(@Request() req: any, @Query('tipo') tipo?: string) {
     const raw = req.user?.sub ?? req.user?.id ?? req.user?.idusuario;
@@ -97,6 +112,7 @@ export class NotificacionesController {
   }
 
   /** Soft delete de una notificación. id en URL es el id de BD (sin prefijo notif-). */
+  @ApiOperation({ summary: 'Eliminar una notificación (soft delete)' })
   @Delete(':id')
   async eliminar(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
     const raw = req.user?.sub ?? req.user?.id ?? req.user?.idusuario;
@@ -113,6 +129,7 @@ export class NotificacionesController {
   }
 
   /** Soft delete de todas las notificaciones del usuario */
+  @ApiOperation({ summary: 'Eliminar todas las notificaciones del usuario' })
   @Delete()
   async eliminarTodas(@Request() req: any) {
     const raw = req.user?.sub ?? req.user?.id ?? req.user?.idusuario;

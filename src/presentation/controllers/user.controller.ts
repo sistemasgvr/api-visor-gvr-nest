@@ -15,10 +15,13 @@ import type { Request } from 'express';
 import { ActualizarCredencialesUseCase } from '../../application/use-cases/auth/actualizar-credenciales.use-case';
 import { ObtenerPerfilUsuarioUseCase } from '../../application/use-cases/auth/obtener-perfil-usuario.use-case';
 import { UpdateCredentialsDto } from '../../application/dtos/auth/update-credentials.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 
+@ApiTags('usuarios')
+@ApiBearerAuth('access-token')
 @Controller('usuarios')
 @UseGuards(JwtAuthGuard)
 export class UserController {
@@ -33,6 +36,11 @@ export class UserController {
    * PUT /usuarios/{idUsuario}/credenciales
    * Body: { "nuevoCorreo": "correo@ejemplo.com", "nuevaContrasena": "password123" }
    */
+  @ApiOperation({
+    summary: 'Actualizar correo y/o contraseña',
+    description:
+      'Actualiza credenciales del usuario indicado (requiere permisos de gestión).',
+  })
   @Put(':idUsuario/credenciales')
   @HttpCode(HttpStatus.OK)
   async actualizarCredenciales(
@@ -92,6 +100,11 @@ export class UserController {
    * Obtener perfil de usuario autenticado
    * GET /usuarios/perfil
    */
+  @ApiOperation({
+    summary: 'Perfil de usuario autenticado',
+    description:
+      'Datos del usuario actual (alternativa a GET /auth/perfil según el cliente).',
+  })
   @Get('perfil')
   @HttpCode(HttpStatus.OK)
   async obtenerPerfil(@Req() request: Request) {

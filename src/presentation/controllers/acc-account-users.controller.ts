@@ -32,7 +32,10 @@ import {
   ActualizarUsuarioDto,
   ObtenerProyectosUsuarioDto,
 } from '../../application/dtos/acc/account-users';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc/account-users')
 @UseGuards(JwtAuthGuard)
 export class AccAccountUsersController {
@@ -52,6 +55,7 @@ export class AccAccountUsersController {
    * POST - Crear un nuevo usuario en BIM 360/ACC
    * POST /acc/account-users/:accountId
    */
+  @ApiOperation({ summary: 'Crear usuario en la cuenta BIM 360/ACC' })
   @Post(':accountId')
   @HttpCode(HttpStatus.CREATED)
   async crearUsuario(
@@ -73,6 +77,7 @@ export class AccAccountUsersController {
    * POST - Importar múltiples usuarios
    * POST /acc/account-users/:accountId/import
    */
+  @ApiOperation({ summary: 'Importar varios usuarios en la cuenta' })
   @Post(':accountId/import')
   @HttpCode(HttpStatus.OK)
   async importarUsuarios(
@@ -97,6 +102,7 @@ export class AccAccountUsersController {
    * GET - Obtener todos los usuarios de una cuenta
    * GET /acc/account-users/:accountId
    */
+  @ApiOperation({ summary: 'Listar usuarios de la cuenta' })
   @Get(':accountId')
   @HttpCode(HttpStatus.OK)
   async obtenerUsuarios(
@@ -118,6 +124,7 @@ export class AccAccountUsersController {
    * GET - Buscar usuarios por nombre
    * GET /acc/account-users/:accountId/search
    */
+  @ApiOperation({ summary: 'Buscar usuarios de la cuenta por criterios' })
   @Get(':accountId/search')
   @HttpCode(HttpStatus.OK)
   async buscarUsuarios(
@@ -139,6 +146,7 @@ export class AccAccountUsersController {
    * GET - Obtener un usuario específico por ID
    * GET /acc/account-users/:accountId/:userId
    */
+  @ApiOperation({ summary: 'Obtener un usuario de la cuenta por ID' })
   @Get(':accountId/:userId')
   @HttpCode(HttpStatus.OK)
   async obtenerUsuarioPorId(
@@ -168,6 +176,7 @@ export class AccAccountUsersController {
    * GET - Obtener los proyectos de un usuario
    * GET /acc/account-users/:accountId/:userId/projects
    */
+  @ApiOperation({ summary: 'Listar proyectos asignados a un usuario' })
   @Get(':accountId/:userId/projects')
   @HttpCode(HttpStatus.OK)
   async obtenerProyectosUsuario(
@@ -197,6 +206,7 @@ export class AccAccountUsersController {
    * GET - Obtener los productos de un usuario
    * GET /acc/account-users/:accountId/:userId/products
    */
+  @ApiOperation({ summary: 'Listar productos/licencias del usuario en la cuenta' })
   @Get(':accountId/:userId/products')
   @HttpCode(HttpStatus.OK)
   async obtenerProductosUsuario(
@@ -226,6 +236,7 @@ export class AccAccountUsersController {
    * GET - Obtener los roles de un usuario
    * GET /acc/account-users/:accountId/:userId/roles
    */
+  @ApiOperation({ summary: 'Listar roles del usuario en la cuenta' })
   @Get(':accountId/:userId/roles')
   @HttpCode(HttpStatus.OK)
   async obtenerRolesUsuario(
@@ -255,6 +266,7 @@ export class AccAccountUsersController {
    * PATCH - Actualizar un usuario
    * PATCH /acc/account-users/:accountId/:userId
    */
+  @ApiOperation({ summary: 'Actualizar datos de un usuario de la cuenta' })
   @Patch(':accountId/:userId')
   @HttpCode(HttpStatus.OK)
   async actualizarUsuario(

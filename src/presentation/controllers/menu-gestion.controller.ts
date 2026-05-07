@@ -45,7 +45,10 @@ import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { BroadcastService } from '../../shared/services/broadcast.service';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('menu-gestion')
+@ApiBearerAuth('access-token')
 @Controller('menus')
 @UseGuards(JwtAuthGuard)
 export class MenuGestionController {
@@ -71,6 +74,10 @@ export class MenuGestionController {
     private readonly broadcastService: BroadcastService,
   ) {}
 
+  @ApiOperation({
+    summary: 'Obtener árbol completo de menús',
+    description: 'Lista jerárquica para administración de navegación.',
+  })
   @Get('tree')
   @HttpCode(HttpStatus.OK)
   async listarMenusTree() {
@@ -81,6 +88,7 @@ export class MenuGestionController {
     );
   }
 
+  @ApiOperation({ summary: 'Listar menús candidatos como padre' })
   @Get('padres-disponibles')
   @HttpCode(HttpStatus.OK)
   async listarMenuPadresDisponibles(
@@ -95,6 +103,7 @@ export class MenuGestionController {
     );
   }
 
+  @ApiOperation({ summary: 'Listar menús con búsqueda y paginación' })
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarMenus(
@@ -110,6 +119,7 @@ export class MenuGestionController {
     return ApiResponseDto.success(data, 'Menús obtenidos exitosamente');
   }
 
+  @ApiOperation({ summary: 'Detalle amplio del menú (roles, rutas, etc.)' })
   @Get(':id/detalle')
   @HttpCode(HttpStatus.OK)
   async obtenerDetalleMenu(@Param('id', ParseIntPipe) id: number) {
@@ -120,6 +130,7 @@ export class MenuGestionController {
     );
   }
 
+  @ApiOperation({ summary: 'Roles ya asignados al menú' })
   @Get(':id/roles')
   @HttpCode(HttpStatus.OK)
   async listarRolesMenu(@Param('id', ParseIntPipe) id: number) {
@@ -130,6 +141,7 @@ export class MenuGestionController {
     );
   }
 
+  @ApiOperation({ summary: 'Roles del sistema disponibles para asignar al menú' })
   @Get(':id/roles-disponibles')
   @HttpCode(HttpStatus.OK)
   async listarRolesDisponibles(@Param('id', ParseIntPipe) id: number) {
@@ -140,6 +152,7 @@ export class MenuGestionController {
     );
   }
 
+  @ApiOperation({ summary: 'Obtener menú por ID' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async obtenerMenu(@Param('id', ParseIntPipe) id: number) {
@@ -147,6 +160,7 @@ export class MenuGestionController {
     return ApiResponseDto.success(data, 'Menú obtenido exitosamente');
   }
 
+  @ApiOperation({ summary: 'Crear nuevo menú' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async crearMenu(@Body() createDto: CreateMenuDto, @Req() request: Request) {
@@ -165,6 +179,7 @@ export class MenuGestionController {
     return ApiResponseDto.created(data, 'Menú creado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Clonar menú existente' })
   @Post(':id/clonar')
   @HttpCode(HttpStatus.CREATED)
   async clonarMenu(
@@ -185,6 +200,7 @@ export class MenuGestionController {
     return ApiResponseDto.created(data, 'Menú clonado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Asignar un rol al menú' })
   @Post(':id/roles')
   @HttpCode(HttpStatus.CREATED)
   async asignarRolMenu(
@@ -205,6 +221,7 @@ export class MenuGestionController {
     return ApiResponseDto.created(data, 'Rol asignado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Asignar varios roles al menú en un solo alta' })
   @Post(':id/roles-multiples')
   @HttpCode(HttpStatus.CREATED)
   async asignarRolesMenu(
@@ -225,6 +242,7 @@ export class MenuGestionController {
     return ApiResponseDto.created(data, 'Roles asignados exitosamente');
   }
 
+  @ApiOperation({ summary: 'Actualizar datos del menú' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async editarMenu(
@@ -251,6 +269,7 @@ export class MenuGestionController {
     return ApiResponseDto.success(data, 'Menú actualizado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Mover menú bajo otro padre / posición' })
   @Put(':id/mover')
   @HttpCode(HttpStatus.OK)
   async moverMenu(
@@ -267,6 +286,7 @@ export class MenuGestionController {
     return ApiResponseDto.success(data, 'Menú movido exitosamente');
   }
 
+  @ApiOperation({ summary: 'Reordenar hermanos bajo el mismo padre' })
   @Put(':id/reordenar')
   @HttpCode(HttpStatus.OK)
   async reordenarMenu(
@@ -287,6 +307,7 @@ export class MenuGestionController {
     return ApiResponseDto.success(data, 'Menú reordenado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Sincronizar roles del menú con la lista enviada' })
   @Put(':id/roles/sincronizar')
   @HttpCode(HttpStatus.OK)
   async sincronizarRolesMenu(
@@ -307,6 +328,7 @@ export class MenuGestionController {
     return ApiResponseDto.success(data, 'Roles sincronizados exitosamente');
   }
 
+  @ApiOperation({ summary: 'Quitar un rol del menú' })
   @Delete(':id/roles/:idRol')
   @HttpCode(HttpStatus.OK)
   async removerRolMenu(
@@ -327,6 +349,7 @@ export class MenuGestionController {
     return ApiResponseDto.success(data, 'Rol removido exitosamente');
   }
 
+  @ApiOperation({ summary: 'Eliminar menú' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async eliminarMenu(

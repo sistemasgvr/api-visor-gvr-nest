@@ -51,6 +51,10 @@ import {
   ListarUsuariosDisponiblesRecursoDto,
 } from '../../application/dtos/acc/resources';
 
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc/resources')
 @UseGuards(JwtAuthGuard)
 export class AccResourcesController {
@@ -80,6 +84,9 @@ export class AccResourcesController {
    * GET /acc/resources/permission-levels
    * IMPORTANTE: Esta ruta debe ir ANTES de las rutas con parámetros dinámicos
    */
+  @ApiOperation({
+    summary: 'Catálogo ACC de niveles de permiso (view/download/view+download...)',
+  })
   @Get('permission-levels')
   @HttpCode(HttpStatus.OK)
   async listPermissionLevels() {
@@ -94,6 +101,9 @@ export class AccResourcesController {
    * GET - Listar recursos ACC con paginación y búsqueda
    * GET /acc/resources
    */
+  @ApiOperation({
+    summary: 'Listar carpetas/archivos sincronizados con paginación interna',
+  })
   @Get()
   @HttpCode(HttpStatus.OK)
   async index(@Query() dto: ListarRecursosDto) {
@@ -121,6 +131,9 @@ export class AccResourcesController {
    * GET /acc/resources/roles/:roleId/permissions
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({
+    summary: 'Permisos de rol sobre recursos ACC enlazados localmente',
+  })
   @Get('roles/:roleId/permissions')
   @HttpCode(HttpStatus.OK)
   async listRolePermissions(
@@ -159,6 +172,7 @@ export class AccResourcesController {
    * GET /acc/resources/:resourceId/roles
    * IMPORTANTE: Esta ruta debe ir antes de la ruta genérica :id
    */
+  @ApiOperation({ summary: 'Roles con acceso efectivo a un recurso' })
   @Get(':resourceId/roles')
   @HttpCode(HttpStatus.OK)
   async listResourceRoles(@Param('resourceId') resourceId: string) {
@@ -181,6 +195,7 @@ export class AccResourcesController {
    * GET - Obtener recurso ACC por ID
    * GET /acc/resources/:id
    */
+  @ApiOperation({ summary: 'Detalle simplificado de recurso interno + URN ACC' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async show(@Param('id') id: string) {
@@ -199,6 +214,10 @@ export class AccResourcesController {
    * POST - Crear o sincronizar recurso ACC
    * POST /acc/resources
    */
+  @ApiOperation({
+    summary: 'Crear o enlazar recurso ACC con metadatos GVR',
+    description: 'Persiste fila y relaciona con proyecto/carpeta APS.',
+  })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async store(@Body() dto: CrearRecursoDto, @Req() request: Request) {
@@ -216,6 +235,7 @@ export class AccResourcesController {
    * PUT - Actualizar recurso ACC
    * PUT /acc/resources/:id
    */
+  @ApiOperation({ summary: 'Actualizar recurso (soft fields, path, etc.)' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async update(
@@ -248,6 +268,7 @@ export class AccResourcesController {
    * DELETE - Eliminar recurso ACC (Soft Delete)
    * DELETE /acc/resources/:id
    */
+  @ApiOperation({ summary: 'Borrado lógico de recurso enlazado ACC' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async destroy(@Param('id') id: string, @Req() request: Request) {
@@ -275,6 +296,7 @@ export class AccResourcesController {
    * POST - Asignar permiso de recurso a rol
    * POST /acc/resources/permissions
    */
+  @ApiOperation({ summary: 'Asignar recurso concreto a rol con nivel APS' })
   @Post('permissions')
   @HttpCode(HttpStatus.CREATED)
   async assignPermission(
@@ -295,6 +317,7 @@ export class AccResourcesController {
    * DELETE - Remover permiso de recurso a rol
    * DELETE /acc/resources/permissions/:id
    */
+  @ApiOperation({ summary: 'Quitar vínculo recurso-rol' })
   @Delete('permissions/:id')
   @HttpCode(HttpStatus.OK)
   async removePermission(@Param('id') id: string, @Req() request: Request) {
@@ -322,6 +345,9 @@ export class AccResourcesController {
    * PUT - Sincronizar permisos de un rol (asignar múltiples recursos)
    * PUT /acc/resources/roles/:roleId/permissions/sync
    */
+  @ApiOperation({
+    summary: 'Reemplazar set completo de permisos de rol sobre recursos ACC',
+  })
   @Put('roles/:roleId/permissions/sync')
   @HttpCode(HttpStatus.OK)
   async syncRolePermissions(
@@ -357,6 +383,9 @@ export class AccResourcesController {
    * GET - Listar permisos de un usuario específico
    * GET /acc/resources/users/:userId/permissions
    */
+  @ApiOperation({
+    summary: 'Paginar permisos directos de usuario sobre ACC resources',
+  })
   @Get('users/:userId/permissions')
   @HttpCode(HttpStatus.OK)
   async listUserPermissions(
@@ -397,6 +426,11 @@ export class AccResourcesController {
    * GET /acc/resources/:resourceId/users/available
    * IMPORTANTE: Esta ruta debe ir antes de la ruta genérica :id
    */
+  @ApiOperation({
+    summary: 'Usuarios internos disponibles sin permiso sobre recurso ACC',
+    description:
+      'Incluye filtros texto y paginación; útil UI de asistentes.',
+  })
   @Get(':resourceId/users/available')
   @HttpCode(HttpStatus.OK)
   async listAvailableUsersForResource(
@@ -438,6 +472,7 @@ export class AccResourcesController {
    * GET /acc/resources/:resourceId/users
    * IMPORTANTE: Esta ruta debe ir antes de la ruta genérica :id
    */
+  @ApiOperation({ summary: 'Usuarios con permiso directo sobre el recurso' })
   @Get(':resourceId/users')
   @HttpCode(HttpStatus.OK)
   async listResourceUsers(@Param('resourceId') resourceId: string) {
@@ -460,6 +495,7 @@ export class AccResourcesController {
    * POST - Asignar permiso de recurso a usuario (con nivel de permiso)
    * POST /acc/resources/users/permissions
    */
+  @ApiOperation({ summary: 'Dar permiso de recurso específico a usuario con nivel APS' })
   @Post('users/permissions')
   @HttpCode(HttpStatus.CREATED)
   async assignUserPermission(
@@ -483,6 +519,7 @@ export class AccResourcesController {
    * PATCH - Actualizar nivel de permiso de un usuario
    * PATCH /acc/resources/users/permissions/:id/level
    */
+  @ApiOperation({ summary: 'Cambiar nivel APS de una asignación usuario-recurso' })
   @Patch('users/permissions/:id/level')
   @HttpCode(HttpStatus.OK)
   async updateUserPermissionLevel(
@@ -515,6 +552,7 @@ export class AccResourcesController {
    * DELETE - Remover permiso de recurso a usuario
    * DELETE /acc/resources/users/permissions/:id
    */
+  @ApiOperation({ summary: 'Revocar permiso directo usuario-recurso' })
   @Delete('users/permissions/:id')
   @HttpCode(HttpStatus.OK)
   async removeUserPermission(@Param('id') id: string, @Req() request: Request) {
@@ -542,6 +580,11 @@ export class AccResourcesController {
    * PUT - Sincronizar permisos de un usuario (asignar múltiples recursos)
    * PUT /acc/resources/users/:userId/permissions/sync
    */
+  @ApiOperation({
+    summary: 'Reconciliar todos los permisos de usuario contra ACC resources',
+    description:
+      'Sustituye el set configurado manteniendo trazabilidad en BD.',
+  })
   @Put('users/:userId/permissions/sync')
   @HttpCode(HttpStatus.OK)
   async syncUserPermissions(

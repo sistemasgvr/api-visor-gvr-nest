@@ -59,7 +59,10 @@ import { CrearCarpetaDto } from '../../application/dtos/data-management/folders/
 import { CrearSubcarpetaDto } from '../../application/dtos/data-management/folders/crear-subcarpeta.dto';
 import { CrearReferenciaDto } from '../../application/dtos/data-management/folders/crear-referencia.dto';
 import { ActualizarCarpetaDto } from '../../application/dtos/data-management/folders/actualizar-carpeta.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc-data')
+@ApiBearerAuth('access-token')
 @Controller('data-management/folders')
 @UseGuards(JwtAuthGuard)
 export class DataManagementFoldersController {
@@ -89,6 +92,10 @@ export class DataManagementFoldersController {
    * POST - PDF registro de archivos (carpeta actual o con subcarpetas)
    * POST /data-management/folders/:projectId/:folderId/export/file-registry/pdf
    */
+  @ApiOperation({
+    summary: 'Exportar PDF de registro de archivos',
+    description: 'Carpeta actual o incluyendo subcarpetas según filtros.',
+  })
   @Post(':projectId/:folderId/export/file-registry/pdf')
   @HttpCode(HttpStatus.OK)
   async exportarRegistroArchivosPdf(
@@ -129,6 +136,10 @@ export class DataManagementFoldersController {
    * POST - PDF de permisos de carpeta (GVR: accresources + asignaciones)
    * POST /data-management/folders/:projectId/:folderId/export/permissions/pdf
    */
+  @ApiOperation({
+    summary: 'Exportar PDF de permisos de carpeta',
+    description: 'Combina accresources locales con asignaciones GVR.',
+  })
   @Post(':projectId/:folderId/export/permissions/pdf')
   @HttpCode(HttpStatus.OK)
   async exportarPermisosCarpetaPdf(
@@ -169,6 +180,7 @@ export class DataManagementFoldersController {
    * GET - Obtener una carpeta específica por ID
    * GET /data-management/folders/:projectId/:folderId
    */
+  @ApiOperation({ summary: 'Obtener carpeta por ID', description: 'Incluye filtros tipados ACC.' })
   @Get(':projectId/:folderId')
   @HttpCode(HttpStatus.OK)
   async obtenerCarpetaPorId(
@@ -195,6 +207,10 @@ export class DataManagementFoldersController {
    * DELETE - Marcar carpeta como eliminada (hidden=true)
    * DELETE /data-management/folders/:projectId/:folderId
    */
+  @ApiOperation({
+    summary: 'Marcar carpeta como eliminada (hidden)',
+    description: 'Auditoría opcional por IP/agente desde el JWT.',
+  })
   @Delete(':projectId/:folderId')
   @HttpCode(HttpStatus.OK)
   async eliminarCarpeta(
@@ -234,6 +250,7 @@ export class DataManagementFoldersController {
    * GET - Obtener el contenido de una carpeta (subcarpetas y archivos)
    * GET /data-management/folders/:projectId/:folderId/contents
    */
+  @ApiOperation({ summary: 'Listar contenido de la carpeta (items y refs)' })
   @Get(':projectId/:folderId/contents')
   @HttpCode(HttpStatus.OK)
   async obtenerContenidoCarpeta(
@@ -265,6 +282,7 @@ export class DataManagementFoldersController {
    * GET - Buscar en el contenido de una carpeta por nombre u otros criterios
    * GET /data-management/folders/:projectId/:folderId/search-content
    */
+  @ApiOperation({ summary: 'Buscar dentro del listado contenido sin salir del ámbito' })
   @Get(':projectId/:folderId/search-content')
   @HttpCode(HttpStatus.OK)
   async buscarEnContenidoCarpeta(
@@ -291,6 +309,7 @@ export class DataManagementFoldersController {
    * GET - Obtener la carpeta padre de una carpeta
    * GET /data-management/folders/:projectId/:folderId/parent
    */
+  @ApiOperation({ summary: 'Obtener carpeta padre' })
   @Get(':projectId/:folderId/parent')
   @HttpCode(HttpStatus.OK)
   async obtenerCarpetaPadre(
@@ -317,6 +336,7 @@ export class DataManagementFoldersController {
    * GET - Obtener las referencias (refs) de una carpeta
    * GET /data-management/folders/:projectId/:folderId/refs
    */
+  @ApiOperation({ summary: 'Referencias (refs) de la carpeta' })
   @Get(':projectId/:folderId/refs')
   @HttpCode(HttpStatus.OK)
   async obtenerReferencias(
@@ -343,6 +363,7 @@ export class DataManagementFoldersController {
    * GET - Obtener las relaciones de links de una carpeta
    * GET /data-management/folders/:projectId/:folderId/relationships/links
    */
+  @ApiOperation({ summary: 'Relaciones links declaradas sobre la carpeta' })
   @Get(':projectId/:folderId/relationships/links')
   @HttpCode(HttpStatus.OK)
   async obtenerRelacionesLinks(
@@ -369,6 +390,7 @@ export class DataManagementFoldersController {
    * GET - Obtener las relaciones de refs de una carpeta
    * GET /data-management/folders/:projectId/:folderId/relationships/refs
    */
+  @ApiOperation({ summary: 'Relaciones refs declaradas sobre la carpeta' })
   @Get(':projectId/:folderId/relationships/refs')
   @HttpCode(HttpStatus.OK)
   async obtenerRelacionesRefs(
@@ -395,6 +417,7 @@ export class DataManagementFoldersController {
    * GET - Buscar dentro de una carpeta (endpoint original)
    * GET /data-management/folders/:projectId/:folderId/search
    */
+  @ApiOperation({ summary: 'Búsqueda global APS dentro de carpeta base' })
   @Get(':projectId/:folderId/search')
   @HttpCode(HttpStatus.OK)
   async buscarEnCarpeta(
@@ -421,6 +444,7 @@ export class DataManagementFoldersController {
    * POST - Crear una nueva carpeta
    * POST /data-management/folders/:projectId
    */
+  @ApiOperation({ summary: 'Crear carpeta de nivel alto en proyecto' })
   @Post(':projectId')
   @HttpCode(HttpStatus.CREATED)
   async crearCarpeta(
@@ -453,6 +477,7 @@ export class DataManagementFoldersController {
    * POST - Crear una subcarpeta dentro de una carpeta padre
    * POST /data-management/folders/:projectId/:parentFolderId/subfolders
    */
+  @ApiOperation({ summary: 'Crear subcarpeta bajo un folder padre' })
   @Post(':projectId/:parentFolderId/subfolders')
   @HttpCode(HttpStatus.CREATED)
   async crearSubcarpeta(
@@ -487,6 +512,7 @@ export class DataManagementFoldersController {
    * POST - Crear una referencia en una carpeta
    * POST /data-management/folders/:projectId/:folderId/relationships/refs
    */
+  @ApiOperation({ summary: 'Adjuntar ref de otro recurso a la carpeta' })
   @Post(':projectId/:folderId/relationships/refs')
   @HttpCode(HttpStatus.CREATED)
   async crearReferencia(
@@ -513,6 +539,7 @@ export class DataManagementFoldersController {
    * PATCH - Actualizar una carpeta
    * PATCH /data-management/folders/:projectId/:folderId
    */
+  @ApiOperation({ summary: 'Actualizar nombre o metadatos de carpeta' })
   @Patch(':projectId/:folderId')
   @HttpCode(HttpStatus.OK)
   async actualizarCarpeta(
@@ -548,6 +575,10 @@ export class DataManagementFoldersController {
    * POST /data-management/folders/sync/:hubId/:projectId
    * Body (opcional): { roles_ids: [1, 2, 3] }
    */
+  @ApiOperation({
+    summary: 'Sincronizar todas las carpetas del proyecto desde ACC',
+    description: 'Body opcional roles_ids para asignaciones posteriores.',
+  })
   @Post('sync/:hubId/:projectId')
   @HttpCode(HttpStatus.OK)
   async sincronizarCarpetasProyecto(

@@ -22,7 +22,10 @@ import {
   ObtenerHistorialUsuarioDto,
   ObtenerEstadisticasDto,
 } from '../../application/dtos/auditoria';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auditoria')
+@ApiBearerAuth('access-token')
 @Controller('auditoria')
 @UseGuards(JwtAuthGuard)
 export class AuditoriaController {
@@ -39,6 +42,10 @@ export class AuditoriaController {
    * GET /auditoria/estadisticas
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({
+    summary: 'Estadísticas agregadas de auditoría',
+    description: 'Resúmenes por tipo de evento, usuario o período (según query).',
+  })
   @Get('estadisticas')
   @HttpCode(HttpStatus.OK)
   async obtenerEstadisticas(@Query() dto: ObtenerEstadisticasDto) {
@@ -54,6 +61,11 @@ export class AuditoriaController {
    * GET /auditoria/entidad/:entidad/:id
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({
+    summary: 'Historial de cambios de una entidad',
+    description:
+      'Parámetro entidad: nombre de tabla/tipo lógico; id: clave primaria.',
+  })
   @Get('entidad/:entidad/:id')
   @HttpCode(HttpStatus.OK)
   async obtenerHistorialEntidad(
@@ -76,6 +88,10 @@ export class AuditoriaController {
    * GET /auditoria/usuario/:id
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({
+    summary: 'Historial de acciones de un usuario del sistema',
+    description: 'Paginado; filtros en query según ObtenerHistorialUsuarioDto.',
+  })
   @Get('usuario/:id')
   @HttpCode(HttpStatus.OK)
   async obtenerHistorialUsuario(
@@ -102,6 +118,10 @@ export class AuditoriaController {
    * GET - Listar auditorías con filtros
    * GET /auditoria
    */
+  @ApiOperation({
+    summary: 'Listado paginado de registros de auditoría',
+    description: 'Filtros por fecha, usuario, entidad, acción, etc.',
+  })
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarAuditorias(@Query() dto: ListarAuditoriasDto) {
@@ -117,6 +137,7 @@ export class AuditoriaController {
    * GET - Obtener auditoría por ID
    * GET /auditoria/:id
    */
+  @ApiOperation({ summary: 'Detalle de un registro de auditoría por id' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async obtenerAuditoriaPorId(@Param('id') id: string) {

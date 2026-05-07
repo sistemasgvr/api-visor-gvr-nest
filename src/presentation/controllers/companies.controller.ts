@@ -34,7 +34,10 @@ import {
   ActualizarCompanyDto,
   ObtenerCompaniesProyectoDto,
 } from '../../application/dtos/acc/companies';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('companies')
+@ApiBearerAuth('access-token')
 @Controller('acc/companies')
 @UseGuards(JwtAuthGuard)
 export class CompaniesController {
@@ -53,6 +56,7 @@ export class CompaniesController {
    * POST - Crear una nueva compañía
    * POST /acc/companies/:accountId
    */
+  @ApiOperation({ summary: 'Crear una compañía en la cuenta ACC' })
   @Post(':accountId')
   @HttpCode(HttpStatus.CREATED)
   async crearCompany(
@@ -74,6 +78,7 @@ export class CompaniesController {
    * POST - Importar múltiples compañías
    * POST /acc/companies/:accountId/import
    */
+  @ApiOperation({ summary: 'Importar compañías en bloque' })
   @Post(':accountId/import')
   @HttpCode(HttpStatus.OK)
   async importarCompanies(
@@ -98,6 +103,7 @@ export class CompaniesController {
    * GET - Obtener todas las compañías de una cuenta
    * GET /acc/companies/:accountId
    */
+  @ApiOperation({ summary: 'Listar compañías de la cuenta con paginación' })
   @Get(':accountId')
   @HttpCode(HttpStatus.OK)
   async obtenerCompanies(
@@ -134,6 +140,7 @@ export class CompaniesController {
    * GET - Buscar compañías
    * GET /acc/companies/:accountId/search
    */
+  @ApiOperation({ summary: 'Buscar compañías en la cuenta' })
   @Get(':accountId/search')
   @HttpCode(HttpStatus.OK)
   async buscarCompanies(
@@ -167,6 +174,7 @@ export class CompaniesController {
    * GET - Obtener una compañía específica por ID
    * GET /acc/companies/:accountId/:companyId
    */
+  @ApiOperation({ summary: 'Obtener compañía por ID' })
   @Get(':accountId/:companyId')
   @HttpCode(HttpStatus.OK)
   async obtenerCompanyPorId(
@@ -196,6 +204,7 @@ export class CompaniesController {
    * PATCH - Actualizar una compañía
    * PATCH /acc/companies/:accountId/:companyId
    */
+  @ApiOperation({ summary: 'Actualizar datos de la compañía' })
   @Patch(':accountId/:companyId')
   @HttpCode(HttpStatus.OK)
   async actualizarCompany(
@@ -225,6 +234,7 @@ export class CompaniesController {
    * PATCH - Subir imagen de una compañía
    * PATCH /acc/companies/:accountId/:companyId/image
    */
+  @ApiOperation({ summary: 'Subir o cambiar imagen de la compañía' })
   @Patch(':accountId/:companyId/image')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('image'))
@@ -258,6 +268,8 @@ export class CompaniesController {
  * Controller para obtener compañías de un proyecto específico
  * GET /projects/:accountId/:projectId/companies
  */
+@ApiTags('companies')
+@ApiBearerAuth('access-token')
 @Controller('projects')
 @UseGuards(JwtAuthGuard)
 export class ProjectsCompaniesController {
@@ -265,6 +277,9 @@ export class ProjectsCompaniesController {
     private readonly obtenerCompaniesProyectoUseCase: ObtenerCompaniesProyectoUseCase,
   ) {}
 
+  @ApiOperation({
+    summary: 'Listar compañías del proyecto BIM/ACC',
+  })
   @Get(':accountId/:projectId/companies')
   @HttpCode(HttpStatus.OK)
   async obtenerCompaniesPorProyecto(

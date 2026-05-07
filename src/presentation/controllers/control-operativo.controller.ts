@@ -48,7 +48,9 @@ import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { AgregarEvidenciasActividadDto } from '../../application/dtos/control-operativo/agregar-evidencias-actividad.dto';
 import type { ActividadEvidenciaEntrada } from '../../domain/repositories/control-operativo.repository.interface';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('control-operativo')
 @Controller('control-operativo')
 export class ControlOperativoController {
   constructor(
@@ -88,6 +90,12 @@ export class ControlOperativoController {
    * Crea Alertas para quien no abrió ese día; pone en Alerta las de ese día sin actividades;
    * jornadas pasados los días de tolerancia: con actividades → Cerrado, sin actividades → Incompleto.
    */
+  @ApiOperation({
+    summary: 'Cron: cierre de jornadas al final del día',
+    description:
+      'Requiere query `key=CRON_SECRET` si está configurado. Opcional `fecha=YYYY-MM-DD`. Marca jornadas, alertas e incompletos según reglas de negocio.',
+    security: [],
+  })
   @Get('cron/cierre-jornadas')
   async cronCierreJornadas(
     @Query('key') key?: string,
@@ -118,6 +126,11 @@ export class ControlOperativoController {
    * Detecta actividades con más de 7 días sin validar, notifica por WebSocket y persiste
    * notificaciones para Administradores (1), Gerencia (5) y Administrador GVR (11).
    */
+  @ApiOperation({
+    summary: 'Cron: alerta actividades sin validar (>7 días en Por aprobar)',
+    description: 'Requiere `key=CRON_SECRET`. Notifica a roles administrativos.',
+    security: [],
+  })
   @Get('cron/alerta-actividades-sin-validar')
   @HttpCode(HttpStatus.OK)
   async cronAlertaActividadesSinValidar(
@@ -146,6 +159,10 @@ export class ControlOperativoController {
    * Listar jornadas de un trabajador en un rango de fechas (por defecto semana actual).
    * GET /control-operativo/trabajadores/:idTrabajador/jornadas?fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD&limit=10&offset=0
    */
+  @ApiOperation({
+    summary: 'Listar jornadas de un trabajador',
+    description: 'Rango de fechas opcional (por defecto semana actual).',
+  })
   @Get('trabajadores/:idTrabajador/jornadas')
   @UseGuards(JwtAuthGuard)
   async listarJornadasTrabajador(
@@ -174,6 +191,11 @@ export class ControlOperativoController {
    * Listar trabajadores para el filtro de jornadas (admin: todos; no admin: jerarquía recursiva).
    * GET /control-operativo/trabajadores-para-filtro?idTrabajador=123
    */
+  @ApiOperation({
+    summary: 'Trabajadores para filtro de jornadas',
+    description:
+      'Según rol: administradores ven todos; otros según jerarquía. Requiere idTrabajador en query.',
+  })
   @Get('trabajadores-para-filtro')
   @UseGuards(JwtAuthGuard)
   async listarTrabajadoresParaFiltro(
@@ -203,6 +225,11 @@ export class ControlOperativoController {
    * GET /control-operativo/proyectos-acceso-trabajador?idTrabajador=123&paraValidacion=1
    * paraValidacion=1 usa pro_ListarProyectosParaValidacion (alineado con actividades-validacion).
    */
+  @ApiOperation({
+    summary: 'Proyectos a los que tiene acceso un trabajador',
+    description:
+      'idTrabajador es tratrabajador.id. `paraValidacion=1` usa el mismo alcance que la pestaña Validación.',
+  })
   @Get('proyectos-acceso-trabajador')
   @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')
@@ -235,6 +262,10 @@ export class ControlOperativoController {
    * Dashboard: trabajadores que tienen jornada abierta hoy pero no han registrado ninguna actividad.
    * Roles permitidos enviados por el front (rolesAdmin). GET .../trabajadores-sin-actividades-hoy?fecha=YYYY-MM-DD&rolesAdmin=1,5,11
    */
+  @ApiOperation({
+    summary: 'Dashboard: trabajadores con jornada abierta sin actividades',
+    description: 'Filtra por fecha y roles administrativos permitidos.',
+  })
   @Get('trabajadores-sin-actividades-hoy')
   @UseGuards(JwtAuthGuard)
   async listarTrabajadoresSinActividadesHoy(
@@ -264,6 +295,10 @@ export class ControlOperativoController {
    * Dashboard: trabajadores que no han registrado (abierto) jornada en la fecha (ej. hoy).
    * Roles permitidos enviados por el front (rolesAdmin). GET .../trabajadores-sin-jornada-hoy?fecha=YYYY-MM-DD&rolesAdmin=1,5,11
    */
+  @ApiOperation({
+    summary: 'Dashboard: trabajadores sin jornada registrada en la fecha',
+    description: 'Filtra por fecha y roles administrativos permitidos.',
+  })
   @Get('trabajadores-sin-jornada-hoy')
   @UseGuards(JwtAuthGuard)
   async listarTrabajadoresSinJornadaHoy(
@@ -300,6 +335,11 @@ export class ControlOperativoController {
    * }
    * Si no se envían los opcionales, se obtienen del contrato vigente y configuración.
    */
+  @ApiOperation({
+    summary: 'Crear o reutilizar jornada del trabajador para una fecha',
+    description:
+      'Si ya existe jornada ese día, la devuelve sin duplicar. Body incluye fechaJornada y opcionales de contrato.',
+  })
   @Post('trabajadores/:idTrabajador/jornadas')
   @UseGuards(JwtAuthGuard)
   async crearJornada(
@@ -329,6 +369,10 @@ export class ControlOperativoController {
    * PATCH /control-operativo/jornadas/:idJornada/estado
    * Body: { "idEstadoJornada": number }
    */
+  @ApiOperation({
+    summary: 'Cambiar estado de una jornada',
+    description: 'Uso administrativo o con permiso (ej. Incompleto → Abierta).',
+  })
   @Patch('jornadas/:idJornada/estado')
   @UseGuards(JwtAuthGuard)
   async actualizarEstadoJornada(
@@ -362,6 +406,11 @@ export class ControlOperativoController {
    * Body: idJornada, idProyecto, idTrabajador, idTipoActividad, nombreActividad, ...
    * idCoordinador se obtiene del proyecto (proProyecto.idcoordinador); opcional en body.
    */
+  @ApiOperation({
+    summary: 'Registrar actividad en una jornada',
+    description:
+      'Incluye proyecto, tipo, horas y datos del modelador; coordinador puede venir del proyecto.',
+  })
   @Post('actividades')
   @UseGuards(JwtAuthGuard)
   async crearActividad(
@@ -405,6 +454,11 @@ export class ControlOperativoController {
    * Registrar URLs de evidencias (enlaces o URLs devueltas por storage) para una actividad del trabajador en sesión.
    * POST /control-operativo/actividades/:id/evidencias
    */
+  @ApiOperation({
+    summary: 'Adjuntar evidencias (URLs) a una actividad',
+    description:
+      'Tras subir archivos a storage, se registran aquí las URLs y metadatos.',
+  })
   @Post('actividades/:id/evidencias')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -450,6 +504,10 @@ export class ControlOperativoController {
    * Eliminar una evidencia de archivo (registro + objeto en MinIO si aplica). Solo el trabajador dueño.
    * DELETE /control-operativo/actividades/:id/evidencias/:idEvidencia
    */
+  @ApiOperation({
+    summary: 'Eliminar evidencia de una actividad',
+    description: 'Solo el trabajador dueño; borra registro y objeto en MinIO si aplica.',
+  })
   @Delete('actividades/:id/evidencias/:idEvidencia')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -474,6 +532,10 @@ export class ControlOperativoController {
    * Listar actividades con filtros opcionales.
    * GET /control-operativo/actividades?idJornada=&idTrabajador=&idProyecto=&idEstadoActividad=&limit=10&offset=0
    */
+  @ApiOperation({
+    summary: 'Listar actividades con filtros',
+    description: 'Por jornada, trabajador, proyecto y estado; paginación opcional.',
+  })
   @Get('actividades')
   @UseGuards(JwtAuthGuard)
   async listarActividades(
@@ -504,6 +566,11 @@ export class ControlOperativoController {
    * GET /control-operativo/actividades-validacion?idTrabajador=&idProyecto=&idEstadoActividad=&limit=10&offset=0
    * Alcance total (todas las actividades): solo Administrador Sistemas y Administrador GVR (según JWT).
    */
+  @ApiOperation({
+    summary: 'Actividades para la pestaña Validación',
+    description:
+      'Alcance según jerarquía del usuario (excluye propias según reglas). Admins pueden ver todo.',
+  })
   @Get('actividades-validacion')
   @UseGuards(JwtAuthGuard)
   async listarActividadesValidacion(
@@ -547,6 +614,11 @@ export class ControlOperativoController {
    * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
    * GET /control-operativo/valorizacion?idProyecto=1&fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD&rolesAdmin=1,5,11
    */
+  @ApiOperation({
+    summary: 'Valorización de horas (actividades aprobadas)',
+    description:
+      'Requiere proyecto, fechas y roles administrativos permitidos (query rolesAdmin).',
+  })
   @Get('valorizacion')
   @UseGuards(JwtAuthGuard)
   async listarValorizacion(
@@ -592,6 +664,10 @@ export class ControlOperativoController {
    * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
    * GET /control-operativo/desempeno?idProyecto=1&fechaInicio=...&fechaFin=...&idTrabajador=1&rolesAdmin=1,5,11
    */
+  @ApiOperation({
+    summary: 'Evaluación de desempeño (rechazos, observaciones, horas)',
+    description: 'Módulo administrativo; filtros por proyecto, fechas y trabajador opcional.',
+  })
   @Get('desempeno')
   @UseGuards(JwtAuthGuard)
   async listarDesempeno(
@@ -660,6 +736,10 @@ export class ControlOperativoController {
    * Lista trabajadores con al menos una actividad en el proyecto (para filtro Desempeño).
    * GET /control-operativo/trabajadores-por-proyecto?idProyecto=1&rolesAdmin=1,5,11
    */
+  @ApiOperation({
+    summary: 'Trabajadores con actividad en el proyecto',
+    description: 'Para filtros del módulo Desempeño.',
+  })
   @Get('trabajadores-por-proyecto')
   @UseGuards(JwtAuthGuard)
   async listarTrabajadoresPorProyecto(
@@ -692,6 +772,10 @@ export class ControlOperativoController {
    * Coordinadores / responsables con personal a cargo (filtro reporte general).
    * GET /control-operativo/reporte-general/lideres-equipo?rolesAdmin=...
    */
+  @ApiOperation({
+    summary: 'Líderes de equipo para filtro del reporte general',
+    description: 'Coordinadores con personal a cargo.',
+  })
   @Get('reporte-general/lideres-equipo')
   @UseGuards(JwtAuthGuard)
   async listarLideresEquipoReporteGeneral(
@@ -715,6 +799,11 @@ export class ControlOperativoController {
    * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
    * GET /control-operativo/reporte-general?...&idTrabajadores=1,2&idProyectos=3&idEstadosActividad=374,375&idLiderEquipo=5&...
    */
+  @ApiOperation({
+    summary: 'Reporte general de actividades',
+    description:
+      'Filtros múltiples (fechas, proyectos, trabajadores, estados, líder). Solo roles administrativos indicados.',
+  })
   @Get('reporte-general')
   @UseGuards(JwtAuthGuard)
   async listarReporteGeneral(
@@ -790,6 +879,10 @@ export class ControlOperativoController {
    * Listar observaciones del coordinador sobre una actividad (para "Corregir").
    * GET /control-operativo/actividades/:id/observaciones
    */
+  @ApiOperation({
+    summary: 'Observaciones del coordinador sobre la actividad',
+    description: 'Para flujo de corrección.',
+  })
   @Get('actividades/:id/observaciones')
   @UseGuards(JwtAuthGuard)
   async listarObservacionesActividad(@Param('id', ParseIntPipe) id: number) {
@@ -802,6 +895,11 @@ export class ControlOperativoController {
    * GET /control-operativo/actividades/:id?contextoValidacion=1
    * Con contextoValidacion=1 solo responde si el usuario puede validar esa actividad.
    */
+  @ApiOperation({
+    summary: 'Detalle de una actividad',
+    description:
+      'Query `contextoValidacion=1` restringe si el usuario puede validar esa actividad.',
+  })
   @Get('actividades/:id')
   @UseGuards(JwtAuthGuard)
   async obtenerActividad(
@@ -839,6 +937,10 @@ export class ControlOperativoController {
    * PATCH /control-operativo/actividades/:id/validar
    * Body: { "idEstadoActividad": number, "comentarioValidacion"?: string }
    */
+  @ApiOperation({
+    summary: 'Validar actividad (aprobar / observar / rechazar)',
+    description: 'Comentario obligatorio para observar o rechazar.',
+  })
   @Patch('actividades/:id/validar')
   @UseGuards(JwtAuthGuard)
   async validarActividad(
@@ -874,6 +976,11 @@ export class ControlOperativoController {
    * Actualizar una actividad.
    * PATCH /control-operativo/actividades/:id
    */
+  @ApiOperation({
+    summary: 'Actualizar datos de la actividad',
+    description:
+      'Incluye flag corregirObservacion para enviar corrección tras observación.',
+  })
   @Patch('actividades/:id')
   @UseGuards(JwtAuthGuard)
   async actualizarActividad(
@@ -914,6 +1021,10 @@ export class ControlOperativoController {
    * Eliminar una actividad (solo si está en estado "Por aprobar").
    * DELETE /control-operativo/actividades/:id
    */
+  @ApiOperation({
+    summary: 'Eliminar actividad',
+    description: 'Solo si está en estado "Por aprobar".',
+  })
   @Delete('actividades/:id')
   @UseGuards(JwtAuthGuard)
   async eliminarActividad(@Param('id', ParseIntPipe) id: number) {

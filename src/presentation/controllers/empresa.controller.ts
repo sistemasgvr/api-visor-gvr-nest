@@ -22,10 +22,13 @@ import { EditarEmpresaUseCase } from '../../application/use-cases/empresa/editar
 import { EliminarEmpresaUseCase } from '../../application/use-cases/empresa/eliminar-empresa.use-case';
 import { CreateEmpresaDto } from '../../application/dtos/empresa/create-empresa.dto';
 import { UpdateEmpresaDto } from '../../application/dtos/empresa/update-empresa.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 
+@ApiTags('empresas')
+@ApiBearerAuth('access-token')
 @Controller('empresas')
 @UseGuards(JwtAuthGuard)
 export class EmpresaController {
@@ -42,6 +45,10 @@ export class EmpresaController {
    * Listar empresas con búsqueda y paginación
    * GET /empresas?busqueda=texto&limit=10&offset=0
    */
+  @ApiOperation({
+    summary: 'Listar empresas',
+    description: 'Búsqueda y paginación según permisos del usuario.',
+  })
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarEmpresas(
@@ -72,6 +79,7 @@ export class EmpresaController {
    * Obtener empresa por ID
    * GET /empresas/:id
    */
+  @ApiOperation({ summary: 'Obtener empresa por id' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async obtenerEmpresa(@Param('id', ParseIntPipe) id: number) {
@@ -84,6 +92,7 @@ export class EmpresaController {
    * Crear nueva empresa
    * POST /empresas
    */
+  @ApiOperation({ summary: 'Crear empresa' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async crearEmpresa(
@@ -110,6 +119,7 @@ export class EmpresaController {
    * Editar empresa existente
    * PUT /empresas/:id
    */
+  @ApiOperation({ summary: 'Actualizar empresa' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async editarEmpresa(
@@ -138,6 +148,7 @@ export class EmpresaController {
    * Eliminar empresa (soft delete)
    * DELETE /empresas/:id
    */
+  @ApiOperation({ summary: 'Eliminar empresa (baja lógica)' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async eliminarEmpresa(

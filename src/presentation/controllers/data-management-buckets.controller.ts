@@ -26,6 +26,10 @@ import {
   CrearBucketDto,
 } from '../../application/dtos/data-management/buckets';
 
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('acc-data')
+@ApiBearerAuth('access-token')
 @Controller('data-management/buckets')
 @UseGuards(JwtAuthGuard)
 export class DataManagementBucketsController {
@@ -40,6 +44,7 @@ export class DataManagementBucketsController {
    * GET - Obtener todos los buckets con paginación
    * GET /data-management/buckets
    */
+  @ApiOperation({ summary: 'Listar buckets OSS del usuario' })
   @Get()
   @HttpCode(HttpStatus.OK)
   async obtenerBuckets(
@@ -62,6 +67,7 @@ export class DataManagementBucketsController {
    * GET - Obtener detalles de un bucket específico
    * GET /data-management/buckets/:bucketKey/details
    */
+  @ApiOperation({ summary: 'Detalle y políticas de un bucket' })
   @Get(':bucketKey/details')
   @HttpCode(HttpStatus.OK)
   async obtenerDetallesBucket(
@@ -90,6 +96,7 @@ export class DataManagementBucketsController {
    * POST - Crear un nuevo bucket
    * POST /data-management/buckets
    */
+  @ApiOperation({ summary: 'Crear bucket OSS' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async crearBucket(@Req() request: Request, @Body() dto: CrearBucketDto) {
@@ -103,6 +110,7 @@ export class DataManagementBucketsController {
    * DELETE - Eliminar un bucket
    * DELETE /data-management/buckets/:bucketKey
    */
+  @ApiOperation({ summary: 'Eliminar bucket (y objetos según política)' })
   @Delete(':bucketKey')
   @HttpCode(HttpStatus.OK)
   async eliminarBucket(

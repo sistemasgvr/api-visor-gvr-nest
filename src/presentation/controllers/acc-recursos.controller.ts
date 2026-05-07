@@ -30,7 +30,10 @@ import {
   ObtenerRecursosProyectoDto,
   ObtenerRecursosHijosDto,
 } from '../../application/dtos/acc-recursos';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc-recursos')
 @UseGuards(JwtAuthGuard)
 export class AccRecursosController {
@@ -48,6 +51,7 @@ export class AccRecursosController {
    * GET /acc-recursos/usuario/:id
    * IMPORTANTE: Esta ruta debe ir antes de la ruta genérica :tipo/:id
    */
+  @ApiOperation({ summary: 'Listar recursos ACC vinculados a un usuario interno' })
   @Get('usuario/:id')
   @HttpCode(HttpStatus.OK)
   async obtenerRecursosUsuario(
@@ -75,6 +79,7 @@ export class AccRecursosController {
    * GET /acc-recursos/proyecto/:projectId
    * IMPORTANTE: Esta ruta debe ir antes de la ruta genérica :tipo/:id
    */
+  @ApiOperation({ summary: 'Listar recursos ACC por proyecto' })
   @Get('proyecto/:projectId')
   @HttpCode(HttpStatus.OK)
   async obtenerRecursosPorProyecto(
@@ -101,6 +106,7 @@ export class AccRecursosController {
    * GET /acc-recursos/hijos/:parentId
    * IMPORTANTE: Esta ruta debe ir antes de la ruta genérica :tipo/:id
    */
+  @ApiOperation({ summary: 'Obtener recursos hijos bajo un padre ACC' })
   @Get('hijos/:parentId')
   @HttpCode(HttpStatus.OK)
   async obtenerRecursosHijos(
@@ -125,6 +131,7 @@ export class AccRecursosController {
    * POST - Guardar recurso ACC con mapeo a usuario interno
    * POST /acc-recursos
    */
+  @ApiOperation({ summary: 'Guardar recurso ACC y mapearlo al usuario' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async guardarRecurso(
@@ -153,6 +160,7 @@ export class AccRecursosController {
    * GET - Obtener recurso ACC por tipo e ID
    * GET /acc-recursos/:tipo/:id
    */
+  @ApiOperation({ summary: 'Obtener recurso ACC por tipo e ID' })
   @Get(':tipo/:id')
   @HttpCode(HttpStatus.OK)
   async obtenerRecurso(@Param('tipo') tipo: string, @Param('id') id: string) {
@@ -168,6 +176,7 @@ export class AccRecursosController {
    * PUT - Actualizar recurso ACC
    * PUT /acc-recursos/:tipo/:id
    */
+  @ApiOperation({ summary: 'Actualizar recurso ACC', description: 'Incluye metadatos locales y vínculos.' })
   @Put(':tipo/:id')
   @HttpCode(HttpStatus.OK)
   async actualizarRecurso(

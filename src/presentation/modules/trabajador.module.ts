@@ -10,14 +10,17 @@ import { CrearTrabajadorUseCase } from '../../application/use-cases/trabajador/c
 import { EditarTrabajadorUseCase } from '../../application/use-cases/trabajador/editar-trabajador.use-case';
 import { EliminarTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-trabajador.use-case';
 import { ResetearContrasenaUseCase } from '../../application/use-cases/trabajador/resetear-contrasena.use-case';
+import { ObtenerFotoPerfilTrabajadorUseCase } from '../../application/use-cases/trabajador/obtener-foto-perfil-trabajador.use-case';
 import { TrabajadorRepository } from '../../infrastructure/repositories/trabajador.repository';
 import { TRABAJADOR_REPOSITORY } from '../../domain/repositories/trabajador.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 
 @Module({
   imports: [
     DatabaseModule,
+    StorageModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -44,6 +47,7 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
     ListarTrabajadoresUseCase,
     ListarAdministrativosUseCase,
     ObtenerTrabajadorUseCase,
+    ObtenerFotoPerfilTrabajadorUseCase,
     CrearTrabajadorUseCase,
     EditarTrabajadorUseCase,
     EliminarTrabajadorUseCase,

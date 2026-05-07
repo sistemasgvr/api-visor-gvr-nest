@@ -22,7 +22,9 @@ import { DocumentTokenService } from '../../infrastructure/services/document-tok
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interface';
 import type { IAccRepository } from '../../domain/repositories/acc.repository.interface';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('office-document')
 @Controller('office-documents')
 export class OfficeDocumentController {
   private readonly logger = new Logger(OfficeDocumentController.name);
@@ -40,6 +42,9 @@ export class OfficeDocumentController {
    * Este endpoint SÍ requiere autenticación JWT
    * POST /api/office-documents/generate-token/:projectId/:itemId
    */
+  @ApiOperation({
+    summary: 'Generar token temporal para abrir documento en Office Online',
+  })
   @Post('generate-token/:projectId/:itemId')
   @UseGuards(JwtAuthGuard)
   async generateToken(
@@ -141,6 +146,10 @@ export class OfficeDocumentController {
    * Este endpoint NO requiere autenticación JWT (es público)
    * GET /api/office-documents/view/:token
    */
+  @ApiOperation({
+    summary: 'Descargar/stream del documento mediante token opaco',
+    security: [],
+  })
   @Get('view/:token')
   async viewDocument(@Param('token') token: string, @Res() res: Response) {
     this.logger.log(
@@ -250,6 +259,10 @@ export class OfficeDocumentController {
    * HEAD - Microsoft Office a veces hace peticiones HEAD primero
    * GET /api/office-documents/view/:token
    */
+  @ApiOperation({
+    summary: 'Metadatos del token (nombre, tipo MIME, caducidad)',
+    security: [],
+  })
   @Get('view/:token/info')
   async documentInfo(@Param('token') token: string) {
     const tokenData = this.documentTokenService.validateToken(token);

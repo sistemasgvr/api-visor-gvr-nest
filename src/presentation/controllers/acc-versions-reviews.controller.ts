@@ -18,7 +18,10 @@ import { ObtenerApprovalStatusesVersionUseCase } from '../../application/use-cas
 
 // DTOs
 import { ObtenerApprovalStatusesDto } from '../../application/dtos/acc/reviews/obtener-approval-statuses.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc/projects/:projectId/versions')
 export class AccVersionsReviewsController {
   constructor(
@@ -29,6 +32,10 @@ export class AccVersionsReviewsController {
    * GET /acc/projects/:projectId/versions/:versionId/approval-statuses
    * Historial de revisiones y estado de aprobación de una versión de archivo
    */
+  @ApiOperation({
+    summary: 'Estados de aprobación y revisiones de una versión',
+    description: 'Historial de revisiones APS y approval statuses del archivo.',
+  })
   @Get(':versionId/approval-statuses')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

@@ -98,6 +98,14 @@ export interface ITrabajadorRepository {
   ): Promise<ListarTrabajadoresResponse>;
   listarTrabajadoresAdministrativos(): Promise<any[]>;
   obtenerTrabajadorPorId(idTrabajador: number): Promise<any>;
+
+  /**
+   * URL almacenada en BD (MinIO path / URL interna) de la foto de perfil del usuario
+   * vinculado al trabajador. `null` externo = trabajador inexistente o inactivo.
+   */
+  obtenerUrlAlmacenadaFotoPerfilPorIdTrabajador(
+    idTrabajador: number,
+  ): Promise<{ url: string | null } | null>;
   crearTrabajador(data: CrearTrabajadorData): Promise<any>;
   editarTrabajador(data: EditarTrabajadorData): Promise<any>;
   eliminarTrabajador(

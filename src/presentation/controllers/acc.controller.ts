@@ -34,7 +34,10 @@ import {
   ACC_REPOSITORY,
   type IAccRepository,
 } from '../../domain/repositories/acc.repository.interface';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc')
 export class AccController {
   constructor(
@@ -58,6 +61,10 @@ export class AccController {
    * Obtener token 2-legged (no requiere usuario final)
    * POST /acc/token
    */
+  @ApiOperation({
+    summary: 'Obtener token 2-legged (solo aplicación)',
+    description: 'Token de aplicación sin contexto de usuario final.',
+  })
   @Post('token')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -76,6 +83,9 @@ export class AccController {
    * Generar URL de autorización
    * POST /acc/oauth/authorize
    */
+  @ApiOperation({
+    summary: 'Generar URL de autorización OAuth 3-legged',
+  })
   @Post('oauth/authorize')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -92,6 +102,7 @@ export class AccController {
    * Obtener mi token activo
    * GET /acc/oauth/mi-token
    */
+  @ApiOperation({ summary: 'Obtener el token ACC 3-legged activo del usuario' })
   @Get('oauth/mi-token')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -109,6 +120,12 @@ export class AccController {
    * GET /acc/cron/refresh-tokens?key=CRON_SECRET
    * No requiere JWT; se autoriza con CRON_SECRET.
    */
+  @ApiOperation({
+    summary: 'Cron: refrescar tokens ACC caducados',
+    description:
+      'Protegido con query key=CRON_SECRET; no usa JWT.',
+    security: [],
+  })
   @Get('cron/refresh-tokens')
   @HttpCode(HttpStatus.OK)
   async cronRefrescarTokens(@Query('key') key?: string) {
@@ -127,6 +144,7 @@ export class AccController {
    * Refrescar mi token
    * POST /acc/oauth/refresh
    */
+  @ApiOperation({ summary: 'Refrescar token ACC 3-legged del usuario' })
   @Post('oauth/refresh')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -155,6 +173,7 @@ export class AccController {
    * Revocar mi token
    * DELETE /acc/oauth/revoke
    */
+  @ApiOperation({ summary: 'Revocar y borrar token ACC del usuario' })
   @Delete('oauth/revoke')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -173,6 +192,9 @@ export class AccController {
    * Validar expiración de token
    * POST /acc/validar-expiracion
    */
+  @ApiOperation({
+    summary: 'Comprobar caducidad de un token ACC',
+  })
   @Post('validar-expiracion')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -189,6 +211,12 @@ export class AccController {
    * Callback de OAuth - Intercambia el código por token y redirige al frontend
    * GET /acc/oauth/callback
    */
+  @ApiOperation({
+    summary: 'Callback OAuth ACC (intercambio de código)',
+    description:
+      'Redirige al frontend tras guardar el token 3-legged. No usa JWT.',
+    security: [],
+  })
   @Get('oauth/callback')
   async callbackAutorizacion(
     @Query() dto: CallbackAutorizacionDto,
@@ -228,6 +256,9 @@ export class AccController {
    * Obtener perfil del usuario de ACC autenticado
    * GET /acc/perfil-usuario
    */
+  @ApiOperation({
+    summary: 'Perfil del usuario en Autodesk Construction Cloud',
+  })
   @Get('perfil-usuario')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

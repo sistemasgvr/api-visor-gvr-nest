@@ -34,10 +34,13 @@ import { UpdateRolDto } from '../../application/dtos/rol/update-rol.dto';
 import { AsignarPermisoDto } from '../../application/dtos/rol/asignar-permiso.dto';
 import { AsignarPermisosDto } from '../../application/dtos/rol/asignar-permisos.dto';
 import { GestionarRolesUsuarioDto } from '../../application/dtos/rol/gestionar-roles-usuario.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 
+@ApiTags('roles')
+@ApiBearerAuth('access-token')
 @Controller('rolesv2')
 @UseGuards(JwtAuthGuard)
 export class RolController {
@@ -59,6 +62,10 @@ export class RolController {
     private readonly jwtService: JwtService,
   ) {}
 
+  @ApiOperation({
+    summary: 'Listar roles para selectores',
+    description: 'Respuesta compacta (forList).',
+  })
   @Get('forList')
   @HttpCode(HttpStatus.OK)
   async listarRolesForList() {
@@ -66,6 +73,10 @@ export class RolController {
     return ApiResponseDto.success(data, 'Roles obtenidos exitosamente');
   }
 
+  @ApiOperation({
+    summary: 'Asignar o quitar roles de un usuario',
+    description: 'Sincroniza los roles del usuario indicado.',
+  })
   @Post('usuarios/:idUsuario')
   @HttpCode(HttpStatus.OK)
   async gestionarRolesUsuario(
@@ -89,6 +100,7 @@ export class RolController {
     );
   }
 
+  @ApiOperation({ summary: 'Listar roles', description: 'Paginación y búsqueda.' })
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarRoles(
@@ -104,6 +116,7 @@ export class RolController {
     return ApiResponseDto.success(data, 'Roles obtenidos exitosamente');
   }
 
+  @ApiOperation({ summary: 'Detalle extendido del rol' })
   @Get(':id/detalle')
   @HttpCode(HttpStatus.OK)
   async obtenerDetalleRol(@Param('id', ParseIntPipe) id: number) {
@@ -114,6 +127,7 @@ export class RolController {
     );
   }
 
+  @ApiOperation({ summary: 'Permisos asignados al rol' })
   @Get(':id/permisos')
   @HttpCode(HttpStatus.OK)
   async listarPermisosRol(@Param('id', ParseIntPipe) id: number) {
@@ -124,6 +138,10 @@ export class RolController {
     );
   }
 
+  @ApiOperation({
+    summary: 'Permisos que aún no tiene el rol',
+    description: 'Para agregar permisos al rol.',
+  })
   @Get(':id/permisos-disponibles')
   @HttpCode(HttpStatus.OK)
   async listarPermisosDisponibles(@Param('id', ParseIntPipe) id: number) {
@@ -134,6 +152,7 @@ export class RolController {
     );
   }
 
+  @ApiOperation({ summary: 'Obtener rol por id' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async obtenerRol(@Param('id', ParseIntPipe) id: number) {
@@ -141,6 +160,7 @@ export class RolController {
     return ApiResponseDto.success(data, 'Rol obtenido exitosamente');
   }
 
+  @ApiOperation({ summary: 'Crear rol' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async crearRol(@Body() createDto: CreateRolDto, @Req() request: Request) {
@@ -153,6 +173,7 @@ export class RolController {
     return ApiResponseDto.created(data, 'Rol creado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Asignar un permiso al rol' })
   @Post(':id/permisos')
   @HttpCode(HttpStatus.CREATED)
   async asignarPermisoRol(
@@ -173,6 +194,7 @@ export class RolController {
     return ApiResponseDto.created(data, 'Permiso asignado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Asignar varios permisos al rol' })
   @Post(':id/permisos-multiples')
   @HttpCode(HttpStatus.CREATED)
   async asignarPermisosRol(
@@ -193,6 +215,7 @@ export class RolController {
     return ApiResponseDto.created(data, 'Permisos asignados exitosamente');
   }
 
+  @ApiOperation({ summary: 'Actualizar rol' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async editarRol(
@@ -213,6 +236,10 @@ export class RolController {
     return ApiResponseDto.success(data, 'Rol actualizado exitosamente');
   }
 
+  @ApiOperation({
+    summary: 'Reemplazar todos los permisos del rol',
+    description: 'Sincroniza el conjunto de permisos con el enviado en body.',
+  })
   @Put(':id/permisos/sincronizar')
   @HttpCode(HttpStatus.OK)
   async sincronizarPermisosRol(
@@ -233,6 +260,7 @@ export class RolController {
     return ApiResponseDto.success(data, 'Permisos sincronizados exitosamente');
   }
 
+  @ApiOperation({ summary: 'Eliminar rol' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async eliminarRol(
@@ -248,6 +276,7 @@ export class RolController {
     return ApiResponseDto.success(data, 'Rol eliminado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Quitar un permiso del rol' })
   @Delete(':id/permisos/:idPermiso')
   @HttpCode(HttpStatus.OK)
   async removerPermisoRol(

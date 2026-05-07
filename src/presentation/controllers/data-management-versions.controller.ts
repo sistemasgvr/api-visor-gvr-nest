@@ -32,6 +32,10 @@ import {
   ActualizarVersionDto,
 } from '../../application/dtos/data-management/versions';
 
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('acc-data')
+@ApiBearerAuth('access-token')
 @Controller('data-management/versions')
 @UseGuards(JwtAuthGuard)
 export class DataManagementVersionsController {
@@ -52,6 +56,7 @@ export class DataManagementVersionsController {
    * GET - Obtiene una versión específica por ID
    * GET /data-management/versions/:projectId/:versionId
    */
+  @ApiOperation({ summary: 'Obtener una versión por ID' })
   @Get(':projectId/:versionId')
   @HttpCode(HttpStatus.OK)
   async obtenerVersionPorId(
@@ -87,6 +92,9 @@ export class DataManagementVersionsController {
    * GET - Obtiene los formatos de descarga disponibles para una versión
    * GET /data-management/versions/:projectId/:versionId/downloadFormats
    */
+  @ApiOperation({
+    summary: 'Formatos de descarga alternativos (PDF, SVF2, etc.)',
+  })
   @Get(':projectId/:versionId/downloadFormats')
   @HttpCode(HttpStatus.OK)
   async obtenerFormatosDescarga(
@@ -122,6 +130,7 @@ export class DataManagementVersionsController {
    * GET - Obtiene información de descarga para una versión
    * GET /data-management/versions/:projectId/:versionId/downloads
    */
+  @ApiOperation({ summary: 'Información para descarga directa desde APS' })
   @Get(':projectId/:versionId/downloads')
   @HttpCode(HttpStatus.OK)
   async obtenerDescargas(
@@ -157,6 +166,7 @@ export class DataManagementVersionsController {
    * GET - Obtiene el item asociado a una versión
    * GET /data-management/versions/:projectId/:versionId/item
    */
+  @ApiOperation({ summary: 'Item poseedor de esta versión' })
   @Get(':projectId/:versionId/item')
   @HttpCode(HttpStatus.OK)
   async obtenerItem(
@@ -192,6 +202,7 @@ export class DataManagementVersionsController {
    * GET - Obtiene las referencias (refs) de una versión
    * GET /data-management/versions/:projectId/:versionId/refs
    */
+  @ApiOperation({ summary: 'Referencias (refs) de la versión' })
   @Get(':projectId/:versionId/refs')
   @HttpCode(HttpStatus.OK)
   async obtenerReferencias(
@@ -227,6 +238,7 @@ export class DataManagementVersionsController {
    * GET - Obtiene las relaciones de links de una versión
    * GET /data-management/versions/:projectId/:versionId/relationships/links
    */
+  @ApiOperation({ summary: 'Relaciones tipo links de la versión' })
   @Get(':projectId/:versionId/relationships/links')
   @HttpCode(HttpStatus.OK)
   async obtenerRelacionesLinks(
@@ -262,6 +274,7 @@ export class DataManagementVersionsController {
    * GET - Obtiene las relaciones de refs de una versión
    * GET /data-management/versions/:projectId/:versionId/relationships/refs
    */
+  @ApiOperation({ summary: 'Relaciones tipo refs de la versión' })
   @Get(':projectId/:versionId/relationships/refs')
   @HttpCode(HttpStatus.OK)
   async obtenerRelacionesRefs(
@@ -297,6 +310,9 @@ export class DataManagementVersionsController {
    * POST - Crea una nueva versión
    * POST /data-management/versions/:projectId
    */
+  @ApiOperation({
+    summary: 'Crear nueva versión enlazando al item y nuevo storage',
+  })
   @Post(':projectId')
   @HttpCode(HttpStatus.CREATED)
   async crearVersion(
@@ -329,6 +345,7 @@ export class DataManagementVersionsController {
    * POST - Crea una referencia en una versión
    * POST /data-management/versions/:projectId/:versionId/relationships/refs
    */
+  @ApiOperation({ summary: 'Crear ref en esta versión' })
   @Post(':projectId/:versionId/relationships/refs')
   @HttpCode(HttpStatus.CREATED)
   async crearReferencia(
@@ -366,6 +383,9 @@ export class DataManagementVersionsController {
    * PATCH - Actualiza una versión
    * PATCH /data-management/versions/:projectId/:versionId
    */
+  @ApiOperation({
+    summary: 'Actualizar metadatos de la versión (nombre, estado, etc.)',
+  })
   @Patch(':projectId/:versionId')
   @HttpCode(HttpStatus.OK)
   async actualizarVersion(

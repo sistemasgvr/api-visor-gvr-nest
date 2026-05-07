@@ -18,9 +18,12 @@ import { ObtenerOpcionesListaUseCase } from '../../application/use-cases/general
 import { CrearOpcionListaUseCase } from '../../application/use-cases/general/crear-opcion-lista.use-case';
 import { ObtenerCatalogosTrabajadorUseCase } from '../../application/use-cases/general/obtener-catalogos-trabajador.use-case';
 import { ListarMenuRecursivoUseCase } from '../../application/use-cases/general/listar-menu-recursivo.use-case';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 
+@ApiTags('general')
+@ApiBearerAuth('access-token')
 @Controller()
 @UseGuards(JwtAuthGuard)
 export class GeneralController {
@@ -37,6 +40,7 @@ export class GeneralController {
    * Listar todas las opciones de menú
    * GET /menu-opciones
    */
+  @ApiOperation({ summary: 'Listar opciones de menú (planas)' })
   @Get('menu-opciones')
   @HttpCode(HttpStatus.OK)
   async listarMenuOpciones() {
@@ -52,6 +56,7 @@ export class GeneralController {
    * Obtener opción de menú por ID
    * GET /menu-opcion?id=1
    */
+  @ApiOperation({ summary: 'Obtener una opción de menú por id' })
   @Get('menu-opcion')
   @HttpCode(HttpStatus.OK)
   async obtenerMenuOpcion(
@@ -69,6 +74,11 @@ export class GeneralController {
    * Catálogos para formulario de trabajador (grado instrucción, carrera, entidad bancaria, tipo/duración contrato).
    * Los IDs de lista vienen del frontend (constants/listasOpciones). GET /catalogos-trabajador?idListas=8,9,10,11,12,13,14
    */
+  @ApiOperation({
+    summary: 'Catálogos para formulario de trabajador',
+    description:
+      'Listas genéricas (grado instrucción, carrera, banco, contrato, etc.) por ids separados por coma.',
+  })
   @Get('catalogos-trabajador')
   @HttpCode(HttpStatus.OK)
   async obtenerCatalogosTrabajador(@Query('idListas') idListas?: string) {
@@ -86,6 +96,7 @@ export class GeneralController {
    * Obtener opciones por lista
    * GET /listado-opciones?idLista=1
    */
+  @ApiOperation({ summary: 'Opciones de una lista genérica por idLista' })
   @Get('listado-opciones')
   @HttpCode(HttpStatus.OK)
   async obtenerOpcionesPorLista(
@@ -104,6 +115,10 @@ export class GeneralController {
    * Crear una nueva opción en una lista (ej. tipo de actividad "Otros")
    * POST /listado-opciones body: { idLista: number, nombre: string }
    */
+  @ApiOperation({
+    summary: 'Crear opción en lista genérica',
+    description: 'Ej.: nuevo tipo de actividad "Otros".',
+  })
   @Post('listado-opciones')
   @HttpCode(HttpStatus.CREATED)
   async crearOpcionLista(
@@ -121,6 +136,10 @@ export class GeneralController {
    * Listar menú recursivo para usuario autenticado
    * GET /listado-opciones-recursivo
    */
+  @ApiOperation({
+    summary: 'Menú jerárquico para el usuario autenticado',
+    description: 'Árbol de menús según roles y permisos.',
+  })
   @Get('listado-opciones-recursivo')
   @HttpCode(HttpStatus.OK)
   async listarMenuRecursivo(@Req() request: Request) {

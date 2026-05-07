@@ -10,6 +10,7 @@ import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 interface ChannelAuthRequest {
   socket_id: string;
@@ -20,6 +21,7 @@ interface ChannelAuthRequest {
  * Controlador para autenticación de canales WebSocket
  * Compatible con Laravel Echo / Pusher
  */
+@ApiTags('broadcast')
 @Controller('broadcasting')
 export class BroadcastController {
   constructor(
@@ -27,6 +29,12 @@ export class BroadcastController {
     private readonly configService: ConfigService,
   ) {}
 
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Autenticar suscripción a canal WebSocket',
+    description:
+      'Body tipo Pusher: socket_id, channel_name. Compatible con Laravel Echo.',
+  })
   @Post('auth')
   @UseGuards(JwtAuthGuard)
   async authenticateChannel(

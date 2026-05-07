@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 
 // Use cases
@@ -19,6 +20,7 @@ import { ObtenerMetadatosUseCase } from '../../application/use-cases/acc/viewer/
 import { GenerarTokenViewerDto } from '../../application/dtos/acc/viewer/generar-token-viewer.dto';
 import { ObtenerTokenPublicoDto } from '../../application/dtos/acc/viewer/obtener-token-publico.dto';
 
+@ApiTags('acc')
 @Controller('acc/viewer')
 export class AccViewerController {
   constructor(
@@ -32,6 +34,12 @@ export class AccViewerController {
    * POST - Generar token para el viewer (2-legged con scope viewables:read)
    * POST /acc/viewer/token
    */
+  @ApiOperation({
+    summary: 'Generar token para el viewer Autodesk (2-legged)',
+    description:
+      'Obtiene un token de aplicación con ámbito viewables:read para cargar modelos.',
+    security: [],
+  })
   @Post('token')
   @HttpCode(HttpStatus.OK)
   async generarTokenViewer(@Body() dto: GenerarTokenViewerDto) {
@@ -44,6 +52,11 @@ export class AccViewerController {
    * POST - Token público (con validaciones adicionales de seguridad)
    * POST /acc/viewer/token/public
    */
+  @ApiOperation({
+    summary: 'Token público para el viewer',
+    description: 'Genera token con validaciones adicionales de seguridad.',
+    security: [],
+  })
   @Post('token/public')
   @HttpCode(HttpStatus.OK)
   async obtenerTokenPublico(@Body() dto: ObtenerTokenPublicoDto) {
@@ -59,6 +72,11 @@ export class AccViewerController {
    * GET - Obtener manifiesto de un archivo traducido
    * GET /acc/viewer/manifest/:urn
    */
+  @ApiOperation({
+    summary: 'Obtener manifiesto de traducción',
+    description: 'Devuelve el manifiesto de un URN ya traducido en APS.',
+    security: [],
+  })
   @Get('manifest/:urn')
   @HttpCode(HttpStatus.OK)
   async obtenerManifiesto(@Param('urn') urn: string) {
@@ -74,6 +92,10 @@ export class AccViewerController {
    * GET - Obtener metadatos de un modelo
    * GET /acc/viewer/metadata/:urn
    */
+  @ApiOperation({
+    summary: 'Obtener metadatos del modelo',
+    security: [],
+  })
   @Get('metadata/:urn')
   @HttpCode(HttpStatus.OK)
   async obtenerMetadatos(@Param('urn') urn: string) {

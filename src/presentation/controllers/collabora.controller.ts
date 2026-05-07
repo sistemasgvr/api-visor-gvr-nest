@@ -24,7 +24,9 @@ import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.inter
 import type { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
 import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.repository.interface';
 import type { IAuditoriaRepository } from '../../domain/repositories/auditoria.repository.interface';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('collabora')
 @Controller('collabora')
 export class CollaboraController {
   private readonly logger = new Logger(CollaboraController.name);
@@ -48,6 +50,11 @@ export class CollaboraController {
    * Query opcional: versionId — si se envía, se abre esa versión concreta (desde historial de versiones).
    * Query opcional: permission=view — solo lectura en Collabora/WOPI (p. ej. desde detalle de revisión).
    */
+  @ApiOperation({
+    summary: 'Construir URL de iframe Collabora/WOPI para un item ACC',
+    description:
+      'Incluye JWT; devuelve collaboraUrl y wopiSrc con access_token de sesión.',
+  })
   @Get('config/:projectId/:itemId')
   @UseGuards(JwtAuthGuard)
   async getCollaboraConfig(
@@ -217,6 +224,12 @@ export class CollaboraController {
    * fileId = stableDocId (mismo documento para todos los usuarios = coautoría).
    * access_token = sesión del usuario (query o Authorization).
    */
+  @ApiOperation({
+    summary: 'WOPI CheckFileInfo',
+    description:
+      'Collabora consulta metadatos del documento; autoriza con access_token de sesión en query o header.',
+    security: [],
+  })
   @Get('wopi/files/:fileId')
   async wopiCheckFileInfo(
     @Param('fileId') fileId: string,
@@ -418,6 +431,10 @@ export class CollaboraController {
    * GET /api/collabora/wopi/files/:fileId/contents
    * fileId = stableDocId; usuario desde access_token (query o header).
    */
+  @ApiOperation({
+    summary: 'WOPI GetFile (descarga binario)',
+    security: [],
+  })
   @Get('wopi/files/:fileId/contents')
   async wopiGetFile(
     @Param('fileId') fileId: string,
@@ -544,6 +561,12 @@ export class CollaboraController {
    * POST /api/collabora/wopi/files/:fileId/contents
    * fileId = stableDocId; usuario desde access_token (query o header).
    */
+  @ApiOperation({
+    summary: 'WOPI PutFile (guardar documento editado)',
+    description:
+      'Tras guardado manual puede crear versión en ACC; autosave responde sin subir.',
+    security: [],
+  })
   @Post('wopi/files/:fileId/contents')
   async wopiPutFile(
     @Param('fileId') fileId: string,
@@ -999,6 +1022,10 @@ export class CollaboraController {
    * GET /api/collabora/download/:token
    * Este endpoint sirve el archivo directamente con headers CORS para Collabora
    */
+  @ApiOperation({
+    summary: 'Descarga legacy por token (deprecado)',
+    security: [],
+  })
   @Get('download/:token')
   async downloadFile(
     @Param('token') token: string,
@@ -1118,6 +1145,10 @@ export class CollaboraController {
    * Endpoint de health check para Collabora
    * GET /api/collabora/health
    */
+  @ApiOperation({
+    summary: 'Comprobar conectividad con el servidor Collabora',
+    security: [],
+  })
   @Get('health')
   async checkHealth() {
     const isHealthy = await this.collaboraService.checkCollaboraHealth();

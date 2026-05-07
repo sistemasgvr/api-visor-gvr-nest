@@ -49,7 +49,10 @@ import { CrearReferenciaItemDto } from '../../application/dtos/data-management/i
 import { ActualizarItemDto } from '../../application/dtos/data-management/items/actualizar-item.dto';
 import { DesplazarItemDto } from '../../application/dtos/data-management/items/desplazar-item.dto';
 import { CopiarItemDto } from '../../application/dtos/data-management/items/copiar-item.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc-data')
+@ApiBearerAuth('access-token')
 @Controller('data-management/items')
 @UseGuards(JwtAuthGuard)
 export class DataManagementItemsController {
@@ -82,6 +85,10 @@ export class DataManagementItemsController {
    * POST /data-management/items/:projectId/upload
    * IMPORTANTE: Esta ruta debe estar ANTES de otras rutas POST con {projectId}
    */
+  @ApiOperation({
+    summary: 'Subir archivo con flujo resumido multipart',
+    description: 'Multipart file + dto.folderId; crea primera versión en ACC.',
+  })
   @Post(':projectId/upload')
   @UseInterceptors(FileInterceptor('file'))
   @HttpCode(HttpStatus.CREATED)
@@ -122,6 +129,10 @@ export class DataManagementItemsController {
    * POST /data-management/items/:projectId
    * IMPORTANTE: Esta ruta debe estar DESPUÉS de /upload
    */
+  @ApiOperation({
+    summary: 'Crear item manual (primer storage ya reservado)',
+    description: 'Flujo avanzado sin multipart directo.',
+  })
   @Post(':projectId')
   @HttpCode(HttpStatus.CREATED)
   async crearItem(
@@ -149,6 +160,7 @@ export class DataManagementItemsController {
    * GET - Obtener un item específico por ID
    * GET /data-management/items/:projectId/:itemId
    */
+  @ApiOperation({ summary: 'Obtener metadata del item desde ACC', description: 'Acepta includes vía query.' })
   @Get(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
   async obtenerItemPorId(
@@ -173,6 +185,11 @@ export class DataManagementItemsController {
    * GET /data-management/items/:projectId/:itemId/download
    * Query opcional: versionId — si se envía, se descarga esa versión concreta (desde historial de versiones).
    */
+  @ApiOperation({
+    summary: 'Descargar binario del archivo',
+    description:
+      'Query versionId opcional para historial; audita rol del usuario JWT.',
+  })
   @Get(':projectId/:itemId/download')
   @HttpCode(HttpStatus.OK)
   async descargarItem(
@@ -219,6 +236,11 @@ export class DataManagementItemsController {
    * GET - Obtener la URL de storage (URL firmada) de un item para visualización
    * GET /data-management/items/:projectId/:itemId/storage-url
    */
+  @ApiOperation({
+    summary: 'URL firmada S3/visualización rápida',
+    description:
+      'Usa APS para resolver storage del tip y devolver cadena HTTPS.',
+  })
   @Get(':projectId/:itemId/storage-url')
   @HttpCode(HttpStatus.OK)
   async obtenerStorageUrl(
@@ -243,6 +265,7 @@ export class DataManagementItemsController {
    * GET - Obtener el padre de un item
    * GET /data-management/items/:projectId/:itemId/parent
    */
+  @ApiOperation({ summary: 'Carpeta contenedora inmediata del item' })
   @Get(':projectId/:itemId/parent')
   @HttpCode(HttpStatus.OK)
   async obtenerItemPadre(
@@ -269,6 +292,7 @@ export class DataManagementItemsController {
    * GET - Obtener las referencias (refs) de un item
    * GET /data-management/items/:projectId/:itemId/refs
    */
+  @ApiOperation({ summary: 'Referencias APS del item (refs)' })
   @Get(':projectId/:itemId/refs')
   @HttpCode(HttpStatus.OK)
   async obtenerReferencias(
@@ -295,6 +319,7 @@ export class DataManagementItemsController {
    * GET - Obtener las relaciones de links de un item
    * GET /data-management/items/:projectId/:itemId/relationships/links
    */
+  @ApiOperation({ summary: 'Relaciones links del item' })
   @Get(':projectId/:itemId/relationships/links')
   @HttpCode(HttpStatus.OK)
   async obtenerRelacionesLinks(
@@ -321,6 +346,7 @@ export class DataManagementItemsController {
    * GET - Obtener las relaciones de refs de un item
    * GET /data-management/items/:projectId/:itemId/relationships/refs
    */
+  @ApiOperation({ summary: 'Relaciones refs del item' })
   @Get(':projectId/:itemId/relationships/refs')
   @HttpCode(HttpStatus.OK)
   async obtenerRelacionesRefs(
@@ -347,6 +373,10 @@ export class DataManagementItemsController {
    * GET - Obtener la versión tip (más reciente) de un item
    * GET /data-management/items/:projectId/:itemId/tip
    */
+  @ApiOperation({
+    summary: 'Versión TIP más reciente',
+    description: 'Devuelve el puntero a la última versión publicada.',
+  })
   @Get(':projectId/:itemId/tip')
   @HttpCode(HttpStatus.OK)
   async obtenerTipVersion(
@@ -373,6 +403,7 @@ export class DataManagementItemsController {
    * GET - Obtener las versiones de un item
    * GET /data-management/items/:projectId/:itemId/versions
    */
+  @ApiOperation({ summary: 'Historial cronológico de versiones APS' })
   @Get(':projectId/:itemId/versions')
   @HttpCode(HttpStatus.OK)
   async obtenerVersiones(
@@ -399,6 +430,9 @@ export class DataManagementItemsController {
    * GET - Obtener las actividades de un archivo
    * GET /data-management/items/:projectId/:itemId/activities
    */
+  @ApiOperation({
+    summary: 'Timeline de auditoría/actividad GVR sobre el archivo',
+  })
   @Get(':projectId/:itemId/activities')
   @HttpCode(HttpStatus.OK)
   async obtenerActividadesArchivo(
@@ -423,6 +457,7 @@ export class DataManagementItemsController {
    * POST - Crear una referencia en un item
    * POST /data-management/items/:projectId/:itemId/relationships/refs
    */
+  @ApiOperation({ summary: 'Crear nueva ref que apunta a otro recurso' })
   @Post(':projectId/:itemId/relationships/refs')
   @HttpCode(HttpStatus.CREATED)
   async crearReferencia(
@@ -449,6 +484,7 @@ export class DataManagementItemsController {
    * PATCH - Actualizar un item
    * PATCH /data-management/items/:projectId/:itemId
    */
+  @ApiOperation({ summary: 'Actualizar nombre o incluso cambiar estado lógico' })
   @Patch(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
   async actualizarItem(
@@ -483,6 +519,10 @@ export class DataManagementItemsController {
    * DELETE - Eliminar un item (marcar como oculto/mover a papelera)
    * DELETE /data-management/items/:projectId/:itemId
    */
+  @ApiOperation({
+    summary: 'Eliminar archivo (marca Deleted en ACC)',
+    description: 'Versión Deleted + auditoría de rol/IP.',
+  })
   @Delete(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
   async eliminarItem(
@@ -525,6 +565,7 @@ export class DataManagementItemsController {
    * PATCH - Desplazar (mover) un item a otra carpeta
    * PATCH /data-management/items/:projectId/:itemId/move
    */
+  @ApiOperation({ summary: 'Mover item entre carpetas APS' })
   @Patch(':projectId/:itemId/move')
   @HttpCode(HttpStatus.OK)
   async desplazarItem(
@@ -559,6 +600,9 @@ export class DataManagementItemsController {
    * POST - Copiar un item (versión) a una carpeta destino
    * POST /data-management/items/:projectId/copy
    */
+  @ApiOperation({
+    summary: 'Duplicar contenido seleccionando versión fuente destino',
+  })
   @Post(':projectId/copy')
   @HttpCode(HttpStatus.CREATED)
   async copiarItem(

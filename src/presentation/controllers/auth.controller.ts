@@ -121,6 +121,10 @@ export class AuthController {
    * Cerrar sesión actual
    * POST /auth/logout
    */
+  @ApiOperation({
+    summary: 'Cerrar sesión actual',
+    description: 'Invalida el token en base de datos.',
+  })
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -140,6 +144,11 @@ export class AuthController {
    * Obtener perfil del usuario autenticado
    * GET /auth/perfil
    */
+  @ApiOperation({
+    summary: 'Perfil del usuario autenticado',
+    description:
+      'Incluye datos de usuario, trabajador, roles y URL de foto de perfil resuelta.',
+  })
   @Get('perfil')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -159,6 +168,10 @@ export class AuthController {
    * Subir foto de perfil del usuario autenticado
    * PATCH /auth/perfil/foto
    */
+  @ApiOperation({
+    summary: 'Subir o cambiar foto de perfil',
+    description: 'Multipart campo `foto` (JPEG, PNG o WebP, máx. 2 MB).',
+  })
   @Patch('perfil/foto')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -191,6 +204,10 @@ export class AuthController {
    * Validar si la sesión está activa
    * GET /validar-sesion
    */
+  @ApiOperation({
+    summary: 'Comprobar si la sesión sigue activa',
+    description: 'Devuelve estado de la sesión asociada al Bearer token.',
+  })
   @Get('/validar-sesion')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -214,6 +231,11 @@ export class AuthController {
    * Estadísticas de usuarios (total y conectados). Solo Administrador GVR, Administrador Sistema, Gerencia.
    * GET /auth/estadisticas-usuarios
    */
+  @ApiOperation({
+    summary: 'Estadísticas de usuarios (total y conectados)',
+    description:
+      'Restringido a roles administrativos (Administrador GVR, Gerencia, etc.).',
+  })
   @Get('estadisticas-usuarios')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -234,6 +256,10 @@ export class AuthController {
    * Cerrar todas las sesiones del usuario
    * POST /cerrar-todas-sesiones
    */
+  @ApiOperation({
+    summary: 'Cerrar todas las sesiones del usuario',
+    description: 'Invalida todas las sesiones activas excepto la opción explícita si existiera.',
+  })
   @Post('/cerrar-todas-sesiones')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

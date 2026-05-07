@@ -30,7 +30,10 @@ import {
   ImportarUsuariosProyectoDto,
   ActualizarUsuarioProyectoDto,
 } from '../../application/dtos/acc/project-users';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc/project-users')
 @UseGuards(JwtAuthGuard)
 export class AccProjectUsersController {
@@ -49,6 +52,7 @@ export class AccProjectUsersController {
    * GET /acc/project-users/:projectId/search
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({ summary: 'Buscar usuarios del proyecto ACC' })
   @Get(':projectId/search')
   @HttpCode(HttpStatus.OK)
   async buscarUsuariosProyecto(
@@ -74,6 +78,7 @@ export class AccProjectUsersController {
    * POST /acc/project-users/:projectId/import
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({ summary: 'Importar usuarios al proyecto' })
   @Post(':projectId/import')
   @HttpCode(HttpStatus.OK)
   async importarUsuariosProyecto(
@@ -98,6 +103,7 @@ export class AccProjectUsersController {
    * GET - Obtener un usuario específico de un proyecto
    * GET /acc/project-users/:projectId/:userId
    */
+  @ApiOperation({ summary: 'Obtener usuario del proyecto por ID' })
   @Get(':projectId/:userId')
   @HttpCode(HttpStatus.OK)
   async obtenerUsuarioProyectoPorId(
@@ -131,6 +137,7 @@ export class AccProjectUsersController {
    * GET - Obtener usuarios de un proyecto con filtros avanzados
    * GET /acc/project-users/:projectId
    */
+  @ApiOperation({ summary: 'Listar usuarios del proyecto con filtros' })
   @Get(':projectId')
   @HttpCode(HttpStatus.OK)
   async obtenerUsuariosProyecto(
@@ -155,6 +162,7 @@ export class AccProjectUsersController {
    * POST - Agregar un usuario a un proyecto
    * POST /acc/project-users/:projectId
    */
+  @ApiOperation({ summary: 'Agregar usuario al proyecto ACC' })
   @Post(':projectId')
   @HttpCode(HttpStatus.CREATED)
   async agregarUsuarioProyecto(
@@ -179,6 +187,7 @@ export class AccProjectUsersController {
    * PATCH - Actualizar un usuario en un proyecto
    * PATCH /acc/project-users/:projectId/:userId
    */
+  @ApiOperation({ summary: 'Actualizar usuario del proyecto' })
   @Patch(':projectId/:userId')
   @HttpCode(HttpStatus.OK)
   async actualizarUsuarioProyecto(
@@ -210,6 +219,7 @@ export class AccProjectUsersController {
    * DELETE - Eliminar un usuario de un proyecto
    * DELETE /acc/project-users/:projectId/:userId
    */
+  @ApiOperation({ summary: 'Quitar usuario del proyecto' })
   @Delete(':projectId/:userId')
   @HttpCode(HttpStatus.OK)
   async eliminarUsuarioProyecto(

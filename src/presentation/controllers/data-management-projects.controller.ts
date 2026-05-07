@@ -33,7 +33,10 @@ import { CrearStorageDto } from '../../application/dtos/data-management/projects
 import { CrearDescargaDto } from '../../application/dtos/data-management/projects/crear-descarga.dto';
 import { ObtenerEstadoDescargaDto } from '../../application/dtos/data-management/projects/obtener-estado-descarga.dto';
 import { ObtenerEstadoJobDto } from '../../application/dtos/data-management/projects/obtener-estado-job.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc-data')
+@ApiBearerAuth('access-token')
 @Controller('data-management/projects')
 @UseGuards(JwtAuthGuard)
 export class DataManagementProjectsController {
@@ -52,6 +55,7 @@ export class DataManagementProjectsController {
    * GET - Obtener proyectos de un hub específico
    * GET /data-management/projects/hubs/:hubId/projects
    */
+  @ApiOperation({ summary: 'Proyectos bajo un hub (ruta modular projects)' })
   @Get('hubs/:hubId/projects')
   @HttpCode(HttpStatus.OK)
   async obtenerProyectos(
@@ -76,6 +80,7 @@ export class DataManagementProjectsController {
    * GET - Obtener un proyecto específico por ID
    * GET /data-management/projects/hubs/:hubId/projects/:projectId
    */
+  @ApiOperation({ summary: 'Proyecto por ID con includes opcionales' })
   @Get('hubs/:hubId/projects/:projectId')
   @HttpCode(HttpStatus.OK)
   async obtenerProyectoPorId(
@@ -102,6 +107,7 @@ export class DataManagementProjectsController {
    * GET - Obtener el hub de un proyecto específico
    * GET /data-management/projects/hubs/:hubId/projects/:projectId/hub
    */
+  @ApiOperation({ summary: 'Obtener registro hub asociado al proyecto' })
   @Get('hubs/:hubId/projects/:projectId/hub')
   @HttpCode(HttpStatus.OK)
   async obtenerHubDeProyecto(
@@ -128,6 +134,7 @@ export class DataManagementProjectsController {
    * GET - Obtener carpetas principales (top folders) de un proyecto
    * GET /data-management/projects/hubs/:hubId/projects/:projectId/topFolders
    */
+  @ApiOperation({ summary: 'Carpetas de nivel superior (Project Files/BIM 360, etc.)' })
   @Get('hubs/:hubId/projects/:projectId/topFolders')
   @HttpCode(HttpStatus.OK)
   async obtenerCarpetasPrincipales(
@@ -159,6 +166,7 @@ export class DataManagementProjectsController {
    * POST - Crear storage para subir archivos
    * POST /data-management/projects/:projectId/storage
    */
+  @ApiOperation({ summary: 'Crear objeto temporal de storage OSS para uploads' })
   @Post(':projectId/storage')
   @HttpCode(HttpStatus.CREATED)
   async crearStorage(
@@ -183,6 +191,7 @@ export class DataManagementProjectsController {
    * POST - Crear descarga batch
    * POST /data-management/projects/:projectId/downloads
    */
+  @ApiOperation({ summary: 'Iniciar descarga batch ZIP de varios items' })
   @Post(':projectId/downloads')
   @HttpCode(HttpStatus.CREATED)
   async crearDescarga(
@@ -207,6 +216,7 @@ export class DataManagementProjectsController {
    * GET - Obtener estado de descarga
    * GET /data-management/projects/:projectId/downloads/:downloadId
    */
+  @ApiOperation({ summary: 'Consultar estado de descarga batch' })
   @Get(':projectId/downloads/:downloadId')
   @HttpCode(HttpStatus.OK)
   async obtenerEstadoDescarga(
@@ -233,6 +243,9 @@ export class DataManagementProjectsController {
    * GET - Obtener estado de job
    * GET /data-management/projects/:projectId/jobs/:jobId
    */
+  @ApiOperation({
+    summary: 'Consultar estado de job asíncrono (traducciones, procesos APS)',
+  })
   @Get(':projectId/jobs/:jobId')
   @HttpCode(HttpStatus.OK)
   async obtenerEstadoJob(

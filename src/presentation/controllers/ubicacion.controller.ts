@@ -7,10 +7,13 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { DatabaseFunctionService } from '../../infrastructure/database/database-function.service';
 
+@ApiTags('ubicacion')
+@ApiBearerAuth('access-token')
 @Controller('ubicacion')
 @UseGuards(JwtAuthGuard)
 export class UbicacionController {
@@ -18,6 +21,7 @@ export class UbicacionController {
     private readonly databaseFunctionService: DatabaseFunctionService,
   ) {}
 
+  @ApiOperation({ summary: 'Listar países' })
   @Get('paises')
   @HttpCode(HttpStatus.OK)
   async listarPaises() {
@@ -28,6 +32,10 @@ export class UbicacionController {
     return ApiResponseDto.success(data || [], 'Países obtenidos exitosamente');
   }
 
+  @ApiOperation({
+    summary: 'Listar departamentos',
+    description: 'Opcionalmente filtrados por idPais.',
+  })
   @Get('departamentos')
   @HttpCode(HttpStatus.OK)
   async listarDepartamentos(
@@ -43,6 +51,10 @@ export class UbicacionController {
     );
   }
 
+  @ApiOperation({
+    summary: 'Listar provincias',
+    description: 'Opcionalmente filtradas por idDepartamento.',
+  })
   @Get('provincias')
   @HttpCode(HttpStatus.OK)
   async listarProvincias(
@@ -59,6 +71,10 @@ export class UbicacionController {
     );
   }
 
+  @ApiOperation({
+    summary: 'Listar distritos',
+    description: 'Opcionalmente filtrados por idProvincia.',
+  })
   @Get('distritos')
   @HttpCode(HttpStatus.OK)
   async listarDistritos(

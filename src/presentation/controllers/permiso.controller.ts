@@ -22,10 +22,13 @@ import { EditarPermisoUseCase } from '../../application/use-cases/permiso/editar
 import { EliminarPermisoUseCase } from '../../application/use-cases/permiso/eliminar-permiso.use-case';
 import { CreatePermisoDto } from '../../application/dtos/permiso/create-permiso.dto';
 import { UpdatePermisoDto } from '../../application/dtos/permiso/update-permiso.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 
+@ApiTags('permisos')
+@ApiBearerAuth('access-token')
 @Controller('permisos')
 @UseGuards(JwtAuthGuard)
 export class PermisoController {
@@ -38,6 +41,7 @@ export class PermisoController {
     private readonly jwtService: JwtService,
   ) {}
 
+  @ApiOperation({ summary: 'Listar permisos', description: 'Catálogo paginable para asignación a roles.' })
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarPermisos(
@@ -53,6 +57,7 @@ export class PermisoController {
     return ApiResponseDto.success(data, 'Permisos obtenidos exitosamente');
   }
 
+  @ApiOperation({ summary: 'Obtener permiso por id' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async obtenerPermiso(@Param('id', ParseIntPipe) id: number) {
@@ -60,6 +65,7 @@ export class PermisoController {
     return ApiResponseDto.success(data, 'Permiso obtenido exitosamente');
   }
 
+  @ApiOperation({ summary: 'Crear permiso' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async crearPermiso(
@@ -75,6 +81,7 @@ export class PermisoController {
     return ApiResponseDto.created(data, 'Permiso creado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Actualizar permiso' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async editarPermiso(
@@ -95,6 +102,7 @@ export class PermisoController {
     return ApiResponseDto.success(data, 'Permiso actualizado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Eliminar permiso' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async eliminarPermiso(

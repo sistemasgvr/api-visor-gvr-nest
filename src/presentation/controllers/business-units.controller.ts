@@ -26,7 +26,10 @@ import {
   BuscarBusinessUnitsDto,
   CrearOActualizarBusinessUnitsDto,
 } from '../../application/dtos/acc/business-units';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('business-units')
+@ApiBearerAuth('access-token')
 @Controller('acc/business-units')
 @UseGuards(JwtAuthGuard)
 export class BusinessUnitsController {
@@ -44,6 +47,7 @@ export class BusinessUnitsController {
    * GET /acc/business-units/:accountId/search
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({ summary: 'Buscar business units por nombre en la cuenta' })
   @Get(':accountId/search')
   @HttpCode(HttpStatus.OK)
   async buscarBusinessUnits(
@@ -69,6 +73,9 @@ export class BusinessUnitsController {
    * GET /acc/business-units/:accountId/children
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({
+    summary: 'Listar business units hijas de la unidad padre indicada',
+  })
   @Get(':accountId/children')
   @HttpCode(HttpStatus.OK)
   async obtenerBusinessUnitsHijas(
@@ -94,6 +101,7 @@ export class BusinessUnitsController {
    * GET /acc/business-units/:accountId/tree
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({ summary: 'Obtener árbol jerárquico de business units' })
   @Get(':accountId/tree')
   @HttpCode(HttpStatus.OK)
   async obtenerArbolBusinessUnits(
@@ -118,6 +126,7 @@ export class BusinessUnitsController {
    * GET - Obtener todas las business units de una cuenta
    * GET /acc/business-units/:accountId
    */
+  @ApiOperation({ summary: 'Listar business units de la cuenta' })
   @Get(':accountId')
   @HttpCode(HttpStatus.OK)
   async obtenerBusinessUnits(
@@ -142,6 +151,7 @@ export class BusinessUnitsController {
    * GET - Obtener una business unit específica por ID
    * GET /acc/business-units/:accountId/:businessUnitId
    */
+  @ApiOperation({ summary: 'Obtener una business unit por ID' })
   @Get(':accountId/:businessUnitId')
   @HttpCode(HttpStatus.OK)
   async obtenerBusinessUnitPorId(
@@ -171,6 +181,10 @@ export class BusinessUnitsController {
    * PUT - Crear o actualizar business units (requiere scope account:write)
    * PUT /acc/business-units/:accountId
    */
+  @ApiOperation({
+    summary: 'Crear o sincronizar business units',
+    description: 'Requiere scope account:write.',
+  })
   @Put(':accountId')
   @HttpCode(HttpStatus.OK)
   async crearOActualizarBusinessUnits(

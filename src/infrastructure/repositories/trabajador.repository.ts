@@ -97,6 +97,32 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     });
   }
 
+  async obtenerUrlAlmacenadaFotoPerfilPorIdTrabajador(
+    idTrabajador: number,
+  ): Promise<{ url: string | null } | null> {
+    if (idTrabajador == null || idTrabajador < 1) {
+      return null;
+    }
+    const rows = await this.databaseFunctionService.executeQuery<{
+      url: string | null;
+    }>(
+      `SELECT g.url AS url
+       FROM tratrabajador t
+       INNER JOIN authusuarios u ON u.id = t.idusuario AND u.estado = 1
+       LEFT JOIN genarchivo g ON g.id = u.idarchivofotoperfil AND g.estado = 1
+       WHERE t.id = $1 AND t.estado = 1
+       LIMIT 1`,
+      [idTrabajador],
+    );
+    if (!rows?.length) {
+      return null;
+    }
+    const url = rows[0]?.url;
+    return {
+      url: url != null && String(url).trim() !== '' ? String(url).trim() : null,
+    };
+  }
+
   async obtenerTrabajadorPorId(idTrabajador: number): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
       'tra_ObtenerTrabajadorPorId',

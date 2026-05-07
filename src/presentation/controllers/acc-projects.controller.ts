@@ -51,7 +51,10 @@ import { ClonarProyectoDto } from '../../application/dtos/acc/projects/clonar-pr
 import { ActualizarProyectoDto } from '../../application/dtos/acc/projects/actualizar-proyecto.dto';
 import { SubirImagenProyectoDto } from '../../application/dtos/acc/projects/subir-imagen-proyecto.dto';
 import { ActivarServicioProyectoDto } from '../../application/dtos/acc/projects/activar-servicio-proyecto.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc/projects')
 export class AccProjectsController {
   constructor(
@@ -75,6 +78,7 @@ export class AccProjectsController {
    * GET - Obtener proyectos de una cuenta
    * GET /acc/projects/:accountId
    */
+  @ApiOperation({ summary: 'Listar proyectos de una cuenta ACC' })
   @Get(':accountId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -124,6 +128,7 @@ export class AccProjectsController {
    * GET - Obtener un proyecto específico por ID
    * GET /acc/projects/proyecto/:projectId
    */
+  @ApiOperation({ summary: 'Obtener proyecto ACC por ID' })
   @Get('proyecto/:projectId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -147,6 +152,7 @@ export class AccProjectsController {
    * GET - Obtener plantillas
    * GET /acc/projects/:accountId/templates
    */
+  @ApiOperation({ summary: 'Listar plantillas de proyecto disponibles' })
   @Get(':accountId/templates')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -170,6 +176,7 @@ export class AccProjectsController {
    * POST - Obtener proyectos por tipo
    * POST /acc/projects/:accountId/por-tipo
    */
+  @ApiOperation({ summary: 'Filtrar proyectos por tipo (cuerpo de filtro)' })
   @Post(':accountId/por-tipo')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -196,6 +203,7 @@ export class AccProjectsController {
    * GET - Obtener proyectos activos
    * GET /acc/projects/:accountId/activos
    */
+  @ApiOperation({ summary: 'Listar proyectos activos en la cuenta' })
   @Get(':accountId/activos')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -222,6 +230,7 @@ export class AccProjectsController {
    * POST - Crear nuevo proyecto
    * POST /acc/projects/:accountId/crear
    */
+  @ApiOperation({ summary: 'Crear proyecto vacío desde cero', description: 'Operación asíncrona típica (202).' })
   @Post(':accountId/crear')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.ACCEPTED)
@@ -259,6 +268,10 @@ export class AccProjectsController {
    * POST - Clonar proyecto desde plantilla
    * POST /acc/projects/:accountId/clonar
    */
+  @ApiOperation({
+    summary: 'Clonar proyecto desde plantilla',
+    description: 'Operación asíncrona típica (202).',
+  })
   @Post(':accountId/clonar')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.ACCEPTED)
@@ -299,6 +312,7 @@ export class AccProjectsController {
    * PATCH - Actualizar proyecto
    * PATCH /acc/projects/:accountId/:projectId/actualizar
    */
+  @ApiOperation({ summary: 'Actualizar proyecto existente en ACC' })
   @Patch(':accountId/:projectId/actualizar')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -341,6 +355,7 @@ export class AccProjectsController {
    * POST - Subir imagen del proyecto
    * POST /acc/projects/:accountId/:projectId/imagen
    */
+  @ApiOperation({ summary: 'Subir imagen o portada del proyecto' })
   @Post(':accountId/:projectId/imagen')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
@@ -393,6 +408,10 @@ export class AccProjectsController {
    * POST - Activar un servicio en un proyecto (ej: Docs, Cost, etc.)
    * POST /acc/projects/:projectId/activar-servicio
    */
+  @ApiOperation({
+    summary: 'Activar un producto ACC en el proyecto',
+    description: 'Ejemplo: Autodesk Docs, Cost, Build, etc.',
+  })
   @Post(':projectId/activar-servicio')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -432,6 +451,9 @@ export class AccProjectsController {
    * POST - Desactivar un servicio en un proyecto para un usuario
    * POST /acc/projects/:projectId/desactivar-servicio
    */
+  @ApiOperation({
+    summary: 'Desactivar producto ACC para el usuario por email',
+  })
   @Post(':projectId/desactivar-servicio')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -476,6 +498,11 @@ export class AccProjectsController {
    * GET /acc/projects/:projectId/mis-servicios
    * Devuelve los productos a los que el usuario de ACC tiene acceso en el proyecto
    */
+  @ApiOperation({
+    summary: 'Productos ACC activos del usuario en el proyecto',
+    description:
+      'Usa token 3-legged del usuario contra APS y miembros del proyecto.',
+  })
   @Get(':projectId/mis-servicios')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

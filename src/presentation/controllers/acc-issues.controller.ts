@@ -60,6 +60,10 @@ import { CrearAdjuntoDto } from '../../application/dtos/acc/issues/crear-adjunto
 import { ObtenerAdjuntosDto } from '../../application/dtos/acc/issues/obtener-adjuntos.dto';
 import { AsignarIncidenciaDto } from '../../application/dtos/acc/issues/asignar-incidencia.dto';
 import { ExportarIncidenciasDto } from '../../application/dtos/acc/issues/exportar-incidencias.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc/projects/:projectId')
 export class AccIssuesController {
   constructor(
@@ -89,6 +93,7 @@ export class AccIssuesController {
    * GET - Obtener perfil de usuario
    * GET /acc/projects/:projectId/users/me
    */
+  @ApiOperation({ summary: 'Perfil Autodesk del usuario en el proyecto ACC' })
   @Get('users/me')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -121,6 +126,10 @@ export class AccIssuesController {
    * GET - Obtener tipos de incidencias
    * GET /acc/projects/:projectId/issue-types
    */
+  @ApiOperation({
+    summary: 'Tipos de Issues ACC del proyecto',
+    description: 'Soporta paginación Autodesk.',
+  })
   @Get('issue-types')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -164,6 +173,7 @@ export class AccIssuesController {
    * GET - Obtener definiciones de atributos
    * GET /acc/projects/:projectId/issue-attribute-definitions
    */
+  @ApiOperation({ summary: 'Definiciones de atributos personalizados Issues ACC' })
   @Get('issue-attribute-definitions')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -207,6 +217,9 @@ export class AccIssuesController {
    * GET - Obtener mapeos de atributos
    * GET /acc/projects/:projectId/issue-attribute-mappings
    */
+  @ApiOperation({
+    summary: 'Mapeos entre claves BIM y Issues ACC personalizadas',
+  })
   @Get('issue-attribute-mappings')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -250,6 +263,7 @@ export class AccIssuesController {
    * GET - Obtener categorías de causa raíz
    * GET /acc/projects/:projectId/issue-root-cause-categories
    */
+  @ApiOperation({ summary: 'Categorías causa raíz para Issues ACC' })
   @Get('issue-root-cause-categories')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -293,6 +307,10 @@ export class AccIssuesController {
    * GET - Obtener incidencias por documento
    * GET /acc/projects/:projectId/issues/by-document
    */
+  @ApiOperation({
+    summary: 'Issues filtrados por modelo/viewable Autodesk',
+    description: 'documentUrn obligatorio en query.',
+  })
   @Get('issues/by-document')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -342,6 +360,10 @@ export class AccIssuesController {
    * GET - Obtener URL de miniatura
    * GET /acc/projects/:projectId/issues/thumbnail-url
    */
+  @ApiOperation({
+    summary: 'Thumbnail APS generado desde snapshotUrn ACC',
+    description: 'Consulta rápida de URL provisional.',
+  })
   @Get('issues/thumbnail-url')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -388,6 +410,9 @@ export class AccIssuesController {
    * GET - Obtener incidencias
    * GET /acc/projects/:projectId/issues
    */
+  @ApiOperation({
+    summary: 'Lista principal de Issues ACC con filtros de tablero',
+  })
   @Get('issues')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -422,6 +447,10 @@ export class AccIssuesController {
    * POST - Crear incidencia
    * POST /acc/projects/:projectId/issues
    */
+  @ApiOperation({
+    summary: 'Registrar issue nuevo en proyecto ACC',
+    description: 'Enriquece con auditoría GVR (IP, rol, navegador).',
+  })
   @Post('issues')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -471,6 +500,11 @@ export class AccIssuesController {
    * GET - Registro de actividad (GVR: auditoría + comentarios ACC) para una incidencia
    * GET /acc/projects/:projectId/issues/:issueId/activity
    */
+  @ApiOperation({
+    summary: 'Cronología combinada cliente (auditoría + comentarios APS)',
+    description:
+      'Incluye acciones realizadas dentro de Visor alineadas temporales APS.',
+  })
   @Get('issues/:issueId/activity')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -507,6 +541,7 @@ export class AccIssuesController {
    * GET - Obtener incidencia por ID
    * GET /acc/projects/:projectId/issues/:issueId
    */
+  @ApiOperation({ summary: 'Detalle granular de Issue ACC puntual' })
   @Get('issues/:issueId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -541,6 +576,11 @@ export class AccIssuesController {
    * PATCH - Actualizar incidencia
    * PATCH /acc/projects/:projectId/issues/:issueId
    */
+  @ApiOperation({
+    summary: 'Persistir modificaciones locales que impactan APS',
+    description:
+      'Mantiene trazabilidad quien modificó mediante JWT + cabeceras.',
+  })
   @Patch('issues/:issueId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -595,6 +635,7 @@ export class AccIssuesController {
    * GET - Obtener comentarios de una incidencia
    * GET /acc/projects/:projectId/issues/:issueId/comments
    */
+  @ApiOperation({ summary: 'Comentarios Autodesk del issue solicitado' })
   @Get('issues/:issueId/comments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -640,6 +681,10 @@ export class AccIssuesController {
    * POST - Crear comentario en una incidencia
    * POST /acc/projects/:projectId/issues/:issueId/comments
    */
+  @ApiOperation({
+    summary: 'Añadir nuevo comentario ACC',
+    description: 'Fusiona información de auditoría GVR igual que PATCH issue.',
+  })
   @Post('issues/:issueId/comments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -691,6 +736,10 @@ export class AccIssuesController {
    * POST - Crear adjunto para una incidencia
    * POST /acc/projects/:projectId/attachments
    */
+  @ApiOperation({
+    summary: 'Crear attachment multiparte para issue ACC',
+    description: 'Se envía issueId dentro del multipart body.',
+  })
   @Post('attachments')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
@@ -747,6 +796,7 @@ export class AccIssuesController {
    * GET - Obtener adjuntos de una incidencia
    * GET /acc/projects/:projectId/issues/:issueId/attachments
    */
+  @ApiOperation({ summary: 'Enumerar enlaces APS asociados al issue' })
   @Get('issues/:issueId/attachments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -792,6 +842,7 @@ export class AccIssuesController {
    * DELETE - Eliminar adjunto de una incidencia
    * DELETE /acc/projects/:projectId/issues/:issueId/attachments/:attachmentId
    */
+  @ApiOperation({ summary: 'Eliminar archivo adjunto en APS Issues' })
   @Delete('issues/:issueId/attachments/:attachmentId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -830,6 +881,10 @@ export class AccIssuesController {
    * POST - Asignar/Desasignar incidencia a usuario
    * POST /acc/projects/:projectId/issues/assign
    */
+  @ApiOperation({
+    summary: 'Delegar persona responsable Autodesk',
+    description: 'Operación combinada auditoría cliente + PATCH APS.',
+  })
   @Post('issues/assign')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -883,6 +938,11 @@ export class AccIssuesController {
    * GET - Obtener usuarios disponibles para asignar
    * GET /acc/projects/:projectId/users/available
    */
+  @ApiOperation({
+    summary: 'Autosuggest personas internas al asignar',
+    description:
+      'Utiliza filtros busqueda/limit desde query para combos UI.',
+  })
   @Get('users/available')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -909,6 +969,10 @@ export class AccIssuesController {
    * POST - Exportar incidencias
    * POST /acc/projects/:projectId/issues/export
    */
+  @ApiOperation({
+    summary: 'Generar archivo descargable con issues filtrados',
+    description: 'Respuesta binaria con disposition attachment.',
+  })
   @Post('issues/export')
   @UseGuards(JwtAuthGuard)
   async exportarIncidencias(

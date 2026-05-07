@@ -40,10 +40,13 @@ import { ActualizarNivelAccesoProyectoDto } from '../../application/dtos/proyect
 import { CreateDocumentoProyectoDto } from '../../application/dtos/proyecto/create-documento-proyecto.dto';
 import { UpdateDocumentoProyectoDto } from '../../application/dtos/proyecto/update-documento-proyecto.dto';
 import { GuardarCoordinadoresProyectoDto } from '../../application/dtos/proyecto/guardar-coordinadores-proyecto.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 
+@ApiTags('proyectos')
+@ApiBearerAuth('access-token')
 @Controller('proyectos')
 @UseGuards(JwtAuthGuard)
 export class ProyectoController {
@@ -68,6 +71,10 @@ export class ProyectoController {
     private readonly jwtService: JwtService,
   ) {}
 
+  @ApiOperation({
+    summary: 'Estadísticas de proyectos agrupadas por estado',
+    description: 'Conteos por estado operativo del proyecto.',
+  })
   @Get('estadisticas-por-estado')
   @HttpCode(HttpStatus.OK)
   async listarEstadisticasProyectosPorEstado() {
@@ -76,6 +83,11 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Estadísticas de proyectos por estado');
   }
 
+  @ApiOperation({
+    summary: 'Listar proyectos',
+    description:
+      'Filtros por tipo, país, cliente y texto; alcance según permisos del usuario.',
+  })
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarProyectos(
@@ -110,6 +122,11 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Proyectos obtenidos exitosamente');
   }
 
+  @ApiOperation({
+    summary: 'Usuarios disponibles para asignar al proyecto',
+    description:
+      'Usuarios que aún no tienen acceso o para ampliar roles (según búsqueda).',
+  })
   @Get(':id/usuarios/available')
   @HttpCode(HttpStatus.OK)
   async listarUsuariosDisponiblesProyecto(
@@ -129,6 +146,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Usuarios disponibles obtenidos');
   }
 
+  @ApiOperation({ summary: 'Usuarios con acceso al proyecto' })
   @Get(':id/usuarios')
   @HttpCode(HttpStatus.OK)
   async listarUsuariosProyecto(@Param('id', ParseIntPipe) id: number) {
@@ -136,6 +154,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Usuarios con acceso al proyecto');
   }
 
+  @ApiOperation({ summary: 'Asignar acceso de usuario al proyecto' })
   @Post(':id/usuarios')
   @HttpCode(HttpStatus.CREATED)
   async asignarAccesoProyecto(
@@ -154,6 +173,7 @@ export class ProyectoController {
     return ApiResponseDto.created(data, 'Acceso asignado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Cambiar nivel de acceso del usuario en el proyecto' })
   @Patch(':id/usuarios/:idAcceso')
   @HttpCode(HttpStatus.OK)
   async actualizarNivelAccesoProyecto(
@@ -174,6 +194,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Nivel de acceso actualizado');
   }
 
+  @ApiOperation({ summary: 'Quitar acceso del usuario al proyecto' })
   @Delete(':id/usuarios/:idAcceso')
   @HttpCode(HttpStatus.OK)
   async removerAccesoProyecto(
@@ -192,6 +213,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Acceso removido exitosamente');
   }
 
+  @ApiOperation({ summary: 'Listar coordinadores BIM del proyecto' })
   @Get(':id/coordinadores')
   @HttpCode(HttpStatus.OK)
   async listarCoordinadoresProyecto(@Param('id', ParseIntPipe) id: number) {
@@ -199,6 +221,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Coordinadores del proyecto');
   }
 
+  @ApiOperation({ summary: 'Guardar coordinadores del proyecto' })
   @Put(':id/coordinadores')
   @HttpCode(HttpStatus.OK)
   async guardarCoordinadoresProyecto(
@@ -217,6 +240,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Coordinadores actualizados');
   }
 
+  @ApiOperation({ summary: 'Documentos asociados al proyecto' })
   @Get(':id/documentos')
   @HttpCode(HttpStatus.OK)
   async listarDocumentosProyecto(@Param('id', ParseIntPipe) id: number) {
@@ -224,6 +248,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Documentos del proyecto');
   }
 
+  @ApiOperation({ summary: 'Registrar documento en el proyecto' })
   @Post(':id/documentos')
   @HttpCode(HttpStatus.CREATED)
   async crearDocumentoProyecto(
@@ -242,6 +267,7 @@ export class ProyectoController {
     return ApiResponseDto.created(data, 'Documento creado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Actualizar metadatos de documento del proyecto' })
   @Patch(':id/documentos/:idDocumento')
   @HttpCode(HttpStatus.OK)
   async actualizarDocumentoProyecto(
@@ -261,6 +287,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Documento actualizado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Eliminar documento del proyecto' })
   @Delete(':id/documentos/:idDocumento')
   @HttpCode(HttpStatus.OK)
   async eliminarDocumentoProyecto(
@@ -278,6 +305,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Documento eliminado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Obtener proyecto por id' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async obtenerProyecto(@Param('id', ParseIntPipe) id: number) {
@@ -286,6 +314,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Proyecto obtenido exitosamente');
   }
 
+  @ApiOperation({ summary: 'Crear proyecto' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async crearProyecto(
@@ -308,6 +337,7 @@ export class ProyectoController {
     return ApiResponseDto.created(data, 'Proyecto creado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Actualizar proyecto' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async editarProyecto(
@@ -332,6 +362,7 @@ export class ProyectoController {
     return ApiResponseDto.success(data, 'Proyecto actualizado exitosamente');
   }
 
+  @ApiOperation({ summary: 'Eliminar proyecto (baja lógica)' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async eliminarProyecto(

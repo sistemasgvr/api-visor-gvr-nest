@@ -31,6 +31,10 @@ import {
   ActualizarImagenProyectoBim360Dto,
 } from '../../application/dtos/bim360/projects';
 
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('bim360')
+@ApiBearerAuth('access-token')
 @Controller('bim360/projects')
 @UseGuards(JwtAuthGuard)
 export class Bim360ProjectsController {
@@ -50,6 +54,7 @@ export class Bim360ProjectsController {
    * GET /bim360/projects/:accountId/legacy
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({ summary: 'Listar proyectos BIM 360 (API legacy)' })
   @Get(':accountId/legacy')
   @HttpCode(HttpStatus.OK)
   async obtenerProyectosLegacy(
@@ -75,6 +80,9 @@ export class Bim360ProjectsController {
    * GET /bim360/projects/:accountId/new
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({
+    summary: 'Listar proyectos (API nueva, compatible ACC)',
+  })
   @Get(':accountId/new')
   @HttpCode(HttpStatus.OK)
   async obtenerProyectosNew(
@@ -100,6 +108,7 @@ export class Bim360ProjectsController {
    * GET /bim360/projects/:accountId/:projectId/legacy
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({ summary: 'Obtener proyecto por ID (legacy)' })
   @Get(':accountId/:projectId/legacy')
   @HttpCode(HttpStatus.OK)
   async obtenerProyectoPorIdLegacy(
@@ -130,6 +139,7 @@ export class Bim360ProjectsController {
    * GET /bim360/projects/:accountId/:projectId/new
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({ summary: 'Obtener proyecto por ID (API nueva)' })
   @Get(':accountId/:projectId/new')
   @HttpCode(HttpStatus.OK)
   async obtenerProyectoPorIdNew(
@@ -158,6 +168,10 @@ export class Bim360ProjectsController {
    * GET /bim360/projects/:accountId/:projectId/issue-container-id
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({
+    summary: 'Obtener issueContainerId del proyecto',
+    description: 'Identificador necesario para algunas APIs de incidencias BIM 360.',
+  })
   @Get(':accountId/:projectId/issue-container-id')
   @HttpCode(HttpStatus.OK)
   async obtenerIssueContainerId(
@@ -186,6 +200,7 @@ export class Bim360ProjectsController {
    * PATCH /bim360/projects/:accountId/:projectId/image
    * IMPORTANTE: Esta ruta debe ir antes de las rutas con parámetros dinámicos
    */
+  @ApiOperation({ summary: 'Actualizar imagen/portada del proyecto BIM 360' })
   @Patch(':accountId/:projectId/image')
   @HttpCode(HttpStatus.OK)
   async actualizarImagenProyecto(
@@ -215,6 +230,7 @@ export class Bim360ProjectsController {
    * POST - Crear un nuevo proyecto BIM 360
    * POST /bim360/projects/:accountId
    */
+  @ApiOperation({ summary: 'Crear proyecto BIM 360' })
   @Post(':accountId')
   @HttpCode(HttpStatus.CREATED)
   async crearProyecto(
@@ -239,6 +255,7 @@ export class Bim360ProjectsController {
    * PATCH - Actualizar un proyecto BIM 360
    * PATCH /bim360/projects/:accountId/:projectId
    */
+  @ApiOperation({ summary: 'Actualizar proyecto BIM 360' })
   @Patch(':accountId/:projectId')
   @HttpCode(HttpStatus.OK)
   async actualizarProyecto(

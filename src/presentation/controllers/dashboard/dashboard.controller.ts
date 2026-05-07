@@ -5,6 +5,7 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../../infrastructure/auth/jwt-auth.guard';
 
@@ -20,6 +21,8 @@ import { ObtenerCantidadTrabajadoresConectadoSemanaUseCase } from '../../../appl
 import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from '../../../application/use-cases/dashboard/obtener-horas-esperadas-vs-registradas-mes.use-case';
 import { ObtenerProyectosConProgresoUseCase } from '../../../application/use-cases/dashboard/obtener-proyectos-con-progreso.use-case';
 
+@ApiTags('dashboard')
+@ApiBearerAuth('access-token')
 @Controller('dashboard')
 @UseGuards(JwtAuthGuard)
 export class DashboardController {
@@ -37,6 +40,7 @@ export class DashboardController {
     private readonly obtenerProyectosConProgresoUseCase: ObtenerProyectosConProgresoUseCase,
   ) {}
 
+  @ApiOperation({ summary: 'Conteo de proyectos vigentes' })
   @Get('cantidad-proyectos-vigentes')
   @HttpCode(HttpStatus.OK)
   async obtenerCantidadProyectosVigentes() {
@@ -44,6 +48,7 @@ export class DashboardController {
     return ApiResponseDto.success(data, 'Cantidad de proyectos vigentes');
   }
 
+  @ApiOperation({ summary: 'Conteo de trabajadores activos' })
   @Get('cantidad-trabajadores-activos')
   @HttpCode(HttpStatus.OK)
   async obtenerCantidadTrabajadoresActivos() {
@@ -51,6 +56,10 @@ export class DashboardController {
     return ApiResponseDto.success(data, 'Cantidad de trabajadores activos');
   }
 
+  @ApiOperation({
+    summary: 'Actividades pendientes de validación',
+    description: 'Estados tipo “Por aprobar” según reglas de negocio.',
+  })
   @Get('cantidad-actividades-pendientes')
   @HttpCode(HttpStatus.OK)
   async obtenerCantidadActividadesPendientes() {
@@ -59,6 +68,7 @@ export class DashboardController {
     return ApiResponseDto.success(data, 'Cantidad de actividades pendientes');
   }
 
+  @ApiOperation({ summary: 'Actividades en estado observado' })
   @Get('cantidad-actividades-observadas')
   @HttpCode(HttpStatus.OK)
   async obtenerCantidadActividadesObservadas() {
@@ -67,6 +77,7 @@ export class DashboardController {
     return ApiResponseDto.success(data, 'Cantidad de actividades observadas');
   }
 
+  @ApiOperation({ summary: 'Actividades rechazadas' })
   @Get('cantidad-actividades-rechazadas')
   @HttpCode(HttpStatus.OK)
   async obtenerCantidadActividadesRechazadas() {
@@ -75,6 +86,10 @@ export class DashboardController {
     return ApiResponseDto.success(data, 'Cantidad de actividades rechazadas');
   }
 
+  @ApiOperation({
+    summary: 'Trabajadores por proyecto (agregado)',
+    description: 'Para gráficos o tablas resumen.',
+  })
   @Get('cantidad-trabajadores-por-proyecto')
   @HttpCode(HttpStatus.OK)
   async obtenerCantidadTrabajadoresPorProyecto() {
@@ -86,6 +101,7 @@ export class DashboardController {
     );
   }
 
+  @ApiOperation({ summary: 'Jornadas completas en la semana actual' })
   @Get('cantidad-jornadas-completas-semana')
   @HttpCode(HttpStatus.OK)
   async obtenerCantidadJornadasCompletasSemana() {
@@ -97,6 +113,7 @@ export class DashboardController {
     );
   }
 
+  @ApiOperation({ summary: 'Ranking de horas registradas en el mes' })
   @Get('top-trabajadores-horas-mes')
   @HttpCode(HttpStatus.OK)
   async obtenerTopTrabajadoresHorasMes() {
@@ -104,6 +121,10 @@ export class DashboardController {
     return ApiResponseDto.success(data, 'Top trabajadores por horas del mes');
   }
 
+  @ApiOperation({
+    summary: 'Trabajadores que registraron actividad en la semana',
+    description: 'Proxy al indicador de “conectados” operativos.',
+  })
   @Get('cantidad-trabajadores-conectado-semana')
   @HttpCode(HttpStatus.OK)
   async obtenerCantidadTrabajadoresConectadoSemana() {
@@ -115,6 +136,10 @@ export class DashboardController {
     );
   }
 
+  @ApiOperation({
+    summary: 'Horas esperadas vs registradas (mes)',
+    description: 'Comparativo contractual vs actividades aprobadas.',
+  })
   @Get('horas-esperadas-vs-registradas-mes')
   @HttpCode(HttpStatus.OK)
   async obtenerHorasEsperadasVsRegistradasMes() {
@@ -126,6 +151,10 @@ export class DashboardController {
     );
   }
 
+  @ApiOperation({
+    summary: 'Proyectos con avance de actividades',
+    description: 'Para tarjetas de seguimiento.',
+  })
   @Get('proyectos-con-progreso')
   @HttpCode(HttpStatus.OK)
   async obtenerProyectosConProgreso() {
