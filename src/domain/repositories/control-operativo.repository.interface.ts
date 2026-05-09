@@ -432,6 +432,42 @@ export interface ReporteGeneralResult {
   totalHoras: number;
 }
 
+/**
+ * Parámetros de `con_ReporteHorasDedicadasMesPorProyectoTrabajador`:
+ * horas agregadas por trabajador y proyecto en un mes calendario.
+ */
+export interface ReporteHorasTrabajadorMesProyectoParams {
+  anio: number;
+  mes: number;
+  idTrabajadores?: number[] | null;
+  idProyectos?: number[] | null;
+  idEstadosActividad?: number[] | null;
+  /** Meta horas por día para convertir a días equivalentes (default 8). */
+  horasMetaDia?: number;
+}
+
+/** Una fila agregada (trabajador + proyecto) en el mes. */
+export interface ReporteHorasTrabajadorMesProyectoItem {
+  idtrabajador: number;
+  nombretrabajador: string | null;
+  idproyecto: number;
+  nombreproyecto: string | null;
+  nroproyecto: string | null;
+  anio: number;
+  mes: number;
+  horasdedicadas: number;
+  cantidadActividades: number;
+  diasCalendarioMes: number;
+  diasEquivalente: number;
+  textoDiasMes: string | null;
+}
+
+export interface ReporteHorasTrabajadorMesProyectoResult {
+  data: ReporteHorasTrabajadorMesProyectoItem[];
+  /** Suma de horasdedicadas en todas las filas devueltas. */
+  totalHoras: number;
+}
+
 /** Actividad vencida retornada por el cron de alerta (> 7 días sin validar). */
 export interface ActividadSinValidarItem {
   id: number;
@@ -558,6 +594,9 @@ export interface IControlOperativoRepository {
     params: ReporteGeneralParams,
   ): Promise<ReporteGeneralResult>;
   listarLideresEquipoReporteGeneral(): Promise<LiderEquipoReporteGeneralItem[]>;
+  listarReporteHorasDedicadasMesPorProyectoTrabajador(
+    params: ReporteHorasTrabajadorMesProyectoParams,
+  ): Promise<ReporteHorasTrabajadorMesProyectoResult>;
 }
 
 export const CONTROL_OPERATIVO_REPOSITORY = 'CONTROL_OPERATIVO_REPOSITORY';

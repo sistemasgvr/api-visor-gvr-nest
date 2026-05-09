@@ -10,6 +10,7 @@ import {
   UseGuards,
   ParseIntPipe,
   UnauthorizedException,
+  BadRequestException,
   ForbiddenException,
   Req,
   Header,
@@ -43,6 +44,7 @@ import { ListarTrabajadoresPorProyectoUseCase } from '../../application/use-case
 import { ValidarActividadUseCase } from '../../application/use-cases/control-operativo/validar-actividad.use-case';
 import { ListarReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-reporte-general.use-case';
 import { ListarLideresEquipoReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-lideres-equipo-reporte-general.use-case';
+import { ListarReporteHorasMesProyectoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-reporte-horas-mes-proyecto-trabajador.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -78,6 +80,7 @@ export class ControlOperativoController {
     private readonly validarActividadUseCase: ValidarActividadUseCase,
     private readonly listarReporteGeneralUseCase: ListarReporteGeneralUseCase,
     private readonly listarLideresEquipoReporteGeneralUseCase: ListarLideresEquipoReporteGeneralUseCase,
+    private readonly listarReporteHorasMesProyectoTrabajadorUseCase: ListarReporteHorasMesProyectoTrabajadorUseCase,
     private readonly cronAlertaActividadesSinValidarUseCase: CronAlertaActividadesSinValidarUseCase,
     private readonly configService: ConfigService,
   ) {}
@@ -848,6 +851,63 @@ export class ControlOperativoController {
     return ApiResponseDto.success(
       result,
       'Reporte general listado exitosamente',
+    );
+  }
+
+  /**
+   * Horas dedicadas agregadas por trabajador y proyecto en un mes calendario.
+   * GET /control-operativo/reporte-horas-mes-proyecto-trabajador?anio=2026&mes=5&horasMetaDia=8&...
+   */
+  @ApiOperation({
+    summary: 'Reporte horas por mes (trabajador × proyecto)',
+    description:
+      'Totales mensuales con días equivalentes según meta horaria. Solo roles administrativos.',
+  })
+  @Get('reporte-horas-mes-proyecto-trabajador')
+  @UseGuards(JwtAuthGuard)
+  async listarReporteHorasMesProyectoTrabajador(
+    @Req() req: Request & { user?: { id?: number; sub?: number } },
+    @Query('anio') anio?: string,
+    @Query('mes') mes?: string,
+    @Query('horasMetaDia') horasMetaDia?: string,
+    @Query('idTrabajadores') idTrabajadores?: string,
+    @Query('idProyectos') idProyectos?: string,
+    @Query('idEstadosActividad') idEstadosActividad?: string,
+    @Query('rolesAdmin') rolesAdmin?: string,
+  ) {
+    const userId = req.user?.sub ?? req.user?.id;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no identificado');
+    }
+    const anioNum = anio != null && anio !== '' ? parseInt(anio, 10) : NaN;
+    const mesNum = mes != null && mes !== '' ? parseInt(mes, 10) : NaN;
+    if (Number.isNaN(anioNum) || anioNum < 2000 || anioNum > 2100) {
+      throw new BadRequestException('Parámetro anio inválido');
+    }
+    if (Number.isNaN(mesNum) || mesNum < 1 || mesNum > 12) {
+      throw new BadRequestException('Parámetro mes inválido (1-12)');
+    }
+    const metaRaw =
+      horasMetaDia != null && horasMetaDia.trim() !== ''
+        ? parseFloat(horasMetaDia.trim().replace(',', '.'))
+        : 8;
+    const horasMeta =
+      Number.isFinite(metaRaw) && metaRaw > 0 ? metaRaw : 8;
+    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+    const result =
+      await this.listarReporteHorasMesProyectoTrabajadorUseCase.execute({
+        idUsuario: Number(userId),
+        anio: anioNum,
+        mes: mesNum,
+        idTrabajadores: this.parseIdsListQuery(idTrabajadores),
+        idProyectos: this.parseIdsListQuery(idProyectos),
+        idEstadosActividad: this.parseIdsListQuery(idEstadosActividad),
+        horasMetaDia: horasMeta,
+        rolesAdminPermitidos: rolesAdminIds,
+      });
+    return ApiResponseDto.success(
+      result,
+      'Reporte de horas por mes listado exitosamente',
     );
   }
 

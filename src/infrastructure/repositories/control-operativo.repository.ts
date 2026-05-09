@@ -39,6 +39,9 @@ import type {
   ReporteGeneralResult,
   ReporteGeneralItem,
   LiderEquipoReporteGeneralItem,
+  ReporteHorasTrabajadorMesProyectoParams,
+  ReporteHorasTrabajadorMesProyectoResult,
+  ReporteHorasTrabajadorMesProyectoItem,
   ActividadEvidenciaItem,
   AgregarEvidenciasActividadParams,
   EliminarEvidenciaActividadParams,
@@ -957,6 +960,80 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         [],
       );
     return rows ?? [];
+  }
+
+  async listarReporteHorasDedicadasMesPorProyectoTrabajador(
+    params: ReporteHorasTrabajadorMesProyectoParams,
+  ): Promise<ReporteHorasTrabajadorMesProyectoResult> {
+    const {
+      anio,
+      mes,
+      idTrabajadores,
+      idProyectos,
+      idEstadosActividad,
+      horasMetaDia = 8,
+    } = params;
+    const pTrab =
+      idTrabajadores != null && idTrabajadores.length > 0
+        ? idTrabajadores
+        : null;
+    const pProy =
+      idProyectos != null && idProyectos.length > 0 ? idProyectos : null;
+    const pEst =
+      idEstadosActividad != null && idEstadosActividad.length > 0
+        ? idEstadosActividad
+        : null;
+    const meta =
+      horasMetaDia != null &&
+      Number.isFinite(horasMetaDia) &&
+      Number(horasMetaDia) > 0
+        ? Number(horasMetaDia)
+        : 8;
+
+    type Row = Record<string, unknown>;
+    const rows = await this.databaseFunctionService.callFunction<Row>(
+      'con_ReporteHorasDedicadasMesPorProyectoTrabajador',
+      [anio, mes, pTrab, pProy, pEst, meta],
+    );
+
+    if (!rows?.length) {
+      return { data: [], totalHoras: 0 };
+    }
+
+    const data: ReporteHorasTrabajadorMesProyectoItem[] = rows.map((row) => {
+      const r = row as Record<string, unknown>;
+      const num = (k: string) => Number(r[k] ?? 0);
+      const str = (k: string): string | null =>
+        r[k] != null && String(r[k]).trim() !== ''
+          ? String(r[k]).trim()
+          : null;
+      return {
+        idtrabajador: num('idtrabajador'),
+        nombretrabajador: str('nombretrabajador'),
+        idproyecto: num('idproyecto'),
+        nombreproyecto: str('nombreproyecto'),
+        nroproyecto: str('nroproyecto'),
+        anio: num('anio'),
+        mes: num('mes'),
+        horasdedicadas: Number(r['horasdedicadas'] ?? 0),
+        cantidadActividades: Number(
+          r['cantidad_actividades'] ?? r['cantidadActividades'] ?? 0,
+        ),
+        diasCalendarioMes: Number(
+          r['dias_calendario_mes'] ?? r['diasCalendarioMes'] ?? 0,
+        ),
+        diasEquivalente: Number(r['dias_equivalente'] ?? r['diasEquivalente'] ?? 0),
+        textoDiasMes:
+          r['texto_dias_mes'] != null
+            ? String(r['texto_dias_mes'])
+            : r['textoDiasMes'] != null
+              ? String(r['textoDiasMes'])
+              : null,
+      };
+    });
+
+    const totalHoras = data.reduce((acc, row) => acc + Number(row.horasdedicadas ?? 0), 0);
+    return { data, totalHoras };
   }
 
   async ejecutarCronAlertaActividadesSinValidar(
