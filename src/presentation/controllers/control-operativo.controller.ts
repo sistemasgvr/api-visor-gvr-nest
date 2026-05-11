@@ -45,6 +45,7 @@ import { ValidarActividadUseCase } from '../../application/use-cases/control-ope
 import { ListarReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-reporte-general.use-case';
 import { ListarLideresEquipoReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-lideres-equipo-reporte-general.use-case';
 import { ListarReporteHorasMesProyectoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-reporte-horas-mes-proyecto-trabajador.use-case';
+import { ListarReporteHorasRangoDetalleProyectoUseCase } from '../../application/use-cases/control-operativo/listar-reporte-horas-rango-detalle-proyecto.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -81,6 +82,7 @@ export class ControlOperativoController {
     private readonly listarReporteGeneralUseCase: ListarReporteGeneralUseCase,
     private readonly listarLideresEquipoReporteGeneralUseCase: ListarLideresEquipoReporteGeneralUseCase,
     private readonly listarReporteHorasMesProyectoTrabajadorUseCase: ListarReporteHorasMesProyectoTrabajadorUseCase,
+    private readonly listarReporteHorasRangoDetalleProyectoUseCase: ListarReporteHorasRangoDetalleProyectoUseCase,
     private readonly cronAlertaActividadesSinValidarUseCase: CronAlertaActividadesSinValidarUseCase,
     private readonly configService: ConfigService,
   ) {}
@@ -855,20 +857,71 @@ export class ControlOperativoController {
   }
 
   /**
-   * Horas dedicadas agregadas por trabajador y proyecto en un mes calendario.
-   * GET /control-operativo/reporte-horas-mes-proyecto-trabajador?anio=2026&mes=5&horasMetaDia=8&...
+   * Detalle horas por colaborador y proyecto (para matrices / Excel ancho).
+   * GET /control-operativo/reporte-horas-mes-proyecto-trabajador/detalle-por-proyecto?fechaInicio=...&fechaFin=...
    */
   @ApiOperation({
-    summary: 'Reporte horas por mes (trabajador × proyecto)',
+    summary: 'Reporte horas: detalle colaborador × proyecto',
     description:
-      'Totales mensuales con días equivalentes según meta horaria. Solo roles administrativos.',
+      'Una fila por par colaborador-proyecto en el rango. Mismos filtros que el consolidado.',
+  })
+  @Get('reporte-horas-mes-proyecto-trabajador/detalle-por-proyecto')
+  @UseGuards(JwtAuthGuard)
+  async listarReporteHorasRangoDetalleProyecto(
+    @Req() req: Request & { user?: { id?: number; sub?: number } },
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string,
+    @Query('idTrabajadores') idTrabajadores?: string,
+    @Query('idProyectos') idProyectos?: string,
+    @Query('idEstadosActividad') idEstadosActividad?: string,
+    @Query('rolesAdmin') rolesAdmin?: string,
+  ) {
+    const userId = req.user?.sub ?? req.user?.id;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no identificado');
+    }
+    const fInicio = (fechaInicio ?? '').trim() || null;
+    const fFin = (fechaFin ?? '').trim() || null;
+    if (!fInicio || !fFin) {
+      throw new BadRequestException('fechaInicio y fechaFin son obligatorias');
+    }
+    if (fInicio > fFin) {
+      throw new BadRequestException(
+        'fechaInicio no puede ser posterior a fechaFin',
+      );
+    }
+    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+    const result =
+      await this.listarReporteHorasRangoDetalleProyectoUseCase.execute({
+        idUsuario: Number(userId),
+        fechaInicio: fInicio,
+        fechaFin: fFin,
+        idTrabajadores: this.parseIdsListQuery(idTrabajadores),
+        idProyectos: this.parseIdsListQuery(idProyectos),
+        idEstadosActividad: this.parseIdsListQuery(idEstadosActividad),
+        rolesAdminPermitidos: rolesAdminIds,
+      });
+    return ApiResponseDto.success(
+      result,
+      'Detalle por proyecto listado exitosamente',
+    );
+  }
+
+  /**
+   * Horas dedicadas agregadas por trabajador en un rango de fechas (todos los proyectos consolidados).
+   * GET /control-operativo/reporte-horas-mes-proyecto-trabajador?fechaInicio=...&fechaFin=...&horasMetaDia=8&...
+   */
+  @ApiOperation({
+    summary: 'Reporte horas por rango (por colaborador)',
+    description:
+      'Totales por trabajador en el periodo; filtro opcional por proyectos/estados. Solo roles administrativos.',
   })
   @Get('reporte-horas-mes-proyecto-trabajador')
   @UseGuards(JwtAuthGuard)
   async listarReporteHorasMesProyectoTrabajador(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
-    @Query('anio') anio?: string,
-    @Query('mes') mes?: string,
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string,
     @Query('horasMetaDia') horasMetaDia?: string,
     @Query('idTrabajadores') idTrabajadores?: string,
     @Query('idProyectos') idProyectos?: string,
@@ -879,13 +932,15 @@ export class ControlOperativoController {
     if (userId == null) {
       throw new UnauthorizedException('Usuario no identificado');
     }
-    const anioNum = anio != null && anio !== '' ? parseInt(anio, 10) : NaN;
-    const mesNum = mes != null && mes !== '' ? parseInt(mes, 10) : NaN;
-    if (Number.isNaN(anioNum) || anioNum < 2000 || anioNum > 2100) {
-      throw new BadRequestException('Parámetro anio inválido');
+    const fInicio = (fechaInicio ?? '').trim() || null;
+    const fFin = (fechaFin ?? '').trim() || null;
+    if (!fInicio || !fFin) {
+      throw new BadRequestException('fechaInicio y fechaFin son obligatorias');
     }
-    if (Number.isNaN(mesNum) || mesNum < 1 || mesNum > 12) {
-      throw new BadRequestException('Parámetro mes inválido (1-12)');
+    if (fInicio > fFin) {
+      throw new BadRequestException(
+        'fechaInicio no puede ser posterior a fechaFin',
+      );
     }
     const metaRaw =
       horasMetaDia != null && horasMetaDia.trim() !== ''
@@ -897,8 +952,8 @@ export class ControlOperativoController {
     const result =
       await this.listarReporteHorasMesProyectoTrabajadorUseCase.execute({
         idUsuario: Number(userId),
-        anio: anioNum,
-        mes: mesNum,
+        fechaInicio: fInicio,
+        fechaFin: fFin,
         idTrabajadores: this.parseIdsListQuery(idTrabajadores),
         idProyectos: this.parseIdsListQuery(idProyectos),
         idEstadosActividad: this.parseIdsListQuery(idEstadosActividad),
@@ -907,7 +962,7 @@ export class ControlOperativoController {
       });
     return ApiResponseDto.success(
       result,
-      'Reporte de horas por mes listado exitosamente',
+      'Reporte de horas por periodo listado exitosamente',
     );
   }
 

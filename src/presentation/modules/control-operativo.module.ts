@@ -24,6 +24,7 @@ import { ValidarActividadUseCase } from '../../application/use-cases/control-ope
 import { ListarReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-reporte-general.use-case';
 import { ListarLideresEquipoReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-lideres-equipo-reporte-general.use-case';
 import { ListarReporteHorasMesProyectoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-reporte-horas-mes-proyecto-trabajador.use-case';
+import { ListarReporteHorasRangoDetalleProyectoUseCase } from '../../application/use-cases/control-operativo/listar-reporte-horas-rango-detalle-proyecto.use-case';
 import { CronAlertaActividadesSinValidarUseCase } from '../../application/use-cases/control-operativo/cron-alerta-actividades-sin-validar.use-case';
 import { ControlOperativoRepository } from '../../infrastructure/repositories/control-operativo.repository';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
@@ -95,6 +96,7 @@ import { EliminarEvidenciaActividadUseCase } from '../../application/use-cases/c
     ListarReporteGeneralUseCase,
     ListarLideresEquipoReporteGeneralUseCase,
     ListarReporteHorasMesProyectoTrabajadorUseCase,
+    ListarReporteHorasRangoDetalleProyectoUseCase,
     CronAlertaActividadesSinValidarUseCase,
     JwtStrategy,
   ],

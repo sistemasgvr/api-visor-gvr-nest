@@ -39,9 +39,12 @@ import type {
   ReporteGeneralResult,
   ReporteGeneralItem,
   LiderEquipoReporteGeneralItem,
-  ReporteHorasTrabajadorMesProyectoParams,
-  ReporteHorasTrabajadorMesProyectoResult,
-  ReporteHorasTrabajadorMesProyectoItem,
+  ReporteHorasTrabajadorRangoParams,
+  ReporteHorasTrabajadorRangoResult,
+  ReporteHorasTrabajadorRangoItem,
+  ReporteHorasTrabajadorRangoDetalleProyectoParams,
+  ReporteHorasRangoTrabajadorProyectoDetalleResult,
+  ReporteHorasRangoTrabajadorProyectoDetalleItem,
   ActividadEvidenciaItem,
   AgregarEvidenciasActividadParams,
   EliminarEvidenciaActividadParams,
@@ -962,17 +965,22 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     return rows ?? [];
   }
 
-  async listarReporteHorasDedicadasMesPorProyectoTrabajador(
-    params: ReporteHorasTrabajadorMesProyectoParams,
-  ): Promise<ReporteHorasTrabajadorMesProyectoResult> {
+  async listarReporteHorasDedicadasRangoPorTrabajador(
+    params: ReporteHorasTrabajadorRangoParams,
+  ): Promise<ReporteHorasTrabajadorRangoResult> {
     const {
-      anio,
-      mes,
+      fechaInicio,
+      fechaFin,
       idTrabajadores,
       idProyectos,
       idEstadosActividad,
       horasMetaDia = 8,
     } = params;
+    const dIni = queryDateOrNull(fechaInicio);
+    const dFin = queryDateOrNull(fechaFin);
+    if (dIni == null || dFin == null) {
+      return { data: [], totalHoras: 0 };
+    }
     const pTrab =
       idTrabajadores != null && idTrabajadores.length > 0
         ? idTrabajadores
@@ -992,15 +1000,22 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     type Row = Record<string, unknown>;
     const rows = await this.databaseFunctionService.callFunction<Row>(
-      'con_ReporteHorasDedicadasMesPorProyectoTrabajador',
-      [anio, mes, pTrab, pProy, pEst, meta],
+      'con_ReporteHorasDedicadasRangoPorTrabajador',
+      [dIni, dFin, pTrab, pProy, pEst, meta],
     );
 
     if (!rows?.length) {
       return { data: [], totalHoras: 0 };
     }
 
-    const data: ReporteHorasTrabajadorMesProyectoItem[] = rows.map((row) => {
+    const toYmd = (v: unknown): string | null => {
+      if (v == null) return null;
+      const s = String(v).trim();
+      if (!s) return null;
+      return s.includes('T') ? (s.split('T')[0] ?? s) : s;
+    };
+
+    const data: ReporteHorasTrabajadorRangoItem[] = rows.map((row) => {
       const r = row as Record<string, unknown>;
       const num = (k: string) => Number(r[k] ?? 0);
       const str = (k: string): string | null =>
@@ -1010,30 +1025,87 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
       return {
         idtrabajador: num('idtrabajador'),
         nombretrabajador: str('nombretrabajador'),
-        idproyecto: num('idproyecto'),
-        nombreproyecto: str('nombreproyecto'),
-        nroproyecto: str('nroproyecto'),
-        anio: num('anio'),
-        mes: num('mes'),
+        fechaInicioPeriodo: toYmd(
+          r['fecha_inicio_periodo'] ?? r['fechaInicioPeriodo'],
+        ),
+        fechaFinPeriodo: toYmd(r['fecha_fin_periodo'] ?? r['fechaFinPeriodo']),
         horasdedicadas: Number(r['horasdedicadas'] ?? 0),
         cantidadActividades: Number(
           r['cantidad_actividades'] ?? r['cantidadActividades'] ?? 0,
         ),
-        diasCalendarioMes: Number(
-          r['dias_calendario_mes'] ?? r['diasCalendarioMes'] ?? 0,
+        diasCalendarioRango: Number(
+          r['dias_calendario_rango'] ?? r['diasCalendarioRango'] ?? 0,
         ),
         diasEquivalente: Number(r['dias_equivalente'] ?? r['diasEquivalente'] ?? 0),
-        textoDiasMes:
-          r['texto_dias_mes'] != null
-            ? String(r['texto_dias_mes'])
-            : r['textoDiasMes'] != null
-              ? String(r['textoDiasMes'])
+        textoResumen:
+          r['texto_resumen'] != null
+            ? String(r['texto_resumen'])
+            : r['textoResumen'] != null
+              ? String(r['textoResumen'])
               : null,
       };
     });
 
-    const totalHoras = data.reduce((acc, row) => acc + Number(row.horasdedicadas ?? 0), 0);
+    const totalHoras = data.reduce(
+      (acc, row) => acc + Number(row.horasdedicadas ?? 0),
+      0,
+    );
     return { data, totalHoras };
+  }
+
+  async listarReporteHorasDedicadasRangoPorTrabajadorYProyecto(
+    params: ReporteHorasTrabajadorRangoDetalleProyectoParams,
+  ): Promise<ReporteHorasRangoTrabajadorProyectoDetalleResult> {
+    const { fechaInicio, fechaFin, idTrabajadores, idProyectos, idEstadosActividad } =
+      params;
+    const dIni = queryDateOrNull(fechaInicio);
+    const dFin = queryDateOrNull(fechaFin);
+    if (dIni == null || dFin == null) {
+      return { data: [] };
+    }
+    const pTrab =
+      idTrabajadores != null && idTrabajadores.length > 0
+        ? idTrabajadores
+        : null;
+    const pProy =
+      idProyectos != null && idProyectos.length > 0 ? idProyectos : null;
+    const pEst =
+      idEstadosActividad != null && idEstadosActividad.length > 0
+        ? idEstadosActividad
+        : null;
+
+    type Row = Record<string, unknown>;
+    const rows = await this.databaseFunctionService.callFunction<Row>(
+      'con_ReporteHorasDedicadasRangoPorTrabajadorYProyecto',
+      [dIni, dFin, pTrab, pProy, pEst],
+    );
+
+    if (!rows?.length) {
+      return { data: [] };
+    }
+
+    const data: ReporteHorasRangoTrabajadorProyectoDetalleItem[] = rows.map(
+      (row) => {
+        const r = row as Record<string, unknown>;
+        const str = (k: string): string | null =>
+          r[k] != null && String(r[k]).trim() !== ''
+            ? String(r[k]).trim()
+            : null;
+        return {
+          idtrabajador: Number(r['idtrabajador'] ?? 0),
+          nombretrabajador: str('nombretrabajador'),
+          idproyecto: Number(r['idproyecto'] ?? 0),
+          nombreproyecto: str('nombreproyecto'),
+          nroproyecto: str('nroproyecto'),
+          horasdedicadas: Number(r['horasdedicadas'] ?? 0),
+          cantidadActividades: Number(
+            r['cantidad_actividades'] ?? r['cantidadActividades'] ?? 0,
+          ),
+        };
+      },
+    );
+
+    return { data };
   }
 
   async ejecutarCronAlertaActividadesSinValidar(

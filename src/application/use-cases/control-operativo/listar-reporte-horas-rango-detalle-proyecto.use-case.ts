@@ -1,22 +1,21 @@
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import type {
   IControlOperativoRepository,
-  ReporteHorasTrabajadorRangoParams,
-  ReporteHorasTrabajadorRangoResult,
+  ReporteHorasTrabajadorRangoDetalleProyectoParams,
+  ReporteHorasRangoTrabajadorProyectoDetalleResult,
 } from '../../../domain/repositories/control-operativo.repository.interface';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
 
-export interface ListarReporteHorasMesProyectoTrabajadorInput
-  extends ReporteHorasTrabajadorRangoParams {
+export interface ListarReporteHorasRangoDetalleProyectoInput
+  extends ReporteHorasTrabajadorRangoDetalleProyectoParams {
   idUsuario: number;
-  /** IDs de roles considerados admin (enviados por el front desde ROLES_ADMIN_CONTROL_OPERATIVO). */
   rolesAdminPermitidos: number[];
 }
 
 @Injectable()
-export class ListarReporteHorasMesProyectoTrabajadorUseCase {
+export class ListarReporteHorasRangoDetalleProyectoUseCase {
   constructor(
     @Inject(CONTROL_OPERATIVO_REPOSITORY)
     private readonly controlOperativoRepository: IControlOperativoRepository,
@@ -25,8 +24,8 @@ export class ListarReporteHorasMesProyectoTrabajadorUseCase {
   ) {}
 
   async execute(
-    input: ListarReporteHorasMesProyectoTrabajadorInput,
-  ): Promise<ReporteHorasTrabajadorRangoResult> {
+    input: ListarReporteHorasRangoDetalleProyectoInput,
+  ): Promise<ReporteHorasRangoTrabajadorProyectoDetalleResult> {
     const perfil = await this.authRepository.obtenerPerfilUsuario(
       input.idUsuario,
     );
@@ -47,14 +46,13 @@ export class ListarReporteHorasMesProyectoTrabajadorUseCase {
         'Solo administradores pueden acceder a este reporte',
       );
     }
-    return this.controlOperativoRepository.listarReporteHorasDedicadasRangoPorTrabajador(
+    return this.controlOperativoRepository.listarReporteHorasDedicadasRangoPorTrabajadorYProyecto(
       {
         fechaInicio: input.fechaInicio,
         fechaFin: input.fechaFin,
         idTrabajadores: input.idTrabajadores ?? null,
         idProyectos: input.idProyectos ?? null,
         idEstadosActividad: input.idEstadosActividad ?? null,
-        horasMetaDia: input.horasMetaDia,
       },
     );
   }
