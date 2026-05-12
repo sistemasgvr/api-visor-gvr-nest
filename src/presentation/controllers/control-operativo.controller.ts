@@ -92,8 +92,8 @@ export class ControlOperativoController {
    * GET /control-operativo/cron/cierre-jornadas?key=CRON_SECRET
    * GET /control-operativo/cron/cierre-jornadas?key=CRON_SECRET&fecha=YYYY-MM-DD  (opcional, para ejecutar manualmente una fecha)
    * Sin fecha usa hoy (hora Perú). Con fecha usas la indicada.
-   * Crea Alertas para quien no abrió ese día; pone en Alerta las de ese día sin actividades;
-   * jornadas pasados los días de tolerancia: con actividades → Cerrado, sin actividades → Incompleto.
+   * Inserta jornadas Abierta del día; Alerta solo en días anteriores sin actividades;
+   * el día p_fecha en Alerta pasa a Abierta; jornadas tras tolerancia → Culminado / Incompleto.
    */
   @ApiOperation({
     summary: 'Cron: cierre de jornadas al final del día',
@@ -115,7 +115,7 @@ export class ControlOperativoController {
     return ApiResponseDto.success(
       {
         fecha: f,
-        insertados_alerta: result.insertados_alerta,
+        insertados_abierta: result.insertados_abierta,
         actualizados_alerta: result.actualizados_alerta,
         pasados_culminado: result.pasados_culminado,
         pasados_incompleto: result.pasados_incompleto,

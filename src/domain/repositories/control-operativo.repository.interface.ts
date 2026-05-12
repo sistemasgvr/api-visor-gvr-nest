@@ -333,7 +333,8 @@ export interface ListarActividadesResult {
 
 /** Retorno del cron único de cierre de jornadas (concroncierrejornadas). */
 export interface CronCierreJornadasResult {
-  insertados_alerta: number;
+  /** Filas nuevas en estado Abierta (columna SQL `insertados_abierta`). */
+  insertados_abierta: number;
   actualizados_alerta: number;
   pasados_culminado: number;
   pasados_incompleto: number;
