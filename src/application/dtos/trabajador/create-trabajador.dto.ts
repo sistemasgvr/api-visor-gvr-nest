@@ -60,5 +60,6 @@ export class CreateTrabajadorDto {
   @IsDateString()
   fechaFinContrato?: string;
   @IsOptional() @IsInt() idModalidad?: number;
+  @IsOptional() @IsInt() idPuestoTrabajo?: number;
   @IsOptional() @IsArray() adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

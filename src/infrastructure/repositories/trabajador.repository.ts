@@ -198,6 +198,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         data.fechaInicioContrato ?? null,
         data.fechaFinContrato ?? null,
         data.idModalidad ?? null,
+        data.idPuestoTrabajo ?? null,
       ],
     );
 
@@ -241,6 +242,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         data.fechaInicioContrato ?? null,
         data.fechaFinContrato ?? null,
         data.idModalidad ?? null,
+        data.idPuestoTrabajo ?? null,
       ],
     );
 

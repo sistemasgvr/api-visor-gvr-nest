@@ -71,13 +71,13 @@ export class GeneralController {
   }
 
   /**
-   * Catálogos para formulario de trabajador (grado instrucción, carrera, entidad bancaria, tipo/duración contrato).
-   * Los IDs de lista vienen del frontend (constants/listasOpciones). GET /catalogos-trabajador?idListas=8,9,10,11,12,13,14
+   * Catálogos para formulario de trabajador (grado, carrera, banco, tipo/duración contrato, puesto de trabajo, etc.).
+   * GET /catalogos-trabajador o con idListas=8,9,10,11,12,13,14 (7 listas base; el puesto siempre usa idLista 45).
    */
   @ApiOperation({
     summary: 'Catálogos para formulario de trabajador',
     description:
-      'Listas genéricas (grado instrucción, carrera, banco, contrato, etc.) por ids separados por coma.',
+      'Incluye grado, carrera, banco, tipo y duración de contrato, adjuntos, parentesco y puesto de trabajo (lista fija idLista=45). Opcional: idListas con 7 IDs (solo sustituye las 7 listas base) o 8+ (se usan los 7 primeros como base y el puesto sigue siendo 45).',
   })
   @Get('catalogos-trabajador')
   @HttpCode(HttpStatus.OK)

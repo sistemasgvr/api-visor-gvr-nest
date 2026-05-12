@@ -52,6 +52,7 @@ export interface CrearTrabajadorData {
   fechaInicioContrato?: string;
   fechaFinContrato?: string;
   idModalidad?: number;
+  idPuestoTrabajo?: number;
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 
@@ -89,6 +90,7 @@ export interface EditarTrabajadorData {
   fechaInicioContrato?: string;
   fechaFinContrato?: string;
   idModalidad?: number;
+  idPuestoTrabajo?: number;
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 

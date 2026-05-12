@@ -49,6 +49,7 @@ const FIELD_LABEL: Record<string, string> = {
   idTipoContrato: 'El tipo de contrato',
   idDuracionContrato: 'La duración del contrato',
   idModalidad: 'La modalidad',
+  idPuestoTrabajo: 'El puesto de trabajo',
   idmodalidad: 'La modalidad',
   fechaNacimiento: 'La fecha de nacimiento',
   fechanacimiento: 'La fecha de nacimiento',

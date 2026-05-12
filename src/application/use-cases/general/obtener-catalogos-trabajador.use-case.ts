@@ -2,8 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import type { IMenuRepository } from '../../../domain/repositories/menu.repository.interface';
 import { MENU_REPOSITORY } from '../../../domain/repositories/menu.repository.interface';
 
-/** Claves de respuesta por posición (orden enviado por frontend: grado, carrera, entidad, tipoContrato, duracion, tipoAdjunto, parentesco) */
-const CLAVES_CATALOGOS_TRABAJADOR = [
+const CLAVES_CATALOGOS_TRABAJADOR_BASE = [
   'gradoInstruccion',
   'carrera',
   'entidadBancaria',
@@ -13,6 +12,16 @@ const CLAVES_CATALOGOS_TRABAJADOR = [
   'parentesco',
 ] as const;
 
+/** genListado.id fijo para opciones de puesto de trabajo (trabajador / contrato). */
+const ID_LISTA_PUESTO_TRABAJO = 45;
+
+const DEFAULT_IDS_BASE = [8, 9, 10, 11, 12, 13, 14];
+
+const CLAVES_CATALOGOS_TRABAJADOR: readonly string[] = [
+  ...CLAVES_CATALOGOS_TRABAJADOR_BASE,
+  'puestoTrabajo',
+];
+
 export interface CatalogosTrabajador {
   gradoInstruccion: any[];
   carrera: any[];
@@ -21,6 +30,7 @@ export interface CatalogosTrabajador {
   duracionContrato: any[];
   tipoAdjunto: any[];
   parentesco: any[];
+  puestoTrabajo: any[];
 }
 
 @Injectable()
@@ -31,14 +41,22 @@ export class ObtenerCatalogosTrabajadorUseCase {
   ) {}
 
   /**
-   * @param idListas IDs de listas (genListado). Orden: grado, carrera, entidad, tipoContrato, duracion, tipoAdjunto, parentesco.
-   *                 Si no se envía, se usa el orden por defecto de CLAVES_CATALOGOS_TRABAJADOR (7 listas).
+   * Catálogos del formulario trabajador. La octava lista es siempre idLista = 45 (puesto de trabajo).
+   * Opcional idListas: 7 IDs (base) o 8+ (se toman los 7 primeros como base y el puesto sigue siendo 45).
    */
   async execute(idListas?: number[]): Promise<CatalogosTrabajador> {
-    const ids =
-      idListas && idListas.length >= CLAVES_CATALOGOS_TRABAJADOR.length
-        ? idListas.slice(0, CLAVES_CATALOGOS_TRABAJADOR.length)
-        : [8, 9, 10, 11, 12, 13, 14];
+    let ids: number[];
+    if (idListas != null && idListas.length > 0) {
+      if (idListas.length >= 8) {
+        ids = [...idListas.slice(0, 7), ID_LISTA_PUESTO_TRABAJO];
+      } else if (idListas.length === 7) {
+        ids = [...idListas, ID_LISTA_PUESTO_TRABAJO];
+      } else {
+        ids = [...DEFAULT_IDS_BASE, ID_LISTA_PUESTO_TRABAJO];
+      }
+    } else {
+      ids = [...DEFAULT_IDS_BASE, ID_LISTA_PUESTO_TRABAJO];
+    }
 
     const resultados = await Promise.all(
       ids.map((id) => this.menuRepository.obtenerOpcionesPorLista(id)),
@@ -52,10 +70,11 @@ export class ObtenerCatalogosTrabajadorUseCase {
       duracionContrato: [],
       tipoAdjunto: [],
       parentesco: [],
+      puestoTrabajo: [],
     };
 
     CLAVES_CATALOGOS_TRABAJADOR.forEach((key, i) => {
-      (out as any)[key] = resultados[i] || [];
+      (out as unknown as Record<string, unknown>)[key] = resultados[i] ?? [];
     });
     return out;
   }
