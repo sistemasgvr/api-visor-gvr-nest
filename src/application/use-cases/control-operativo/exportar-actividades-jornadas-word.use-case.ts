@@ -2,13 +2,23 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import axios from 'axios';
 import type { IControlOperativoRepository } from '../../../domain/repositories/control-operativo.repository.interface';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
-import { buildInformeServicioPrimeraPaginaBuffer } from '../../../infrastructure/word/informe-servicio-primera-pagina.docx';
+import { buildReporteActividadesPrimeraPaginaBuffer } from '../../../infrastructure/word/reporte-actividades-docx';
 
 export type ExportarActividadesJornadasWordInput = {
   idTrabajador: number;
   fechaInicio?: string;
   fechaFin?: string;
+  /** YYYY-MM-DD; define el año del eslogan (genconfiguraciongeneral). Por defecto hoy. */
+  fechaEmision?: string;
 };
+
+function anioDesdeYmd(ymd: string): number {
+  const y = parseInt(String(ymd).trim().slice(0, 4), 10);
+  if (!Number.isFinite(y) || y < 1990 || y > 2100) {
+    return new Date().getFullYear();
+  }
+  return y;
+}
 
 function defaultPeriodoMesActual(): { ini: string; fin: string } {
   const t = new Date();
@@ -26,8 +36,8 @@ function todayYmd(): string {
 }
 
 /**
- * Genera un .docx del informe de servicio: primera página con datos de BD
- * (empresa, trabajador, puesto, configuración general) y periodo desde query.
+ * Genera un .docx del reporte de actividades (hoy: primera página del informe de servicio).
+ * Los datos base vienen de con_DatosReporteActividades (se extenderá con el resto del reporte).
  */
 @Injectable()
 export class ExportarActividadesJornadasWordUseCase {
@@ -39,20 +49,23 @@ export class ExportarActividadesJornadasWordUseCase {
   async execute(
     input: ExportarActividadesJornadasWordInput,
   ): Promise<{ buffer: Buffer; fileName: string }> {
+    const def = defaultPeriodoMesActual();
+    const fi = (input.fechaInicio && input.fechaInicio.trim()) || def.ini;
+    const ff = (input.fechaFin && input.fechaFin.trim()) || def.fin;
+    const fechaEmision =
+      (input.fechaEmision && input.fechaEmision.trim()) || todayYmd();
+    const anioInforme = anioDesdeYmd(fechaEmision);
+
     const row =
-      await this.controlOperativoRepository.obtenerDatosInformeServicioPagina1(
+      await this.controlOperativoRepository.obtenerDatosReporteActividades(
         input.idTrabajador,
+        anioInforme,
       );
     if (!row) {
       throw new NotFoundException(
         'No se encontraron datos del trabajador para el informe de servicio',
       );
     }
-
-    const def = defaultPeriodoMesActual();
-    const fi = (input.fechaInicio && input.fechaInicio.trim()) || def.ini;
-    const ff = (input.fechaFin && input.fechaFin.trim()) || def.fin;
-    const fechaEmision = todayYmd();
 
     let logoBuffer: Buffer | null = null;
     let logoMime: 'png' | 'jpg' | null = null;
@@ -77,7 +90,7 @@ export class ExportarActividadesJornadasWordUseCase {
       }
     }
 
-    const buffer = await buildInformeServicioPrimeraPaginaBuffer({
+    const buffer = await buildReporteActividadesPrimeraPaginaBuffer({
       row,
       fechaInicioYmd: fi,
       fechaFinYmd: ff,
@@ -90,7 +103,7 @@ export class ExportarActividadesJornadasWordUseCase {
       String(s || '')
         .replace(/[/\\?%*:|"<>]/g, '-')
         .trim() || 'sin-fecha';
-    const fileName = `Informe_servicio_${input.idTrabajador}_${safe(fi)}_${safe(ff)}.docx`;
+    const fileName = `Reporte_actividades_${input.idTrabajador}_${safe(fi)}_${safe(ff)}.docx`;
 
     return { buffer, fileName };
   }

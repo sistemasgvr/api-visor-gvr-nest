@@ -48,7 +48,7 @@ import type {
   ActividadEvidenciaItem,
   AgregarEvidenciasActividadParams,
   EliminarEvidenciaActividadParams,
-  InformeServicioPagina1Row,
+  DatosReporteActividadesRow,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -1156,12 +1156,13 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     };
   }
 
-  async obtenerDatosInformeServicioPagina1(
+  async obtenerDatosReporteActividades(
     idTrabajador: number,
-  ): Promise<InformeServicioPagina1Row | null> {
-    return this.databaseFunctionService.callFunctionSingle<InformeServicioPagina1Row>(
-      'co_fn_datos_informe_servicio_pagina1',
-      [idTrabajador],
+    anioInforme: number,
+  ): Promise<DatosReporteActividadesRow | null> {
+    return this.databaseFunctionService.callFunctionSingle<DatosReporteActividadesRow>(
+      'con_DatosReporteActividades',
+      [idTrabajador, anioInforme],
     );
   }
 }

@@ -197,14 +197,14 @@ export class ControlOperativoController {
   }
 
   /**
-   * Exportar actividades del filtro de jornadas como Word (.docx).
-   * GET /control-operativo/trabajadores/:idTrabajador/actividades/export-word?fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD
-   * Respuesta binaria (no JSON). Primera página del informe de servicio con datos desde BD.
+   * Exportar reporte de actividades como Word (.docx).
+   * GET /control-operativo/trabajadores/:idTrabajador/actividades/export-word?fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD&fechaEmision=YYYY-MM-DD
+   * Respuesta binaria (no JSON). Por ahora incluye la primera página del informe de servicio.
    */
   @ApiOperation({
-    summary: 'Exportar actividades (Word)',
+    summary: 'Exportar reporte de actividades (Word)',
     description:
-      'Descarga un .docx (primera página del informe de servicio) para el trabajador. Datos de empresa, puesto y textos vía co_fn_datos_informe_servicio_pagina1; periodo desde fechaInicio/fechaFin (por defecto el mes calendario actual).',
+      'Descarga un .docx del reporte de actividades (por ahora primera página del informe de servicio). Datos desde con_DatosReporteActividades. El eslogan del año: genconfiguraciongeneral clave informe_servicio_eslogan_anio_YYYY según el año de fechaEmision (por defecto hoy). Periodo: fechaInicio/fechaFin (por defecto mes actual).',
   })
   @Get('trabajadores/:idTrabajador/actividades/export-word')
   @UseGuards(JwtAuthGuard)
@@ -213,12 +213,14 @@ export class ControlOperativoController {
     @Param('idTrabajador', ParseIntPipe) idTrabajador: number,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
+    @Query('fechaEmision') fechaEmision?: string,
   ): Promise<void> {
     const { buffer, fileName } =
       await this.exportarActividadesJornadasWordUseCase.execute({
         idTrabajador,
         fechaInicio,
         fechaFin,
+        fechaEmision,
       });
     res.setHeader(
       'Content-Type',

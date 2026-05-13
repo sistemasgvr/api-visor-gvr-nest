@@ -1,4 +1,4 @@
-import type { InformeServicioPagina1Row } from '../../domain/repositories/control-operativo.repository.interface';
+import type { DatosReporteActividadesRow } from '../../domain/repositories/control-operativo.repository.interface';
 import {
   AlignmentType,
   Document,
@@ -14,8 +14,17 @@ import {
   WidthType,
 } from 'docx';
 
-export type InformeServicioPrimeraPaginaInput = {
-  row: InformeServicioPagina1Row;
+/** Textos fijos de la primera página (no en genconfiguraciongeneral). */
+const TEXTO_RESUMEN_LABORES_P1 =
+  'Las labores que se realizaron se detallan a continuación:';
+const NOTA_PIE_PAGINA1 =
+  'INDICACIONES: EN LAS SIGUIENTES PAGINAS DETALLAR LABORES SEGÚN CORRESPONDA';
+/** Viñetas de ejemplo en portada: vacío hasta enlazar actividades reales en páginas siguientes. */
+const TEXTO_ACTIVIDADES_BULLETS_P1 = '';
+
+/** Entrada para armar la primera página del Word (se ampliará con más secciones del reporte). */
+export type ReporteActividadesPrimeraPaginaInput = {
+  row: DatosReporteActividadesRow;
   fechaInicioYmd: string;
   fechaFinYmd: string;
   fechaEmisionYmd: string;
@@ -62,7 +71,7 @@ function bulletLines(raw: string | null | undefined): string[] {
 }
 
 function headerTable(
-  row: InformeServicioPagina1Row,
+  row: DatosReporteActividadesRow,
   logoBuffer: Buffer | null,
   logoMime: 'png' | 'jpg' | null,
 ): Table {
@@ -129,8 +138,9 @@ function headerTable(
   });
 }
 
-export async function buildInformeServicioPrimeraPaginaBuffer(
-  input: InformeServicioPrimeraPaginaInput,
+/** Primera página del informe de servicio (bloque inicial del reporte de actividades). */
+export async function buildReporteActividadesPrimeraPaginaBuffer(
+  input: ReporteActividadesPrimeraPaginaInput,
 ): Promise<Buffer> {
   const { row, fechaInicioYmd, fechaFinYmd, fechaEmisionYmd } = input;
   const logoBuf =
@@ -138,17 +148,19 @@ export async function buildInformeServicioPrimeraPaginaBuffer(
   const logoMime = input.logoMime ?? null;
 
   const eslogan = s(row.eslogan_anio);
-  const ciudad = s(row.ciudad_documento) || 'Piura';
+  const ciudad = s(row.ciudad_documento);
   const destinatario = s(row.linea_destinatario);
   const puesto = s(row.puesto_trabajo) || '(puesto según contrato)';
   const preparador = s(row.nombrecompletotrabajador);
   const periodoDe = formatFechaCortaPe(fechaInicioYmd);
   const periodoAl = formatFechaCortaPe(fechaFinYmd);
   const fechaLarga = formatFechaLargaEsPe(fechaEmisionYmd);
+  const ubicacionFecha =
+    ciudad.length > 0 ? `${ciudad}, ${fechaLarga}` : fechaLarga;
 
-  const bullets = bulletLines(row.texto_actividades_bullets);
-  const resumen = s(row.texto_resumen_labores);
-  const notaPie = s(row.nota_pie_pagina1);
+  const bullets = bulletLines(TEXTO_ACTIVIDADES_BULLETS_P1);
+  const resumen = TEXTO_RESUMEN_LABORES_P1;
+  const notaPie = NOTA_PIE_PAGINA1;
 
   const children: Paragraph[] = [];
 
@@ -211,7 +223,7 @@ export async function buildInformeServicioPrimeraPaginaBuffer(
       spacing: { after: 200 },
       children: [
         new TextRun({ text: 'Fecha: ', bold: true }),
-        new TextRun({ text: `${ciudad}, ${fechaLarga}` }),
+        new TextRun({ text: ubicacionFecha }),
       ],
     }),
   );
@@ -235,15 +247,13 @@ export async function buildInformeServicioPrimeraPaginaBuffer(
     }),
   );
 
-  if (resumen) {
-    children.push(
-      new Paragraph({
-        alignment: AlignmentType.BOTH,
-        spacing: { after: 160 },
-        children: [new TextRun({ text: resumen })],
-      }),
-    );
-  }
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.BOTH,
+      spacing: { after: 160 },
+      children: [new TextRun({ text: resumen })],
+    }),
+  );
 
   if (bullets.length > 0) {
     for (const line of bullets) {
@@ -287,15 +297,13 @@ export async function buildInformeServicioPrimeraPaginaBuffer(
     }),
   );
 
-  if (notaPie) {
-    children.push(
-      new Paragraph({
-        alignment: AlignmentType.BOTH,
-        spacing: { before: 200 },
-        children: [new TextRun({ text: notaPie, italics: true, size: 18 })],
-      }),
-    );
-  }
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.BOTH,
+      spacing: { before: 200 },
+      children: [new TextRun({ text: notaPie, italics: true, size: 18 })],
+    }),
+  );
 
   const doc = new Document({
     sections: [
