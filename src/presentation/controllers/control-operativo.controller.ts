@@ -199,12 +199,12 @@ export class ControlOperativoController {
   /**
    * Exportar actividades del filtro de jornadas como Word (.docx).
    * GET /control-operativo/trabajadores/:idTrabajador/actividades/export-word?fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD
-   * Respuesta binaria (no JSON). El documento se enriquecerá con datos en versiones posteriores.
+   * Respuesta binaria (no JSON). Primera página del informe de servicio con datos desde BD.
    */
   @ApiOperation({
     summary: 'Exportar actividades (Word)',
     description:
-      'Descarga un .docx para el trabajador y rango de fechas indicados (mismo criterio que el listado de jornadas). Por ahora el archivo se genera vacío.',
+      'Descarga un .docx (primera página del informe de servicio) para el trabajador. Datos de empresa, puesto y textos vía co_fn_datos_informe_servicio_pagina1; periodo desde fechaInicio/fechaFin (por defecto el mes calendario actual).',
   })
   @Get('trabajadores/:idTrabajador/actividades/export-word')
   @UseGuards(JwtAuthGuard)

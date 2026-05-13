@@ -22,6 +22,9 @@ export interface CrearEmpresaData {
   idTipoDocumento: number;
   nroDocumento: string;
   idUsuarioCreacion: number;
+  celularEmpresa?: string | null;
+  correoEmpresa?: string | null;
+  urlLogo?: string | null;
 }
 
 export interface EditarEmpresaData {
@@ -31,6 +34,9 @@ export interface EditarEmpresaData {
   idTipoDocumento: number;
   nroDocumento: string;
   idUsuarioModificacion: number;
+  celularEmpresa?: string | null;
+  correoEmpresa?: string | null;
+  urlLogo?: string | null;
 }
 
 export interface IEmpresaRepository {

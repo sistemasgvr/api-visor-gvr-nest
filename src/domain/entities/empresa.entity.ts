@@ -4,6 +4,9 @@ export class Empresa {
   nombreComercial?: string;
   idTipoDocumento: number;
   nroDocumento: string;
+  celularEmpresa?: string | null;
+  correoEmpresa?: string | null;
+  urlLogo?: string | null;
   estado: number;
   fechaCreacion?: Date;
   fechaModificacion?: Date;

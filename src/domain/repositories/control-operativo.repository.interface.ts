@@ -517,6 +517,23 @@ export interface CronAlertaActividadesSinValidarResult {
   totalActividades: number;
 }
 
+/** Fila de co_fn_datos_informe_servicio_pagina1 (PostgreSQL en snake_case). */
+export interface InformeServicioPagina1Row {
+  razonsocial: string | null;
+  nombrecomercial: string | null;
+  celularempresa: string | null;
+  correoempresa: string | null;
+  urllogo: string | null;
+  nombrecompletotrabajador: string | null;
+  puesto_trabajo: string | null;
+  eslogan_anio: string | null;
+  ciudad_documento: string | null;
+  texto_resumen_labores: string | null;
+  nota_pie_pagina1: string | null;
+  linea_destinatario: string | null;
+  texto_actividades_bullets: string | null;
+}
+
 export interface IControlOperativoRepository {
   listarJornadasTrabajador(
     params: ListarJornadasTrabajadorParams,
@@ -615,6 +632,10 @@ export interface IControlOperativoRepository {
   listarReporteHorasDedicadasRangoPorTrabajadorYProyecto(
     params: ReporteHorasTrabajadorRangoDetalleProyectoParams,
   ): Promise<ReporteHorasRangoTrabajadorProyectoDetalleResult>;
+  /** Datos de portada / primera página del informe de servicio (Word). */
+  obtenerDatosInformeServicioPagina1(
+    idTrabajador: number,
+  ): Promise<InformeServicioPagina1Row | null>;
 }
 
 export const CONTROL_OPERATIVO_REPOSITORY = 'CONTROL_OPERATIVO_REPOSITORY';

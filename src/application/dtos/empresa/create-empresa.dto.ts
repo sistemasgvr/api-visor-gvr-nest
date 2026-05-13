@@ -4,6 +4,8 @@ import {
   IsOptional,
   MaxLength,
   IsNotEmpty,
+  IsEmail,
+  ValidateIf,
 } from 'class-validator';
 
 export class CreateEmpresaDto {
@@ -25,4 +27,20 @@ export class CreateEmpresaDto {
   @IsString()
   @MaxLength(50)
   nroDocumento: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  celularEmpresa?: string;
+
+  @IsOptional()
+  @ValidateIf((_, v) => v != null && String(v).trim() !== '')
+  @IsEmail({}, { message: 'Correo de empresa inválido' })
+  @MaxLength(255)
+  correoEmpresa?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  urlLogo?: string;
 }
