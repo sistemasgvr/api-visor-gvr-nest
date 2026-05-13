@@ -56,6 +56,37 @@ export interface CrearTrabajadorData {
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
 
+export interface ActualizarContratoTrabajadorData {
+  idContrato: number;
+  idTrabajador: number;
+  idUsuarioModificacion: number;
+  idTipoContrato?: number;
+  idDuracionContrato?: number;
+  fechaInicio?: string;
+  fechaFin?: string;
+  remuneracion?: number;
+  fechaInicioLabores?: string;
+  idPuestoTrabajo?: number | null;
+}
+
+export interface InsertarContratoTrabajadorData {
+  idTrabajador: number;
+  idUsuarioCreacion: number;
+  idTipoContrato: number;
+  idDuracionContrato?: number;
+  fechaInicio?: string;
+  fechaFin?: string;
+  remuneracion?: number;
+  fechaInicioLabores?: string;
+  idPuestoTrabajo?: number | null;
+}
+
+export interface EliminarContratoTrabajadorData {
+  idContrato: number;
+  idTrabajador: number;
+  idUsuarioModificacion: number;
+}
+
 export interface EditarTrabajadorData {
   idTrabajador: number;
   nombres: string;
@@ -110,6 +141,10 @@ export interface ITrabajadorRepository {
   ): Promise<{ url: string | null } | null>;
   crearTrabajador(data: CrearTrabajadorData): Promise<any>;
   editarTrabajador(data: EditarTrabajadorData): Promise<any>;
+
+  actualizarContratoTrabajador(data: ActualizarContratoTrabajadorData): Promise<any>;
+  insertarContratoTrabajador(data: InsertarContratoTrabajadorData): Promise<any>;
+  eliminarContratoTrabajador(data: EliminarContratoTrabajadorData): Promise<any>;
   eliminarTrabajador(
     idTrabajador: number,
     idUsuarioModificacion: number,

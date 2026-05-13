@@ -21,10 +21,15 @@ import { ObtenerTrabajadorUseCase } from '../../application/use-cases/trabajador
 import { ObtenerFotoPerfilTrabajadorUseCase } from '../../application/use-cases/trabajador/obtener-foto-perfil-trabajador.use-case';
 import { CrearTrabajadorUseCase } from '../../application/use-cases/trabajador/crear-trabajador.use-case';
 import { EditarTrabajadorUseCase } from '../../application/use-cases/trabajador/editar-trabajador.use-case';
+import { ActualizarContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/actualizar-contrato-trabajador.use-case';
+import { CrearContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/crear-contrato-trabajador.use-case';
+import { EliminarContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-contrato-trabajador.use-case';
 import { EliminarTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-trabajador.use-case';
 import { ResetearContrasenaUseCase } from '../../application/use-cases/trabajador/resetear-contrasena.use-case';
 import { CreateTrabajadorDto } from '../../application/dtos/trabajador/create-trabajador.dto';
 import { UpdateTrabajadorDto } from '../../application/dtos/trabajador/update-trabajador.dto';
+import { UpdateContratoTrabajadorDto } from '../../application/dtos/trabajador/update-contrato-trabajador.dto';
+import { CreateContratoTrabajadorDto } from '../../application/dtos/trabajador/create-contrato-trabajador.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -42,6 +47,9 @@ export class TrabajadorController {
     private readonly obtenerFotoPerfilTrabajadorUseCase: ObtenerFotoPerfilTrabajadorUseCase,
     private readonly crearTrabajadorUseCase: CrearTrabajadorUseCase,
     private readonly editarTrabajadorUseCase: EditarTrabajadorUseCase,
+    private readonly actualizarContratoTrabajadorUseCase: ActualizarContratoTrabajadorUseCase,
+    private readonly crearContratoTrabajadorUseCase: CrearContratoTrabajadorUseCase,
+    private readonly eliminarContratoTrabajadorUseCase: EliminarContratoTrabajadorUseCase,
     private readonly eliminarTrabajadorUseCase: EliminarTrabajadorUseCase,
     private readonly resetearContrasenaUseCase: ResetearContrasenaUseCase,
     private readonly jwtService: JwtService,
@@ -143,6 +151,96 @@ export class TrabajadorController {
     const data = await this.obtenerTrabajadorUseCase.execute(id);
 
     return ApiResponseDto.success(data, 'Trabajador obtenido exitosamente');
+  }
+
+  /**
+   * Actualizar un contrato del trabajador (tipo, duración, puesto, fechas, remuneración).
+   * PUT /trabajadores/:id/contratos/:idContrato
+   */
+  @ApiOperation({
+    summary: 'Actualizar contrato del trabajador',
+    description:
+      'Actualiza una fila de traContrato. Debe pertenecer al trabajador indicado.',
+  })
+  @Put(':id/contratos/:idContrato')
+  @HttpCode(HttpStatus.OK)
+  async actualizarContratoTrabajador(
+    @Param('id', ParseIntPipe) idTrabajador: number,
+    @Param('idContrato', ParseIntPipe) idContrato: number,
+    @Body() dto: UpdateContratoTrabajadorDto,
+    @Req() request: Request,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
+    }
+    const payload = await this.jwtService.verifyAsync(token);
+    const idUsuario = payload.sub;
+    const data = await this.actualizarContratoTrabajadorUseCase.execute(
+      idTrabajador,
+      idContrato,
+      dto,
+      idUsuario,
+    );
+    return ApiResponseDto.success(data, 'Contrato actualizado exitosamente');
+  }
+
+  /**
+   * Registrar un nuevo contrato para el trabajador.
+   * POST /trabajadores/:id/contratos
+   */
+  @ApiOperation({
+    summary: 'Crear contrato del trabajador',
+    description: 'Inserta un contrato en traContrato (empresa tomada del trabajador).',
+  })
+  @Post(':id/contratos')
+  @HttpCode(HttpStatus.CREATED)
+  async crearContratoTrabajador(
+    @Param('id', ParseIntPipe) idTrabajador: number,
+    @Body() dto: CreateContratoTrabajadorDto,
+    @Req() request: Request,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
+    }
+    const payload = await this.jwtService.verifyAsync(token);
+    const idUsuario = payload.sub;
+    const data = await this.crearContratoTrabajadorUseCase.execute(
+      idTrabajador,
+      dto,
+      idUsuario,
+    );
+    return ApiResponseDto.created(data, 'Contrato registrado exitosamente');
+  }
+
+  /**
+   * Baja lógica de un contrato del trabajador.
+   * DELETE /trabajadores/:id/contratos/:idContrato
+   */
+  @ApiOperation({
+    summary: 'Eliminar contrato del trabajador',
+    description: 'Marca el contrato como inactivo (estado = 0).',
+  })
+  @Delete(':id/contratos/:idContrato')
+  @HttpCode(HttpStatus.OK)
+  async eliminarContratoTrabajador(
+    @Param('id', ParseIntPipe) idTrabajador: number,
+    @Param('idContrato', ParseIntPipe) idContrato: number,
+    @Req() request: Request,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
+    }
+    const payload = await this.jwtService.verifyAsync(token);
+    const idUsuario = payload.sub;
+    const data = await this.eliminarContratoTrabajadorUseCase.execute(
+      idTrabajador,
+      idContrato,
+      idUsuario,
+    );
+    return ApiResponseDto.success(data, 'Contrato eliminado exitosamente');
   }
 
   /**

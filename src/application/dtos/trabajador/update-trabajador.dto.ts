@@ -59,7 +59,7 @@ export class UpdateTrabajadorDto {
   @IsOptional()
   @IsDateString()
   fechaFinContrato?: string;
-  @IsOptional() @IsInt() idModalidad?: number;
-  @IsOptional() @IsInt() idPuestoTrabajo?: number;
+  @IsOptional() @IsInt() @Type(() => Number) idModalidad?: number;
+  @IsOptional() @IsInt() @Type(() => Number) idPuestoTrabajo?: number;
   @IsOptional() @IsArray() adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

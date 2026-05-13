@@ -8,6 +8,9 @@ import { ListarAdministrativosUseCase } from '../../application/use-cases/trabaj
 import { ObtenerTrabajadorUseCase } from '../../application/use-cases/trabajador/obtener-trabajador.use-case';
 import { CrearTrabajadorUseCase } from '../../application/use-cases/trabajador/crear-trabajador.use-case';
 import { EditarTrabajadorUseCase } from '../../application/use-cases/trabajador/editar-trabajador.use-case';
+import { ActualizarContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/actualizar-contrato-trabajador.use-case';
+import { CrearContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/crear-contrato-trabajador.use-case';
+import { EliminarContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-contrato-trabajador.use-case';
 import { EliminarTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-trabajador.use-case';
 import { ResetearContrasenaUseCase } from '../../application/use-cases/trabajador/resetear-contrasena.use-case';
 import { ObtenerFotoPerfilTrabajadorUseCase } from '../../application/use-cases/trabajador/obtener-foto-perfil-trabajador.use-case';
@@ -50,6 +53,9 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
     ObtenerFotoPerfilTrabajadorUseCase,
     CrearTrabajadorUseCase,
     EditarTrabajadorUseCase,
+    ActualizarContratoTrabajadorUseCase,
+    CrearContratoTrabajadorUseCase,
+    EliminarContratoTrabajadorUseCase,
     EliminarTrabajadorUseCase,
     ResetearContrasenaUseCase,
     // JWT Strategy

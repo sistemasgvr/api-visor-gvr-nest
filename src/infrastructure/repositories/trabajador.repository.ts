@@ -5,6 +5,9 @@ import type {
   ListarTrabajadoresResponse,
   CrearTrabajadorData,
   EditarTrabajadorData,
+  ActualizarContratoTrabajadorData,
+  InsertarContratoTrabajadorData,
+  EliminarContratoTrabajadorData,
 } from '../../domain/repositories/trabajador.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
 
@@ -141,6 +144,14 @@ export class TrabajadorRepository implements ITrabajadorRepository {
       }
     }
 
+    if (result.contratos && typeof result.contratos === 'string') {
+      try {
+        result.contratos = JSON.parse(result.contratos);
+      } catch (e) {
+        result.contratos = [];
+      }
+    }
+
     // Fallback: si la función no devolvió descripciones (JOIN sin match), resolver por id
     if (result.idtipodocumento != null && result.tipodocumento == null) {
       const opt = await this.databaseFunctionService.executeQuery<{
@@ -160,6 +171,58 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     }
 
     return result;
+  }
+
+  async actualizarContratoTrabajador(
+    data: ActualizarContratoTrabajadorData,
+  ): Promise<any> {
+    return await this.databaseFunctionService.callFunctionSingle<any>(
+      'tra_ActualizarContratoTrabajador',
+      [
+        data.idContrato,
+        data.idTrabajador,
+        data.idUsuarioModificacion,
+        data.idTipoContrato ?? null,
+        data.idDuracionContrato ?? null,
+        data.fechaInicio ?? null,
+        data.fechaFin ?? null,
+        data.remuneracion ?? null,
+        data.fechaInicioLabores ?? null,
+        data.idPuestoTrabajo ?? null,
+      ],
+    );
+  }
+
+  async insertarContratoTrabajador(
+    data: InsertarContratoTrabajadorData,
+  ): Promise<any> {
+    return await this.databaseFunctionService.callFunctionSingle<any>(
+      'tra_InsertarContratoTrabajador',
+      [
+        data.idTrabajador,
+        data.idUsuarioCreacion,
+        data.idTipoContrato,
+        data.idDuracionContrato ?? null,
+        data.fechaInicio ?? null,
+        data.fechaFin ?? null,
+        data.remuneracion ?? null,
+        data.fechaInicioLabores ?? null,
+        data.idPuestoTrabajo ?? null,
+      ],
+    );
+  }
+
+  async eliminarContratoTrabajador(
+    data: EliminarContratoTrabajadorData,
+  ): Promise<any> {
+    return await this.databaseFunctionService.callFunctionSingle<any>(
+      'tra_EliminarContratoTrabajador',
+      [
+        data.idContrato,
+        data.idTrabajador,
+        data.idUsuarioModificacion,
+      ],
+    );
   }
 
   async crearTrabajador(data: CrearTrabajadorData): Promise<any> {
