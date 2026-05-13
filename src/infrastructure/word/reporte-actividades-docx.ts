@@ -1,10 +1,17 @@
-import type { DatosReporteActividadesRow } from '../../domain/repositories/control-operativo.repository.interface';
+import type {
+  ActividadInformeServicioLinea,
+  DatosReporteActividadesRow,
+} from '../../domain/repositories/control-operativo.repository.interface';
+import axios from 'axios';
+import { rasterBufferDocxDisplayTransformation, rasterBufferToDocxRaster } from '../images/raster-buffer-to-docx-raster';
 import {
   AlignmentType,
   Document,
+  ExternalHyperlink,
   Header,
   ImageRun,
   Packer,
+  PageBreak,
   Paragraph,
   Table,
   TableCell,
@@ -19,15 +26,15 @@ const TEXTO_RESUMEN_LABORES_P1 =
   'Las labores que se realizaron se detallan a continuación:';
 const NOTA_PIE_PAGINA1 =
   'INDICACIONES: EN LAS SIGUIENTES PAGINAS DETALLAR LABORES SEGÚN CORRESPONDA';
-/** Viñetas de ejemplo en portada: vacío hasta enlazar actividades reales en páginas siguientes. */
-const TEXTO_ACTIVIDADES_BULLETS_P1 = '';
 
-/** Entrada para armar la primera página del Word (se ampliará con más secciones del reporte). */
+const MAX_EVIDENCIA_BYTES = 6_000_000;
+
 export type ReporteActividadesPrimeraPaginaInput = {
   row: DatosReporteActividadesRow;
   fechaInicioYmd: string;
   fechaFinYmd: string;
   fechaEmisionYmd: string;
+  actividadesDetalle?: ActividadInformeServicioLinea[];
   logoBuffer?: Buffer | null;
   logoMime?: 'png' | 'jpg' | null;
 };
@@ -56,18 +63,383 @@ function formatFechaLargaEsPe(ymd: string): string {
   }).format(dt);
 }
 
+function formatHorasPe(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(n)) return '—';
+  return new Intl.NumberFormat('es-PE', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
+function fechaJornadaLegible(ymd: string | null | undefined): string {
+  if (!ymd) return '—';
+  return formatFechaLargaEsPe(ymd);
+}
+
 function guessImageType(buf: Buffer): 'png' | 'jpg' {
   if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xd8) return 'jpg';
   return 'png';
 }
 
-function bulletLines(raw: string | null | undefined): string[] {
-  const t = s(raw);
-  if (!t) return [];
-  return t
-    .split(/\r?\n/)
-    .map((x) => x.trim())
-    .filter(Boolean);
+function labelValueTable(pairs: { label: string; value: string }[]): Table {
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: pairs.map(
+      ({ label, value }) =>
+        new TableRow({
+          children: [
+            new TableCell({
+              width: { size: 30, type: WidthType.PERCENTAGE },
+              margins: { top: 60, bottom: 60, left: 120, right: 120 },
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: label, bold: true, size: 22 }),
+                  ],
+                }),
+              ],
+            }),
+            new TableCell({
+              width: { size: 70, type: WidthType.PERCENTAGE },
+              margins: { top: 60, bottom: 60, left: 120, right: 120 },
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.BOTH,
+                  children: [new TextRun({ text: value || '—', size: 22 })],
+                }),
+              ],
+            }),
+          ],
+        }),
+    ),
+  });
+}
+
+function sniffRasterImageMime(buf: Buffer): 'png' | 'jpg' | null {
+  if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xd8) return 'jpg';
+  if (
+    buf.length >= 8 &&
+    buf[0] === 0x89 &&
+    buf[1] === 0x50 &&
+    buf[2] === 0x4e &&
+    buf[3] === 0x47 &&
+    buf[4] === 0x0d &&
+    buf[5] === 0x0a &&
+    buf[6] === 0x1a &&
+    buf[7] === 0x0a
+  ) {
+    return 'png';
+  }
+  return null;
+}
+
+/** Descarga la URL; prioriza conversión sharp (p. ej. WebP → PNG/JPEG) para Word. */
+async function tryFetchRasterEvidence(
+  url: string,
+): Promise<{ buffer: Buffer; mime: 'png' | 'jpg' } | null> {
+  const u = url.trim();
+  if (!u.startsWith('http://') && !u.startsWith('https://')) return null;
+  try {
+    const res = await axios.get<ArrayBuffer>(u, {
+      responseType: 'arraybuffer',
+      timeout: 25000,
+      maxContentLength: MAX_EVIDENCIA_BYTES,
+      validateStatus: (st) => st >= 200 && st < 400,
+    });
+    const buf = Buffer.from(res.data);
+    if (buf.length < 8 || buf.length > MAX_EVIDENCIA_BYTES) return null;
+
+    const converted = await rasterBufferToDocxRaster(buf);
+    if (converted) return converted;
+
+    const sniffed = sniffRasterImageMime(buf);
+    if (sniffed) {
+      return { buffer: buf, mime: sniffed };
+    }
+
+    const ct = String(res.headers['content-type'] || '').toLowerCase();
+    if (ct.includes('image/jpeg') || ct.includes('image/jpg')) {
+      return { buffer: buf, mime: 'jpg' };
+    }
+    if (ct.includes('image/png')) {
+      return { buffer: buf, mime: 'png' };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function evidenciaHyperlinkParagraph(
+  label: string,
+  href: string,
+  index: number,
+): Paragraph {
+  const safeHref = href.trim();
+  const display = label || `Evidencia ${index}`;
+  if (safeHref.startsWith('http://') || safeHref.startsWith('https://')) {
+    return new Paragraph({
+      spacing: { after: 100 },
+      children: [
+        new TextRun({ text: `${index}. `, size: 20 }),
+        new ExternalHyperlink({
+          children: [
+            new TextRun({
+              text: display,
+              style: 'Hyperlink',
+              size: 20,
+            }),
+          ],
+          link: safeHref,
+        }),
+      ],
+    });
+  }
+  return new Paragraph({
+    spacing: { after: 100 },
+    children: [
+      new TextRun({
+        size: 20,
+        text: `${index}. ${display}${safeHref ? ` — ${safeHref}` : ''}`,
+      }),
+    ],
+  });
+}
+
+async function appendEvidenciasForActividad(
+  children: (Paragraph | Table)[],
+  a: ActividadInformeServicioLinea,
+): Promise<void> {
+  const linkLegacy = s(a.linkevidencia);
+  if (linkLegacy) {
+    const isHttp =
+      linkLegacy.startsWith('http://') || linkLegacy.startsWith('https://');
+    if (isHttp) {
+      const img = await tryFetchRasterEvidence(linkLegacy);
+      if (img) {
+        const t = await rasterBufferDocxDisplayTransformation(img.buffer);
+        children.push(
+          new Paragraph({
+            spacing: { before: 120, after: 60 },
+            children: [
+              new TextRun({
+                text: 'Enlace / evidencia de actividad (imagen): ',
+                bold: true,
+                size: 22,
+              }),
+            ],
+          }),
+        );
+        children.push(
+          new Paragraph({
+            spacing: { after: 80 },
+            children: [
+              new ImageRun({
+                type: img.mime,
+                data: img.buffer,
+                transformation: t,
+              }),
+            ],
+          }),
+        );
+      } else {
+        children.push(
+          new Paragraph({
+            spacing: { before: 120, after: 60 },
+            children: [
+              new TextRun({ text: 'Enlace de actividad: ', bold: true, size: 22 }),
+              new ExternalHyperlink({
+                children: [
+                  new TextRun({
+                    text:
+                      linkLegacy.length > 100
+                        ? `${linkLegacy.slice(0, 97)}…`
+                        : linkLegacy,
+                    style: 'Hyperlink',
+                    size: 20,
+                  }),
+                ],
+                link: linkLegacy,
+              }),
+            ],
+          }),
+        );
+      }
+    } else {
+      children.push(
+        new Paragraph({
+          spacing: { before: 120, after: 60 },
+          children: [
+            new TextRun({ text: 'Enlace de actividad: ', bold: true, size: 22 }),
+            new TextRun({ text: linkLegacy, size: 20 }),
+          ],
+        }),
+      );
+    }
+  }
+
+  const evs = a.evidencias ?? [];
+  if (evs.length === 0) return;
+
+  children.push(
+    new Paragraph({
+      spacing: { before: 160, after: 80 },
+      children: [new TextRun({ text: 'Evidencias', bold: true, size: 22 })],
+    }),
+  );
+
+  let ei = 0;
+  for (const ev of evs) {
+    ei += 1;
+    const href = s(ev.viewUrl) || s(ev.url);
+    const label = s(ev.nombreOriginal) || `Archivo ${ei}`;
+
+    if (href) {
+      const preview = await tryFetchRasterEvidence(href);
+      if (preview) {
+        const t = await rasterBufferDocxDisplayTransformation(preview.buffer);
+        children.push(
+          new Paragraph({
+            spacing: { after: 40 },
+            children: [
+              new TextRun({ text: `${ei}. `, bold: true, size: 20 }),
+              new TextRun({ text: label, size: 20 }),
+            ],
+          }),
+        );
+        children.push(
+          new Paragraph({
+            spacing: { after: 100 },
+            children: [
+              new ImageRun({
+                type: preview.mime,
+                data: preview.buffer,
+                transformation: t,
+              }),
+            ],
+          }),
+        );
+      } else {
+        children.push(evidenciaHyperlinkParagraph(label, href, ei));
+      }
+    } else {
+      children.push(
+        new Paragraph({
+          spacing: { after: 100 },
+          children: [
+            new TextRun({
+              size: 20,
+              text: `${ei}. ${label} (sin URL)`,
+              italics: true,
+            }),
+          ],
+        }),
+      );
+    }
+  }
+}
+
+async function appendDetalleActividades(
+  children: (Paragraph | Table)[],
+  actividades: ActividadInformeServicioLinea[],
+): Promise<void> {
+  children.push(
+    new Paragraph({
+      children: [new PageBreak()],
+    }),
+  );
+
+  children.push(
+    new Paragraph({
+      spacing: { after: 200 },
+      children: [
+        new TextRun({
+          text: 'REGISTRO DETALLADO DE ACTIVIDADES',
+          bold: true,
+          size: 26,
+          allCaps: true,
+        }),
+      ],
+    }),
+  );
+
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.BOTH,
+      spacing: { after: 240 },
+      children: [
+        new TextRun({
+          size: 22,
+          text:
+            'Detalle de cada actividad: datos generales, descripción, enlace libre si existe, y evidencias con enlace (o vista previa si la imagen está disponible).',
+        }),
+      ],
+    }),
+  );
+
+  if (actividades.length === 0) {
+    children.push(
+      new Paragraph({
+        spacing: { after: 120 },
+        children: [
+          new TextRun({
+            italics: true,
+            size: 22,
+            text: 'No hay actividades registradas en el periodo seleccionado.',
+          }),
+        ],
+      }),
+    );
+    return;
+  }
+
+  let idx = 0;
+  for (const a of actividades) {
+    idx += 1;
+    const titulo = s(a.nombreactividad) || `Actividad ${idx}`;
+    children.push(
+      new Paragraph({
+        spacing: { before: idx === 1 ? 120 : 360, after: 120 },
+        children: [
+          new TextRun({ text: `${idx}. `, bold: true, size: 24 }),
+          new TextRun({ text: titulo, bold: true, size: 24 }),
+        ],
+      }),
+    );
+
+    children.push(
+      labelValueTable([
+        { label: 'Fecha de jornada', value: fechaJornadaLegible(a.diajornada) },
+        { label: 'Proyecto', value: s(a.nombreproyecto) },
+        { label: 'Modalidad', value: s(a.nombremodalidad) },
+        { label: 'Horas dedicadas', value: formatHorasPe(a.horasdedicadas) },
+        { label: 'Estado', value: s(a.estadoactividad) },
+      ]),
+    );
+
+    children.push(
+      new Paragraph({
+        spacing: { before: 160, after: 80 },
+        children: [new TextRun({ text: 'Descripción', bold: true, size: 22 })],
+      }),
+    );
+    const desc = s(a.descripciondetallada);
+    children.push(
+      new Paragraph({
+        alignment: AlignmentType.BOTH,
+        spacing: { after: 120 },
+        children: [
+          new TextRun({
+            size: 22,
+            text: desc || '(Sin descripción detallada registrada.)',
+            ...(desc ? {} : { italics: true }),
+          }),
+        ],
+      }),
+    );
+
+    await appendEvidenciasForActividad(children, a);
+  }
 }
 
 function headerTable(
@@ -95,9 +467,7 @@ function headerTable(
 
   leftChildren.push(
     new Paragraph({
-      children: [
-        new TextRun({ text: nomCom, bold: true, size: 22 }),
-      ],
+      children: [new TextRun({ text: nomCom, bold: true, size: 22 })],
     }),
   );
 
@@ -138,7 +508,7 @@ function headerTable(
   });
 }
 
-/** Primera página del informe de servicio (bloque inicial del reporte de actividades). */
+/** Informe de servicio: portada + salto de página + detalle de actividades. */
 export async function buildReporteActividadesPrimeraPaginaBuffer(
   input: ReporteActividadesPrimeraPaginaInput,
 ): Promise<Buffer> {
@@ -152,17 +522,20 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
   const destinatario = s(row.linea_destinatario);
   const puesto = s(row.puesto_trabajo) || '(puesto según contrato)';
   const preparador = s(row.nombrecompletotrabajador);
+  const nombreReferencia =
+    preparador || '(apellidos y nombres completos)';
   const periodoDe = formatFechaCortaPe(fechaInicioYmd);
   const periodoAl = formatFechaCortaPe(fechaFinYmd);
   const fechaLarga = formatFechaLargaEsPe(fechaEmisionYmd);
   const ubicacionFecha =
     ciudad.length > 0 ? `${ciudad}, ${fechaLarga}` : fechaLarga;
 
-  const bullets = bulletLines(TEXTO_ACTIVIDADES_BULLETS_P1);
+  const actividades = input.actividadesDetalle ?? [];
+  const bullets = actividades.map((a) => s(a.linea)).filter(Boolean);
   const resumen = TEXTO_RESUMEN_LABORES_P1;
   const notaPie = NOTA_PIE_PAGINA1;
 
-  const children: Paragraph[] = [];
+  const children: (Paragraph | Table)[] = [];
 
   if (eslogan) {
     children.push(
@@ -212,7 +585,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
       children: [
         new TextRun({ text: 'Referencia: ', bold: true }),
         new TextRun({
-          text: `Contrato de Locación de Servicios - ${puesto}`,
+          text: `Contrato de Locación de Servicios - ${nombreReferencia}`,
         }),
       ],
     }),
@@ -290,7 +663,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
       spacing: { after: 240 },
       children: [
         new TextRun({
-          text: preparador || '(apellidos y nombres completos)',
+          text: nombreReferencia,
           italics: true,
         }),
       ],
@@ -304,6 +677,8 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
       children: [new TextRun({ text: notaPie, italics: true, size: 18 })],
     }),
   );
+
+  await appendDetalleActividades(children, actividades);
 
   const doc = new Document({
     sections: [

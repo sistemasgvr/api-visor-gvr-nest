@@ -36,8 +36,8 @@ function todayYmd(): string {
 }
 
 /**
- * Genera un .docx del reporte de actividades (hoy: primera página del informe de servicio).
- * Los datos base vienen de con_DatosReporteActividades (se extenderá con el resto del reporte).
+ * Genera un .docx del reporte de actividades: portada del informe de servicio y,
+ * tras salto de página, registro detallado por actividad (modalidad, horas, estado, descripción).
  */
 @Injectable()
 export class ExportarActividadesJornadasWordUseCase {
@@ -67,6 +67,13 @@ export class ExportarActividadesJornadasWordUseCase {
       );
     }
 
+    const actividadesDetalle =
+      await this.controlOperativoRepository.listarActividadesPeriodoReporte(
+        input.idTrabajador,
+        fi,
+        ff,
+      );
+
     let logoBuffer: Buffer | null = null;
     let logoMime: 'png' | 'jpg' | null = null;
     const urlLogo = row.urllogo != null ? String(row.urllogo).trim() : '';
@@ -95,6 +102,7 @@ export class ExportarActividadesJornadasWordUseCase {
       fechaInicioYmd: fi,
       fechaFinYmd: ff,
       fechaEmisionYmd: fechaEmision,
+      actividadesDetalle,
       logoBuffer,
       logoMime,
     });

@@ -331,6 +331,22 @@ export interface ListarActividadesResult {
   estadojornada?: string | null;
 }
 
+/** Fila de con_ListarActividadesPeriodoReporte (portada + detalle informe Word). */
+export interface ActividadInformeServicioLinea {
+  diajornada: string | null;
+  nombreactividad: string;
+  nombreproyecto: string | null;
+  descripciondetallada: string | null;
+  nombremodalidad: string | null;
+  horasdedicadas: number | null;
+  estadoactividad: string | null;
+  /** Link libre histórico en la actividad (si existe). */
+  linkevidencia?: string | null;
+  evidencias?: ActividadEvidenciaItem[];
+  /** Resumen «actividad — proyecto» para viñetas de la portada. */
+  linea: string;
+}
+
 /** Retorno del cron único de cierre de jornadas (concroncierrejornadas). */
 export interface CronCierreJornadasResult {
   /** Filas nuevas en estado Abierta (columna SQL `insertados_abierta`). */
@@ -634,6 +650,12 @@ export interface IControlOperativoRepository {
     idTrabajador: number,
     anioInforme: number,
   ): Promise<DatosReporteActividadesRow | null>;
+  /** Actividades del trabajador en [fechaInicioYmd, fechaFinYmd] por fecha de jornada (texto actividad — proyecto). */
+  listarActividadesPeriodoReporte(
+    idTrabajador: number,
+    fechaInicioYmd: string,
+    fechaFinYmd: string,
+  ): Promise<ActividadInformeServicioLinea[]>;
 }
 
 export const CONTROL_OPERATIVO_REPOSITORY = 'CONTROL_OPERATIVO_REPOSITORY';

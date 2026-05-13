@@ -49,6 +49,7 @@ import type {
   AgregarEvidenciasActividadParams,
   EliminarEvidenciaActividadParams,
   DatosReporteActividadesRow,
+  ActividadInformeServicioLinea,
 } from '../../domain/repositories/control-operativo.repository.interface';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
@@ -1163,6 +1164,79 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     return this.databaseFunctionService.callFunctionSingle<DatosReporteActividadesRow>(
       'con_DatosReporteActividades',
       [idTrabajador, anioInforme],
+    );
+  }
+
+  async listarActividadesPeriodoReporte(
+    idTrabajador: number,
+    fechaInicioYmd: string,
+    fechaFinYmd: string,
+  ): Promise<ActividadInformeServicioLinea[]> {
+    if (idTrabajador == null || idTrabajador < 1) return [];
+    const dIni = queryDateOrNull(fechaInicioYmd);
+    const dFin = queryDateOrNull(fechaFinYmd);
+    if (dIni == null || dFin == null) return [];
+    const rows = await this.databaseFunctionService.callFunction<
+      Record<string, unknown>
+    >('con_ListarActividadesPeriodoReporte', [idTrabajador, dIni, dFin]);
+    if (!rows?.length) return [];
+    const intermediates = rows
+      .map((r) => {
+        const diaRaw = r['diajornada'];
+        let diajornada: string | null = null;
+        if (diaRaw != null && String(diaRaw).trim() !== '') {
+          const ds = String(diaRaw).trim();
+          diajornada = ds.includes('T') ? (ds.split('T')[0] ?? ds) : ds.slice(0, 10);
+        }
+        const nombreactividad =
+          r['nombreactividad'] != null ? String(r['nombreactividad']).trim() : '';
+        const linea = r['linea'] != null ? String(r['linea']).trim() : '';
+        const horasRaw = r['horasdedicadas'];
+        const hn =
+          horasRaw != null && String(horasRaw).trim() !== ''
+            ? Number(horasRaw)
+            : null;
+        const horasdedicadas =
+          hn != null && Number.isFinite(hn) ? hn : null;
+        const linkevidencia =
+          r['linkevidencia'] != null && String(r['linkevidencia']).trim() !== ''
+            ? String(r['linkevidencia']).trim()
+            : null;
+        return {
+          diajornada,
+          nombreactividad,
+          nombreproyecto:
+            r['nombreproyecto'] != null
+              ? String(r['nombreproyecto']).trim()
+              : null,
+          descripciondetallada:
+            r['descripciondetallada'] != null
+              ? String(r['descripciondetallada']).trim()
+              : null,
+          nombremodalidad:
+            r['nombremodalidad'] != null
+              ? String(r['nombremodalidad']).trim()
+              : null,
+          horasdedicadas,
+          estadoactividad:
+            r['estadoactividad'] != null
+              ? String(r['estadoactividad']).trim()
+              : null,
+          linkevidencia,
+          linea,
+          evidenciasRaw: r['evidencias'],
+        };
+      })
+      .filter((x) => x.nombreactividad !== '' || x.linea !== '');
+
+    return Promise.all(
+      intermediates.map(async (row) => {
+        const { evidenciasRaw, ...rest } = row;
+        const evidencias = await this.mapEvidenciasViewUrls(
+          parseActividadEvidencias(evidenciasRaw),
+        );
+        return { ...rest, evidencias };
+      }),
     );
   }
 }
