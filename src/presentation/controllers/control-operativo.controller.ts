@@ -16,8 +16,10 @@ import {
   Header,
   HttpCode,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
 import { Request } from 'express';
+import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
 import { ListarTrabajadoresParaFiltroUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-para-filtro.use-case';
@@ -46,6 +48,7 @@ import { ListarReporteGeneralUseCase } from '../../application/use-cases/control
 import { ListarLideresEquipoReporteGeneralUseCase } from '../../application/use-cases/control-operativo/listar-lideres-equipo-reporte-general.use-case';
 import { ListarReporteHorasMesProyectoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-reporte-horas-mes-proyecto-trabajador.use-case';
 import { ListarReporteHorasRangoDetalleProyectoUseCase } from '../../application/use-cases/control-operativo/listar-reporte-horas-rango-detalle-proyecto.use-case';
+import { ExportarActividadesJornadasWordUseCase } from '../../application/use-cases/control-operativo/exportar-actividades-jornadas-word.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -84,6 +87,7 @@ export class ControlOperativoController {
     private readonly listarReporteHorasMesProyectoTrabajadorUseCase: ListarReporteHorasMesProyectoTrabajadorUseCase,
     private readonly listarReporteHorasRangoDetalleProyectoUseCase: ListarReporteHorasRangoDetalleProyectoUseCase,
     private readonly cronAlertaActividadesSinValidarUseCase: CronAlertaActividadesSinValidarUseCase,
+    private readonly exportarActividadesJornadasWordUseCase: ExportarActividadesJornadasWordUseCase,
     private readonly configService: ConfigService,
   ) {}
 
@@ -190,6 +194,41 @@ export class ControlOperativoController {
     });
 
     return ApiResponseDto.success(result, 'Jornadas listadas exitosamente');
+  }
+
+  /**
+   * Exportar actividades del filtro de jornadas como Word (.docx).
+   * GET /control-operativo/trabajadores/:idTrabajador/actividades/export-word?fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD
+   * Respuesta binaria (no JSON). El documento se enriquecerá con datos en versiones posteriores.
+   */
+  @ApiOperation({
+    summary: 'Exportar actividades (Word)',
+    description:
+      'Descarga un .docx para el trabajador y rango de fechas indicados (mismo criterio que el listado de jornadas). Por ahora el archivo se genera vacío.',
+  })
+  @Get('trabajadores/:idTrabajador/actividades/export-word')
+  @UseGuards(JwtAuthGuard)
+  async exportarActividadesJornadasWord(
+    @Res() res: Response,
+    @Param('idTrabajador', ParseIntPipe) idTrabajador: number,
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string,
+  ): Promise<void> {
+    const { buffer, fileName } =
+      await this.exportarActividadesJornadasWordUseCase.execute({
+        idTrabajador,
+        fechaInicio,
+        fechaFin,
+      });
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${fileName.replace(/"/g, '')}"`,
+    );
+    res.send(buffer);
   }
 
   /**

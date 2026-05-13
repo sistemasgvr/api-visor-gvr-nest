@@ -39,6 +39,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProyectoModule } from './proyecto.module';
 import { StorageModule } from '../../infrastructure/storage/storage.module';
 import { EliminarEvidenciaActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-evidencia-actividad.use-case';
+import { ExportarActividadesJornadasWordUseCase } from '../../application/use-cases/control-operativo/exportar-actividades-jornadas-word.use-case';
 
 @Module({
   imports: [
@@ -98,6 +99,7 @@ import { EliminarEvidenciaActividadUseCase } from '../../application/use-cases/c
     ListarReporteHorasMesProyectoTrabajadorUseCase,
     ListarReporteHorasRangoDetalleProyectoUseCase,
     CronAlertaActividadesSinValidarUseCase,
+    ExportarActividadesJornadasWordUseCase,
     JwtStrategy,
   ],
   exports: [CONTROL_OPERATIVO_REPOSITORY],
