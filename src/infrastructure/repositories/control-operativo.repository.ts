@@ -51,6 +51,7 @@ import type {
   DatosReporteActividadesRow,
   ActividadInformeServicioLinea,
 } from '../../domain/repositories/control-operativo.repository.interface';
+import { normalizeStoredValueToYmd } from '../../shared/utils/date.util';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
 function getScalarInt(row: any): number {
@@ -1183,11 +1184,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     const intermediates = rows
       .map((r) => {
         const diaRaw = r['diajornada'];
-        let diajornada: string | null = null;
-        if (diaRaw != null && String(diaRaw).trim() !== '') {
-          const ds = String(diaRaw).trim();
-          diajornada = ds.includes('T') ? (ds.split('T')[0] ?? ds) : ds.slice(0, 10);
-        }
+        const diajornada = normalizeStoredValueToYmd(diaRaw);
         const nombreactividad =
           r['nombreactividad'] != null ? String(r['nombreactividad']).trim() : '';
         const linea = r['linea'] != null ? String(r['linea']).trim() : '';

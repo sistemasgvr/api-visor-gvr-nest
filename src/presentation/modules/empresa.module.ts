@@ -11,11 +11,13 @@ import { EliminarEmpresaUseCase } from '../../application/use-cases/empresa/elim
 import { EmpresaRepository } from '../../infrastructure/repositories/empresa.repository';
 import { EMPRESA_REPOSITORY } from '../../domain/repositories/empresa.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 
 @Module({
   imports: [
     DatabaseModule,
+    StorageModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

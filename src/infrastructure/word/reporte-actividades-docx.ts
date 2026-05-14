@@ -2,10 +2,12 @@ import type {
   ActividadInformeServicioLinea,
   DatosReporteActividadesRow,
 } from '../../domain/repositories/control-operativo.repository.interface';
+import { normalizeStoredValueToYmd } from '../../shared/utils/date.util';
 import axios from 'axios';
 import { rasterBufferDocxDisplayTransformation, rasterBufferToDocxRaster } from '../images/raster-buffer-to-docx-raster';
 import {
   AlignmentType,
+  convertInchesToTwip,
   Document,
   ExternalHyperlink,
   Header,
@@ -14,6 +16,7 @@ import {
   PageBreak,
   Paragraph,
   Table,
+  TableBorders,
   TableCell,
   TableRow,
   TextRun,
@@ -71,7 +74,8 @@ function formatHorasPe(n: number | null | undefined): string {
   }).format(n);
 }
 
-function fechaJornadaLegible(ymd: string | null | undefined): string {
+function fechaJornadaLegible(raw: string | null | undefined): string {
+  const ymd = normalizeStoredValueToYmd(raw);
   if (!ymd) return '—';
   return formatFechaLargaEsPe(ymd);
 }
@@ -351,7 +355,7 @@ async function appendDetalleActividades(
 
   children.push(
     new Paragraph({
-      spacing: { after: 200 },
+      spacing: { before: 360, after: 200 },
       children: [
         new TextRun({
           text: 'REGISTRO DETALLADO DE ACTIVIDADES',
@@ -464,30 +468,44 @@ function headerTable(
       }),
     );
   }
-
-  leftChildren.push(
-    new Paragraph({
-      children: [new TextRun({ text: nomCom, bold: true, size: 22 })],
-    }),
-  );
+  if (leftChildren.length === 0) {
+    leftChildren.push(new Paragraph({ text: '' }));
+  }
 
   const cel = s(row.celularempresa);
   const mail = s(row.correoempresa);
-  const rightBits: string[] = [];
-  if (cel) rightBits.push(cel);
-  if (mail) rightBits.push(mail);
-  const rightParas: Paragraph[] =
-    rightBits.length > 0
-      ? rightBits.map(
-          (line) =>
-            new Paragraph({
-              alignment: AlignmentType.RIGHT,
-              children: [new TextRun({ text: line, size: 18 })],
-            }),
-        )
-      : [new Paragraph({ text: '' })];
+  const rightParas: Paragraph[] = [];
+  if (nomCom) {
+    rightParas.push(
+      new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        spacing: { after: cel || mail ? 80 : 0 },
+        children: [new TextRun({ text: nomCom, bold: true, size: 22 })],
+      }),
+    );
+  }
+  if (cel) {
+    rightParas.push(
+      new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        children: [new TextRun({ text: cel, size: 18 })],
+      }),
+    );
+  }
+  if (mail) {
+    rightParas.push(
+      new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        children: [new TextRun({ text: mail, size: 18 })],
+      }),
+    );
+  }
+  if (rightParas.length === 0) {
+    rightParas.push(new Paragraph({ text: '' }));
+  }
 
   return new Table({
+    borders: TableBorders.NONE,
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
       new TableRow({
@@ -541,7 +559,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
     children.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { after: 120 },
+        spacing: { before: 120, after: 180 },
         children: [new TextRun({ text: eslogan, bold: true, size: 22 })],
       }),
     );
@@ -550,7 +568,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
   children.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 },
+      spacing: { before: eslogan ? 0 : 120, after: 280 },
       children: [
         new TextRun({
           text: 'INFORME DE SERVICIO',
@@ -564,7 +582,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
 
   children.push(
     new Paragraph({
-      spacing: { after: 120 },
+      spacing: { after: 180 },
       children: [
         new TextRun({ text: 'A: ', bold: true }),
         new TextRun({ text: destinatario || s(row.razonsocial) }),
@@ -574,14 +592,14 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
 
   children.push(
     new Paragraph({
-      spacing: { after: 120 },
+      spacing: { after: 180 },
       children: [new TextRun({ text: 'Asunto: Informe de servicio.' })],
     }),
   );
 
   children.push(
     new Paragraph({
-      spacing: { after: 120 },
+      spacing: { after: 180 },
       children: [
         new TextRun({ text: 'Referencia: ', bold: true }),
         new TextRun({
@@ -593,7 +611,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
 
   children.push(
     new Paragraph({
-      spacing: { after: 200 },
+      spacing: { after: 280 },
       children: [
         new TextRun({ text: 'Fecha: ', bold: true }),
         new TextRun({ text: ubicacionFecha }),
@@ -604,7 +622,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
   children.push(
     new Paragraph({
       alignment: AlignmentType.BOTH,
-      spacing: { after: 200 },
+      spacing: { after: 280 },
       children: [
         new TextRun({
           text:
@@ -623,7 +641,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
   children.push(
     new Paragraph({
       alignment: AlignmentType.BOTH,
-      spacing: { after: 160 },
+      spacing: { after: 220 },
       children: [new TextRun({ text: resumen })],
     }),
   );
@@ -632,7 +650,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
     for (const line of bullets) {
       children.push(
         new Paragraph({
-          spacing: { after: 80 },
+          spacing: { after: 120 },
           bullet: { level: 0 },
           children: [new TextRun({ text: line })],
         }),
@@ -643,14 +661,27 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
 
   children.push(
     new Paragraph({
-      spacing: { before: 400, after: 80 },
+      spacing: { after: 280 },
+      children: [new TextRun({ text: '\u00a0' })],
+    }),
+  );
+  children.push(
+    new Paragraph({
+      spacing: { after: 360 },
+      children: [new TextRun({ text: '\u00a0' })],
+    }),
+  );
+
+  children.push(
+    new Paragraph({
+      spacing: { before: 560, after: 100 },
       children: [new TextRun({ text: 'Preparado por:' })],
     }),
   );
 
   children.push(
     new Paragraph({
-      spacing: { after: 120 },
+      spacing: { after: 160 },
       border: {
         bottom: { style: 'single', size: 6, color: '000000' },
       },
@@ -660,7 +691,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
 
   children.push(
     new Paragraph({
-      spacing: { after: 240 },
+      spacing: { after: 320 },
       children: [
         new TextRun({
           text: nombreReferencia,
@@ -673,7 +704,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
   children.push(
     new Paragraph({
       alignment: AlignmentType.BOTH,
-      spacing: { before: 200 },
+      spacing: { before: 280, after: 480 },
       children: [new TextRun({ text: notaPie, italics: true, size: 18 })],
     }),
   );
@@ -685,8 +716,28 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
       {
         headers: {
           default: new Header({
-            children: [headerTable(row, logoBuf, logoMime)],
+            children: [
+              headerTable(row, logoBuf, logoMime),
+              /** Aire bajo la tabla del encabezado (cada página); w:pgMar `header` no separa el cuerpo del dibujo. */
+              new Paragraph({
+                spacing: { after: 480 },
+                children: [new TextRun({ text: '\u00a0' })],
+              }),
+            ],
           }),
+        },
+        /** Margen superior mayor: el cuerpo arranca más abajo, lejos del bloque del encabezado. */
+        properties: {
+          page: {
+            margin: {
+              top: convertInchesToTwip(1.35),
+              right: convertInchesToTwip(1),
+              bottom: convertInchesToTwip(1),
+              left: convertInchesToTwip(1),
+              footer: convertInchesToTwip(0.5),
+              gutter: 0,
+            },
+          },
         },
         children,
       },

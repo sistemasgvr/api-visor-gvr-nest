@@ -155,6 +155,13 @@ export class StorageController {
       file,
       filename: dto.filename,
     });
-    return ApiResponseDto.success(meta, 'Archivo subido correctamente');
+    const viewUrl =
+      await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
+        meta.publicUrl,
+      );
+    return ApiResponseDto.success(
+      { ...meta, viewUrl },
+      'Archivo subido correctamente',
+    );
   }
 }
