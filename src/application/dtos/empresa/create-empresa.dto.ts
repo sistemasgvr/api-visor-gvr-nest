@@ -43,4 +43,21 @@ export class CreateEmpresaDto {
   @IsString()
   @MaxLength(2000)
   urlLogo?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  direccion?: string;
+
+  @IsOptional()
+  @IsInt()
+  idDepartamento?: number;
+
+  @IsOptional()
+  @IsInt()
+  idProvincia?: number;
+
+  @IsOptional()
+  @IsInt()
+  idDistrito?: number;
 }

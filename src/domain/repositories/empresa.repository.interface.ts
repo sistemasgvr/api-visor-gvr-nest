@@ -25,6 +25,10 @@ export interface CrearEmpresaData {
   celularEmpresa?: string | null;
   correoEmpresa?: string | null;
   urlLogo?: string | null;
+  direccion?: string | null;
+  idDepartamento?: number | null;
+  idProvincia?: number | null;
+  idDistrito?: number | null;
 }
 
 export interface EditarEmpresaData {
@@ -37,6 +41,10 @@ export interface EditarEmpresaData {
   celularEmpresa?: string | null;
   correoEmpresa?: string | null;
   urlLogo?: string | null;
+  direccion?: string | null;
+  idDepartamento?: number | null;
+  idProvincia?: number | null;
+  idDistrito?: number | null;
 }
 
 export interface IEmpresaRepository {

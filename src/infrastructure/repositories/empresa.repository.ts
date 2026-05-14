@@ -79,6 +79,10 @@ export class EmpresaRepository implements IEmpresaRepository {
         data.celularEmpresa ?? null,
         data.correoEmpresa ?? null,
         data.urlLogo ?? null,
+        data.direccion ?? null,
+        data.idDepartamento ?? null,
+        data.idProvincia ?? null,
+        data.idDistrito ?? null,
       ],
     );
 
@@ -100,6 +104,10 @@ export class EmpresaRepository implements IEmpresaRepository {
         data.celularEmpresa ?? null,
         data.correoEmpresa ?? null,
         data.urlLogo ?? null,
+        data.direccion ?? null,
+        data.idDepartamento ?? null,
+        data.idProvincia ?? null,
+        data.idDistrito ?? null,
       ],
     );
 
