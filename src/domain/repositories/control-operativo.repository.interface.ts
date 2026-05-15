@@ -335,15 +335,19 @@ export interface ListarActividadesResult {
 export interface ActividadInformeServicioLinea {
   diajornada: string | null;
   nombreactividad: string;
+  /** Nombre del tipo de actividad (genlistadoopciones); puede ir vacío en datos antiguos. */
+  nombretipoactividad?: string | null;
   nombreproyecto: string | null;
   descripciondetallada: string | null;
   nombremodalidad: string | null;
   horasdedicadas: number | null;
   estadoactividad: string | null;
+  /** Hora inicio actividad (HH:mm:ss). */
+  horainicio?: string | null;
   /** Link libre histórico en la actividad (si existe). */
   linkevidencia?: string | null;
   evidencias?: ActividadEvidenciaItem[];
-  /** Resumen «actividad — proyecto» para viñetas de la portada. */
+  /** Resumen «tipo (o nombre actividad) - proyecto» para viñetas / deduplicado. */
   linea: string;
 }
 
@@ -545,6 +549,10 @@ export interface DatosReporteActividadesRow {
   eslogan_anio: string | null;
   ciudad_documento: string | null;
   linea_destinatario: string | null;
+  /** URL genarchivo (MinIO/path) para la imagen de firma del trabajador. */
+  url_firma_trabajador?: string | null;
+  /** Texto multilinea (CHR 10): dirección de la empresa para el pie del informe. */
+  direccion_pie_empresa?: string | null;
 }
 
 export interface IControlOperativoRepository {

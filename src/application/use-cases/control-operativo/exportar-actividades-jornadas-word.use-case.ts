@@ -58,6 +58,7 @@ function sniffPngJpeg(buf: Buffer): 'png' | 'jpg' | null {
 async function fetchLogoBufferParaDocx(
   minioStorage: MinioStorageService,
   stored: string,
+  options?: { maxEdgePx?: number },
 ): Promise<{ buffer: Buffer; mime: 'png' | 'jpg' } | null> {
   const raw = (stored ?? '').trim();
   if (!raw) return null;
@@ -73,7 +74,7 @@ async function fetchLogoBufferParaDocx(
     if (buf.length === 0) return null;
 
     const converted = await rasterBufferToDocxRaster(buf, {
-      maxEdgePx: 640,
+      maxEdgePx: options?.maxEdgePx ?? 640,
     });
     if (converted) {
       return { buffer: converted.buffer, mime: converted.mime };
@@ -144,6 +145,22 @@ export class ExportarActividadesJornadasWordUseCase {
       }
     }
 
+    let firmaBuffer: Buffer | null = null;
+    let firmaMime: 'png' | 'jpg' | null = null;
+    const urlFirma =
+      row.url_firma_trabajador != null
+        ? String(row.url_firma_trabajador).trim()
+        : '';
+    if (urlFirma) {
+      const firma = await fetchLogoBufferParaDocx(this.minioStorage, urlFirma, {
+        maxEdgePx: 420,
+      });
+      if (firma) {
+        firmaBuffer = firma.buffer;
+        firmaMime = firma.mime;
+      }
+    }
+
     const buffer = await buildReporteActividadesPrimeraPaginaBuffer({
       row,
       fechaInicioYmd: fi,
@@ -152,6 +169,8 @@ export class ExportarActividadesJornadasWordUseCase {
       actividadesDetalle,
       logoBuffer,
       logoMime,
+      firmaBuffer,
+      firmaMime,
     });
 
     const safe = (s: string) =>

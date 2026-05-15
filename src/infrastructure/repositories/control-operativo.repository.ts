@@ -1162,10 +1162,44 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     idTrabajador: number,
     anioInforme: number,
   ): Promise<DatosReporteActividadesRow | null> {
-    return this.databaseFunctionService.callFunctionSingle<DatosReporteActividadesRow>(
-      'con_DatosReporteActividades',
-      [idTrabajador, anioInforme],
-    );
+    const raw =
+      await this.databaseFunctionService.callFunctionSingle<
+        Record<string, unknown>
+      >('con_DatosReporteActividades', [idTrabajador, anioInforme]);
+    if (!raw) return null;
+
+    const pick = (...keys: string[]): string | null => {
+      for (const key of keys) {
+        const v = raw[key];
+        if (v != null && String(v).trim() !== '') return String(v).trim();
+      }
+      return null;
+    };
+
+    return {
+      razonsocial: pick('razonsocial'),
+      nombrecomercial: pick('nombrecomercial'),
+      celularempresa: pick('celularempresa') ?? '',
+      correoempresa: pick('correoempresa') ?? '',
+      urllogo: pick('urllogo') ?? '',
+      nombrecompletotrabajador: pick(
+        'nombrecompletotrabajador',
+        'nombreCompletoTrabajador',
+      ),
+      /** Nombre/descripción lista del puesto en contrato (no el nombre del colaborador). */
+      puesto_trabajo: pick('puesto_trabajo', 'puestoTrabajo', 'puestotrabajo'),
+      eslogan_anio: pick('eslogan_anio', 'esloganAnio') ?? '',
+      ciudad_documento: pick('ciudad_documento', 'ciudadDocumento') ?? '',
+      linea_destinatario: pick('linea_destinatario', 'lineaDestinatario'),
+      url_firma_trabajador: pick(
+        'url_firma_trabajador',
+        'urlFirmaTrabajador',
+      ),
+      direccion_pie_empresa: pick(
+        'direccion_pie_empresa',
+        'direccionPieEmpresa',
+      ),
+    };
   }
 
   async listarActividadesPeriodoReporte(
@@ -1187,6 +1221,15 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         const diajornada = normalizeStoredValueToYmd(diaRaw);
         const nombreactividad =
           r['nombreactividad'] != null ? String(r['nombreactividad']).trim() : '';
+        const nombretipoactividad =
+          r['nombretipoactividad'] != null &&
+          String(r['nombretipoactividad']).trim() !== ''
+            ? String(r['nombretipoactividad']).trim()
+            : null;
+        const horainicio =
+          r['horainicio'] != null && String(r['horainicio']).trim() !== ''
+            ? String(r['horainicio']).trim()
+            : null;
         const linea = r['linea'] != null ? String(r['linea']).trim() : '';
         const horasRaw = r['horasdedicadas'];
         const hn =
@@ -1202,6 +1245,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         return {
           diajornada,
           nombreactividad,
+          nombretipoactividad,
           nombreproyecto:
             r['nombreproyecto'] != null
               ? String(r['nombreproyecto']).trim()
@@ -1220,6 +1264,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
               ? String(r['estadoactividad']).trim()
               : null,
           linkevidencia,
+          horainicio,
           linea,
           evidenciasRaw: r['evidencias'],
         };

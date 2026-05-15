@@ -10,6 +10,7 @@ import {
   convertInchesToTwip,
   Document,
   ExternalHyperlink,
+  Footer,
   Header,
   ImageRun,
   Packer,
@@ -40,6 +41,8 @@ export type ReporteActividadesPrimeraPaginaInput = {
   actividadesDetalle?: ActividadInformeServicioLinea[];
   logoBuffer?: Buffer | null;
   logoMime?: 'png' | 'jpg' | null;
+  firmaBuffer?: Buffer | null;
+  firmaMime?: 'png' | 'jpg' | null;
 };
 
 function s(v: string | null | undefined): string {
@@ -66,6 +69,49 @@ function formatFechaLargaEsPe(ymd: string): string {
   }).format(dt);
 }
 
+/** Iguala espacios y guiones para detectar líneas repetidas (“Desarrollo Web - …” duplicadas). */
+function normalizarParaClaveViñeta(line: string): string {
+  return line
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\s*([\-–—])\s*/g, '—')
+    .toLowerCase();
+}
+
+/** Una viñeta por línea única (usa `linea` del SQL cuando existe; si no construye tipo - proyecto). */
+function buildResumenLaboresPortada(
+  actividades: ActividadInformeServicioLinea[],
+): string[] {
+  const ordenadas = [...actividades].sort((a, b) => {
+    const da = normalizeStoredValueToYmd(a.diajornada);
+    const db = normalizeStoredValueToYmd(b.diajornada);
+    if ((da || '') !== (db || '')) {
+      return (da || '').localeCompare(db || '');
+    }
+    const hc = s(a.horainicio).localeCompare(s(b.horainicio));
+    if (hc !== 0) return hc;
+    return s(a.nombreactividad).localeCompare(s(b.nombreactividad));
+  });
+
+  const vistos = new Set<string>();
+  const lineas: string[] = [];
+  for (const act of ordenadas) {
+    const tipo = s(act.nombretipoactividad) || s(act.nombreactividad);
+    const proyecto = s(act.nombreproyecto) || 'Sin proyecto';
+    const baseTrim = s(act.linea);
+    const base =
+      baseTrim ||
+      (tipo ? `${tipo.replace(/\s+/g, ' ').trim()} - ${proyecto.replace(/\s+/g, ' ').trim()}` : '');
+    if (!base.trim()) continue;
+    const key = normalizarParaClaveViñeta(base);
+    if (!key || vistos.has(key)) continue;
+    vistos.add(key);
+    lineas.push(base.replace(/\s+/g, ' ').trim());
+  }
+  return lineas;
+}
+
 function formatHorasPe(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return '—';
   return new Intl.NumberFormat('es-PE', {
@@ -74,10 +120,25 @@ function formatHorasPe(n: number | null | undefined): string {
   }).format(n);
 }
 
-function fechaJornadaLegible(raw: string | null | undefined): string {
+/** Encabezado de día agrupador: «Lunes 15 de mayo de 2026». */
+function formatoEncabezadoDiaInforme(raw: string | null | undefined): string {
   const ymd = normalizeStoredValueToYmd(raw);
-  if (!ymd) return '—';
-  return formatFechaLargaEsPe(ymd);
+  if (!ymd) return 'Fecha de jornada no registrada';
+  const parts = ymd.split('-').map((x) => parseInt(x, 10));
+  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return ymd;
+  const [y, mo, d] = parts;
+  const dt = new Date(y, mo - 1, d);
+  const weekday = new Intl.DateTimeFormat('es-PE', {
+    weekday: 'long',
+  }).format(dt);
+  const weekdayCap =
+    weekday.length > 0
+      ? weekday.charAt(0).toUpperCase() + weekday.slice(1)
+      : weekday;
+  const monthName = new Intl.DateTimeFormat('es-PE', {
+    month: 'long',
+  }).format(dt);
+  return `${weekdayCap} ${d} de ${monthName} de ${y}`;
 }
 
 function guessImageType(buf: Buffer): 'png' | 'jpg' {
@@ -85,37 +146,155 @@ function guessImageType(buf: Buffer): 'png' | 'jpg' {
   return 'png';
 }
 
-function labelValueTable(pairs: { label: string; value: string }[]): Table {
+/** Una línea de texto por cada salto proveniente del SQL (dirección empresa). */
+function pieFooterParagraphs(direccionPie: string | null | undefined): Paragraph[] {
+  const raw = direccionPie != null ? String(direccionPie).trim() : '';
+  if (!raw) return [];
+  const lines = raw
+    .split(/\r?\n/)
+    .map((x) => x.trim())
+    .filter((x) => x.length > 0);
+  return lines.map(
+    (line) =>
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 30 },
+        children: [new TextRun({ text: line, size: 18 })],
+      }),
+  );
+}
+
+async function paragraphFirmaTrabajadorOpcional(
+  buffer: Buffer | null | undefined,
+  mime: 'png' | 'jpg' | null | undefined,
+): Promise<Paragraph | null> {
+  if (!buffer?.length || !mime) return null;
+  const t = await rasterBufferDocxDisplayTransformation(buffer, {
+    maxDisplayWidth: 220,
+    maxDisplayHeight: 72,
+  });
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 120 },
+    children: [
+      new ImageRun({
+        type: mime,
+        data: buffer,
+        transformation: t,
+      }),
+    ],
+  });
+}
+
+/** Márgenes típicos en celdas del informe (.docx usa unidades pequeñas consistentes con el resto del documento). */
+const CELDA_INFORME_MARGINS = {
+  top: 60,
+  bottom: 60,
+  left: 120,
+  right: 120,
+} as const;
+
+const ANCHO_ETIQUETA_DOBLE = 18;
+const ANCHO_VALOR_DOBLE = 32;
+
+function celdaEtiquetaInforme(texto: string, anchoPct: number): TableCell {
+  return new TableCell({
+    width: { size: anchoPct, type: WidthType.PERCENTAGE },
+    margins: CELDA_INFORME_MARGINS,
+    children: [
+      new Paragraph({
+        children: [new TextRun({ text: texto, bold: true, size: 22 })],
+      }),
+    ],
+  });
+}
+
+function celdaValorInforme(texto: string, anchoPct: number): TableCell {
+  return new TableCell({
+    width: { size: anchoPct, type: WidthType.PERCENTAGE },
+    margins: CELDA_INFORME_MARGINS,
+    children: [
+      new Paragraph({
+        alignment: AlignmentType.BOTH,
+        children: [new TextRun({ text: texto || '—', size: 22 })],
+      }),
+    ],
+  });
+}
+
+/**
+ * Tabla de datos de una actividad: fila 1 y última con etiqueta + valor ancho;
+ * filas centrales en 2 columnas (etiqueta–valor | etiqueta–valor) para menos altura.
+ */
+function tablaActividadInformeCompacta(input: {
+  nEnDia: number;
+  titulo: string;
+  tipo: string;
+  proyecto: string;
+  modalidad: string;
+  horas: string;
+  estado: string;
+}): Table {
+  const anchoValorExpandidoPct = ANCHO_ETIQUETA_DOBLE + ANCHO_VALOR_DOBLE * 2;
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: pairs.map(
-      ({ label, value }) =>
-        new TableRow({
-          children: [
-            new TableCell({
-              width: { size: 30, type: WidthType.PERCENTAGE },
-              margins: { top: 60, bottom: 60, left: 120, right: 120 },
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: label, bold: true, size: 22 }),
-                  ],
-                }),
-              ],
-            }),
-            new TableCell({
-              width: { size: 70, type: WidthType.PERCENTAGE },
-              margins: { top: 60, bottom: 60, left: 120, right: 120 },
-              children: [
-                new Paragraph({
-                  alignment: AlignmentType.BOTH,
-                  children: [new TextRun({ text: value || '—', size: 22 })],
-                }),
-              ],
-            }),
-          ],
-        }),
-    ),
+    rows: [
+      new TableRow({
+        children: [
+          celdaEtiquetaInforme(`Actividad ${input.nEnDia}`, ANCHO_ETIQUETA_DOBLE),
+          new TableCell({
+            columnSpan: 3,
+            width: { size: anchoValorExpandidoPct, type: WidthType.PERCENTAGE },
+            margins: CELDA_INFORME_MARGINS,
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.BOTH,
+                children: [new TextRun({ text: input.titulo || '—', size: 22 })],
+              }),
+            ],
+          }),
+        ],
+      }),
+      new TableRow({
+        children: [
+          celdaEtiquetaInforme('Tipo de actividad', ANCHO_ETIQUETA_DOBLE),
+          celdaValorInforme(input.tipo, ANCHO_VALOR_DOBLE),
+          celdaEtiquetaInforme('Proyecto', ANCHO_ETIQUETA_DOBLE),
+          celdaValorInforme(input.proyecto, ANCHO_VALOR_DOBLE),
+        ],
+      }),
+      new TableRow({
+        children: [
+          celdaEtiquetaInforme('Modalidad', ANCHO_ETIQUETA_DOBLE),
+          celdaValorInforme(input.modalidad, ANCHO_VALOR_DOBLE),
+          celdaEtiquetaInforme('Horas dedicadas', ANCHO_ETIQUETA_DOBLE),
+          celdaValorInforme(input.horas, ANCHO_VALOR_DOBLE),
+        ],
+      }),
+      new TableRow({
+        children: [
+          celdaEtiquetaInforme('Estado', ANCHO_ETIQUETA_DOBLE),
+          new TableCell({
+            columnSpan: 3,
+            width: { size: anchoValorExpandidoPct, type: WidthType.PERCENTAGE },
+            margins: CELDA_INFORME_MARGINS,
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.BOTH,
+                children: [new TextRun({ text: input.estado || '—', size: 22 })],
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  });
+}
+
+function spacerAntesBloqueActividad(espacioAntes: number): Paragraph {
+  return new Paragraph({
+    spacing: { before: espacioAntes, after: 0 },
+    children: [new TextRun({ text: '\u200b', size: 8 })],
   });
 }
 
@@ -397,33 +576,67 @@ async function appendDetalleActividades(
     return;
   }
 
-  let idx = 0;
-  for (const a of actividades) {
-    idx += 1;
-    const titulo = s(a.nombreactividad) || `Actividad ${idx}`;
+  const ordenadas = [...actividades].sort((a, b) => {
+    const da = normalizeStoredValueToYmd(a.diajornada) || '';
+    const db = normalizeStoredValueToYmd(b.diajornada) || '';
+    if (da !== db) return da.localeCompare(db);
+    return s(a.horainicio).localeCompare(s(b.horainicio));
+  });
+
+  let diaAnterior = '';
+  /** Primera fila tras el párrafo introductorio de la sección (control de espacio vertical). */
+  let primerEncabezadoDiaDelDocumento = true;
+  let nEnDia = 0;
+
+  for (const a of ordenadas) {
+    const ymdKey = normalizeStoredValueToYmd(a.diajornada) || '__sin_fecha__';
+    if (ymdKey !== diaAnterior) {
+      diaAnterior = ymdKey;
+      nEnDia = 0;
+      const textoDia =
+        ymdKey === '__sin_fecha__'
+          ? 'Sin fecha de jornada registrada'
+          : formatoEncabezadoDiaInforme(a.diajornada);
+      children.push(
+        new Paragraph({
+          spacing: {
+            before: primerEncabezadoDiaDelDocumento ? 120 : 460,
+            after: 140,
+          },
+          bullet: { level: 0 },
+          children: [
+            new TextRun({ text: textoDia, bold: true, size: 24 }),
+          ],
+        }),
+      );
+      primerEncabezadoDiaDelDocumento = false;
+    }
+
+    nEnDia += 1;
+    const titulo = s(a.nombreactividad) || `Sin título (${nEnDia})`;
+
     children.push(
-      new Paragraph({
-        spacing: { before: idx === 1 ? 120 : 360, after: 120 },
-        children: [
-          new TextRun({ text: `${idx}. `, bold: true, size: 24 }),
-          new TextRun({ text: titulo, bold: true, size: 24 }),
-        ],
-      }),
+      spacerAntesBloqueActividad(nEnDia === 1 ? 100 : 180),
     );
 
     children.push(
-      labelValueTable([
-        { label: 'Fecha de jornada', value: fechaJornadaLegible(a.diajornada) },
-        { label: 'Proyecto', value: s(a.nombreproyecto) },
-        { label: 'Modalidad', value: s(a.nombremodalidad) },
-        { label: 'Horas dedicadas', value: formatHorasPe(a.horasdedicadas) },
-        { label: 'Estado', value: s(a.estadoactividad) },
-      ]),
+      tablaActividadInformeCompacta({
+        nEnDia,
+        titulo,
+        tipo: s(a.nombretipoactividad) || s(a.nombreactividad) || '—',
+        proyecto: s(a.nombreproyecto),
+        modalidad: s(a.nombremodalidad),
+        horas: formatHorasPe(a.horasdedicadas),
+        estado: s(a.estadoactividad),
+      }),
     );
 
     children.push(
       new Paragraph({
         spacing: { before: 160, after: 80 },
+        indent: {
+          left: convertInchesToTwip(0.4),
+        },
         children: [new TextRun({ text: 'Descripción', bold: true, size: 22 })],
       }),
     );
@@ -432,6 +645,9 @@ async function appendDetalleActividades(
       new Paragraph({
         alignment: AlignmentType.BOTH,
         spacing: { after: 120 },
+        indent: {
+          left: convertInchesToTwip(0.4),
+        },
         children: [
           new TextRun({
             size: 22,
@@ -538,9 +754,11 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
   const eslogan = s(row.eslogan_anio);
   const ciudad = s(row.ciudad_documento);
   const destinatario = s(row.linea_destinatario);
-  const puesto = s(row.puesto_trabajo) || '(puesto según contrato)';
+  const puestoContrato = s(row.puesto_trabajo);
+  const puestoInforme =
+    puestoContrato.length > 0 ? puestoContrato : 'puesto según contrato';
   const preparador = s(row.nombrecompletotrabajador);
-  const nombreReferencia =
+  const nombreFirma =
     preparador || '(apellidos y nombres completos)';
   const periodoDe = formatFechaCortaPe(fechaInicioYmd);
   const periodoAl = formatFechaCortaPe(fechaFinYmd);
@@ -548,8 +766,10 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
   const ubicacionFecha =
     ciudad.length > 0 ? `${ciudad}, ${fechaLarga}` : fechaLarga;
 
+  const footerParas = pieFooterParagraphs(row.direccion_pie_empresa);
+
   const actividades = input.actividadesDetalle ?? [];
-  const bullets = actividades.map((a) => s(a.linea)).filter(Boolean);
+  const bullets = buildResumenLaboresPortada(actividades);
   const resumen = TEXTO_RESUMEN_LABORES_P1;
   const notaPie = NOTA_PIE_PAGINA1;
 
@@ -603,7 +823,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
       children: [
         new TextRun({ text: 'Referencia: ', bold: true }),
         new TextRun({
-          text: `Contrato de Locación de Servicios - ${nombreReferencia}`,
+          text: `Contrato de Locación de Servicios - ${puestoInforme}`,
         }),
       ],
     }),
@@ -626,13 +846,18 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
       children: [
         new TextRun({
           text:
-            'Por medio del presente informe se comunica el desarrollo de las labores en el periodo comprendido entre el ',
+            'El presente informe detalla las actividades llevadas a cabo en el periodo comprendido entre el ',
         }),
         new TextRun({ text: periodoDe, bold: true }),
-        new TextRun({ text: ' al ' }),
+        new TextRun({ text: ' y el ' }),
         new TextRun({ text: periodoAl, bold: true }),
         new TextRun({
-          text: `, desempeñando el puesto o labor de ${puesto}, en el marco del contrato de locación de servicios.`,
+          text:
+            ', según el contrato de locación de servicios como ',
+        }),
+        new TextRun({ text: puestoInforme, bold: true }),
+        new TextRun({
+          text: ', correspondiente al puesto del colaborador.',
         }),
       ],
     }),
@@ -679,6 +904,16 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
     }),
   );
 
+  const firmaP = await paragraphFirmaTrabajadorOpcional(
+    input.firmaBuffer != null && input.firmaBuffer.length > 0
+      ? input.firmaBuffer
+      : null,
+    input.firmaMime ?? null,
+  );
+  if (firmaP) {
+    children.push(firmaP);
+  }
+
   children.push(
     new Paragraph({
       spacing: { after: 160 },
@@ -694,7 +929,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
       spacing: { after: 320 },
       children: [
         new TextRun({
-          text: nombreReferencia,
+          text: nombreFirma,
           italics: true,
         }),
       ],
@@ -711,36 +946,48 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
 
   await appendDetalleActividades(children, actividades);
 
+  const sectionBase = {
+    headers: {
+      default: new Header({
+        children: [
+          headerTable(row, logoBuf, logoMime),
+          /** Aire bajo la tabla del encabezado (cada página); w:pgMar `header` no separa el cuerpo del dibujo. */
+          new Paragraph({
+            spacing: { after: 480 },
+            children: [new TextRun({ text: '\u00a0' })],
+          }),
+        ],
+      }),
+    },
+    /** Margen superior mayor: el cuerpo arranca más abajo, lejos del bloque del encabezado. */
+    properties: {
+      page: {
+        margin: {
+          top: convertInchesToTwip(1.35),
+          right: convertInchesToTwip(1),
+          bottom: convertInchesToTwip(1),
+          left: convertInchesToTwip(1),
+          footer:
+            footerParas.length > 0
+              ? convertInchesToTwip(0.65)
+              : convertInchesToTwip(0.5),
+          gutter: 0,
+        },
+      },
+    },
+    children,
+  } as const;
+
   const doc = new Document({
     sections: [
-      {
-        headers: {
-          default: new Header({
-            children: [
-              headerTable(row, logoBuf, logoMime),
-              /** Aire bajo la tabla del encabezado (cada página); w:pgMar `header` no separa el cuerpo del dibujo. */
-              new Paragraph({
-                spacing: { after: 480 },
-                children: [new TextRun({ text: '\u00a0' })],
-              }),
-            ],
-          }),
-        },
-        /** Margen superior mayor: el cuerpo arranca más abajo, lejos del bloque del encabezado. */
-        properties: {
-          page: {
-            margin: {
-              top: convertInchesToTwip(1.35),
-              right: convertInchesToTwip(1),
-              bottom: convertInchesToTwip(1),
-              left: convertInchesToTwip(1),
-              footer: convertInchesToTwip(0.5),
-              gutter: 0,
+      footerParas.length > 0
+        ? {
+            ...sectionBase,
+            footers: {
+              default: new Footer({ children: footerParas }),
             },
-          },
-        },
-        children,
-      },
+          }
+        : sectionBase,
     ],
   });
 
