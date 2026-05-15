@@ -12,6 +12,8 @@ export type ExportarActividadesJornadasWordInput = {
   fechaFin?: string;
   /** YYYY-MM-DD; define el año del eslogan (genconfiguraciongeneral). Por defecto hoy. */
   fechaEmision?: string;
+  /** Solo roles administrativos (ver constantes); por defecto false (no horas en Word). */
+  incluirHorasDedicadasEnWord?: boolean;
 };
 
 function anioDesdeYmd(ymd: string): number {
@@ -171,6 +173,7 @@ export class ExportarActividadesJornadasWordUseCase {
       logoMime,
       firmaBuffer,
       firmaMime,
+      incluirHorasDedicadasEnDetalle: input.incluirHorasDedicadasEnWord === true,
     });
 
     const safe = (s: string) =>

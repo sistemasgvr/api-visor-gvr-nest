@@ -43,6 +43,11 @@ export type ReporteActividadesPrimeraPaginaInput = {
   logoMime?: 'png' | 'jpg' | null;
   firmaBuffer?: Buffer | null;
   firmaMime?: 'png' | 'jpg' | null;
+  /**
+   * Si false (defecto legal), no se muestra «Horas dedicadas» en el detalle por actividad.
+   * Solo true para roles en `REPORTE_ACTIVIDAD_WORD_ROLES_CON_HORAS_DEDICADAS`.
+   */
+  incluirHorasDedicadasEnDetalle?: boolean;
 };
 
 function s(v: string | null | undefined): string {
@@ -234,8 +239,42 @@ function tablaActividadInformeCompacta(input: {
   modalidad: string;
   horas: string;
   estado: string;
+  incluirHorasDedicadas: boolean;
 }): Table {
   const anchoValorExpandidoPct = ANCHO_ETIQUETA_DOBLE + ANCHO_VALOR_DOBLE * 2;
+  const filaModalidadHoras = input.incluirHorasDedicadas
+    ? new TableRow({
+        children: [
+          celdaEtiquetaInforme('Modalidad', ANCHO_ETIQUETA_DOBLE),
+          celdaValorInforme(input.modalidad, ANCHO_VALOR_DOBLE),
+          celdaEtiquetaInforme('Horas dedicadas', ANCHO_ETIQUETA_DOBLE),
+          celdaValorInforme(input.horas, ANCHO_VALOR_DOBLE),
+        ],
+      })
+    : new TableRow({
+        children: [
+          celdaEtiquetaInforme('Modalidad', ANCHO_ETIQUETA_DOBLE),
+          new TableCell({
+            columnSpan: 3,
+            width: {
+              size: anchoValorExpandidoPct,
+              type: WidthType.PERCENTAGE,
+            },
+            margins: CELDA_INFORME_MARGINS,
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.BOTH,
+                children: [
+                  new TextRun({
+                    text: input.modalidad || '—',
+                    size: 22,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      });
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
@@ -263,14 +302,7 @@ function tablaActividadInformeCompacta(input: {
           celdaValorInforme(input.proyecto, ANCHO_VALOR_DOBLE),
         ],
       }),
-      new TableRow({
-        children: [
-          celdaEtiquetaInforme('Modalidad', ANCHO_ETIQUETA_DOBLE),
-          celdaValorInforme(input.modalidad, ANCHO_VALOR_DOBLE),
-          celdaEtiquetaInforme('Horas dedicadas', ANCHO_ETIQUETA_DOBLE),
-          celdaValorInforme(input.horas, ANCHO_VALOR_DOBLE),
-        ],
-      }),
+      filaModalidadHoras,
       new TableRow({
         children: [
           celdaEtiquetaInforme('Estado', ANCHO_ETIQUETA_DOBLE),
@@ -525,6 +557,7 @@ async function appendEvidenciasForActividad(
 async function appendDetalleActividades(
   children: (Paragraph | Table)[],
   actividades: ActividadInformeServicioLinea[],
+  incluirHorasDedicadas: boolean,
 ): Promise<void> {
   children.push(
     new Paragraph({
@@ -628,6 +661,7 @@ async function appendDetalleActividades(
         modalidad: s(a.nombremodalidad),
         horas: formatHorasPe(a.horasdedicadas),
         estado: s(a.estadoactividad),
+        incluirHorasDedicadas,
       }),
     );
 
@@ -944,7 +978,11 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
     }),
   );
 
-  await appendDetalleActividades(children, actividades);
+  await appendDetalleActividades(
+    children,
+    actividades,
+    input.incluirHorasDedicadasEnDetalle === true,
+  );
 
   const sectionBase = {
     headers: {

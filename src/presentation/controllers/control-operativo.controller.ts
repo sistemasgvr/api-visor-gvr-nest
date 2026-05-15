@@ -51,6 +51,8 @@ import { ListarReporteHorasRangoDetalleProyectoUseCase } from '../../application
 import { ExportarActividadesJornadasWordUseCase } from '../../application/use-cases/control-operativo/exportar-actividades-jornadas-word.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
+import type { AuthenticatedUser } from '../../shared/types/authenticated-user';
+import { usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades } from '../../shared/constants/reporte-actividades-word.constants';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { AgregarEvidenciasActividadDto } from '../../application/dtos/control-operativo/agregar-evidencias-actividad.dto';
 import type { ActividadEvidenciaEntrada } from '../../domain/repositories/control-operativo.repository.interface';
@@ -204,23 +206,29 @@ export class ControlOperativoController {
   @ApiOperation({
     summary: 'Exportar reporte de actividades (Word)',
     description:
-      'Descarga un .docx del reporte de actividades (por ahora primera página del informe de servicio). Datos desde con_DatosReporteActividades. El eslogan del año: genconfiguraciongeneral clave informe_servicio_eslogan_anio_YYYY según el año de fechaEmision (por defecto hoy). Periodo: fechaInicio/fechaFin (por defecto mes actual).',
+      'Descarga un .docx del reporte de actividades (portada + detalle). Las horas dedicadas en el detalle solo se incluyen si el usuario exportador tiene rol administrativo (ids en reporte-actividades-word.constants).',
   })
   @Get('trabajadores/:idTrabajador/actividades/export-word')
   @UseGuards(JwtAuthGuard)
   async exportarActividadesJornadasWord(
     @Res() res: Response,
+    @Req() req: Request & { user?: AuthenticatedUser },
     @Param('idTrabajador', ParseIntPipe) idTrabajador: number,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
     @Query('fechaEmision') fechaEmision?: string,
   ): Promise<void> {
+    const incluirHorasDedicadasEnWord =
+      usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades(
+        req.user?.roles,
+      );
     const { buffer, fileName } =
       await this.exportarActividadesJornadasWordUseCase.execute({
         idTrabajador,
         fechaInicio,
         fechaFin,
         fechaEmision,
+        incluirHorasDedicadasEnWord,
       });
     res.setHeader(
       'Content-Type',
