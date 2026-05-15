@@ -12,6 +12,8 @@ const FIELD_LABEL: Record<string, string> = {
   password: 'La contraseña',
   currentPassword: 'La contraseña actual',
   newPassword: 'La nueva contraseña',
+  contrasenaActual: 'La contraseña actual',
+  nuevaContrasena: 'La nueva contraseña',
   nombres: 'Los nombres',
   apellidos: 'Los apellidos',
   nroDocumento: 'El número de documento',

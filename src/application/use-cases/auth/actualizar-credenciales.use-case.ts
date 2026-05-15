@@ -4,6 +4,10 @@ import { JwtService } from '@nestjs/jwt';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
 import { UpdateCredentialsDto } from '../../dtos/auth/update-credentials.dto';
+import {
+  PASSWORD_POLICY_MESSAGE,
+  PASSWORD_POLICY_REGEX,
+} from '../../../shared/validation/password-policy';
 
 @Injectable()
 export class ActualizarCredencialesUseCase {
@@ -18,8 +22,10 @@ export class ActualizarCredencialesUseCase {
     updateDto: UpdateCredentialsDto,
     idUsuarioModificacion: number,
   ): Promise<any> {
-    // Validate that at least one field is provided
-    if (!updateDto.nuevoCorreo && !updateDto.nuevaContrasena) {
+    const nuevoCorreoLimpio = updateDto.nuevoCorreo?.trim() ?? '';
+    const nuevaContrasenaLimpia = updateDto.nuevaContrasena?.trim() ?? '';
+
+    if (!nuevoCorreoLimpio && !nuevaContrasenaLimpia) {
       throw new BadRequestException(
         'Debe proporcionar al menos el nuevo correo o la nueva contraseña',
       );
@@ -27,14 +33,17 @@ export class ActualizarCredencialesUseCase {
 
     // Hash password if provided
     let contrasenaHasheada: string | null = null;
-    if (updateDto.nuevaContrasena) {
-      contrasenaHasheada = await bcrypt.hash(updateDto.nuevaContrasena, 10);
+    if (nuevaContrasenaLimpia) {
+      if (!PASSWORD_POLICY_REGEX.test(nuevaContrasenaLimpia)) {
+        throw new BadRequestException(PASSWORD_POLICY_MESSAGE);
+      }
+      contrasenaHasheada = await bcrypt.hash(nuevaContrasenaLimpia, 10);
     }
 
     // Call repository to update credentials
     const resultado = await this.authRepository.actualizarCredenciales(
       idUsuario,
-      updateDto.nuevoCorreo || null,
+      nuevoCorreoLimpio || null,
       contrasenaHasheada,
       idUsuarioModificacion,
     );

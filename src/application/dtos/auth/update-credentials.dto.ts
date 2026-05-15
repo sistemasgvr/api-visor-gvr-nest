@@ -4,7 +4,12 @@ import {
   IsString,
   MinLength,
   ValidateIf,
+  Matches,
 } from 'class-validator';
+import {
+  PASSWORD_POLICY_MESSAGE,
+  PASSWORD_POLICY_REGEX,
+} from '../../../shared/validation/password-policy';
 
 export class UpdateCredentialsDto {
   @IsOptional()
@@ -19,6 +24,9 @@ export class UpdateCredentialsDto {
       o.nuevaContrasena !== '',
   )
   @IsString()
-  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  @MinLength(6, { message: PASSWORD_POLICY_MESSAGE })
+  @Matches(PASSWORD_POLICY_REGEX, {
+    message: PASSWORD_POLICY_MESSAGE,
+  })
   nuevaContrasena?: string;
 }

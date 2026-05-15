@@ -9,6 +9,7 @@ import { RefreshTokenUseCase } from '../../application/use-cases/auth/refresh-to
 import { LogoutUseCase } from '../../application/use-cases/auth/logout.use-case';
 import { ObtenerPerfilUseCase } from '../../application/use-cases/auth/obtener-perfil.use-case';
 import { SubirFotoPerfilUseCase } from '../../application/use-cases/auth/subir-foto-perfil.use-case';
+import { CambiarContrasenaPerfilUseCase } from '../../application/use-cases/auth/cambiar-contrasena-perfil.use-case';
 import { ValidarSesionUseCase } from '../../application/use-cases/auth/validar-sesion.use-case';
 import { CerrarTodasSesionesUseCase } from '../../application/use-cases/auth/cerrar-todas-sesiones.use-case';
 import { ObtenerEstadisticasUsuariosUseCase } from '../../application/use-cases/auth/obtener-estadisticas-usuarios.use-case';
@@ -62,6 +63,7 @@ import { StorageModule } from '../../infrastructure/storage/storage.module';
     LogoutUseCase,
     ObtenerPerfilUseCase,
     SubirFotoPerfilUseCase,
+    CambiarContrasenaPerfilUseCase,
     ValidarSesionUseCase,
     CerrarTodasSesionesUseCase,
     ObtenerEstadisticasUsuariosUseCase,

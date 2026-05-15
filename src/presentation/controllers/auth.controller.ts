@@ -25,6 +25,8 @@ import {
 import { LogoutUseCase } from '../../application/use-cases/auth/logout.use-case';
 import { ObtenerPerfilUseCase } from '../../application/use-cases/auth/obtener-perfil.use-case';
 import { SubirFotoPerfilUseCase } from '../../application/use-cases/auth/subir-foto-perfil.use-case';
+import { CambiarContrasenaPerfilUseCase } from '../../application/use-cases/auth/cambiar-contrasena-perfil.use-case';
+import { ChangePasswordDto } from '../../application/dtos/auth/change-password.dto';
 import { ValidarSesionUseCase } from '../../application/use-cases/auth/validar-sesion.use-case';
 import { CerrarTodasSesionesUseCase } from '../../application/use-cases/auth/cerrar-todas-sesiones.use-case';
 import { ObtenerEstadisticasUsuariosUseCase } from '../../application/use-cases/auth/obtener-estadisticas-usuarios.use-case';
@@ -44,6 +46,7 @@ export class AuthController {
     private readonly logoutUseCase: LogoutUseCase,
     private readonly obtenerPerfilUseCase: ObtenerPerfilUseCase,
     private readonly subirFotoPerfilUseCase: SubirFotoPerfilUseCase,
+    private readonly cambiarContrasenaPerfilUseCase: CambiarContrasenaPerfilUseCase,
     private readonly validarSesionUseCase: ValidarSesionUseCase,
     private readonly cerrarTodasSesionesUseCase: CerrarTodasSesionesUseCase,
     private readonly obtenerEstadisticasUsuariosUseCase: ObtenerEstadisticasUsuariosUseCase,
@@ -197,6 +200,36 @@ export class AuthController {
     return ApiResponseDto.success(
       result,
       'Foto de perfil actualizada exitosamente',
+    );
+  }
+
+  /**
+   * Cambiar contraseña del usuario autenticado
+   * PATCH /auth/perfil/contrasena
+   */
+  @ApiOperation({
+    summary: 'Cambiar contraseña del perfil',
+    description:
+      'Verifica la contraseña actual y actualiza la nueva. Cierra todas las sesiones activas del usuario.',
+  })
+  @Patch('perfil/contrasena')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async cambiarContrasenaPerfil(
+    @Req() request: Request,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
+    }
+
+    const result = await this.cambiarContrasenaPerfilUseCase.execute(token, dto);
+
+    return ApiResponseDto.success(
+      result,
+      'Contraseña actualizada exitosamente. Inicie sesión de nuevo.',
     );
   }
 
