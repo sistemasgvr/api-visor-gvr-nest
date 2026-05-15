@@ -126,6 +126,78 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     };
   }
 
+  async obtenerIdTrabajadorActivoPorIdUsuario(
+    idUsuario: number,
+  ): Promise<number | null> {
+    if (idUsuario == null || idUsuario < 1) {
+      return null;
+    }
+    const rows = await this.databaseFunctionService.executeQuery<{
+      id: number;
+    }>(
+      `SELECT t.id
+       FROM tratrabajador t
+       WHERE t.idusuario = $1 AND t.estado = 1
+       LIMIT 1`,
+      [idUsuario],
+    );
+    const id = rows?.[0]?.id;
+    return id != null && Number(id) > 0 ? Number(id) : null;
+  }
+
+  async obtenerUrlAlmacenadaFirmaPorIdTrabajador(
+    idTrabajador: number,
+  ): Promise<{ url: string | null } | null> {
+    if (idTrabajador == null || idTrabajador < 1) {
+      return null;
+    }
+    const rows = await this.databaseFunctionService.executeQuery<{
+      url: string | null;
+    }>(
+      `SELECT g.url AS url
+       FROM tratrabajador t
+       LEFT JOIN genarchivo g ON g.id = t.idarchivofirma AND g.estado = 1
+       WHERE t.id = $1 AND t.estado = 1
+       LIMIT 1`,
+      [idTrabajador],
+    );
+    if (!rows?.length) {
+      return null;
+    }
+    const url = rows[0]?.url;
+    return {
+      url: url != null && String(url).trim() !== '' ? String(url).trim() : null,
+    };
+  }
+
+  async actualizarFirmaTrabajador(
+    idTrabajador: number,
+    urlFirma: string,
+    idUsuarioModificacion: number,
+    nombreOriginal?: string | null,
+    tipoMime?: string | null,
+    tamanoBytes?: number | null,
+  ): Promise<{ urlFirma: string }> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'tra_ActualizarFirmaTrabajador',
+      [
+        idTrabajador,
+        urlFirma,
+        nombreOriginal ?? null,
+        tipoMime ?? null,
+        tamanoBytes ?? null,
+        idUsuarioModificacion,
+      ],
+    );
+
+    if (!result) {
+      throw new Error('No se pudo actualizar la firma del trabajador');
+    }
+
+    const path = result.urlfirma ?? result.urlFirma ?? urlFirma;
+    return { urlFirma: path };
+  }
+
   async obtenerTrabajadorPorId(idTrabajador: number): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
       'tra_ObtenerTrabajadorPorId',

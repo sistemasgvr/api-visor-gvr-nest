@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
 import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
+import { resolveTrabajadorFirmaViewUrl } from '../../../shared/utils/resolve-trabajador-firma-url.util';
 
 @Injectable()
 export class ObtenerPerfilUsuarioUseCase {
@@ -34,6 +35,19 @@ export class ObtenerPerfilUsuarioUseCase {
         await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(fotoStored);
       perfil.fotoperfil = viewUrl;
       perfil.fotoperfilviewurl = viewUrl;
+    }
+
+    if (perfil.trabajador) {
+      try {
+        const trabajador =
+          typeof perfil.trabajador === 'string'
+            ? JSON.parse(perfil.trabajador)
+            : perfil.trabajador;
+        await resolveTrabajadorFirmaViewUrl(trabajador, this.minioStorage);
+        perfil.trabajador = trabajador;
+      } catch {
+        // mantener trabajador sin url de firma resuelta
+      }
     }
 
     return perfil;

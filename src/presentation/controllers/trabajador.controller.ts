@@ -12,13 +12,20 @@ import {
   Req,
   UseGuards,
   UnauthorizedException,
+  BadRequestException,
   ParseIntPipe,
+  Patch,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { ListarTrabajadoresUseCase } from '../../application/use-cases/trabajador/listar-trabajadores.use-case';
 import { ListarAdministrativosUseCase } from '../../application/use-cases/trabajador/listar-administrativos.use-case';
 import { ObtenerTrabajadorUseCase } from '../../application/use-cases/trabajador/obtener-trabajador.use-case';
 import { ObtenerFotoPerfilTrabajadorUseCase } from '../../application/use-cases/trabajador/obtener-foto-perfil-trabajador.use-case';
+import { SubirFirmaTrabajadorUseCase } from '../../application/use-cases/trabajador/subir-firma-trabajador.use-case';
+import { ObtenerFirmaTrabajadorUseCase } from '../../application/use-cases/trabajador/obtener-firma-trabajador.use-case';
 import { CrearTrabajadorUseCase } from '../../application/use-cases/trabajador/crear-trabajador.use-case';
 import { EditarTrabajadorUseCase } from '../../application/use-cases/trabajador/editar-trabajador.use-case';
 import { ActualizarContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/actualizar-contrato-trabajador.use-case';
@@ -45,6 +52,8 @@ export class TrabajadorController {
     private readonly listarAdministrativosUseCase: ListarAdministrativosUseCase,
     private readonly obtenerTrabajadorUseCase: ObtenerTrabajadorUseCase,
     private readonly obtenerFotoPerfilTrabajadorUseCase: ObtenerFotoPerfilTrabajadorUseCase,
+    private readonly subirFirmaTrabajadorUseCase: SubirFirmaTrabajadorUseCase,
+    private readonly obtenerFirmaTrabajadorUseCase: ObtenerFirmaTrabajadorUseCase,
     private readonly crearTrabajadorUseCase: CrearTrabajadorUseCase,
     private readonly editarTrabajadorUseCase: EditarTrabajadorUseCase,
     private readonly actualizarContratoTrabajadorUseCase: ActualizarContratoTrabajadorUseCase,
@@ -118,6 +127,38 @@ export class TrabajadorController {
   }
 
   /**
+   * Subir o actualizar la firma del trabajador vinculado al usuario autenticado.
+   * PATCH /trabajadores/mi-firma
+   */
+  @ApiOperation({
+    summary: 'Subir firma del trabajador autenticado',
+    description:
+      'Multipart campo `firma` (JPEG, PNG o WebP, máx. 2 MB). Imagen con fondo blanco recomendada para informes.',
+  })
+  @Patch('mi-firma')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('firma'))
+  async subirMiFirma(
+    @Req() request: Request,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
+    }
+    if (!file) {
+      throw new BadRequestException(
+        'Se requiere el archivo de imagen (campo "firma")',
+      );
+    }
+    const result = await this.subirFirmaTrabajadorUseCase.execute(token, file);
+    return ApiResponseDto.success(
+      result,
+      'Firma actualizada exitosamente',
+    );
+  }
+
+  /**
    * Foto de perfil del usuario vinculado al trabajador (URL lista para mostrar).
    * GET /trabajadores/:id/foto-perfil
    */
@@ -134,6 +175,26 @@ export class TrabajadorController {
     return ApiResponseDto.success(
       data,
       'Foto de perfil del trabajador obtenida exitosamente',
+    );
+  }
+
+  /**
+   * Firma del trabajador (URL lista para mostrar).
+   * GET /trabajadores/:id/firma
+   */
+  @ApiOperation({
+    summary: 'Obtener URL de firma del trabajador',
+    description:
+      'Devuelve la imagen de firma registrada en traTrabajador (URL firmada/lista para mostrar).',
+  })
+  @Get(':id/firma')
+  @HttpCode(HttpStatus.OK)
+  async obtenerFirmaTrabajador(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.obtenerFirmaTrabajadorUseCase.execute(id);
+
+    return ApiResponseDto.success(
+      data,
+      'Firma del trabajador obtenida exitosamente',
     );
   }
 

@@ -139,6 +139,23 @@ export interface ITrabajadorRepository {
   obtenerUrlAlmacenadaFotoPerfilPorIdTrabajador(
     idTrabajador: number,
   ): Promise<{ url: string | null } | null>;
+
+  obtenerIdTrabajadorActivoPorIdUsuario(
+    idUsuario: number,
+  ): Promise<number | null>;
+
+  obtenerUrlAlmacenadaFirmaPorIdTrabajador(
+    idTrabajador: number,
+  ): Promise<{ url: string | null } | null>;
+
+  actualizarFirmaTrabajador(
+    idTrabajador: number,
+    urlFirma: string,
+    idUsuarioModificacion: number,
+    nombreOriginal?: string | null,
+    tipoMime?: string | null,
+    tamanoBytes?: number | null,
+  ): Promise<{ urlFirma: string }>;
   crearTrabajador(data: CrearTrabajadorData): Promise<any>;
   editarTrabajador(data: EditarTrabajadorData): Promise<any>;
 

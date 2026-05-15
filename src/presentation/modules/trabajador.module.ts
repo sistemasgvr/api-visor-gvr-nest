@@ -14,6 +14,9 @@ import { EliminarContratoTrabajadorUseCase } from '../../application/use-cases/t
 import { EliminarTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-trabajador.use-case';
 import { ResetearContrasenaUseCase } from '../../application/use-cases/trabajador/resetear-contrasena.use-case';
 import { ObtenerFotoPerfilTrabajadorUseCase } from '../../application/use-cases/trabajador/obtener-foto-perfil-trabajador.use-case';
+import { SubirFirmaTrabajadorUseCase } from '../../application/use-cases/trabajador/subir-firma-trabajador.use-case';
+import { ObtenerFirmaTrabajadorUseCase } from '../../application/use-cases/trabajador/obtener-firma-trabajador.use-case';
+import { WorkerSignatureStorageService } from '../../infrastructure/services/worker-signature-storage.service';
 import { TrabajadorRepository } from '../../infrastructure/repositories/trabajador.repository';
 import { TRABAJADOR_REPOSITORY } from '../../domain/repositories/trabajador.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
@@ -51,6 +54,9 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
     ListarAdministrativosUseCase,
     ObtenerTrabajadorUseCase,
     ObtenerFotoPerfilTrabajadorUseCase,
+    SubirFirmaTrabajadorUseCase,
+    ObtenerFirmaTrabajadorUseCase,
+    WorkerSignatureStorageService,
     CrearTrabajadorUseCase,
     EditarTrabajadorUseCase,
     ActualizarContratoTrabajadorUseCase,
