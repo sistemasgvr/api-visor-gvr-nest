@@ -38,3 +38,7 @@ export function usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades(
     ids.includes(rid),
   );
 }
+
+/** Mismo criterio: exportación masiva ZIP (solo administrativos CO). */
+export const usuarioPuedeExportacionMasivaWordActividades =
+  usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades;

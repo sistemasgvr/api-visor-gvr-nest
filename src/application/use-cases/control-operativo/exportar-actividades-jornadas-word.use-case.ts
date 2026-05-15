@@ -39,6 +39,37 @@ function todayYmd(): string {
   return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}`;
 }
 
+/** YYYY-MM-DD (flexible) → YYYYMMDD para nombres de archivo compactos. */
+export function compactoYmdDesdeTexto(ymd: string): string {
+  const d = String(ymd ?? '').replace(/\D/g, '');
+  return d.length >= 8 ? d.slice(0, 8) : '00000000';
+}
+
+function safeSegmentNombreArchivo(s: string): string {
+  const t = String(s || '')
+    .replace(/[/\\?%*:|"<>]/g, '-')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .trim()
+    .replace(/^\.+/, '');
+  return t || 'x';
+}
+
+function buildNombreArchivoReporteActividadesWord(params: {
+  nrodocumento: string | null | undefined;
+  nombreCompleto: string | null | undefined;
+  fechaInicioYmd: string;
+  fechaFinYmd: string;
+}): string {
+  const doc = String(params.nrodocumento ?? '').trim();
+  const dniSeg = safeSegmentNombreArchivo(doc !== '' ? doc : 'SIN-DOC');
+  const nombreSeg = safeSegmentNombreArchivo(
+    String(params.nombreCompleto ?? '').trim() || 'colaborador',
+  ).slice(0, 100);
+  const rango = `${compactoYmdDesdeTexto(params.fechaInicioYmd)}-${compactoYmdDesdeTexto(params.fechaFinYmd)}`;
+  return `${dniSeg}-${nombreSeg}_${rango}.docx`;
+}
+
 function sniffPngJpeg(buf: Buffer): 'png' | 'jpg' | null {
   if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xd8) return 'jpg';
   if (
@@ -176,11 +207,12 @@ export class ExportarActividadesJornadasWordUseCase {
       incluirHorasDedicadasEnDetalle: input.incluirHorasDedicadasEnWord === true,
     });
 
-    const safe = (s: string) =>
-      String(s || '')
-        .replace(/[/\\?%*:|"<>]/g, '-')
-        .trim() || 'sin-fecha';
-    const fileName = `Reporte_actividades_${input.idTrabajador}_${safe(fi)}_${safe(ff)}.docx`;
+    const fileName = buildNombreArchivoReporteActividadesWord({
+      nrodocumento: row.nrodocumento,
+      nombreCompleto: row.nombrecompletotrabajador,
+      fechaInicioYmd: fi,
+      fechaFinYmd: ff,
+    });
 
     return { buffer, fileName };
   }

@@ -1186,7 +1186,8 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         'nombrecompletotrabajador',
         'nombreCompletoTrabajador',
       ),
-      /** Nombre/descripción lista del puesto en contrato (no el nombre del colaborador). */
+      nrodocumento: pick('nrodocumento', 'nroDocumento') ?? '',
+      // Nombre/descripción lista del puesto en contrato (no el nombre del colaborador).
       puesto_trabajo: pick('puesto_trabajo', 'puestoTrabajo', 'puestotrabajo'),
       eslogan_anio: pick('eslogan_anio', 'esloganAnio') ?? '',
       ciudad_documento: pick('ciudad_documento', 'ciudadDocumento') ?? '',

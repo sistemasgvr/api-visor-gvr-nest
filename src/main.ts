@@ -108,7 +108,8 @@ async function bootstrap() {
     methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
     allowedHeaders:
       'Content-Type, Accept, Accept-Language, Authorization, X-Requested-With, User-Agent, X-WOPI-Override, X-WOPI-Lock, X-WOPI-Editors, X-LOOL-WOPI-IsModifiedByUser, X-LOOL-WOPI-IsAutosave',
-    exposedHeaders: 'Authorization, Content-Length, Content-Type',
+    exposedHeaders:
+      'Authorization, Content-Length, Content-Type, Content-Disposition',
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204,

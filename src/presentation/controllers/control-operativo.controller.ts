@@ -49,12 +49,17 @@ import { ListarLideresEquipoReporteGeneralUseCase } from '../../application/use-
 import { ListarReporteHorasMesProyectoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-reporte-horas-mes-proyecto-trabajador.use-case';
 import { ListarReporteHorasRangoDetalleProyectoUseCase } from '../../application/use-cases/control-operativo/listar-reporte-horas-rango-detalle-proyecto.use-case';
 import { ExportarActividadesJornadasWordUseCase } from '../../application/use-cases/control-operativo/exportar-actividades-jornadas-word.use-case';
+import { ExportarActividadesJornadasWordMasivoUseCase } from '../../application/use-cases/control-operativo/exportar-actividades-jornadas-word-masivo.use-case';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { getFechaHoy } from '../../shared/utils/date.util';
 import type { AuthenticatedUser } from '../../shared/types/authenticated-user';
-import { usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades } from '../../shared/constants/reporte-actividades-word.constants';
+import {
+  usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades,
+  usuarioPuedeExportacionMasivaWordActividades,
+} from '../../shared/constants/reporte-actividades-word.constants';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { AgregarEvidenciasActividadDto } from '../../application/dtos/control-operativo/agregar-evidencias-actividad.dto';
+import { ExportarActividadesWordMasivoDto } from '../../application/dtos/control-operativo/exportar-actividades-word-masivo.dto';
 import type { ActividadEvidenciaEntrada } from '../../domain/repositories/control-operativo.repository.interface';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -90,6 +95,7 @@ export class ControlOperativoController {
     private readonly listarReporteHorasRangoDetalleProyectoUseCase: ListarReporteHorasRangoDetalleProyectoUseCase,
     private readonly cronAlertaActividadesSinValidarUseCase: CronAlertaActividadesSinValidarUseCase,
     private readonly exportarActividadesJornadasWordUseCase: ExportarActividadesJornadasWordUseCase,
+    private readonly exportarActividadesJornadasWordMasivoUseCase: ExportarActividadesJornadasWordMasivoUseCase,
     private readonly configService: ConfigService,
   ) {}
 
@@ -234,6 +240,51 @@ export class ControlOperativoController {
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${fileName.replace(/"/g, '')}"`,
+    );
+    res.send(buffer);
+  }
+
+  /**
+   * Exportación masiva: ZIP con un .docx por colaborador (mismo contenido que export-word).
+   * POST /control-operativo/actividades/export-word-masivo
+   * Body: { fechaInicio, fechaFin, fechaEmision?, idsTrabajador: number[] }
+   * Solo roles administrativos (usuarioPuedeExportacionMasivaWordActividades).
+   * Si fallan algunos, el ZIP incluye `exportacion_errores.txt` y los .docx generados correctamente.
+   */
+  @ApiOperation({
+    summary: 'Exportar actividades Word masivo (ZIP)',
+    description:
+      'ZIP con un informe por id de colaborador. Requiere rol administrativo. Máx. 80 ids por solicitud.',
+  })
+  @Post('actividades/export-word-masivo')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async exportarActividadesJornadasWordMasivo(
+    @Res() res: Response,
+    @Req() req: Request & { user?: AuthenticatedUser },
+    @Body() body: ExportarActividadesWordMasivoDto,
+  ): Promise<void> {
+    if (!usuarioPuedeExportacionMasivaWordActividades(req.user?.roles)) {
+      throw new ForbiddenException(
+        'Solo usuarios con rol administrativo pueden usar la exportación masiva.',
+      );
+    }
+    const incluirHorasDedicadasEnWord =
+      usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades(
+        req.user?.roles,
+      );
+    const { buffer, fileName } =
+      await this.exportarActividadesJornadasWordMasivoUseCase.execute({
+        idsTrabajador: body.idsTrabajador,
+        fechaInicio: body.fechaInicio,
+        fechaFin: body.fechaFin,
+        fechaEmision: body.fechaEmision,
+        incluirHorasDedicadasEnWord,
+      });
+    res.setHeader('Content-Type', 'application/zip');
     res.setHeader(
       'Content-Disposition',
       `attachment; filename="${fileName.replace(/"/g, '')}"`,

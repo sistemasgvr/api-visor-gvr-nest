@@ -40,6 +40,7 @@ import { ProyectoModule } from './proyecto.module';
 import { StorageModule } from '../../infrastructure/storage/storage.module';
 import { EliminarEvidenciaActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-evidencia-actividad.use-case';
 import { ExportarActividadesJornadasWordUseCase } from '../../application/use-cases/control-operativo/exportar-actividades-jornadas-word.use-case';
+import { ExportarActividadesJornadasWordMasivoUseCase } from '../../application/use-cases/control-operativo/exportar-actividades-jornadas-word-masivo.use-case';
 
 @Module({
   imports: [
@@ -100,6 +101,7 @@ import { ExportarActividadesJornadasWordUseCase } from '../../application/use-ca
     ListarReporteHorasRangoDetalleProyectoUseCase,
     CronAlertaActividadesSinValidarUseCase,
     ExportarActividadesJornadasWordUseCase,
+    ExportarActividadesJornadasWordMasivoUseCase,
     JwtStrategy,
   ],
   exports: [CONTROL_OPERATIVO_REPOSITORY],

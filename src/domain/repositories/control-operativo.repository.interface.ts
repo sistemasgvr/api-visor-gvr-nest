@@ -545,6 +545,8 @@ export interface DatosReporteActividadesRow {
   correoempresa: string | null;
   urllogo: string | null;
   nombrecompletotrabajador: string | null;
+  /** DNI / documento del trabajador (tratrabajador.nrodocumento). */
+  nrodocumento: string | null;
   puesto_trabajo: string | null;
   eslogan_anio: string | null;
   ciudad_documento: string | null;
