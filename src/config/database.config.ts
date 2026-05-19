@@ -18,6 +18,8 @@ export const getDatabaseConfig = (
       },
       extra: {
         connectionTimeoutMillis: 10000,
+        /** Fechas CURRENT_* y casts timestamp en funciones SQL alineadas a Perú. */
+        options: '-c timezone=America/Lima',
       },
       retryAttempts: 5,
       retryDelay: 3000,
@@ -41,6 +43,7 @@ export const getDatabaseConfig = (
     extra: {
       connectionTimeoutMillis: 10000,
       family: 4,
+      options: '-c timezone=America/Lima',
     },
     retryAttempts: 5,
     retryDelay: 3000,
