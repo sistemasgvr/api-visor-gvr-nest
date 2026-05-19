@@ -37,6 +37,8 @@ import { CrearSubcarpetaUseCase } from '../../application/use-cases/data-managem
 import { CrearReferenciaCarpetaUseCase } from '../../application/use-cases/data-management/folders/crear-referencia-carpeta.use-case';
 import { ActualizarCarpetaUseCase } from '../../application/use-cases/data-management/folders/actualizar-carpeta.use-case';
 import { EliminarCarpetaUseCase } from '../../application/use-cases/data-management/folders/eliminar-carpeta.use-case';
+import { ObtenerElementosEliminadosUseCase } from '../../application/use-cases/data-management/folders/obtener-elementos-eliminados.use-case';
+import { RestaurarCarpetaUseCase } from '../../application/use-cases/data-management/folders/restaurar-carpeta.use-case';
 import { SincronizarCarpetasProyectoUseCase } from '../../application/use-cases/data-management/folders/sincronizar-carpetas-proyecto.use-case';
 import { ExportarRegistroArchivosPdfUseCase } from '../../application/use-cases/data-management/folders/exportar-registro-archivos-pdf.use-case';
 import { ExportarPermisosCarpetaPdfUseCase } from '../../application/use-cases/data-management/folders/exportar-permisos-carpeta-pdf.use-case';
@@ -83,6 +85,8 @@ export class DataManagementFoldersController {
     private readonly crearReferenciaCarpetaUseCase: CrearReferenciaCarpetaUseCase,
     private readonly actualizarCarpetaUseCase: ActualizarCarpetaUseCase,
     private readonly eliminarCarpetaUseCase: EliminarCarpetaUseCase,
+    private readonly obtenerElementosEliminadosUseCase: ObtenerElementosEliminadosUseCase,
+    private readonly restaurarCarpetaUseCase: RestaurarCarpetaUseCase,
     private readonly sincronizarCarpetasProyectoUseCase: SincronizarCarpetasProyectoUseCase,
     private readonly exportarRegistroArchivosPdfUseCase: ExportarRegistroArchivosPdfUseCase,
     private readonly exportarPermisosCarpetaPdfUseCase: ExportarPermisosCarpetaPdfUseCase,
@@ -244,6 +248,84 @@ export class DataManagementFoldersController {
       : 'Carpeta marcada como eliminada exitosamente';
 
     return ApiResponseDto.success(responseData, message);
+  }
+
+  /**
+   * GET - Elementos eliminados (hidden) en la carpeta actual
+   * GET /data-management/folders/:projectId/:folderId/deleted-contents
+   */
+  @ApiOperation({
+    summary: 'Listar elementos suprimidos de la carpeta',
+    description:
+      'Usa filter[hidden]=true de ACC y enriquece con auditoría GVR (suprimido por / fecha).',
+  })
+  @Get(':projectId/:folderId/deleted-contents')
+  @HttpCode(HttpStatus.OK)
+  async obtenerElementosEliminados(
+    @Req() request: Request,
+    @Param('projectId') projectId: string,
+    @Param('folderId') folderId: string,
+  ) {
+    const user = request.user!;
+    const userRole =
+      user?.roles && Array.isArray(user.roles) && user.roles.length > 0
+        ? user.roles[0]?.nombre || user.roles[0]?.name || undefined
+        : undefined;
+    const resultado = await this.obtenerElementosEliminadosUseCase.execute(
+      user.sub,
+      projectId,
+      folderId,
+      userRole,
+    );
+
+    return ApiResponseDto.success(
+      resultado.data,
+      'Elementos suprimidos obtenidos exitosamente',
+    );
+  }
+
+  /**
+   * POST - Restaurar carpeta eliminada (hidden=false)
+   * POST /data-management/folders/:projectId/:folderId/restore
+   */
+  @ApiOperation({
+    summary: 'Restaurar carpeta suprimida',
+    description: 'Marca hidden=false en ACC y registra FOLDER_RESTORE.',
+  })
+  @Post(':projectId/:folderId/restore')
+  @HttpCode(HttpStatus.OK)
+  async restaurarCarpeta(
+    @Req() request: Request,
+    @Param('projectId') projectId: string,
+    @Param('folderId') folderId: string,
+  ) {
+    const user = request.user!;
+    const requestInfo = RequestInfoHelper.extract(request);
+    const userRole =
+      user?.roles && Array.isArray(user.roles) && user.roles.length > 0
+        ? user.roles[0]?.nombre || user.roles[0]?.name || undefined
+        : undefined;
+    const resultado = await this.restaurarCarpetaUseCase.execute(
+      user.sub,
+      projectId,
+      folderId,
+      requestInfo.ipAddress,
+      requestInfo.userAgent,
+      userRole,
+    );
+
+    const message = resultado.wasAlreadyVisible
+      ? 'La carpeta ya estaba visible'
+      : 'Carpeta restaurada exitosamente';
+
+    return ApiResponseDto.success(
+      {
+        folder: resultado.data || null,
+        restoredAt: resultado.restoredAt || null,
+        wasAlreadyVisible: resultado.wasAlreadyVisible || false,
+      },
+      message,
+    );
   }
 
   /**

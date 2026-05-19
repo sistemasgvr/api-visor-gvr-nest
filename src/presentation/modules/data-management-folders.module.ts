@@ -20,6 +20,8 @@ import { CrearSubcarpetaUseCase } from '../../application/use-cases/data-managem
 import { CrearReferenciaCarpetaUseCase } from '../../application/use-cases/data-management/folders/crear-referencia-carpeta.use-case';
 import { ActualizarCarpetaUseCase } from '../../application/use-cases/data-management/folders/actualizar-carpeta.use-case';
 import { EliminarCarpetaUseCase } from '../../application/use-cases/data-management/folders/eliminar-carpeta.use-case';
+import { ObtenerElementosEliminadosUseCase } from '../../application/use-cases/data-management/folders/obtener-elementos-eliminados.use-case';
+import { RestaurarCarpetaUseCase } from '../../application/use-cases/data-management/folders/restaurar-carpeta.use-case';
 import { SincronizarCarpetasProyectoUseCase } from '../../application/use-cases/data-management/folders/sincronizar-carpetas-proyecto.use-case';
 import { ExportarRegistroArchivosPdfUseCase } from '../../application/use-cases/data-management/folders/exportar-registro-archivos-pdf.use-case';
 import { ExportarPermisosCarpetaPdfUseCase } from '../../application/use-cases/data-management/folders/exportar-permisos-carpeta-pdf.use-case';
@@ -56,6 +58,8 @@ import { ACC_RESOURCES_REPOSITORY } from '../../domain/repositories/acc-resource
     CrearReferenciaCarpetaUseCase,
     ActualizarCarpetaUseCase,
     EliminarCarpetaUseCase,
+    ObtenerElementosEliminadosUseCase,
+    RestaurarCarpetaUseCase,
     SincronizarCarpetasProyectoUseCase,
     ExportarRegistroArchivosPdfUseCase,
     ExportarPermisosCarpetaPdfUseCase,

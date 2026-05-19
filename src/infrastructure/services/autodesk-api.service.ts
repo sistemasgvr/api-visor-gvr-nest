@@ -1521,6 +1521,57 @@ export class AutodeskApiService {
     }
   }
 
+  /**
+   * Restaura una carpeta eliminada (hidden=false)
+   */
+  async restaurarCarpeta(
+    accessToken: string,
+    projectId: string,
+    folderId: string,
+  ): Promise<any> {
+    try {
+      if (!accessToken || !projectId || !folderId) {
+        throw new Error('Token, projectId y folderId son requeridos');
+      }
+
+      const dataManagementProjectId = projectId.startsWith('b.')
+        ? projectId
+        : `b.${projectId}`;
+      const baseUrl =
+        this.configService.get<string>('AUTODESK_API_BASE_URL') ||
+        'https://developer.api.autodesk.com';
+      const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/folders/${encodeURIComponent(folderId)}`;
+
+      const body = {
+        jsonapi: { version: '1.0' },
+        data: {
+          type: 'folders',
+          id: folderId,
+          attributes: {
+            hidden: false,
+          },
+        },
+      };
+
+      const response = await this.httpClient.patch<any>(url, body, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/vnd.api+json',
+        },
+      });
+
+      return {
+        data: response.data.data || null,
+        restoredAt: new Date().toISOString(),
+        wasAlreadyVisible: response.data.data?.attributes?.hidden === false,
+      };
+    } catch (error: any) {
+      throw new Error(
+        `Error al restaurar carpeta: ${error.response?.data?.message || error.message}`,
+      );
+    }
+  }
+
   // ==================== DATA MANAGEMENT PROJECTS API ====================
 
   /**
@@ -6973,6 +7024,240 @@ export class AutodeskApiService {
     } catch (error: any) {
       throw new Error(
         `Error al eliminar item: ${error.response?.data?.errors?.[0]?.detail || error.response?.data?.message || error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Indica si el error de Autodesk corresponde a un item/lineage eliminado.
+   */
+  private esErrorItemEliminado(error: any): boolean {
+    const detail = String(
+      error?.response?.data?.errors?.[0]?.detail ||
+        error?.response?.data?.message ||
+        error?.message ||
+        '',
+    ).toLowerCase();
+    return (
+      detail.includes('has been deleted') ||
+      detail.includes('been deleted') ||
+      detail.includes('resource does not exist')
+    );
+  }
+
+  /**
+   * Restaura versión vía POST versions?copyFrom (con o sin relación al item).
+   */
+  private async restaurarVersionConCopyFrom(
+    accessToken: string,
+    projectId: string,
+    copyFromVersionId: string,
+    itemId?: string,
+  ): Promise<any> {
+    const dataManagementProjectId = projectId.startsWith('b.')
+      ? projectId
+      : `b.${projectId}`;
+    const baseUrl =
+      this.configService.get<string>('AUTODESK_API_BASE_URL') ||
+      'https://developer.api.autodesk.com';
+    const url = `${baseUrl}/data/v1/projects/${encodeURIComponent(dataManagementProjectId)}/versions?copyFrom=${encodeURIComponent(copyFromVersionId)}`;
+
+    const versionPayload: Record<string, unknown> = { type: 'versions' };
+    if (itemId) {
+      versionPayload.relationships = {
+        item: {
+          data: {
+            type: 'items',
+            id: itemId,
+          },
+        },
+      };
+    }
+
+    const body = {
+      jsonapi: { version: '1.0' },
+      data: versionPayload,
+    };
+
+    const response = await this.httpClient.post<any>(url, body, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/vnd.api+json',
+      },
+    });
+
+    return response.data?.data || null;
+  }
+
+  /**
+   * Restaura un archivo suprimido:
+   * 1) hidden=false si solo estaba oculto;
+   * 2) copyFrom sobre el mismo item;
+   * 3) copia el archivo en la carpeta padre si el lineage fue eliminado.
+   */
+  async restaurarItem(
+    accessToken: string,
+    projectId: string,
+    itemId: string,
+    parentFolderId?: string,
+  ): Promise<any> {
+    try {
+      if (!accessToken || !projectId || !itemId) {
+        throw new Error('Token, projectId y itemId son requeridos');
+      }
+
+      let itemData: any = null;
+      try {
+        const itemInfo = await this.obtenerItemPorId(
+          accessToken,
+          projectId,
+          itemId,
+        );
+        itemData = itemInfo?.data || null;
+      } catch {
+        // continuar sin metadatos del item
+      }
+
+      const resolvedParentId =
+        parentFolderId || itemData?.relationships?.parent?.data?.id || null;
+      const fileName =
+        itemData?.attributes?.name ||
+        itemData?.attributes?.displayName ||
+        'archivo';
+      const isHidden = itemData?.attributes?.hidden === true;
+
+      const tipInfo = await this.obtenerTipVersion(
+        accessToken,
+        projectId,
+        itemId,
+      );
+      const tipData = tipInfo.data || null;
+      const tipExtension = tipData?.attributes?.extension?.type || '';
+      const tipIsDeleted = tipExtension.toLowerCase().includes('deleted');
+
+      if (!tipIsDeleted) {
+        if (isHidden) {
+          const unhidden = await this.actualizarItem(
+            accessToken,
+            projectId,
+            itemId,
+            {
+              jsonapi: { version: '1.0' },
+              data: {
+                type: 'items',
+                id: itemId,
+                attributes: {
+                  hidden: false,
+                },
+              },
+            },
+          );
+          return {
+            success: true,
+            message: 'Archivo restaurado exitosamente',
+            data: unhidden.data || null,
+            restoreMethod: 'unhide',
+            restoredAt: new Date().toISOString(),
+            wasAlreadyRestored: false,
+          };
+        }
+
+        return {
+          success: true,
+          message: 'El archivo no está marcado como eliminado',
+          data: tipData,
+          wasAlreadyRestored: true,
+        };
+      }
+
+      const versiones = await this.obtenerVersionesItem(
+        accessToken,
+        projectId,
+        itemId,
+      );
+      const lista = versiones?.data || [];
+      const versionOrigen = lista.find((v: any) => {
+        const ext = String(v?.attributes?.extension?.type || '').toLowerCase();
+        return !ext.includes('deleted');
+      });
+
+      if (!versionOrigen?.id) {
+        throw new Error(
+          'No se encontró una versión anterior válida para restaurar el archivo',
+        );
+      }
+
+      const estrategias: Array<() => Promise<any>> = [
+        () =>
+          this.restaurarVersionConCopyFrom(
+            accessToken,
+            projectId,
+            versionOrigen.id,
+          ),
+        () =>
+          this.restaurarVersionConCopyFrom(
+            accessToken,
+            projectId,
+            versionOrigen.id,
+            itemId,
+          ),
+      ];
+
+      let ultimoError: any = null;
+      for (const estrategia of estrategias) {
+        try {
+          const versionRestaurada = await estrategia();
+          return {
+            success: true,
+            message: 'Archivo restaurado exitosamente',
+            data: versionRestaurada,
+            restoreMethod: 'copyFrom',
+            restoredFromVersionId: versionOrigen.id,
+            restoredAt: new Date().toISOString(),
+            wasAlreadyRestored: false,
+          };
+        } catch (error: any) {
+          ultimoError = error;
+          if (!this.esErrorItemEliminado(error)) {
+            throw error;
+          }
+        }
+      }
+
+      if (!resolvedParentId) {
+        throw new Error(
+          'No se encontró la carpeta padre para restaurar el archivo eliminado',
+        );
+      }
+
+      try {
+        const copia = await this.copiarItem(
+          accessToken,
+          projectId,
+          versionOrigen.id,
+          resolvedParentId,
+          fileName,
+        );
+        return {
+          success: true,
+          message: 'Archivo restaurado exitosamente en la carpeta original',
+          data: copia.data || null,
+          restoreMethod: 'recreate',
+          restoredFromVersionId: versionOrigen.id,
+          restoredAt: new Date().toISOString(),
+          wasAlreadyRestored: false,
+        };
+      } catch (error: any) {
+        throw (
+          ultimoError ||
+          error ||
+          new Error('No se pudo restaurar el archivo eliminado')
+        );
+      }
+    } catch (error: any) {
+      throw new Error(
+        `Error al restaurar item: ${error.response?.data?.errors?.[0]?.detail || error.response?.data?.message || error.message}`,
       );
     }
   }

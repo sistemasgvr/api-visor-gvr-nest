@@ -39,6 +39,7 @@ import { CrearItemUseCase } from '../../application/use-cases/data-management/it
 import { CrearReferenciaItemUseCase } from '../../application/use-cases/data-management/items/crear-referencia-item.use-case';
 import { ActualizarItemUseCase } from '../../application/use-cases/data-management/items/actualizar-item.use-case';
 import { EliminarItemUseCase } from '../../application/use-cases/data-management/items/eliminar-item.use-case';
+import { RestaurarItemUseCase } from '../../application/use-cases/data-management/items/restaurar-item.use-case';
 import { DesplazarItemUseCase } from '../../application/use-cases/data-management/items/desplazar-item.use-case';
 import { CopiarItemUseCase } from '../../application/use-cases/data-management/items/copiar-item.use-case';
 
@@ -76,6 +77,7 @@ export class DataManagementItemsController {
     private readonly crearReferenciaItemUseCase: CrearReferenciaItemUseCase,
     private readonly actualizarItemUseCase: ActualizarItemUseCase,
     private readonly eliminarItemUseCase: EliminarItemUseCase,
+    private readonly restaurarItemUseCase: RestaurarItemUseCase,
     private readonly desplazarItemUseCase: DesplazarItemUseCase,
     private readonly copiarItemUseCase: CopiarItemUseCase,
   ) {}
@@ -477,6 +479,56 @@ export class DataManagementItemsController {
     return ApiResponseDto.success(
       resultado.data,
       'Referencia creada exitosamente',
+    );
+  }
+
+  /**
+   * POST - Restaurar archivo eliminado (versión copyFrom)
+   * POST /data-management/items/:projectId/:itemId/restore
+   */
+  @ApiOperation({
+    summary: 'Restaurar archivo suprimido',
+    description:
+      'Crea versión desde la última no eliminada (copyFrom) y registra FILE_RESTORE.',
+  })
+  @Post(':projectId/:itemId/restore')
+  @HttpCode(HttpStatus.OK)
+  async restaurarItem(
+    @Req() request: Request,
+    @Param('projectId') projectId: string,
+    @Param('itemId') itemId: string,
+    @Body() body?: { parentFolderId?: string },
+  ) {
+    const user = request.user!;
+    const requestInfo = RequestInfoHelper.extract(request);
+    const userRole =
+      user?.roles && Array.isArray(user.roles) && user.roles.length > 0
+        ? user.roles[0]?.nombre || user.roles[0]?.name || undefined
+        : undefined;
+    const resultado = await this.restaurarItemUseCase.execute(
+      user.sub,
+      projectId,
+      itemId,
+      requestInfo.ipAddress,
+      requestInfo.userAgent,
+      userRole,
+      body?.parentFolderId,
+    );
+
+    const message =
+      resultado.message ||
+      (resultado.wasAlreadyRestored
+        ? 'El archivo no estaba eliminado'
+        : 'Archivo restaurado exitosamente');
+
+    return ApiResponseDto.success(
+      {
+        version: resultado.data || null,
+        restoredAt: resultado.restoredAt || null,
+        restoredFromVersionId: resultado.restoredFromVersionId || null,
+        wasAlreadyRestored: resultado.wasAlreadyRestored || false,
+      },
+      message,
     );
   }
 

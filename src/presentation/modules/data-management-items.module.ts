@@ -20,6 +20,7 @@ import { CrearItemUseCase } from '../../application/use-cases/data-management/it
 import { CrearReferenciaItemUseCase } from '../../application/use-cases/data-management/items/crear-referencia-item.use-case';
 import { ActualizarItemUseCase } from '../../application/use-cases/data-management/items/actualizar-item.use-case';
 import { EliminarItemUseCase } from '../../application/use-cases/data-management/items/eliminar-item.use-case';
+import { RestaurarItemUseCase } from '../../application/use-cases/data-management/items/restaurar-item.use-case';
 import { DesplazarItemUseCase } from '../../application/use-cases/data-management/items/desplazar-item.use-case';
 import { CopiarItemUseCase } from '../../application/use-cases/data-management/items/copiar-item.use-case';
 
@@ -56,6 +57,7 @@ import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.inter
     CrearReferenciaItemUseCase,
     ActualizarItemUseCase,
     EliminarItemUseCase,
+    RestaurarItemUseCase,
     DesplazarItemUseCase,
     CopiarItemUseCase,
     // Infrastructure
