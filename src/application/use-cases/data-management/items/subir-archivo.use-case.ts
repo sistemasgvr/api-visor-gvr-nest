@@ -244,41 +244,42 @@ export class SubirArchivoUseCase {
 
     // Registrar auditoría si el archivo se subió exitosamente
     if (itemId && ipAddress && userAgent) {
-      try {
-        await this.auditoriaRepository.registrarAccion(
-          userId,
-          'FILE_UPLOAD',
-          'file',
-          null, // No usar el ID de ACC como identidad porque es string
-          `Archivo subido: ${itemName.substring(0, 100)}`,
-          null,
-          {
-            itemId,
-            projectId,
-            folderId,
-            fileName: itemName.substring(0, 100),
-            fileSize: file.size,
-            mimeType: file.mimetype || 'unknown',
-          },
-          ipAddress,
-          userAgent,
-          {
-            projectId,
-            accItemId: itemId, // ID del archivo de ACC (string/UUID)
-            accFolderId: folderId,
-            rol: userRole || null,
-          },
-        );
-      } catch (error) {
-        // No fallar la operación si la auditoría falla
-        console.error(
-          'Error registrando auditoría de subida de archivo:',
-          error,
-        );
+      // Archivo nuevo: FILE_UPLOAD. Mismo nombre (nueva versión): solo FILE_VERSION_SAVE
+      // para no duplicar "subió" + "nueva versión por subida" en actividades de archivo.
+      if (!newVersionId) {
+        try {
+          await this.auditoriaRepository.registrarAccion(
+            userId,
+            'FILE_UPLOAD',
+            'file',
+            null,
+            `Archivo subido: ${itemName.substring(0, 100)}`,
+            null,
+            {
+              itemId,
+              projectId,
+              folderId,
+              fileName: itemName.substring(0, 100),
+              fileSize: file.size,
+              mimeType: file.mimetype || 'unknown',
+            },
+            ipAddress,
+            userAgent,
+            {
+              projectId,
+              accItemId: itemId,
+              accFolderId: folderId,
+              rol: userRole || null,
+            },
+          );
+        } catch (error) {
+          console.error(
+            'Error registrando auditoría de subida de archivo:',
+            error,
+          );
+        }
       }
 
-      // Si se creó una nueva versión (subida con mismo nombre → ACC crea versión), registrar FILE_VERSION_SAVE
-      // para que el historial de versiones muestre "Actualizado por" / "Versión añadida por" = quien subió
       if (newVersionId) {
         try {
           let idEmpresaUsuario: number | null = null;

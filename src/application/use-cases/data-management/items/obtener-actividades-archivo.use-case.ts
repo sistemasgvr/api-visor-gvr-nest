@@ -9,6 +9,19 @@ import {
   type IAuditoriaRepository,
 } from '../../../../domain/repositories/auditoria.repository.interface';
 
+/** Ventana para fusionar eventos duplicados (auditoría GVR + versiones ACC). */
+const VENTANA_DEDUP_MS = 2 * 60 * 1000;
+
+export type CategoriaActividadArchivo =
+  | 'subida'
+  | 'sobreescritura'
+  | 'edicion'
+  | 'descarga'
+  | 'eliminacion'
+  | 'movimiento'
+  | 'incidencia'
+  | 'otro';
+
 @Injectable()
 export class ObtenerActividadesArchivoUseCase {
   constructor(
@@ -25,7 +38,6 @@ export class ObtenerActividadesArchivoUseCase {
     itemId: string,
   ): Promise<any> {
     try {
-      // Validar parámetros
       if (!projectId) {
         throw new Error('El ID del proyecto es requerido');
       }
@@ -33,7 +45,6 @@ export class ObtenerActividadesArchivoUseCase {
         throw new Error('El ID del item es requerido');
       }
 
-      // Obtener token de acceso
       const token =
         await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
@@ -49,12 +60,10 @@ export class ObtenerActividadesArchivoUseCase {
         );
       }
 
-      // Remover el prefijo "b." si existe, ya que obtenerVersionesItem lo agrega automáticamente
       const cleanProjectId = projectId.startsWith('b.')
         ? projectId.substring(2)
         : projectId;
 
-      // Obtener información del item para tener más contexto (opcional)
       let itemInfo = null;
       try {
         const itemResponse = await this.autodeskApiService.obtenerItemPorId(
@@ -63,14 +72,10 @@ export class ObtenerActividadesArchivoUseCase {
           itemId,
         );
         itemInfo = itemResponse?.data || null;
-      } catch (error) {
-        // Si falla obtener el item, continuamos solo con versiones
-        // Esto es opcional, no es crítico para obtener las actividades
+      } catch {
+        // opcional
       }
 
-      // Obtener las versiones del archivo desde Autodesk API
-      // Este endpoint SÍ existe: GET /data/v1/projects/{project_id}/items/{item_id}/versions
-      // Devuelve el historial de versiones del archivo con información de creación y modificación
       const versionesResponse =
         await this.autodeskApiService.obtenerVersionesItem(
           token.tokenAcceso,
@@ -85,7 +90,6 @@ export class ObtenerActividadesArchivoUseCase {
       const versiones = versionesResponse.data || [];
 
       if (versiones.length === 0) {
-        // Si no hay versiones, retornar estructura vacía
         return {
           actividades: {
             ultimos7Dias: { actividades: [], total: 0 },
@@ -96,37 +100,30 @@ export class ObtenerActividadesArchivoUseCase {
         };
       }
 
-      // Obtener auditorías del archivo desde la base de datos
       let auditorias: any[] = [];
       try {
         auditorias =
           await this.auditoriaRepository.obtenerAuditoriasPorItemId(itemId);
       } catch (error) {
-        // Si falla obtener auditorías, continuamos solo con versiones
         console.warn('No se pudieron obtener auditorías del archivo:', error);
       }
 
-      // Transformar las versiones en actividades
       const actividadesVersiones = this.transformarVersionesEnActividades(
         versiones,
         itemInfo,
       );
-
-      // Transformar las auditorías en actividades
       const actividadesAuditoria = this.transformarAuditoriasEnActividades(
         auditorias,
         itemId,
       );
 
-      // Combinar y ordenar todas las actividades por fecha
-      const todasLasActividades = [
-        ...actividadesVersiones,
+      const todasLasActividades = this.consolidarActividades([
         ...actividadesAuditoria,
-      ].sort(
+        ...actividadesVersiones,
+      ]).sort(
         (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
       );
 
-      // Agrupar actividades por período de tiempo
       const actividadesAgrupadas =
         this.agruparActividadesPorPeriodo(todasLasActividades);
 
@@ -135,26 +132,54 @@ export class ObtenerActividadesArchivoUseCase {
         total: todasLasActividades.length,
       };
     } catch (error: any) {
-      // Si es un error de autorización, relanzarlo
       if (error instanceof ForbiddenException) {
         throw error;
       }
-
-      // Para otros errores, lanzar una excepción más descriptiva
       throw new Error(
         `Error al obtener actividades del archivo: ${error.message || 'Error desconocido'}`,
       );
     }
   }
 
+  private crearActividad(partial: {
+    id: string;
+    tipo: string;
+    categoria: CategoriaActividadArchivo;
+    mensaje: string;
+    usuario: string;
+    fecha: string;
+    fuente: 'gvr' | 'acc';
+    destacado?: boolean;
+    accion?: string;
+    versionNumber?: number;
+    versionId?: string;
+    auditoriaId?: number;
+    metadatos?: Record<string, unknown>;
+  }): Record<string, unknown> {
+    const usuario = partial.usuario || 'Usuario desconocido';
+    const mensaje = partial.mensaje.trim();
+    const destacado =
+      partial.destacado ??
+      ['subida', 'sobreescritura', 'edicion'].includes(partial.categoria);
+
+    return {
+      ...partial,
+      usuario,
+      mensaje,
+      destacado,
+      descripcion: `${usuario} ${mensaje}`,
+    };
+  }
+
   /**
-   * Transforma las versiones del archivo en actividades
+   * Una actividad por versión ACC; sin par created+modified en el mismo instante.
    */
   private transformarVersionesEnActividades(
     versiones: any[],
-    itemInfo: any = null,
+    _itemInfo: any = null,
   ): any[] {
     const actividades: any[] = [];
+    const UMBRAL_EDICION_MS = 2 * 60 * 1000;
 
     versiones.forEach((version) => {
       const attributes = version.attributes || {};
@@ -164,51 +189,74 @@ export class ObtenerActividadesArchivoUseCase {
       const lastModifiedUserName =
         attributes.lastModifiedUserName || createUserName;
       const versionNumber = attributes.versionNumber || 1;
-      const displayName =
-        attributes.name || attributes.displayName || 'Archivo';
 
-      // Actividad: Creación de versión
-      if (createTime) {
-        actividades.push({
-          id: `${version.id}-created`,
-          tipo: 'version_created',
-          accion: 'Creó una nueva versión',
-          descripcion: `${createUserName} ha creado la versión ${versionNumber} de este archivo en la carpeta actual.`,
-          usuario: createUserName,
-          fecha: createTime,
-          versionNumber: versionNumber,
-          versionId: version.id,
-        });
+      if (!createTime) {
+        return;
       }
 
-      // Actividad: Modificación de versión (solo si es diferente de la creación)
-      if (
+      const createMs = new Date(createTime).getTime();
+      const modifiedMs = lastModifiedTime
+        ? new Date(lastModifiedTime).getTime()
+        : createMs;
+      const diffMs = Math.abs(modifiedMs - createMs);
+      const esPrimeraVersion = versionNumber <= 1;
+      const esSobreescritura = versionNumber > 1;
+
+      if (esSobreescritura) {
+        actividades.push(
+          this.crearActividad({
+            id: `${version.id}-overwrite`,
+            tipo: 'file_overwritten',
+            categoria: 'sobreescritura',
+            mensaje: `reemplazó el archivo (versión ${versionNumber}).`,
+            usuario: createUserName,
+            fecha: createTime,
+            fuente: 'acc',
+            versionNumber,
+            versionId: version.id,
+          }),
+        );
+      } else {
+        actividades.push(
+          this.crearActividad({
+            id: `${version.id}-upload`,
+            tipo: 'file_uploaded',
+            categoria: 'subida',
+            mensaje: 'subió el archivo por primera vez.',
+            usuario: createUserName,
+            fecha: createTime,
+            fuente: 'acc',
+            versionNumber,
+            versionId: version.id,
+          }),
+        );
+      }
+
+      const esEdicionReal =
         lastModifiedTime &&
-        lastModifiedTime !== createTime &&
-        lastModifiedUserName
-      ) {
-        actividades.push({
-          id: `${version.id}-modified`,
-          tipo: 'version_modified',
-          accion: 'Modificó la versión',
-          descripcion: `${lastModifiedUserName} ha modificado la versión ${versionNumber} de este archivo en la carpeta actual.`,
-          usuario: lastModifiedUserName,
-          fecha: lastModifiedTime,
-          versionNumber: versionNumber,
-          versionId: version.id,
-        });
+        diffMs > UMBRAL_EDICION_MS &&
+        lastModifiedUserName;
+
+      if (esEdicionReal) {
+        actividades.push(
+          this.crearActividad({
+            id: `${version.id}-edited`,
+            tipo: 'file_edited',
+            categoria: 'edicion',
+            mensaje: `editó el archivo (versión ${versionNumber}).`,
+            usuario: lastModifiedUserName,
+            fecha: lastModifiedTime,
+            fuente: 'acc',
+            versionNumber,
+            versionId: version.id,
+          }),
+        );
       }
     });
 
-    // Ordenar por fecha descendente (más reciente primero)
-    return actividades.sort(
-      (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
-    );
+    return actividades;
   }
 
-  /**
-   * Transforma las auditorías en actividades
-   */
   private transformarAuditoriasEnActividades(
     auditorias: any[],
     itemId?: string,
@@ -220,41 +268,135 @@ export class ObtenerActividadesArchivoUseCase {
       const fecha = auditoria.fechacreacion;
       const accion = auditoria.accion;
       const descripcion = auditoria.descripcion || '';
-      const metadatos = auditoria.metadatos || {};
-      const fileName = metadatos.fileName || metadatos.accItemId || 'archivo';
+      const metadatos = this.parseMetadatos(auditoria.metadatos);
+      const source =
+        metadatos.source ?? metadatos.Source ?? '';
 
-      let tipoActividad = '';
-      let descripcionActividad = '';
+      let actividad: Record<string, unknown> | null = null;
 
       switch (accion) {
         case 'FILE_DOWNLOAD':
-          tipoActividad = 'file_download';
-          descripcionActividad = `${usuario} ha descargado este archivo.`;
+          actividad = this.crearActividad({
+            id: `audit-${auditoria.id}`,
+            tipo: 'file_download',
+            categoria: 'descarga',
+            mensaje: 'descargó este archivo.',
+            usuario,
+            fecha,
+            fuente: 'gvr',
+            accion,
+            auditoriaId: auditoria.id,
+            metadatos,
+            destacado: false,
+          });
           break;
         case 'FILE_UPLOAD':
-          tipoActividad = 'file_upload';
-          descripcionActividad = `${usuario} ha subido este archivo.`;
+          actividad = this.crearActividad({
+            id: `audit-${auditoria.id}`,
+            tipo: 'file_uploaded',
+            categoria: 'subida',
+            mensaje: 'subió este archivo.',
+            usuario,
+            fecha,
+            fuente: 'gvr',
+            accion,
+            auditoriaId: auditoria.id,
+            metadatos,
+          });
+          break;
+        case 'FILE_VERSION_SAVE':
+          if (source === 'upload') {
+            actividad = this.crearActividad({
+              id: `audit-${auditoria.id}`,
+              tipo: 'file_overwritten',
+              categoria: 'sobreescritura',
+              mensaje: 'reemplazó el archivo subiendo una nueva versión.',
+              usuario,
+              fecha,
+              fuente: 'gvr',
+              accion,
+              auditoriaId: auditoria.id,
+              metadatos,
+              versionId: this.versionIdDesdeMetadatos(metadatos),
+            });
+          } else {
+            actividad = this.crearActividad({
+              id: `audit-${auditoria.id}`,
+              tipo: 'file_edited',
+              categoria: 'edicion',
+              mensaje: 'guardó cambios en el archivo.',
+              usuario,
+              fecha,
+              fuente: 'gvr',
+              accion,
+              auditoriaId: auditoria.id,
+              metadatos,
+              versionId: this.versionIdDesdeMetadatos(metadatos),
+            });
+          }
           break;
         case 'FILE_UPDATE':
-          tipoActividad = 'file_update';
-          descripcionActividad = `${usuario} ha actualizado este archivo.`;
+          actividad = this.crearActividad({
+            id: `audit-${auditoria.id}`,
+            tipo: 'file_edited',
+            categoria: 'edicion',
+            mensaje: 'actualizó los datos del archivo.',
+            usuario,
+            fecha,
+            fuente: 'gvr',
+            accion,
+            auditoriaId: auditoria.id,
+            metadatos,
+          });
           break;
         case 'FILE_DELETE':
-          tipoActividad = 'file_delete';
-          descripcionActividad = `${usuario} ha eliminado este archivo.`;
+          actividad = this.crearActividad({
+            id: `audit-${auditoria.id}`,
+            tipo: 'file_delete',
+            categoria: 'eliminacion',
+            mensaje: 'eliminó este archivo.',
+            usuario,
+            fecha,
+            fuente: 'gvr',
+            accion,
+            auditoriaId: auditoria.id,
+            metadatos,
+            destacado: false,
+          });
           break;
         case 'FILE_VIEW':
-          tipoActividad = 'file_view';
-          descripcionActividad = `${usuario} ha visto este archivo.`;
+          actividad = this.crearActividad({
+            id: `audit-${auditoria.id}`,
+            tipo: 'file_view',
+            categoria: 'otro',
+            mensaje: 'abrió este archivo.',
+            usuario,
+            fecha,
+            fuente: 'gvr',
+            accion,
+            auditoriaId: auditoria.id,
+            metadatos,
+            destacado: false,
+          });
           break;
         case 'FILE_MOVE':
-          tipoActividad = 'file_move';
-          // Usar la descripción de la auditoría que ya contiene los detalles del movimiento
-          descripcionActividad =
-            descripcion || `${usuario} ha movido este archivo.`;
+          actividad = this.crearActividad({
+            id: `audit-${auditoria.id}`,
+            tipo: 'file_move',
+            categoria: 'movimiento',
+            mensaje:
+              this.extraerMensajeSinUsuario(descripcion, usuario) ||
+              'movió este archivo.',
+            usuario,
+            fecha,
+            fuente: 'gvr',
+            accion,
+            auditoriaId: auditoria.id,
+            metadatos,
+            destacado: false,
+          });
           break;
-        case 'ISSUE_CREATE':
-          // Verificar si la incidencia está vinculada a este archivo
+        case 'ISSUE_CREATE': {
           const issueMetadatos = metadatos || {};
           const datosNuevos = auditoria.datos_nuevos || {};
           const itemIdEnMetadatos = issueMetadatos.itemId || datosNuevos.itemId;
@@ -263,50 +405,181 @@ export class ObtenerActividadesArchivoUseCase {
             issueMetadatos.documentUrn ||
             datosNuevos.documentUrn;
 
-          // Si la incidencia está relacionada con este archivo
           if (
             itemIdEnMetadatos === itemId ||
             (linkedDocUrn && linkedDocUrn.includes(itemId))
           ) {
-            tipoActividad = 'issue_created';
-            const issueTitle =
-              issueMetadatos.title || datosNuevos.title || 'una incidencia';
-            descripcionActividad = `${usuario} ha añadido una incidencia a este archivo en la carpeta actual.`;
-          } else {
-            // Si no está relacionada con este archivo, no incluirla
-            return null;
+            actividad = this.crearActividad({
+              id: `audit-${auditoria.id}`,
+              tipo: 'issue_created',
+              categoria: 'incidencia',
+              mensaje:
+                'añadió una incidencia a este archivo en la carpeta actual.',
+              usuario,
+              fecha,
+              fuente: 'gvr',
+              accion,
+              auditoriaId: auditoria.id,
+              metadatos,
+              destacado: false,
+            });
           }
           break;
+        }
         default:
-          tipoActividad = 'file_action';
-          descripcionActividad =
-            descripcion ||
-            `${usuario} ha realizado una acción en este archivo.`;
+          if (descripcion) {
+            actividad = this.crearActividad({
+              id: `audit-${auditoria.id}`,
+              tipo: 'file_action',
+              categoria: 'otro',
+              mensaje:
+                this.extraerMensajeSinUsuario(descripcion, usuario) ||
+                'realizó una acción en este archivo.',
+              usuario,
+              fecha,
+              fuente: 'gvr',
+              accion,
+              auditoriaId: auditoria.id,
+              metadatos,
+              destacado: false,
+            });
+          }
           break;
       }
 
-      // Solo agregar si la actividad es válida (no null)
-      if (tipoActividad) {
-        actividades.push({
-          id: `audit-${auditoria.id}`,
-          tipo: tipoActividad,
-          accion: accion,
-          descripcion: descripcionActividad,
-          usuario: usuario,
-          fecha: fecha,
-          auditoriaId: auditoria.id,
-          metadatos: metadatos,
-        });
+      if (actividad) {
+        actividades.push(actividad);
       }
     });
 
-    // Filtrar nulls
-    return actividades.filter((a) => a !== null);
+    return actividades;
   }
 
   /**
-   * Agrupa las actividades por período de tiempo (Últimos 7 días, Últimos 30 días, etc.)
+   * Elimina duplicados entre auditoría GVR y versiones ACC del mismo evento.
    */
+  private consolidarActividades(actividades: any[]): any[] {
+    const ordenadas = [...actividades].sort(
+      (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
+    );
+    const eliminar = new Set<string>();
+
+    for (let i = 0; i < ordenadas.length; i++) {
+      const a = ordenadas[i];
+      if (eliminar.has(a.id)) continue;
+
+      for (let j = i + 1; j < ordenadas.length; j++) {
+        const b = ordenadas[j];
+        if (eliminar.has(b.id)) continue;
+
+        if (!this.mismaVentanaTiempo(a.fecha, b.fecha)) continue;
+        if (!this.mismoUsuario(a, b)) continue;
+
+        const catA = a.categoria as CategoriaActividadArchivo;
+        const catB = b.categoria as CategoriaActividadArchivo;
+
+        if (
+          catA === 'subida' &&
+          catB === 'sobreescritura' &&
+          a.fuente === 'gvr' &&
+          b.fuente === 'gvr'
+        ) {
+          eliminar.add(a.id);
+          continue;
+        }
+
+        if (
+          (catA === 'subida' || catA === 'sobreescritura') &&
+          (catB === 'subida' || catB === 'sobreescritura') &&
+          a.fuente === 'acc' &&
+          b.fuente === 'gvr'
+        ) {
+          eliminar.add(a.id);
+          continue;
+        }
+
+        if (
+          (catA === 'subida' || catA === 'sobreescritura') &&
+          (catB === 'subida' || catB === 'sobreescritura') &&
+          a.fuente === 'gvr' &&
+          b.fuente === 'acc'
+        ) {
+          eliminar.add(b.id);
+          continue;
+        }
+
+        if (
+          catA === catB &&
+          (catA === 'subida' ||
+            catA === 'sobreescritura' ||
+            catA === 'edicion') &&
+          a.versionNumber != null &&
+          b.versionNumber != null &&
+          a.versionNumber === b.versionNumber
+        ) {
+          if (a.fuente === 'acc') eliminar.add(a.id);
+          else if (b.fuente === 'acc') eliminar.add(b.id);
+        }
+      }
+    }
+
+    return ordenadas.filter((a) => !eliminar.has(a.id));
+  }
+
+  private mismaVentanaTiempo(fechaA: string, fechaB: string): boolean {
+    const tA = new Date(fechaA).getTime();
+    const tB = new Date(fechaB).getTime();
+    if (Number.isNaN(tA) || Number.isNaN(tB)) return false;
+    return Math.abs(tA - tB) <= VENTANA_DEDUP_MS;
+  }
+
+  private mismoUsuario(a: any, b: any): boolean {
+    const uA = String(a.usuario || '')
+      .trim()
+      .toLowerCase();
+    const uB = String(b.usuario || '')
+      .trim()
+      .toLowerCase();
+    if (!uA || !uB) return false;
+    return uA === uB;
+  }
+
+  private versionIdDesdeMetadatos(
+    metadatos: Record<string, unknown>,
+  ): string | undefined {
+    const raw = metadatos.accVersionId ?? metadatos.accversionid;
+    if (raw == null || raw === '') return undefined;
+    return String(raw).trim() || undefined;
+  }
+
+  private parseMetadatos(raw: unknown): Record<string, unknown> {
+    if (raw == null) return {};
+    if (typeof raw === 'string') {
+      try {
+        return JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        return {};
+      }
+    }
+    return (raw as Record<string, unknown>) || {};
+  }
+
+  private extraerMensajeSinUsuario(
+    descripcion: string,
+    usuario: string,
+  ): string {
+    let msg = descripcion.trim();
+    const u = usuario.trim();
+    if (u && msg.toLowerCase().startsWith(u.toLowerCase())) {
+      msg = msg.slice(u.length).trim();
+    }
+    msg = msg.replace(/^(ha|has|han)\s+/i, '').trim();
+    if (msg && !/[.!?]$/.test(msg)) {
+      msg += '.';
+    }
+    return msg;
+  }
+
   private agruparActividadesPorPeriodo(actividades: any[]): any {
     const ahora = new Date();
     const hace7Dias = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000);
