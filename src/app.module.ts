@@ -14,6 +14,7 @@ import { ProyectoModule } from './presentation/modules/proyecto.module';
 import { RolModule } from './presentation/modules/rol.module';
 import { PermisoModule } from './presentation/modules/permiso.module';
 import { MenuGestionModule } from './presentation/modules/menu-gestion.module';
+import { NovedadModule } from './presentation/modules/novedad.module';
 import { DataManagementModule } from './presentation/modules/data-management.module';
 import { DataManagementFoldersModule } from './presentation/modules/data-management-folders.module';
 import { DataManagementProjectsModule } from './presentation/modules/data-management-projects.module';
@@ -90,6 +91,7 @@ import { StorageModule } from './infrastructure/storage/storage.module';
     RolModule,
     PermisoModule,
     MenuGestionModule,
+    NovedadModule,
     DataManagementModule,
     DataManagementFoldersModule,
     DataManagementProjectsModule,
