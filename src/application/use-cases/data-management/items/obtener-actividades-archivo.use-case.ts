@@ -473,10 +473,28 @@ export class ObtenerActividadesArchivoUseCase {
         if (eliminar.has(b.id)) continue;
 
         if (!this.mismaVentanaTiempo(a.fecha, b.fecha)) continue;
-        if (!this.mismoUsuario(a, b)) continue;
 
         const catA = a.categoria as CategoriaActividadArchivo;
         const catB = b.categoria as CategoriaActividadArchivo;
+
+        const esCargaOSobrescrituraA =
+          catA === 'subida' || catA === 'sobreescritura';
+        const esCargaOSobrescrituraB =
+          catB === 'subida' || catB === 'sobreescritura';
+        const esParAccGvr =
+          (a.fuente === 'acc' && b.fuente === 'gvr') ||
+          (a.fuente === 'gvr' && b.fuente === 'acc');
+
+        // Caso más común: ACC emite "upload/overwrite" con usuario del conector
+        // y GVR emite la auditoría real con el usuario de la app.
+        // Para evitar duplicado visual no exigimos mismo usuario en este cruce.
+        if (esParAccGvr && esCargaOSobrescrituraA && esCargaOSobrescrituraB) {
+          if (a.fuente === 'acc') eliminar.add(a.id);
+          else eliminar.add(b.id);
+          continue;
+        }
+
+        if (!this.mismoUsuario(a, b)) continue;
 
         if (
           catA === 'subida' &&
@@ -485,26 +503,6 @@ export class ObtenerActividadesArchivoUseCase {
           b.fuente === 'gvr'
         ) {
           eliminar.add(a.id);
-          continue;
-        }
-
-        if (
-          (catA === 'subida' || catA === 'sobreescritura') &&
-          (catB === 'subida' || catB === 'sobreescritura') &&
-          a.fuente === 'acc' &&
-          b.fuente === 'gvr'
-        ) {
-          eliminar.add(a.id);
-          continue;
-        }
-
-        if (
-          (catA === 'subida' || catA === 'sobreescritura') &&
-          (catB === 'subida' || catB === 'sobreescritura') &&
-          a.fuente === 'gvr' &&
-          b.fuente === 'acc'
-        ) {
-          eliminar.add(b.id);
           continue;
         }
 
