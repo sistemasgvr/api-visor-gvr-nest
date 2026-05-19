@@ -17,6 +17,7 @@ import { ListarObservacionesActividadUseCase } from '../../application/use-cases
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
 import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
+import { ListarActividadesObservadasSubsanarUseCase } from '../../application/use-cases/control-operativo/listar-actividades-observadas-subsanar.use-case';
 import { ListarValorizacionUseCase } from '../../application/use-cases/control-operativo/listar-valorizacion.use-case';
 import { ListarDesempenoUseCase } from '../../application/use-cases/control-operativo/listar-desempeno.use-case';
 import { ListarTrabajadoresPorProyectoUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-por-proyecto.use-case';
@@ -91,6 +92,7 @@ import { ExportarActividadesJornadasWordMasivoUseCase } from '../../application/
     ActualizarActividadUseCase,
     EliminarActividadUseCase,
     ListarActividadesValidacionUseCase,
+    ListarActividadesObservadasSubsanarUseCase,
     ListarValorizacionUseCase,
     ListarDesempenoUseCase,
     ListarTrabajadoresPorProyectoUseCase,

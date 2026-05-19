@@ -120,6 +120,19 @@ export interface ListarActividadesValidacionResult {
   countVencidas: number;
 }
 
+export interface ListarActividadesObservadasSubsanarParams {
+  idTrabajadorSesion: number;
+  idProyectoFiltro?: number | null;
+  limit?: number;
+  offset?: number;
+}
+
+export interface ListarActividadesObservadasSubsanarResult {
+  data: ActividadValidacionListItem[];
+  totalCount: number;
+  totalHoras: number;
+}
+
 /** Item de detalle de actividad dentro de un grupo de valorización (sustento cliente). */
 export interface ValorizacionDetalleActividad {
   id: number;
@@ -593,6 +606,9 @@ export interface IControlOperativoRepository {
   listarActividadesValidacion(
     params: ListarActividadesValidacionParams,
   ): Promise<ListarActividadesValidacionResult>;
+  listarActividadesObservadasSubsanar(
+    params: ListarActividadesObservadasSubsanarParams,
+  ): Promise<ListarActividadesObservadasSubsanarResult>;
   listarValorizacion(
     params: ListarValorizacionParams,
   ): Promise<ListarValorizacionResult>;

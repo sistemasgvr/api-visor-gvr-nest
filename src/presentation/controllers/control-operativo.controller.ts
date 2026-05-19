@@ -40,6 +40,7 @@ import { ListarObservacionesActividadUseCase } from '../../application/use-cases
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { EliminarActividadUseCase } from '../../application/use-cases/control-operativo/eliminar-actividad.use-case';
 import { ListarActividadesValidacionUseCase } from '../../application/use-cases/control-operativo/listar-actividades-validacion.use-case';
+import { ListarActividadesObservadasSubsanarUseCase } from '../../application/use-cases/control-operativo/listar-actividades-observadas-subsanar.use-case';
 import { ListarValorizacionUseCase } from '../../application/use-cases/control-operativo/listar-valorizacion.use-case';
 import { ListarDesempenoUseCase } from '../../application/use-cases/control-operativo/listar-desempeno.use-case';
 import { ListarTrabajadoresPorProyectoUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-por-proyecto.use-case';
@@ -85,6 +86,7 @@ export class ControlOperativoController {
     private readonly actualizarActividadUseCase: ActualizarActividadUseCase,
     private readonly eliminarActividadUseCase: EliminarActividadUseCase,
     private readonly listarActividadesValidacionUseCase: ListarActividadesValidacionUseCase,
+    private readonly listarActividadesObservadasSubsanarUseCase: ListarActividadesObservadasSubsanarUseCase,
     private readonly listarValorizacionUseCase: ListarValorizacionUseCase,
     private readonly listarDesempenoUseCase: ListarDesempenoUseCase,
     private readonly listarTrabajadoresPorProyectoUseCase: ListarTrabajadoresPorProyectoUseCase,
@@ -711,6 +713,43 @@ export class ControlOperativoController {
     return ApiResponseDto.success(
       result,
       'Actividades de validación listadas exitosamente',
+    );
+  }
+
+  /**
+   * Actividades observadas del trabajador de sesión (vista subsanar en Registro).
+   * GET /control-operativo/actividades-observadas-subsanar?idProyecto=&limit=&offset=
+   */
+  @ApiOperation({
+    summary: 'Actividades observadas para subsanar',
+    description:
+      'Solo actividades en estado Observado del trabajador autenticado.',
+  })
+  @Get('actividades-observadas-subsanar')
+  @UseGuards(JwtAuthGuard)
+  async listarActividadesObservadasSubsanar(
+    @Req() req: Request & { user?: { id?: number; sub?: number } },
+    @Query('idProyecto') idProyecto?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    const userId = req.user?.sub ?? req.user?.id;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no identificado');
+    }
+    const result = await this.listarActividadesObservadasSubsanarUseCase.execute({
+      idUsuario: Number(userId),
+      idProyectoFiltro:
+        idProyecto != null && idProyecto !== ''
+          ? parseInt(idProyecto, 10)
+          : undefined,
+      limit: limit != null && limit !== '' ? parseInt(limit, 10) : undefined,
+      offset:
+        offset != null && offset !== '' ? parseInt(offset, 10) : undefined,
+    });
+    return ApiResponseDto.success(
+      result,
+      'Actividades observadas listadas exitosamente',
     );
   }
 

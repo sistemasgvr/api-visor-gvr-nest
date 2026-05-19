@@ -27,6 +27,8 @@ import type {
   ProyectoAccesoTrabajador,
   ListarActividadesValidacionParams,
   ListarActividadesValidacionResult,
+  ListarActividadesObservadasSubsanarParams,
+  ListarActividadesObservadasSubsanarResult,
   ListarValorizacionParams,
   ListarValorizacionResult,
   ValorizacionGrupo,
@@ -557,6 +559,50 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
       }),
     );
     return { data, totalCount, totalHoras, countPorAprobar, countVencidas };
+  }
+
+  async listarActividadesObservadasSubsanar(
+    params: ListarActividadesObservadasSubsanarParams,
+  ): Promise<ListarActividadesObservadasSubsanarResult> {
+    const {
+      idTrabajadorSesion,
+      idProyectoFiltro,
+      limit = 200,
+      offset = 0,
+    } = params;
+    type Row = ActividadValidacionListItem & {
+      total_count?: number;
+      total_horas?: number;
+    };
+    const result = await this.databaseFunctionService.callFunction<Row>(
+      'con_ListarActividadesObservadasSubsanar',
+      [
+        idTrabajadorSesion,
+        idProyectoFiltro ?? null,
+        limit,
+        offset,
+      ],
+    );
+    if (!result?.length) {
+      return { data: [], totalCount: 0, totalHoras: 0 };
+    }
+    const totalCount = Number(result[0].total_count ?? result.length);
+    const totalHoras = Number(result[0].total_horas ?? 0);
+    const data: ActividadValidacionListItem[] = await Promise.all(
+      result.map(async (row) => {
+        const {
+          total_count: _tc,
+          total_horas: _th,
+          evidencias: evRaw,
+          ...rest
+        } = row;
+        const evidencias = await this.mapEvidenciasViewUrls(
+          parseActividadEvidencias(evRaw),
+        );
+        return { ...rest, evidencias } as ActividadValidacionListItem;
+      }),
+    );
+    return { data, totalCount, totalHoras };
   }
 
   async listarValorizacion(
