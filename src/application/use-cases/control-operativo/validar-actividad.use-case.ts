@@ -120,10 +120,12 @@ export class ValidarActividadUseCase {
             fotoPerfil: null as string | null,
           },
           idActividad: data.id,
+          idJornada: data.idjornada,
+          idProyecto: data.idproyecto,
           idTrabajador: data.idtrabajador,
           nombreActividad: data.nombreactividad,
-          comentarioValidacion: input.comentarioValidacion ?? null,
           idEstadoActividad: input.idEstadoActividad,
+          comentarioValidacion: input.comentarioValidacion ?? null,
           timestamp: new Date().toISOString(),
         };
         this.logger.log(

@@ -54,6 +54,8 @@ export class CrearActividadUseCase {
           fotoPerfil: null as string | null,
         },
         idActividad: data.id,
+        idJornada: data.idjornada,
+        idProyecto: data.idproyecto,
         idTrabajador: data.idtrabajador,
         nombreActividad: data.nombreactividad,
         horainicio: data.horainicio,
