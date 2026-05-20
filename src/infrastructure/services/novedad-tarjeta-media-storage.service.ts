@@ -55,6 +55,23 @@ export class NovedadTarjetaMediaStorageService {
         throw new BadRequestException('La imagen no debe superar 5 MB.');
       }
 
+      /** GIF: conservar animación y formato (no convertir a WebP). */
+      if (mime === 'image/gif') {
+        const base = sanitizeFilename(file.originalname || 'imagen.gif');
+        const filename = `tarjeta-${Date.now()}-${randomUUID().slice(0, 8)}-${base}`;
+        const uploaded = await this.minioStorage.uploadUnderPrefix({
+          prefix,
+          file,
+          filename,
+        });
+        return {
+          url: uploaded.publicUrl,
+          nombreOriginal: file.originalname || 'imagen.gif',
+          tipoMime: mime,
+          tamanoBytes: uploaded.size,
+        };
+      }
+
       const optimized = await this.imageOptimizer.optimizeForStorage({
         buffer: file.buffer,
         mimetype: file.mimetype,
