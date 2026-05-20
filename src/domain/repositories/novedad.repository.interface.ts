@@ -43,6 +43,14 @@ export interface SincronizarRolesNovedadData {
   idUsuarioModificacion: number;
 }
 
+export interface RegistrarArchivoData {
+  url: string;
+  nombreOriginal?: string | null;
+  tipoMime?: string | null;
+  tamanoBytes?: number | null;
+  idUsuarioCreacion: number;
+}
+
 export interface CrearNovedadTarjetaData {
   idNovedadLanzamiento: number;
   titulo: string;
@@ -77,6 +85,8 @@ export interface INovedadRepository {
     idUsuarioModificacion: number,
   ): Promise<any>;
   sincronizarRoles(data: SincronizarRolesNovedadData): Promise<any>;
+  registrarArchivo(data: RegistrarArchivoData): Promise<any>;
+  obtenerIdLanzamientoPorTarjeta(idTarjeta: number): Promise<number | null>;
   crearTarjeta(data: CrearNovedadTarjetaData): Promise<any>;
   editarTarjeta(data: EditarNovedadTarjetaData): Promise<any>;
   eliminarTarjeta(id: number, idUsuarioModificacion: number): Promise<any>;

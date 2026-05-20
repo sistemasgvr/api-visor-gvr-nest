@@ -24,7 +24,7 @@ export class CrearNovedadLanzamientoUseCase {
 
     return {
       message: resultado.message,
-      id: resultado.id,
+      id: resultado.id_lanzamiento ?? resultado.idLanzamiento ?? resultado.id,
     };
   }
 }

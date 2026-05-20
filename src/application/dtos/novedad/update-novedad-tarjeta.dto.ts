@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsIn,
   IsInt,
@@ -18,6 +19,7 @@ export class UpdateNovedadTarjetaDto {
   descripcion?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   orden?: number;
 
@@ -29,6 +31,7 @@ export class UpdateNovedadTarjetaDto {
   tipoMultimedia?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   idArchivo?: number;
 

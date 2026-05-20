@@ -1,12 +1,15 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { INovedadRepository } from '../../../domain/repositories/novedad.repository.interface';
 import { NOVEDAD_REPOSITORY } from '../../../domain/repositories/novedad.repository.interface';
+import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
+import { enrichNovedadLanzamientosListMediaUrls } from './novedad-tarjeta-media.helper';
 
 @Injectable()
 export class ObtenerNovedadPendientesUsuarioUseCase {
   constructor(
     @Inject(NOVEDAD_REPOSITORY)
     private readonly novedadRepository: INovedadRepository,
+    private readonly minioStorage: MinioStorageService,
   ) {}
 
   async execute(idUsuario: number) {
@@ -23,6 +26,10 @@ export class ObtenerNovedadPendientesUsuarioUseCase {
       );
     }
 
-    return resultado.data ?? [];
+    const list = resultado.data ?? [];
+    if (Array.isArray(list) && list.length) {
+      await enrichNovedadLanzamientosListMediaUrls(list, this.minioStorage);
+    }
+    return list;
   }
 }

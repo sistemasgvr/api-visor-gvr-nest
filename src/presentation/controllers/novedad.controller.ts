@@ -15,10 +15,19 @@ import {
   ParseIntPipe,
   UsePipes,
   ValidationPipe,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { ListarNovedadLanzamientosUseCase } from '../../application/use-cases/novedad/listar-novedad-lanzamientos.use-case';
@@ -163,30 +172,69 @@ export class NovedadController {
     return ApiResponseDto.success(data, data.message);
   }
 
-  @ApiOperation({ summary: 'Crear tarjeta del carrusel' })
+  @ApiOperation({
+    summary: 'Crear tarjeta del carrusel',
+    description:
+      'Multipart: campo `file` (imagen o video en storage). Para video externo sin archivo, envíe `urlMultimedia`. Las imágenes deben subirse como archivo.',
+  })
   @Post('lanzamientos/:id/tarjetas')
   @HttpCode(HttpStatus.CREATED)
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 20 * 1024 * 1024 },
+    }),
+  )
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['titulo'],
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        titulo: { type: 'string' },
+        descripcion: { type: 'string' },
+        orden: { type: 'integer' },
+        tipoMultimedia: { type: 'string', enum: ['imagen', 'video'] },
+        urlMultimedia: {
+          type: 'string',
+          description: 'Solo video embebido sin archivo',
+        },
+      },
+    },
+  })
   async crearTarjeta(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreateNovedadTarjetaDto,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @Req() request: Request,
   ) {
     const userId = await this.getUserIdFromRequest(request);
-    const data = await this.crearTarjetaUseCase.execute(id, dto, userId);
+    const data = await this.crearTarjetaUseCase.execute(id, dto, userId, file);
     return ApiResponseDto.created(data, data.message);
   }
 
-  @ApiOperation({ summary: 'Actualizar tarjeta del carrusel' })
+  @ApiOperation({
+    summary: 'Actualizar tarjeta del carrusel',
+    description:
+      'Multipart opcional: `file` reemplaza el multimedia (se registra en genArchivo y MinIO).',
+  })
   @Put('tarjetas/:id')
   @HttpCode(HttpStatus.OK)
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 20 * 1024 * 1024 },
+    }),
+  )
   async editarTarjeta(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateNovedadTarjetaDto,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @Req() request: Request,
   ) {
     const userId = await this.getUserIdFromRequest(request);
-    const data = await this.editarTarjetaUseCase.execute(id, dto, userId);
-    return ApiResponseDto.success(data, data.message);
+    const data = await this.editarTarjetaUseCase.execute(id, dto, userId, file);
+    return ApiResponseDto.success(data, data?.message ?? 'Tarjeta actualizada');
   }
 
   @ApiOperation({ summary: 'Eliminar tarjeta (soft delete)' })

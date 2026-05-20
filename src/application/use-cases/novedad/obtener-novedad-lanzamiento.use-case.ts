@@ -6,12 +6,15 @@ import {
 } from '@nestjs/common';
 import type { INovedadRepository } from '../../../domain/repositories/novedad.repository.interface';
 import { NOVEDAD_REPOSITORY } from '../../../domain/repositories/novedad.repository.interface';
+import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
+import { enrichNovedadTarjetasMediaUrls } from './novedad-tarjeta-media.helper';
 
 @Injectable()
 export class ObtenerNovedadLanzamientoUseCase {
   constructor(
     @Inject(NOVEDAD_REPOSITORY)
     private readonly novedadRepository: INovedadRepository,
+    private readonly minioStorage: MinioStorageService,
   ) {}
 
   async execute(id: number) {
@@ -31,6 +34,8 @@ export class ObtenerNovedadLanzamientoUseCase {
       throw new BadRequestException('Respuesta inválida del servidor');
     }
 
-    return resultado.data;
+    const data = resultado.data;
+    await enrichNovedadTarjetasMediaUrls(data, this.minioStorage);
+    return data;
   }
 }

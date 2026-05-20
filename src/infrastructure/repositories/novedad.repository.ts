@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import type {
   INovedadRepository,
   ListarNovedadLanzamientosParams,
@@ -8,6 +9,7 @@ import type {
   SincronizarRolesNovedadData,
   CrearNovedadTarjetaData,
   EditarNovedadTarjetaData,
+  RegistrarArchivoData,
 } from '../../domain/repositories/novedad.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
 
@@ -54,7 +56,22 @@ function parseJsonbResult(result: Record<string, unknown> | null): any {
 export class NovedadRepository implements INovedadRepository {
   constructor(
     private readonly databaseFunctionService: DatabaseFunctionService,
+    private readonly dataSource: DataSource,
   ) {}
+
+  async obtenerIdLanzamientoPorTarjeta(idTarjeta: number): Promise<number | null> {
+    const rows = await this.dataSource.query<
+      { idnovedadlanzamiento: number }[]
+    >(
+      `SELECT idnovedadlanzamiento
+       FROM gennovedadtarjeta
+       WHERE id = $1 AND estado = 1
+       LIMIT 1`,
+      [idTarjeta],
+    );
+    const id = rows[0]?.idnovedadlanzamiento;
+    return id != null ? Number(id) : null;
+  }
 
   async listarLanzamientos(
     params: ListarNovedadLanzamientosParams,
@@ -157,6 +174,21 @@ export class NovedadRepository implements INovedadRepository {
         data.idNovedadLanzamiento,
         data.roles ?? [],
         data.idUsuarioModificacion,
+      ],
+    );
+
+    return result;
+  }
+
+  async registrarArchivo(data: RegistrarArchivoData): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'gen_RegistrarArchivo',
+      [
+        data.url,
+        data.nombreOriginal ?? null,
+        data.tipoMime ?? null,
+        data.tamanoBytes ?? null,
+        data.idUsuarioCreacion,
       ],
     );
 

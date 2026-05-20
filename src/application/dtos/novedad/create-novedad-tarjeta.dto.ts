@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsIn,
   IsInt,
@@ -5,7 +6,6 @@ import {
   IsOptional,
   IsString,
   MaxLength,
-  ValidateIf,
 } from 'class-validator';
 
 export class CreateNovedadTarjetaDto {
@@ -19,6 +19,7 @@ export class CreateNovedadTarjetaDto {
   descripcion?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   orden?: number;
 
@@ -30,11 +31,12 @@ export class CreateNovedadTarjetaDto {
   tipoMultimedia?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   idArchivo?: number;
 
-  @ValidateIf((o) => !o.idArchivo)
-  @IsNotEmpty({ message: 'Debe indicar idArchivo o urlMultimedia' })
+  /** Solo para video embebido externo (YouTube, etc.) cuando no se sube archivo. */
+  @IsOptional()
   @IsString()
   @MaxLength(2000)
   urlMultimedia?: string;

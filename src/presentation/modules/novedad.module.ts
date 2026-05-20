@@ -6,6 +6,8 @@ import { NovedadController } from '../controllers/novedad.controller';
 import { NovedadRepository } from '../../infrastructure/repositories/novedad.repository';
 import { NOVEDAD_REPOSITORY } from '../../domain/repositories/novedad.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
+import { NovedadTarjetaMediaStorageService } from '../../infrastructure/services/novedad-tarjeta-media-storage.service';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 import { ListarNovedadLanzamientosUseCase } from '../../application/use-cases/novedad/listar-novedad-lanzamientos.use-case';
 import { ObtenerNovedadLanzamientoUseCase } from '../../application/use-cases/novedad/obtener-novedad-lanzamiento.use-case';
@@ -22,6 +24,7 @@ import { MarcarNovedadVistaUseCase } from '../../application/use-cases/novedad/m
 @Module({
   imports: [
     DatabaseModule,
+    StorageModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -55,6 +58,7 @@ import { MarcarNovedadVistaUseCase } from '../../application/use-cases/novedad/m
     ObtenerNovedadPendientesUsuarioUseCase,
     MarcarNovedadVistaUseCase,
     JwtStrategy,
+    NovedadTarjetaMediaStorageService,
   ],
   exports: [NOVEDAD_REPOSITORY],
 })
