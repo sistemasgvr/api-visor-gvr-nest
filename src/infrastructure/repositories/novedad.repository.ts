@@ -224,6 +224,7 @@ export class NovedadRepository implements INovedadRepository {
         data.tipoMultimedia ?? null,
         data.idArchivo ?? null,
         data.urlMultimedia ?? null,
+        data.limpiarMultimedia ?? false,
         data.idUsuarioModificacion,
       ],
     );

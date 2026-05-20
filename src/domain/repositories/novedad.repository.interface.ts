@@ -70,6 +70,7 @@ export interface EditarNovedadTarjetaData {
   tipoMultimedia?: string | null;
   idArchivo?: number | null;
   urlMultimedia?: string | null;
+  limpiarMultimedia?: boolean;
   idUsuarioModificacion: number;
 }
 

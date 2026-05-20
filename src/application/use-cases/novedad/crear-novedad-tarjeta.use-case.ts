@@ -23,6 +23,35 @@ export class CrearNovedadTarjetaUseCase {
     idUsuarioCreacion: number,
     file?: Express.Multer.File,
   ) {
+    const sinMultimedia = dto.sinMultimedia === true;
+
+    if (sinMultimedia) {
+      const resultado = await this.novedadRepository.crearTarjeta({
+        idNovedadLanzamiento,
+        titulo: dto.titulo,
+        descripcion: dto.descripcion ?? null,
+        orden: dto.orden ?? 0,
+        tipoMultimedia: '',
+        idArchivo: null,
+        urlMultimedia: null,
+        idUsuarioCreacion,
+      });
+
+      if (!resultado || !resultado.success) {
+        throw new BadRequestException(
+          resultado?.message || 'Error al crear la tarjeta',
+        );
+      }
+
+      const idTarjeta =
+        resultado.id_tarjeta ?? resultado.idTarjeta ?? resultado.id;
+
+      return {
+        message: resultado.message,
+        id: idTarjeta,
+      };
+    }
+
     const tipo = (dto.tipoMultimedia ?? 'imagen').toLowerCase() as
       | 'imagen'
       | 'video';

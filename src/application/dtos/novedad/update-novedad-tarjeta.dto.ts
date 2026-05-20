@@ -1,5 +1,6 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsIn,
   IsInt,
   IsNotEmpty,
@@ -39,4 +40,16 @@ export class UpdateNovedadTarjetaDto {
   @IsString()
   @MaxLength(2000)
   urlMultimedia?: string;
+
+  /** Quita archivo y URL (tarjeta solo texto). */
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  limpiarMultimedia?: boolean;
+
+  /** Alias aceptado desde el front (misma acción que limpiarMultimedia). */
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  sinMultimedia?: boolean;
 }

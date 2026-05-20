@@ -28,8 +28,22 @@ export class EditarNovedadTarjetaUseCase {
       | 'video'
       | undefined;
 
-    let idArchivo = dto.idArchivo ?? null;
-    let urlMultimedia = dto.urlMultimedia?.trim() || null;
+    let idArchivo: number | null | undefined = dto.idArchivo ?? undefined;
+    let urlMultimedia: string | null | undefined = undefined;
+    if (dto.urlMultimedia !== undefined) {
+      const trimmed = dto.urlMultimedia.trim();
+      urlMultimedia = trimmed === '' ? '' : trimmed;
+    }
+
+    const limpiarMultimedia =
+      dto.limpiarMultimedia === true ||
+      dto.sinMultimedia === true ||
+      (dto.tipoMultimedia !== undefined && dto.tipoMultimedia.trim() === '');
+
+    if (limpiarMultimedia) {
+      idArchivo = null;
+      urlMultimedia = '';
+    }
 
     if (file) {
       if (!tipo || (tipo !== 'imagen' && tipo !== 'video')) {
@@ -44,7 +58,7 @@ export class EditarNovedadTarjetaUseCase {
           'La tarjeta no existe o no se pudo determinar su lanzamiento',
         );
       }
-      urlMultimedia = null;
+      urlMultimedia = '';
       idArchivo = await this.persistUploadedFile(
         idLanzamiento,
         tipo,
@@ -58,9 +72,10 @@ export class EditarNovedadTarjetaUseCase {
       titulo: dto.titulo,
       descripcion: dto.descripcion ?? null,
       orden: dto.orden ?? null,
-      tipoMultimedia: dto.tipoMultimedia ?? null,
+      tipoMultimedia: limpiarMultimedia ? null : (dto.tipoMultimedia ?? null),
       idArchivo,
       urlMultimedia,
+      limpiarMultimedia,
       idUsuarioModificacion,
     });
 
