@@ -12,6 +12,7 @@ import {
   Req,
   UseGuards,
   UnauthorizedException,
+  BadRequestException,
   ParseIntPipe,
   UsePipes,
   ValidationPipe,
@@ -92,9 +93,19 @@ export class MenuGestionController {
   @Get('padres-disponibles')
   @HttpCode(HttpStatus.OK)
   async listarMenuPadresDisponibles(
-    @Query('idMenuActual', new ParseIntPipe({ optional: true }))
-    idMenuActual?: number,
+    @Query('idMenuActual') idMenuActualRaw?: string,
   ) {
+    let idMenuActual: number | undefined;
+    if (idMenuActualRaw !== undefined && idMenuActualRaw !== '') {
+      const parsed = Number.parseInt(idMenuActualRaw, 10);
+      if (Number.isNaN(parsed)) {
+        throw new BadRequestException(
+          'idMenuActual debe ser un número entero válido',
+        );
+      }
+      idMenuActual = parsed;
+    }
+
     const data =
       await this.listarMenuPadresDisponiblesUseCase.execute(idMenuActual);
     return ApiResponseDto.success(
