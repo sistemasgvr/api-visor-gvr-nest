@@ -579,6 +579,7 @@ export interface IControlOperativoRepository {
   ): Promise<TrabajadorParaFiltro[]>;
   listarProyectosAccesoTrabajador(
     idTrabajador: number,
+    soloVigentes?: boolean,
   ): Promise<ProyectoAccesoTrabajador[]>;
   /** Proyectos alineados con el alcance de validación (no incluye “todos” para Gerencia). */
   listarProyectosParaValidacion(

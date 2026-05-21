@@ -329,13 +329,14 @@ export class ControlOperativoController {
    * Listar proyectos para filtros en actividades, valorización, desempeño y validación.
    * idTrabajador = tratrabajador.id (ID del trabajador), NO idUsuario (auth). Proyectos se filtran por proaccesoproyecto.idtrabajador.
    * Por rol: admins ven todos; coordinador BIM los que coordina; resto por acceso.
-   * GET /control-operativo/proyectos-acceso-trabajador?idTrabajador=123&paraValidacion=1
+   * GET /control-operativo/proyectos-acceso-trabajador?idTrabajador=123&paraValidacion=1&soloVigentes=1
    * paraValidacion=1 usa pro_ListarProyectosParaValidacion (alineado con actividades-validacion).
+   * soloVigentes=1 limita a proyectos en estado Vigente (registro de actividades).
    */
   @ApiOperation({
     summary: 'Proyectos a los que tiene acceso un trabajador',
     description:
-      'idTrabajador es tratrabajador.id. `paraValidacion=1` usa el mismo alcance que la pestaña Validación.',
+      'idTrabajador es tratrabajador.id. `paraValidacion=1` usa el mismo alcance que la pestaña Validación. `soloVigentes=1` solo proyectos Vigentes.',
   })
   @Get('proyectos-acceso-trabajador')
   @HttpCode(HttpStatus.OK)
@@ -344,6 +345,7 @@ export class ControlOperativoController {
   async listarProyectosAccesoTrabajador(
     @Query('idTrabajador') idTrabajador?: string,
     @Query('paraValidacion') paraValidacion?: string,
+    @Query('soloVigentes') soloVigentes?: string,
   ) {
     const id =
       idTrabajador != null && idTrabajador !== ''
@@ -356,9 +358,10 @@ export class ControlOperativoController {
       );
     }
     const pv = paraValidacion === 'true' || paraValidacion === '1';
+    const sv = soloVigentes === 'true' || soloVigentes === '1';
     const data = pv
       ? await this.listarProyectosParaValidacionUseCase.execute(id)
-      : await this.listarProyectosAccesoTrabajadorUseCase.execute(id);
+      : await this.listarProyectosAccesoTrabajadorUseCase.execute(id, sv);
     return ApiResponseDto.success(
       Array.isArray(data) ? data : [],
       'Proyectos con acceso listados exitosamente',

@@ -12,9 +12,13 @@ export class ListarProyectosAccesoTrabajadorUseCase {
     private readonly controlOperativoRepository: IControlOperativoRepository,
   ) {}
 
-  async execute(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]> {
+  async execute(
+    idTrabajador: number,
+    soloVigentes = false,
+  ): Promise<ProyectoAccesoTrabajador[]> {
     return this.controlOperativoRepository.listarProyectosAccesoTrabajador(
       idTrabajador,
+      soloVigentes,
     );
   }
 }
