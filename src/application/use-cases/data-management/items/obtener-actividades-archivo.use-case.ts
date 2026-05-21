@@ -18,7 +18,9 @@ export type CategoriaActividadArchivo =
   | 'edicion'
   | 'descarga'
   | 'eliminacion'
+  | 'restauracion'
   | 'movimiento'
+  | 'copia'
   | 'incidencia'
   | 'otro';
 
@@ -160,7 +162,9 @@ export class ObtenerActividadesArchivoUseCase {
     const mensaje = partial.mensaje.trim();
     const destacado =
       partial.destacado ??
-      ['subida', 'sobreescritura', 'edicion'].includes(partial.categoria);
+      ['subida', 'sobreescritura', 'edicion', 'eliminacion', 'restauracion'].includes(
+        partial.categoria,
+      );
 
     return {
       ...partial,
@@ -355,6 +359,38 @@ export class ObtenerActividadesArchivoUseCase {
             tipo: 'file_delete',
             categoria: 'eliminacion',
             mensaje: 'eliminó este archivo.',
+            usuario,
+            fecha,
+            fuente: 'gvr',
+            accion,
+            auditoriaId: auditoria.id,
+            metadatos,
+          });
+          break;
+        case 'FILE_RESTORE':
+          actividad = this.crearActividad({
+            id: `audit-${auditoria.id}`,
+            tipo: 'file_restore',
+            categoria: 'restauracion',
+            mensaje:
+              this.extraerMensajeSinUsuario(descripcion, usuario) ||
+              'restauró este archivo.',
+            usuario,
+            fecha,
+            fuente: 'gvr',
+            accion,
+            auditoriaId: auditoria.id,
+            metadatos,
+          });
+          break;
+        case 'FILE_COPY':
+          actividad = this.crearActividad({
+            id: `audit-${auditoria.id}`,
+            tipo: 'file_copy',
+            categoria: 'copia',
+            mensaje:
+              this.extraerMensajeSinUsuario(descripcion, usuario) ||
+              'copió este archivo.',
             usuario,
             fecha,
             fuente: 'gvr',
