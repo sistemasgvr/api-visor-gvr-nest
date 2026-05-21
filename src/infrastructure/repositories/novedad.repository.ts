@@ -73,6 +73,19 @@ export class NovedadRepository implements INovedadRepository {
     return id != null ? Number(id) : null;
   }
 
+  async obtenerArchivoUrlPorTarjeta(idTarjeta: number): Promise<string | null> {
+    const rows = await this.dataSource.query<{ url: string }[]>(
+      `SELECT a.url
+       FROM gennovedadtarjeta t
+       INNER JOIN genarchivo a ON a.id = t.idarchivo AND a.estado = 1
+       WHERE t.id = $1 AND t.estado = 1
+       LIMIT 1`,
+      [idTarjeta],
+    );
+    const url = rows[0]?.url?.trim();
+    return url || null;
+  }
+
   async listarLanzamientos(
     params: ListarNovedadLanzamientosParams,
   ): Promise<ListarNovedadLanzamientosResponse> {

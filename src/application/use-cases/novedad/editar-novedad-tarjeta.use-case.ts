@@ -67,6 +67,15 @@ export class EditarNovedadTarjetaUseCase {
       );
     }
 
+    const urlArchivoAnterior =
+      await this.novedadRepository.obtenerArchivoUrlPorTarjeta(id);
+
+    const debeBorrarArchivoStorage =
+      !!urlArchivoAnterior &&
+      (limpiarMultimedia ||
+        !!file ||
+        (urlMultimedia !== undefined && urlMultimedia.length > 0));
+
     const resultado = await this.novedadRepository.editarTarjeta({
       id,
       titulo: dto.titulo,
@@ -83,6 +92,10 @@ export class EditarNovedadTarjetaUseCase {
       throw new BadRequestException(
         resultado?.message || 'Error al actualizar la tarjeta',
       );
+    }
+
+    if (debeBorrarArchivoStorage && urlArchivoAnterior) {
+      await this.novedadTarjetaMediaStorage.deleteByStoredUrl(urlArchivoAnterior);
     }
 
     return { message: resultado.message };
