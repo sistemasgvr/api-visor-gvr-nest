@@ -10,6 +10,14 @@ import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Request, Response } from 'express';
 
+// ========= FLAGS DE LOG (activar/desactivar aquí) =========
+const LOG_REQUEST_META = true; // método, URL, IP, user-agent
+const LOG_REQUEST_QUERY = false; // request.query
+const LOG_REQUEST_BODY = false; // request.body
+const LOG_RESPONSE_BODY = false; // body de respuesta
+const LOG_ERROR_STACK = false; // stack trace en errores
+const MAX_LOG_PAYLOAD_CHARS = 4000;
+
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger('HTTP');
@@ -18,42 +26,28 @@ export class LoggingInterceptor implements NestInterceptor {
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<Request>();
     const response = ctx.getResponse<Response>();
-    const { method, url, body, query, params, ip } = request;
+    const { method, url, ip } = request;
     const userAgent = request.get('user-agent') || '';
     const startTime = Date.now();
 
     // Log de la petición entrante
-    this.logger.log(
-      `📥 ${method} ${url} - IP: ${ip} - User-Agent: ${userAgent}`,
-    );
-
-    // Log del body si existe (excepto buffers binarios y passwords)
+    if (LOG_REQUEST_META) {
+      this.logger.log(`📥 ${method} ${url} - IP: ${ip} - User-Agent: ${userAgent}`);
+    }
+    if (LOG_REQUEST_QUERY && request.query && Object.keys(request.query).length > 0) {
+      this.logger.log(`   Query: ${this.stringifyForLog(request.query)}`);
+    }
     if (
-      body &&
-      !Buffer.isBuffer(body) &&
-      typeof body === 'object' &&
-      Object.keys(body).length > 0
+      LOG_REQUEST_BODY &&
+      request.body &&
+      typeof request.body === 'object' &&
+      Object.keys(request.body).length > 0
     ) {
-      try {
-        const sanitizedBody = this.sanitizeBody(body);
-        this.logger.log(`   Body: ${JSON.stringify(sanitizedBody)}`);
-      } catch {
-        this.logger.log('   Body: [no serializable]');
-      }
-    }
-
-    // Log de query params si existen
-    if (query && Object.keys(query).length > 0) {
-      this.logger.log(`   Query: ${JSON.stringify(query)}`);
-    }
-
-    // Log de params si existen
-    if (params && Object.keys(params).length > 0) {
-      this.logger.log(`   Params: ${JSON.stringify(params)}`);
+      this.logger.log(`   Body: ${this.stringifyForLog(request.body)}`);
     }
 
     return next.handle().pipe(
-      tap((data) => {
+      tap((responseBody) => {
         const duration = Date.now() - startTime;
         const statusCode = response.statusCode;
         const statusEmoji = this.getStatusEmoji(statusCode);
@@ -62,14 +56,8 @@ export class LoggingInterceptor implements NestInterceptor {
           `${statusEmoji} ${method} ${url} - ${statusCode} - ${duration}ms`,
         );
 
-        // Log de la respuesta (evitar circular refs: Response, Request, Socket)
-        if (data !== undefined && data !== null) {
-          try {
-            const safe = this.safeStringify(data);
-            if (safe !== undefined) this.logger.log(`   Response: ${safe}`);
-          } catch {
-            this.logger.log('   Response: [no serializable]');
-          }
+        if (LOG_RESPONSE_BODY) {
+          this.logger.log(`   Response: ${this.stringifyForLog(responseBody)}`);
         }
       }),
       catchError((error) => {
@@ -94,7 +82,7 @@ export class LoggingInterceptor implements NestInterceptor {
           );
           this.logger.error(`   Error: ${error.message}`);
 
-          if (error.stack) {
+          if (LOG_ERROR_STACK && error.stack) {
             this.logger.log(`   Stack: ${error.stack}`);
           }
         }
@@ -102,39 +90,6 @@ export class LoggingInterceptor implements NestInterceptor {
         throw error;
       }),
     );
-  }
-
-  /**
-   * Sanitiza el body removiendo campos sensibles como passwords
-   */
-  private sanitizeBody(body: any): any {
-    const sensitiveFields = ['password', 'token', 'secret', 'apiKey'];
-    const sanitized = { ...body };
-
-    for (const field of sensitiveFields) {
-      if (sanitized[field]) {
-        sanitized[field] = '***REDACTED***';
-      }
-    }
-
-    return sanitized;
-  }
-
-  /**
-   * Serializa de forma segura evitando referencias circulares (Socket, Request, Response)
-   */
-  private safeStringify(value: any): string | undefined {
-    if (value === undefined || value === null) return undefined;
-    if (
-      typeof value === 'function' ||
-      (typeof value === 'object' && 'socket' in value)
-    )
-      return undefined;
-    try {
-      return JSON.stringify(value);
-    } catch {
-      return undefined;
-    }
   }
 
   /**
@@ -151,5 +106,16 @@ export class LoggingInterceptor implements NestInterceptor {
       return '❌'; // Server error
     }
     return '📋'; // Other
+  }
+
+  private stringifyForLog(payload: unknown): string {
+    try {
+      const serialized =
+        typeof payload === 'string' ? payload : JSON.stringify(payload);
+      if (serialized.length <= MAX_LOG_PAYLOAD_CHARS) return serialized;
+      return `${serialized.slice(0, MAX_LOG_PAYLOAD_CHARS)}... [truncated]`;
+    } catch {
+      return '[unserializable payload]';
+    }
   }
 }

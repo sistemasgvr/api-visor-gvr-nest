@@ -7,3 +7,9 @@ export function getUploadMaxFileSizeBytes(): number {
   if (!Number.isFinite(mb) || mb < 1) return 5 * 1024 * 1024 * 1024;
   return mb * 1024 * 1024;
 }
+
+/** Tamaño de chunk por defecto para subida por partes (10 MB). */
+export const DOCS_CHUNK_SIZE_BYTES = 10 * 1024 * 1024;
+
+/** Máximo de URLs firmadas por lote para APS Direct-to-S3. */
+export const DOCS_CHUNK_SIGNED_URL_BATCH = 25;

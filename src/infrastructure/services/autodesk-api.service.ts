@@ -6576,6 +6576,7 @@ export class AutodeskApiService {
     bucketKey: string,
     objectKey: string,
     parts: number = 1,
+    options?: { firstPart?: number; uploadKey?: string; minutesExpiration?: number },
   ): Promise<any> {
     try {
       if (!accessToken || !bucketKey || !objectKey) {
@@ -6585,7 +6586,19 @@ export class AutodeskApiService {
       const baseUrl =
         this.configService.get<string>('AUTODESK_API_BASE_URL') ||
         'https://developer.api.autodesk.com';
-      const url = `${baseUrl}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3upload?parts=${parts}&minutesExpiration=5`;
+      const qs = new URLSearchParams();
+      qs.set('parts', String(parts));
+      qs.set(
+        'minutesExpiration',
+        String(options?.minutesExpiration ?? 5),
+      );
+      if (options?.firstPart != null && options.firstPart > 0) {
+        qs.set('firstPart', String(options.firstPart));
+      }
+      if (options?.uploadKey) {
+        qs.set('uploadKey', options.uploadKey);
+      }
+      const url = `${baseUrl}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3upload?${qs.toString()}`;
 
       const response = await this.httpClient.get<any>(url, {
         headers: {
@@ -6642,6 +6655,7 @@ export class AutodeskApiService {
     bucketKey: string,
     objectKey: string,
     uploadKey: string,
+    options?: { eTags?: string[]; size?: number },
   ): Promise<any> {
     try {
       if (!accessToken || !bucketKey || !objectKey || !uploadKey) {
@@ -6655,9 +6669,19 @@ export class AutodeskApiService {
         'https://developer.api.autodesk.com';
       const url = `${baseUrl}/oss/v2/buckets/${encodeURIComponent(bucketKey)}/objects/${encodeURIComponent(objectKey)}/signeds3upload`;
 
-      const payload = {
+      const payload: {
+        uploadKey,
+        eTags?: string[];
+        size?: number;
+      } = {
         uploadKey,
       };
+      if (Array.isArray(options?.eTags) && options.eTags.length > 0) {
+        payload.eTags = options.eTags;
+      }
+      if (typeof options?.size === 'number' && Number.isFinite(options.size)) {
+        payload.size = Math.max(0, Math.trunc(options.size));
+      }
 
       const response = await this.httpClient.post<any>(url, payload, {
         headers: {

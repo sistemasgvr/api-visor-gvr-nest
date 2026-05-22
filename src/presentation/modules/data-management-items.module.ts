@@ -23,6 +23,9 @@ import { EliminarItemUseCase } from '../../application/use-cases/data-management
 import { RestaurarItemUseCase } from '../../application/use-cases/data-management/items/restaurar-item.use-case';
 import { DesplazarItemUseCase } from '../../application/use-cases/data-management/items/desplazar-item.use-case';
 import { CopiarItemUseCase } from '../../application/use-cases/data-management/items/copiar-item.use-case';
+import { IniciarSubidaChunkedUseCase } from '../../application/use-cases/data-management/items/iniciar-subida-chunked.use-case';
+import { ObtenerUrlsSubidaChunkedUseCase } from '../../application/use-cases/data-management/items/obtener-urls-subida-chunked.use-case';
+import { CompletarSubidaChunkedUseCase } from '../../application/use-cases/data-management/items/completar-subida-chunked.use-case';
 
 // Infrastructure
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
@@ -52,6 +55,9 @@ import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.inter
     ObtenerActividadesArchivoUseCase,
     // Upload
     SubirArchivoUseCase,
+    IniciarSubidaChunkedUseCase,
+    ObtenerUrlsSubidaChunkedUseCase,
+    CompletarSubidaChunkedUseCase,
     // Create/Update/Delete
     CrearItemUseCase,
     CrearReferenciaItemUseCase,

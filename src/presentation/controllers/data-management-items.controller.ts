@@ -43,6 +43,9 @@ import { EliminarItemUseCase } from '../../application/use-cases/data-management
 import { RestaurarItemUseCase } from '../../application/use-cases/data-management/items/restaurar-item.use-case';
 import { DesplazarItemUseCase } from '../../application/use-cases/data-management/items/desplazar-item.use-case';
 import { CopiarItemUseCase } from '../../application/use-cases/data-management/items/copiar-item.use-case';
+import { IniciarSubidaChunkedUseCase } from '../../application/use-cases/data-management/items/iniciar-subida-chunked.use-case';
+import { ObtenerUrlsSubidaChunkedUseCase } from '../../application/use-cases/data-management/items/obtener-urls-subida-chunked.use-case';
+import { CompletarSubidaChunkedUseCase } from '../../application/use-cases/data-management/items/completar-subida-chunked.use-case';
 
 // DTOs
 import { SubirArchivoDto } from '../../application/dtos/data-management/items/subir-archivo.dto';
@@ -52,6 +55,9 @@ import { ActualizarItemDto } from '../../application/dtos/data-management/items/
 import { DesplazarItemDto } from '../../application/dtos/data-management/items/desplazar-item.dto';
 import { CopiarItemDto } from '../../application/dtos/data-management/items/copiar-item.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { IniciarSubidaChunkedDto } from '../../application/dtos/data-management/items/iniciar-subida-chunked.dto';
+import { ObtenerUrlsSubidaChunkedDto } from '../../application/dtos/data-management/items/obtener-urls-subida-chunked.dto';
+import { CompletarSubidaChunkedDto } from '../../application/dtos/data-management/items/completar-subida-chunked.dto';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
@@ -73,6 +79,9 @@ export class DataManagementItemsController {
     private readonly obtenerActividadesArchivoUseCase: ObtenerActividadesArchivoUseCase,
     // Upload
     private readonly subirArchivoUseCase: SubirArchivoUseCase,
+    private readonly iniciarSubidaChunkedUseCase: IniciarSubidaChunkedUseCase,
+    private readonly obtenerUrlsSubidaChunkedUseCase: ObtenerUrlsSubidaChunkedUseCase,
+    private readonly completarSubidaChunkedUseCase: CompletarSubidaChunkedUseCase,
     // Create/Update/Delete
     private readonly crearItemUseCase: CrearItemUseCase,
     private readonly crearReferenciaItemUseCase: CrearReferenciaItemUseCase,
@@ -126,6 +135,83 @@ export class DataManagementItemsController {
         storage: resultado.storage,
         item: resultado.item,
         included: resultado.included,
+      },
+      'Archivo subido exitosamente',
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Iniciar subida por partes (Direct-to-S3)',
+    description: 'Crea storage y devuelve uploadKey + URLs firmadas del primer lote.',
+  })
+  @Post(':projectId/upload/chunked/init')
+  @HttpCode(HttpStatus.OK)
+  async iniciarSubidaChunked(
+    @Req() request: Request,
+    @Param('projectId') projectId: string,
+    @Body() dto: IniciarSubidaChunkedDto,
+  ) {
+    const user = request.user!;
+    const data = await this.iniciarSubidaChunkedUseCase.execute(
+      user.sub,
+      projectId,
+      dto,
+    );
+    return ApiResponseDto.success(data, 'Subida por partes inicializada');
+  }
+
+  @ApiOperation({
+    summary: 'Obtener más URLs firmadas para subida por partes',
+    description:
+      'Usa uploadKey de una sesión iniciada y devuelve URLs del rango solicitado.',
+  })
+  @Post(':projectId/upload/chunked/urls')
+  @HttpCode(HttpStatus.OK)
+  async obtenerUrlsSubidaChunked(
+    @Req() request: Request,
+    @Param('projectId') _projectId: string,
+    @Body() dto: ObtenerUrlsSubidaChunkedDto,
+  ) {
+    const user = request.user!;
+    const data = await this.obtenerUrlsSubidaChunkedUseCase.execute(
+      user.sub,
+      dto,
+    );
+    return ApiResponseDto.success(data, 'URLs de subida obtenidas');
+  }
+
+  @ApiOperation({
+    summary: 'Completar subida por partes (Direct-to-S3)',
+    description: 'Finaliza uploadKey y crea item/version en ACC.',
+  })
+  @Post(':projectId/upload/chunked/complete')
+  @HttpCode(HttpStatus.OK)
+  async completarSubidaChunked(
+    @Req() request: Request,
+    @Param('projectId') projectId: string,
+    @Body() dto: CompletarSubidaChunkedDto,
+  ) {
+    const user = request.user!;
+    const requestInfo = RequestInfoHelper.extract(request);
+    const userRole =
+      user?.roles && Array.isArray(user.roles) && user.roles.length > 0
+        ? user.roles[0]?.nombre || user.roles[0]?.name || undefined
+        : undefined;
+
+    const data = await this.completarSubidaChunkedUseCase.execute(
+      user.sub,
+      projectId,
+      dto,
+      requestInfo.ipAddress,
+      requestInfo.userAgent,
+      userRole,
+    );
+
+    return ApiResponseDto.success(
+      {
+        storage: data.upload,
+        item: data.item,
+        included: data.included,
       },
       'Archivo subido exitosamente',
     );
