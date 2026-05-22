@@ -16,6 +16,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { getUploadMaxFileSizeBytes } from '../../config/upload.constants';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
@@ -92,7 +93,11 @@ export class DataManagementItemsController {
     description: 'Multipart file + dto.folderId; crea primera versión en ACC.',
   })
   @Post(':projectId/upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: getUploadMaxFileSizeBytes() },
+    }),
+  )
   @HttpCode(HttpStatus.CREATED)
   async subirArchivo(
     @Req() request: Request,

@@ -153,8 +153,18 @@ docker exec -it <container-id> sh
 - En Easy Panel, verifica la configuración de red
 
 ### CORS errors
-- Configura `ALLOWED_ORIGINS` con los dominios correctos
+- Configura `FRONTEND_URLS` con los dominios del front (coma-separados), por ejemplo:
+  `https://gestion.proyectosgvr.com,https://www.gestion.proyectosgvr.com`
+- La API añade automáticamente la variante con/sin `www` si solo listas uno.
+- Si ves CORS junto con **502** en Network, suele ser el proxy devolviendo HTML sin cabeceras CORS; arregla primero el 502/timeout (abajo).
 - No uses `*` en producción
+
+### Subida de archivos DOCS falla (Network Error / 502) con .rvt u otros archivos grandes
+- El flujo sube el archivo al API Nest y luego a S3 de Autodesk; archivos grandes tardan varios minutos.
+- **Easy Panel / Nginx**: aumenta `client_max_body_size` (ej. `5120m`) y `proxy_read_timeout` / `proxy_send_timeout` (ej. `3600s`) en el proxy del servicio API.
+- **Contenedor API**: memoria recomendada ≥ 2–4 GB si suben modelos BIM pesados (hasta 5 GB por archivo).
+- Variables opcionales: `UPLOAD_MAX_FILE_SIZE_MB=5120` (5 GB por defecto en la API).
+- Tras desplegar, los errores JSON de la API incluyen cabeceras CORS aunque falle la subida (permisos ACC, token Autodesk, etc.).
 
 ### Login falla solo en iPhone / Safari ("credenciales inválidas")
 - **Cookies**: Si en el futuro la API o un proxy (p. ej. Easypanel) envía cookies, en Safari/iOS deben usar `SameSite=None` y `Secure`, o Safari las bloquea y puede afectar la sesión.

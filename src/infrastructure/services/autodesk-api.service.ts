@@ -2,6 +2,7 @@ import { Injectable, Logger, PayloadTooLargeException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { translateAutodeskApiEnglishFragment } from '../utils/autodesk-error-i18n';
 import { HttpClientService } from '../../shared/services/http-client.service';
+import { UPLOAD_S3_HTTP_TIMEOUT_MS } from '../../config/upload.constants';
 
 export interface Token2LeggedResponse {
   access_token: string;
@@ -6619,6 +6620,7 @@ export class AutodeskApiService {
         },
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
+        timeout: UPLOAD_S3_HTTP_TIMEOUT_MS,
       });
 
       return {

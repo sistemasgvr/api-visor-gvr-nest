@@ -3,6 +3,7 @@ import { config as loadDotenv } from 'dotenv';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import * as joi from 'joi';
+import { buildCorsAllowedOrigins } from './cors-origins.util';
 
 const rootEnvPath = join(__dirname, '..', '..', '.env');
 if (existsSync(rootEnvPath)) {
@@ -78,9 +79,9 @@ export const envs = {
   dbSynchronize: envsVars.DB_SYNCHRONIZE,
   dbLogging: envsVars.DB_LOGGING,
   databaseUrl: envsVars.DATABASE_URL,
-  frontendUrls: envsVars.FRONTEND_URLS.split(',')
-    .map((u) => u.trim())
-    .filter(Boolean),
+  frontendUrls: buildCorsAllowedOrigins(
+    envsVars.FRONTEND_URLS.split(',').map((u) => u.trim()).filter(Boolean),
+  ),
   collaboraUrl: envsVars.COLLABORA_URL?.trim() || '',
   jwtSecret: envsVars.JWT_SECRET,
   jwtExpiresIn: envsVars.JWT_EXPIRES_IN,

@@ -17,6 +17,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { useRequestId } from './bootstrap/apply-core-middlewares';
 import { envs } from './config';
+import { isOriginAllowed } from './config/cors-origins.util';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
 import { spanishValidationExceptionFactory } from './shared/validation/spanish-validation-messages';
@@ -95,14 +96,10 @@ async function bootstrap() {
       origin: string | undefined,
       callback: (err: Error | null, allow?: boolean) => void,
     ) => {
-      if (!origin) return callback(null, true); // Collabora server-to-server sin Origin
-      const normalized = origin.replace(/\/$/, '');
-      if (
-        allowedOrigins.some(
-          (o) => origin === o || normalized === o.replace(/\/$/, ''),
-        )
-      )
-        return callback(null, true);
+      if (isOriginAllowed(origin, allowedOrigins)) return callback(null, true);
+      if (origin) {
+        logger.warn(`CORS rechazado para origin: ${origin}`);
+      }
       callback(null, false);
     },
     methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
