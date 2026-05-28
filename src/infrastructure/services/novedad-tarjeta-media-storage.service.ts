@@ -15,8 +15,7 @@ import {
 
 const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const VIDEO_MIMES = ['video/mp4', 'video/webm', 'video/quicktime'];
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const MAX_VIDEO_BYTES = 20 * 1024 * 1024;
+const MAX_NOVEDAD_TARJETA_MEDIA_BYTES = 20 * 1024 * 1024;
 
 export interface SavedNovedadTarjetaMedia {
   url: string;
@@ -51,8 +50,8 @@ export class NovedadTarjetaMediaStorageService {
           'Formato de imagen no permitido. Use JPEG, PNG, WebP o GIF.',
         );
       }
-      if ((file.size ?? 0) > MAX_IMAGE_BYTES) {
-        throw new BadRequestException('La imagen no debe superar 5 MB.');
+      if ((file.size ?? 0) > MAX_NOVEDAD_TARJETA_MEDIA_BYTES) {
+        throw new BadRequestException('La imagen no debe superar 20 MB.');
       }
 
       /** GIF: conservar animación y formato (no convertir a WebP). */
@@ -100,7 +99,7 @@ export class NovedadTarjetaMediaStorageService {
         'Formato de video no permitido. Use MP4, WebM o MOV.',
       );
     }
-    if ((file.size ?? 0) > MAX_VIDEO_BYTES) {
+    if ((file.size ?? 0) > MAX_NOVEDAD_TARJETA_MEDIA_BYTES) {
       throw new BadRequestException('El video no debe superar 20 MB.');
     }
 
