@@ -33,6 +33,7 @@ import { Bim360ProjectsModule } from './presentation/modules/bim360-projects.mod
 import { DataManagementBucketsModule } from './presentation/modules/data-management-buckets.module';
 import { AuditoriaModule } from './presentation/modules/auditoria.module';
 import { AccRecursosModule } from './presentation/modules/acc-recursos.module';
+import { AccDocumentConfigModule } from './presentation/modules/acc-document-config.module';
 import { BroadcastModule } from './presentation/modules/broadcast.module';
 import { NotificacionesModule } from './presentation/modules/notificaciones.module';
 import { HealthModule } from './presentation/modules/health.module';
@@ -82,6 +83,7 @@ import { StorageModule } from './infrastructure/storage/storage.module';
     DataManagementBucketsModule,
     AuditoriaModule,
     AccRecursosModule,
+    AccDocumentConfigModule,
     NotificacionesModule,
     UserModule,
     GeneralModule,
