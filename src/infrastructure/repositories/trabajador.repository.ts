@@ -385,7 +385,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
   }
 
   async eliminarAdjuntosPorTrabajador(idTrabajador: number): Promise<void> {
-    await this.databaseFunctionService.callFunction(
+    await this.databaseFunctionService.callFunctionVoid(
       'tra_EliminarAdjuntosPorTrabajador',
       [idTrabajador],
     );
@@ -405,7 +405,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         String(a.ruta).trim() !== '',
     );
     if (filtered.length === 0) return;
-    await this.databaseFunctionService.callFunction('tra_InsertarAdjuntos', [
+    await this.databaseFunctionService.callFunctionVoid('tra_InsertarAdjuntos', [
       idTrabajador,
       JSON.stringify(filtered),
       idUsuarioCreacion ?? null,

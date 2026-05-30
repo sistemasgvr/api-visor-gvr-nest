@@ -63,6 +63,19 @@ export class DatabaseFunctionService {
   }
 
   /**
+   * Ejecuta una función almacenada que retorna VOID (no usar callFunction con SELECT *).
+   */
+  async callFunctionVoid(
+    functionName: string,
+    params: any[] = [],
+  ): Promise<void> {
+    const placeholders = params.map((_, index) => `$${index + 1}`).join(', ');
+    const quotedName = `"${functionName.replace(/"/g, '""')}"`;
+    const query = `SELECT ${quotedName}(${placeholders})`;
+    await this.dataSource.query(query, params);
+  }
+
+  /**
    * Ejecuta una query SQL personalizada
    * @param query Query SQL a ejecutar
    * @param params Parámetros para la query
