@@ -17,17 +17,20 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import {
+  CreateNamingStandardFromTemplateUseCase,
   GenerarNombreDocumentoUseCase,
   ListarDocumentAttributesUseCase,
   ListarDocumentMetadataPorCarpetaUseCase,
   ListarDocumentNamingStandardsUseCase,
   ObtenerDocumentMetadataUseCase,
   ObtenerFolderNamingRuleUseCase,
+  ObtenerNamingTemplatePreviewUseCase,
   UpsertDocumentAttributeUseCase,
   UpsertDocumentMetadataUseCase,
   UpsertDocumentNamingStandardUseCase,
   UpsertFolderNamingRuleUseCase,
 } from '../../application/use-cases/acc/document-config';
+import { CreateNamingStandardFromTemplateDto } from '../../application/dtos/acc/document-config/create-naming-standard-from-template.dto';
 import { ListDocumentAttributesQueryDto } from '../../application/dtos/acc/document-config/list-document-attributes-query.dto';
 import { UpsertDocumentAttributeDto } from '../../application/dtos/acc/document-config/upsert-document-attribute.dto';
 import { UpsertDocumentNamingStandardDto } from '../../application/dtos/acc/document-config/upsert-document-naming-standard.dto';
@@ -45,6 +48,8 @@ export class AccDocumentConfigController {
     private readonly upsertDocumentAttributeUseCase: UpsertDocumentAttributeUseCase,
     private readonly listarDocumentNamingStandardsUseCase: ListarDocumentNamingStandardsUseCase,
     private readonly upsertDocumentNamingStandardUseCase: UpsertDocumentNamingStandardUseCase,
+    private readonly createNamingStandardFromTemplateUseCase: CreateNamingStandardFromTemplateUseCase,
+    private readonly obtenerNamingTemplatePreviewUseCase: ObtenerNamingTemplatePreviewUseCase,
     private readonly obtenerFolderNamingRuleUseCase: ObtenerFolderNamingRuleUseCase,
     private readonly upsertFolderNamingRuleUseCase: UpsertFolderNamingRuleUseCase,
     private readonly generarNombreDocumentoUseCase: GenerarNombreDocumentoUseCase,
@@ -138,6 +143,40 @@ export class AccDocumentConfigController {
       data,
       String(data.message ?? 'Nomenclatura guardada'),
     );
+  }
+
+  @Post(':projectExternalId/naming-standards/from-template')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Crear nomenclatura desde plantilla (ISO 19650)' })
+  async createNamingStandardFromTemplate(
+    @Param('projectExternalId') projectExternalId: string,
+    @Body() dto: CreateNamingStandardFromTemplateDto,
+    @Req() req: Request,
+  ) {
+    const userId = this.getUserId(req);
+    const data = await this.createNamingStandardFromTemplateUseCase.execute({
+      projectExternalId,
+      templateCode: dto.templateCode,
+      codigo: dto.codigo,
+      nombre: dto.nombre,
+      descripcion: dto.descripcion,
+      separador: dto.separador,
+      idUsuario: userId,
+    });
+
+    return ApiResponseDto.success(
+      data,
+      String(data.message ?? 'Nomenclatura creada desde plantilla'),
+    );
+  }
+
+  @Get(':projectExternalId/naming-templates/:templateCode/preview')
+  @ApiOperation({ summary: 'Obtener vista previa de plantilla de nomenclatura' })
+  async getNamingTemplatePreview(
+    @Param('templateCode') templateCode: string,
+  ) {
+    const data = this.obtenerNamingTemplatePreviewUseCase.execute(templateCode);
+    return ApiResponseDto.success(data, 'Plantilla obtenida correctamente');
   }
 
   @Get(':projectExternalId/folders/:folderExternalId/naming-rule')

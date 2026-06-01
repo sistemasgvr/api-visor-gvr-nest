@@ -8,3 +8,5 @@ export { GenerarNombreDocumentoUseCase } from './generar-nombre-documento.use-ca
 export { UpsertDocumentMetadataUseCase } from './upsert-document-metadata.use-case';
 export { ObtenerDocumentMetadataUseCase } from './obtener-document-metadata.use-case';
 export { ListarDocumentMetadataPorCarpetaUseCase } from './listar-document-metadata-por-carpeta.use-case';
+export { CreateNamingStandardFromTemplateUseCase } from './create-naming-standard-from-template.use-case';
+export { ObtenerNamingTemplatePreviewUseCase } from './obtener-naming-template-preview.use-case';

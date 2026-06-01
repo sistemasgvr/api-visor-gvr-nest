@@ -51,6 +51,16 @@ export interface UpsertFolderNamingRuleData {
   idUsuario?: number | null;
 }
 
+export interface CreateNamingStandardFromTemplateData {
+  projectExternalId: string;
+  templateCode: 'iso19650';
+  codigo: string;
+  nombre: string;
+  descripcion?: string | null;
+  separador?: string;
+  idUsuario?: number | null;
+}
+
 export interface GenerarNombreDocumentoData {
   projectExternalId: string;
   folderExternalId: string;
@@ -81,6 +91,9 @@ export interface IAccDocumentConfigRepository {
     folderExternalId: string,
   ): Promise<any>;
   upsertFolderNamingRule(data: UpsertFolderNamingRuleData): Promise<any>;
+  createNamingStandardFromTemplate(
+    data: CreateNamingStandardFromTemplateData,
+  ): Promise<any>;
   generarNombreDocumento(data: GenerarNombreDocumentoData): Promise<any>;
   upsertMetadata(data: UpsertDocumentMetadataData): Promise<any>;
   obtenerMetadata(

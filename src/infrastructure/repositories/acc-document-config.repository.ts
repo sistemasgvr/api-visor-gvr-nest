@@ -6,6 +6,7 @@ import type {
   UpsertDocumentAttributeData,
   UpsertDocumentNamingStandardData,
   UpsertFolderNamingRuleData,
+  CreateNamingStandardFromTemplateData,
   GenerarNombreDocumentoData,
   UpsertDocumentMetadataData,
 } from '../../domain/repositories/acc-document-config.repository.interface';
@@ -157,6 +158,23 @@ export class AccDocumentConfigRepository implements IAccDocumentConfigRepository
         normalizeExternalId(data.projectExternalId),
         normalizeExternalId(data.folderExternalId),
         data.namingStandardId,
+        data.idUsuario ?? null,
+      ],
+    );
+  }
+
+  async createNamingStandardFromTemplate(
+    data: CreateNamingStandardFromTemplateData,
+  ): Promise<any> {
+    return this.databaseFunctionService.callFunctionSingle<any>(
+      'acc_CreateNamingStandardFromTemplate',
+      [
+        normalizeExternalId(data.projectExternalId),
+        data.templateCode,
+        data.codigo,
+        data.nombre,
+        data.descripcion ?? null,
+        data.separador ?? '-',
         data.idUsuario ?? null,
       ],
     );

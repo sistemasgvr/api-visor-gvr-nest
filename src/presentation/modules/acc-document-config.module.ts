@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { AccDocumentConfigController } from '../controllers/acc-document-config.controller';
 import {
+  CreateNamingStandardFromTemplateUseCase,
   GenerarNombreDocumentoUseCase,
   ListarDocumentAttributesUseCase,
   ListarDocumentMetadataPorCarpetaUseCase,
   ListarDocumentNamingStandardsUseCase,
   ObtenerDocumentMetadataUseCase,
   ObtenerFolderNamingRuleUseCase,
+  ObtenerNamingTemplatePreviewUseCase,
   UpsertDocumentAttributeUseCase,
   UpsertDocumentMetadataUseCase,
   UpsertDocumentNamingStandardUseCase,
@@ -23,6 +25,8 @@ import { DatabaseFunctionService } from '../../infrastructure/database/database-
     UpsertDocumentAttributeUseCase,
     ListarDocumentNamingStandardsUseCase,
     UpsertDocumentNamingStandardUseCase,
+    CreateNamingStandardFromTemplateUseCase,
+    ObtenerNamingTemplatePreviewUseCase,
     ObtenerFolderNamingRuleUseCase,
     UpsertFolderNamingRuleUseCase,
     GenerarNombreDocumentoUseCase,
