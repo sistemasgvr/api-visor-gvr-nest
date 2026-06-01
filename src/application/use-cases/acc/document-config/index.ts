@@ -4,6 +4,7 @@ export { ListarDocumentNamingStandardsUseCase } from './listar-document-naming-s
 export { UpsertDocumentNamingStandardUseCase } from './upsert-document-naming-standard.use-case';
 export { ObtenerFolderNamingRuleUseCase } from './obtener-folder-naming-rule.use-case';
 export { UpsertFolderNamingRuleUseCase } from './upsert-folder-naming-rule.use-case';
+export { EliminarFolderNamingRuleUseCase } from './eliminar-folder-naming-rule.use-case';
 export { GenerarNombreDocumentoUseCase } from './generar-nombre-documento.use-case';
 export { UpsertDocumentMetadataUseCase } from './upsert-document-metadata.use-case';
 export { ObtenerDocumentMetadataUseCase } from './obtener-document-metadata.use-case';

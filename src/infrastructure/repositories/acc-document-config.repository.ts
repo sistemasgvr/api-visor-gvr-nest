@@ -6,6 +6,7 @@ import type {
   UpsertDocumentAttributeData,
   UpsertDocumentNamingStandardData,
   UpsertFolderNamingRuleData,
+  EliminarFolderNamingRuleData,
   CreateNamingStandardFromTemplateData,
   GenerarNombreDocumentoData,
   UpsertDocumentMetadataData,
@@ -158,6 +159,19 @@ export class AccDocumentConfigRepository implements IAccDocumentConfigRepository
         normalizeExternalId(data.projectExternalId),
         normalizeExternalId(data.folderExternalId),
         data.namingStandardId,
+        data.idUsuario ?? null,
+      ],
+    );
+  }
+
+  async eliminarFolderNamingRule(
+    data: EliminarFolderNamingRuleData,
+  ): Promise<any> {
+    return this.databaseFunctionService.callFunctionSingle<any>(
+      'acc_DeleteFolderNamingRule',
+      [
+        normalizeExternalId(data.projectExternalId),
+        normalizeExternalId(data.folderExternalId),
         data.idUsuario ?? null,
       ],
     );

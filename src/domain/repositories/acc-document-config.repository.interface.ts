@@ -51,6 +51,12 @@ export interface UpsertFolderNamingRuleData {
   idUsuario?: number | null;
 }
 
+export interface EliminarFolderNamingRuleData {
+  projectExternalId: string;
+  folderExternalId: string;
+  idUsuario?: number | null;
+}
+
 export interface CreateNamingStandardFromTemplateData {
   projectExternalId: string;
   templateCode: 'iso19650';
@@ -91,6 +97,7 @@ export interface IAccDocumentConfigRepository {
     folderExternalId: string,
   ): Promise<any>;
   upsertFolderNamingRule(data: UpsertFolderNamingRuleData): Promise<any>;
+  eliminarFolderNamingRule(data: EliminarFolderNamingRuleData): Promise<any>;
   createNamingStandardFromTemplate(
     data: CreateNamingStandardFromTemplateData,
   ): Promise<any>;

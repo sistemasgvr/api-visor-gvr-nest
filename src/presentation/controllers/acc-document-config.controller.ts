@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Delete,
   Query,
   Req,
   UnauthorizedException,
@@ -29,6 +30,7 @@ import {
   UpsertDocumentMetadataUseCase,
   UpsertDocumentNamingStandardUseCase,
   UpsertFolderNamingRuleUseCase,
+  EliminarFolderNamingRuleUseCase,
 } from '../../application/use-cases/acc/document-config';
 import { CreateNamingStandardFromTemplateDto } from '../../application/dtos/acc/document-config/create-naming-standard-from-template.dto';
 import { ListDocumentAttributesQueryDto } from '../../application/dtos/acc/document-config/list-document-attributes-query.dto';
@@ -52,6 +54,7 @@ export class AccDocumentConfigController {
     private readonly obtenerNamingTemplatePreviewUseCase: ObtenerNamingTemplatePreviewUseCase,
     private readonly obtenerFolderNamingRuleUseCase: ObtenerFolderNamingRuleUseCase,
     private readonly upsertFolderNamingRuleUseCase: UpsertFolderNamingRuleUseCase,
+    private readonly eliminarFolderNamingRuleUseCase: EliminarFolderNamingRuleUseCase,
     private readonly generarNombreDocumentoUseCase: GenerarNombreDocumentoUseCase,
     private readonly upsertDocumentMetadataUseCase: UpsertDocumentMetadataUseCase,
     private readonly obtenerDocumentMetadataUseCase: ObtenerDocumentMetadataUseCase,
@@ -211,6 +214,27 @@ export class AccDocumentConfigController {
     return ApiResponseDto.success(
       data,
       String(data.message ?? 'Regla de carpeta guardada'),
+    );
+  }
+
+  @Delete(':projectExternalId/folders/:folderExternalId/naming-rule')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Quitar nomenclatura asignada directamente a una carpeta' })
+  async eliminarFolderNamingRule(
+    @Param('projectExternalId') projectExternalId: string,
+    @Param('folderExternalId') folderExternalId: string,
+    @Req() req: Request,
+  ) {
+    const userId = this.getUserId(req);
+    const data = await this.eliminarFolderNamingRuleUseCase.execute({
+      projectExternalId,
+      folderExternalId,
+      idUsuario: userId,
+    });
+
+    return ApiResponseDto.success(
+      data,
+      String(data.message ?? 'Regla quitada de esta carpeta'),
     );
   }
 
