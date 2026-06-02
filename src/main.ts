@@ -140,6 +140,7 @@ async function bootstrap() {
     .addTag('empresas', 'Empresas cliente y datos corporativos')
     .addTag('usuarios', 'Credenciales y perfil de usuario')
     .addTag('proyectos', 'Proyectos GVR: CRUD, accesos, documentos y coordinadores')
+    .addTag('entregables', 'Entregables de proyecto (Control Operativo): listado global, CRUD y paginación')
     .addTag('roles', 'Roles y permisos (API rolesv2)')
     .addTag('permisos', 'Catálogo de permisos')
     .addTag('general', 'Menús, listas desplegables y catálogos')

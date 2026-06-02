@@ -15,7 +15,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
@@ -26,6 +34,11 @@ import { ActualizarEntregableProyectoUseCase } from '../../application/use-cases
 import { EliminarEntregableProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-entregable-proyecto.use-case';
 import { CreateEntregableProyectoDto } from '../../application/dtos/proyecto/create-entregable-proyecto.dto';
 import { UpdateEntregableProyectoDto } from '../../application/dtos/proyecto/update-entregable-proyecto.dto';
+import {
+  EntregableItemDto,
+  EntregableMutationResultDto,
+  ListarEntregablesDataDto,
+} from '../../application/dtos/proyecto/entregable-response.dto';
 
 @ApiTags('entregables')
 @ApiBearerAuth('access-token')
@@ -44,24 +57,63 @@ export class EntregableController {
   @ApiOperation({
     summary: 'Listar entregables',
     description:
-      'Listado global de entregables con filtros opcionales por proyecto, estado y búsqueda.',
+      'Listado paginado de entregables. Filtros opcionales por proyecto, estado y búsqueda (nombre, descripción o nombre de proyecto).',
   })
+  @ApiQuery({
+    name: 'idProyecto',
+    required: false,
+    type: Number,
+    description: 'Filtrar por proyecto. Omitir para listar todos.',
+  })
+  @ApiQuery({
+    name: 'busqueda',
+    required: false,
+    type: String,
+    description: 'Texto en nombre, descripción o nombre del proyecto',
+  })
+  @ApiQuery({
+    name: 'idEstado',
+    required: false,
+    type: Number,
+    description: 'Estado del entregable (lista 46: 561, 562, 563)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    example: 10,
+    description: 'Registros por página (default 10)',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    example: 0,
+    description: 'Desplazamiento para paginación (default 0)',
+  })
+  @ApiResponse({ status: 200, description: 'Listado paginado', type: ListarEntregablesDataDto })
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarEntregables(
     @Query('idProyecto', new ParseIntPipe({ optional: true })) idProyecto?: number,
     @Query('busqueda') busqueda?: string,
     @Query('idEstado', new ParseIntPipe({ optional: true })) idEstado?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
   ) {
     const data = await this.listarEntregablesProyectoUseCase.execute({
       idProyecto,
       busqueda: busqueda ?? '',
       idEstado,
+      limit,
+      offset,
     });
     return ApiResponseDto.success(data, 'Entregables obtenidos exitosamente');
   }
 
   @ApiOperation({ summary: 'Obtener entregable por id' })
+  @ApiParam({ name: 'id', type: Number, description: 'ID del entregable' })
+  @ApiResponse({ status: 200, type: EntregableItemDto })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async obtenerEntregable(@Param('id', ParseIntPipe) id: number) {
@@ -69,7 +121,27 @@ export class EntregableController {
     return ApiResponseDto.success(data, 'Entregable obtenido exitosamente');
   }
 
-  @ApiOperation({ summary: 'Crear entregable' })
+  @ApiOperation({
+    summary: 'Crear entregable',
+    description: 'Registra un entregable en un proyecto. idEstado por defecto 561 (PROCESO).',
+  })
+  @ApiBody({
+    type: CreateEntregableProyectoDto,
+    examples: {
+      default: {
+        summary: 'Payload crear entregable',
+        value: {
+          idProyecto: 1,
+          nombre: 'Entrega fase 1',
+          descripcion: 'Planos y memorias',
+          idEstado: 561,
+          fechaEstimada: '2026-06-15T00:00:00.000Z',
+          fechaEntrega: null,
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, type: EntregableMutationResultDto })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async crearEntregable(
@@ -87,6 +159,23 @@ export class EntregableController {
   }
 
   @ApiOperation({ summary: 'Actualizar entregable' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiBody({
+    type: UpdateEntregableProyectoDto,
+    examples: {
+      default: {
+        summary: 'Payload actualizar entregable',
+        value: {
+          nombre: 'Entrega fase 1 (rev.)',
+          descripcion: 'Descripción actualizada',
+          idEstado: 562,
+          fechaEstimada: '2026-06-15T00:00:00.000Z',
+          fechaEntrega: '2026-06-20T00:00:00.000Z',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, type: EntregableMutationResultDto })
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async actualizarEntregable(
@@ -105,7 +194,9 @@ export class EntregableController {
     return ApiResponseDto.success(data, 'Entregable actualizado exitosamente');
   }
 
-  @ApiOperation({ summary: 'Eliminar entregable' })
+  @ApiOperation({ summary: 'Eliminar entregable (baja lógica)' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, type: EntregableMutationResultDto })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async eliminarEntregable(

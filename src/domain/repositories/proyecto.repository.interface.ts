@@ -78,6 +78,19 @@ export interface ListarEntregablesProyectoParams {
   idProyecto?: number;
   busqueda?: string;
   idEstado?: number;
+  limit?: number;
+  offset?: number;
+}
+
+export interface ListarEntregablesProyectoResponse {
+  data: any[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    total_pages: number;
+    current_page: number;
+  };
 }
 
 export interface CrearEntregableProyectoData {
@@ -168,7 +181,7 @@ export interface IProyectoRepository {
   ): Promise<{ success: boolean; message: string }>;
   listarEntregablesProyecto(
     params: ListarEntregablesProyectoParams,
-  ): Promise<any[]>;
+  ): Promise<ListarEntregablesProyectoResponse>;
   obtenerEntregablePorId(idEntregable: number): Promise<any | null>;
   crearEntregableProyecto(
     idProyecto: number,
