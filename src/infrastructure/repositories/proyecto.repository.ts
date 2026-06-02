@@ -10,6 +10,7 @@ import type {
   CrearDocumentoProyectoData,
   ActualizarDocumentoProyectoData,
   ListarEntregablesProyectoParams,
+  ListarEntregablesProyectoResponse,
   CrearEntregableProyectoData,
   ActualizarEntregableProyectoData,
 } from '../../domain/repositories/proyecto.repository.interface';
@@ -294,13 +295,44 @@ export class ProyectoRepository implements IProyectoRepository {
 
   async listarEntregablesProyecto(
     params: ListarEntregablesProyectoParams,
-  ): Promise<any[]> {
-    const { idProyecto = null, busqueda = '', idEstado = null } = params;
+  ): Promise<ListarEntregablesProyectoResponse> {
+    const {
+      idProyecto = null,
+      busqueda = '',
+      idEstado = null,
+      limit = 10,
+      offset = 0,
+    } = params;
     const result = await this.databaseFunctionService.callFunction<any>(
       'pro_ListarEntregablesProyecto',
-      [idProyecto, busqueda, idEstado],
+      [idProyecto, busqueda, idEstado, limit, offset],
     );
-    return result ?? [];
+
+    if (!result || result.length === 0) {
+      return {
+        data: [],
+        pagination: {
+          total: 0,
+          limit,
+          offset,
+          total_pages: 0,
+          current_page: 1,
+        },
+      };
+    }
+
+    const totalRegistros = Number(result[0]?.total_registros ?? 0);
+
+    return {
+      data: result,
+      pagination: {
+        total: totalRegistros,
+        limit,
+        offset,
+        total_pages: limit > 0 ? Math.ceil(totalRegistros / limit) : 0,
+        current_page: limit > 0 ? Math.floor(offset / limit) + 1 : 1,
+      },
+    };
   }
 
   async obtenerEntregablePorId(idEntregable: number): Promise<any | null> {
