@@ -74,6 +74,29 @@ export interface ActualizarDocumentoProyectoData {
   linkDocumento?: string;
 }
 
+export interface ListarEntregablesProyectoParams {
+  idProyecto?: number;
+  busqueda?: string;
+  idEstado?: number;
+}
+
+export interface CrearEntregableProyectoData {
+  idProyecto: number;
+  nombre: string;
+  descripcion?: string;
+  idEstado?: number;
+  fechaEstimada?: string | null;
+  fechaEntrega?: string | null;
+}
+
+export interface ActualizarEntregableProyectoData {
+  nombre: string;
+  descripcion?: string;
+  idEstado?: number | null;
+  fechaEstimada?: string | null;
+  fechaEntrega?: string | null;
+}
+
 /** Coordinador con sus miembros del equipo (proListarCoordinadoresProyecto) */
 export interface CoordinadorProyectoItem {
   id_proyectocoordinador: number;
@@ -141,6 +164,24 @@ export interface IProyectoRepository {
   ): Promise<{ success: boolean; message: string }>;
   eliminarDocumentoProyecto(
     idDocumento: number,
+    idUsuarioModificacion: number,
+  ): Promise<{ success: boolean; message: string }>;
+  listarEntregablesProyecto(
+    params: ListarEntregablesProyectoParams,
+  ): Promise<any[]>;
+  obtenerEntregablePorId(idEntregable: number): Promise<any | null>;
+  crearEntregableProyecto(
+    idProyecto: number,
+    data: CrearEntregableProyectoData,
+    idUsuarioCreacion: number,
+  ): Promise<AsignarAccesoProyectoResult>;
+  actualizarEntregableProyecto(
+    idEntregable: number,
+    data: ActualizarEntregableProyectoData,
+    idUsuarioModificacion: number,
+  ): Promise<{ success: boolean; message: string }>;
+  eliminarEntregableProyecto(
+    idEntregable: number,
     idUsuarioModificacion: number,
   ): Promise<{ success: boolean; message: string }>;
   listarCoordinadoresProyecto(

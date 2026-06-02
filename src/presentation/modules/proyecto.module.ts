@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProyectoController } from '../controllers/proyecto.controller';
+import { EntregableController } from '../controllers/entregable.controller';
 import { ListarProyectosUseCase } from '../../application/use-cases/proyecto/listar-proyectos.use-case';
 import { ObtenerProyectoUseCase } from '../../application/use-cases/proyecto/obtener-proyecto.use-case';
 import { CrearProyectoUseCase } from '../../application/use-cases/proyecto/crear-proyecto.use-case';
@@ -17,6 +18,11 @@ import { ListarDocumentosProyectoUseCase } from '../../application/use-cases/pro
 import { CrearDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/crear-documento-proyecto.use-case';
 import { ActualizarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-documento-proyecto.use-case';
 import { EliminarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-documento-proyecto.use-case';
+import { ListarEntregablesProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-proyecto.use-case';
+import { ObtenerEntregableProyectoUseCase } from '../../application/use-cases/proyecto/obtener-entregable-proyecto.use-case';
+import { CrearEntregableProyectoUseCase } from '../../application/use-cases/proyecto/crear-entregable-proyecto.use-case';
+import { ActualizarEntregableProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-entregable-proyecto.use-case';
+import { EliminarEntregableProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-entregable-proyecto.use-case';
 import { ListarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/listar-coordinadores-proyecto.use-case';
 import { GuardarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/guardar-coordinadores-proyecto.use-case';
 import { ListarEstadisticasProyectosPorEstadoUseCase } from '../../application/use-cases/proyecto/listar-estadisticas-proyectos-por-estado.use-case';
@@ -43,7 +49,7 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
       inject: [ConfigService],
     }),
   ],
-  controllers: [ProyectoController],
+  controllers: [ProyectoController, EntregableController],
   providers: [
     {
       provide: PROYECTO_REPOSITORY,
@@ -63,6 +69,11 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
     CrearDocumentoProyectoUseCase,
     ActualizarDocumentoProyectoUseCase,
     EliminarDocumentoProyectoUseCase,
+    ListarEntregablesProyectoUseCase,
+    ObtenerEntregableProyectoUseCase,
+    CrearEntregableProyectoUseCase,
+    ActualizarEntregableProyectoUseCase,
+    EliminarEntregableProyectoUseCase,
     ListarCoordinadoresProyectoUseCase,
     GuardarCoordinadoresProyectoUseCase,
     ListarEstadisticasProyectosPorEstadoUseCase,

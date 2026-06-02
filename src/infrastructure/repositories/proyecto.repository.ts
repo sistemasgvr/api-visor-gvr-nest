@@ -9,6 +9,9 @@ import type {
   ListarUsuariosDisponiblesParams,
   CrearDocumentoProyectoData,
   ActualizarDocumentoProyectoData,
+  ListarEntregablesProyectoParams,
+  CrearEntregableProyectoData,
+  ActualizarEntregableProyectoData,
 } from '../../domain/repositories/proyecto.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
 
@@ -285,6 +288,75 @@ export class ProyectoRepository implements IProyectoRepository {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
       'pro_EliminarDocumentoProyecto',
       [idDocumento, idUsuarioModificacion],
+    );
+    return result;
+  }
+
+  async listarEntregablesProyecto(
+    params: ListarEntregablesProyectoParams,
+  ): Promise<any[]> {
+    const { idProyecto = null, busqueda = '', idEstado = null } = params;
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'pro_ListarEntregablesProyecto',
+      [idProyecto, busqueda, idEstado],
+    );
+    return result ?? [];
+  }
+
+  async obtenerEntregablePorId(idEntregable: number): Promise<any | null> {
+    return this.databaseFunctionService.callFunctionSingle<any>(
+      'pro_ObtenerEntregablePorId',
+      [idEntregable],
+    );
+  }
+
+  async crearEntregableProyecto(
+    idProyecto: number,
+    data: CrearEntregableProyectoData,
+    idUsuarioCreacion: number,
+  ): Promise<{ success: boolean; message: string; id?: number }> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'pro_CrearEntregable',
+      [
+        idProyecto,
+        data.nombre,
+        data.descripcion ?? null,
+        data.idEstado ?? 561,
+        data.fechaEstimada ?? null,
+        data.fechaEntrega ?? null,
+        idUsuarioCreacion,
+      ],
+    );
+    return result;
+  }
+
+  async actualizarEntregableProyecto(
+    idEntregable: number,
+    data: ActualizarEntregableProyectoData,
+    idUsuarioModificacion: number,
+  ): Promise<{ success: boolean; message: string }> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'pro_ActualizarEntregable',
+      [
+        idEntregable,
+        data.nombre,
+        data.descripcion ?? null,
+        data.idEstado ?? null,
+        data.fechaEstimada ?? null,
+        data.fechaEntrega ?? null,
+        idUsuarioModificacion,
+      ],
+    );
+    return result;
+  }
+
+  async eliminarEntregableProyecto(
+    idEntregable: number,
+    idUsuarioModificacion: number,
+  ): Promise<{ success: boolean; message: string }> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'pro_EliminarEntregable',
+      [idEntregable, idUsuarioModificacion],
     );
     return result;
   }
