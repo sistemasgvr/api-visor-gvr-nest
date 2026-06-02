@@ -86,3 +86,12 @@ export class ListarEntregablesDataDto {
   @ApiProperty({ type: EntregablesPaginationDto })
   pagination: EntregablesPaginationDto;
 }
+
+/** Opción { value, label } para CustomSelectSearch */
+export class EntregableSelectOptionDto {
+  @ApiProperty({ example: 12, description: 'ID del entregable' })
+  value: number;
+
+  @ApiProperty({ example: 'Entrega fase 1 (PROCESO)' })
+  label: string;
+}

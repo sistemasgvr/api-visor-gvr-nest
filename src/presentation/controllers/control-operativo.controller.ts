@@ -536,6 +536,9 @@ export class ControlOperativoController {
     @Body('linkEvidencia') linkEvidencia?: string,
     @Body('idEstadoActividad') idEstadoActividad?: number,
     @Body('idModalidad') idModalidad?: number,
+    @Body('idEntregable') idEntregable?: number,
+    @Body('incidenciaDetallada') incidenciaDetallada?: string,
+    @Body('entregableCulminado') entregableCulminado?: boolean,
   ) {
     const data = await this.crearActividadUseCase.execute({
       idJornada: Number(idJornada),
@@ -553,6 +556,10 @@ export class ControlOperativoController {
       linkEvidencia: linkEvidencia?.trim() || null,
       idEstadoActividad: idEstadoActividad ?? null,
       idModalidad: idModalidad ?? null,
+      idEntregable:
+        idEntregable != null && idEntregable > 0 ? Number(idEntregable) : null,
+      incidenciaDetallada: incidenciaDetallada?.trim() || null,
+      entregableCulminado: entregableCulminado === true,
     });
     if (!data) {
       return ApiResponseDto.badRequest('No se pudo crear la actividad');
@@ -1253,6 +1260,9 @@ export class ControlOperativoController {
     @Body('linkEvidencia') linkEvidencia?: string,
     @Body('idModalidad') idModalidad?: number,
     @Body('corregirObservacion') corregirObservacion?: boolean,
+    @Body('idEntregable') idEntregable?: number,
+    @Body('incidenciaDetallada') incidenciaDetallada?: string,
+    @Body('entregableCulminado') entregableCulminado?: boolean,
   ) {
     const data = await this.actualizarActividadUseCase.execute({
       idActividad: id,
@@ -1267,6 +1277,10 @@ export class ControlOperativoController {
       linkEvidencia: linkEvidencia?.trim() || null,
       idModalidad: idModalidad ?? null,
       corregirObservacion: corregirObservacion === true,
+      idEntregable:
+        idEntregable != null && idEntregable > 0 ? Number(idEntregable) : null,
+      incidenciaDetallada: incidenciaDetallada?.trim() || null,
+      entregableCulminado: entregableCulminado === true,
     });
     if (!data) {
       return ApiResponseDto.badRequest('No se pudo actualizar la actividad');

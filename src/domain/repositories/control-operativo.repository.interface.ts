@@ -225,6 +225,10 @@ export interface CrearActividadParams {
   idEstadoActividad?: number | null;
   idModalidad?: number | null;
   idUsuarioCreacion?: number | null;
+  /** Entregable del proyecto (opcional). */
+  idEntregable?: number | null;
+  incidenciaDetallada?: string | null;
+  entregableCulminado?: boolean;
 }
 
 /** Resultado de crear actividad (primera fila de concrearactividad). */
@@ -241,6 +245,9 @@ export interface ActividadCreada {
   horasdedicadas: number;
   idestadoactividad: number;
   idmodalidad?: number | null;
+  identregable?: number | null;
+  incidenciadetallada?: string | null;
+  entregableculminado?: boolean;
 }
 
 /** Parámetros para validar una actividad (convalidaractividad): Aprobar / Observar / Rechazar. */
@@ -270,6 +277,9 @@ export interface ActualizarActividadParams {
   idUsuarioModificacion?: number | null;
   /** Si true, la actividad debe estar en Observado y ser del mismo trabajador; al guardar pasa a Por aprobar. */
   corregirObservacion?: boolean;
+  idEntregable?: number | null;
+  incidenciaDetallada?: string | null;
+  entregableCulminado?: boolean;
 }
 
 /** Item de observación del coordinador sobre una actividad (conlistarobservacionesactividad). */
@@ -298,6 +308,10 @@ export interface ActividadDetalle {
   nombretipoactividad: string | null;
   nombreactividad: string;
   descripciondetallada: string | null;
+  incidenciadetallada?: string | null;
+  identregable?: number | null;
+  nombreentregable?: string | null;
+  entregableculminado?: boolean;
   horainicio: string;
   horafin: string;
   horasdedicadas: number;

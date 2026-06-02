@@ -11,6 +11,7 @@ import type {
   ActualizarDocumentoProyectoData,
   ListarEntregablesProyectoParams,
   ListarEntregablesProyectoResponse,
+  EntregableSelectOption,
   CrearEntregableProyectoData,
   ActualizarEntregableProyectoData,
 } from '../../domain/repositories/proyecto.repository.interface';
@@ -333,6 +334,18 @@ export class ProyectoRepository implements IProyectoRepository {
         current_page: limit > 0 ? Math.floor(offset / limit) + 1 : 1,
       },
     };
+  }
+
+  async listarEntregablesParaSelect(
+    idProyecto: number,
+  ): Promise<EntregableSelectOption[]> {
+    if (idProyecto == null || idProyecto < 1) return [];
+    const result =
+      await this.databaseFunctionService.callFunction<EntregableSelectOption>(
+        'pro_ListarEntregablesParaSelect',
+        [idProyecto],
+      );
+    return Array.isArray(result) ? result : [];
   }
 
   async obtenerEntregablePorId(idEntregable: number): Promise<any | null> {

@@ -28,6 +28,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { ListarEntregablesProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-proyecto.use-case';
+import { ListarEntregablesSelectProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-select-proyecto.use-case';
 import { ObtenerEntregableProyectoUseCase } from '../../application/use-cases/proyecto/obtener-entregable-proyecto.use-case';
 import { CrearEntregableProyectoUseCase } from '../../application/use-cases/proyecto/crear-entregable-proyecto.use-case';
 import { ActualizarEntregableProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-entregable-proyecto.use-case';
@@ -38,6 +39,7 @@ import {
   EntregableItemDto,
   EntregableMutationResultDto,
   ListarEntregablesDataDto,
+  EntregableSelectOptionDto,
 } from '../../application/dtos/proyecto/entregable-response.dto';
 
 @ApiTags('entregables')
@@ -47,6 +49,7 @@ import {
 export class EntregableController {
   constructor(
     private readonly listarEntregablesProyectoUseCase: ListarEntregablesProyectoUseCase,
+    private readonly listarEntregablesSelectProyectoUseCase: ListarEntregablesSelectProyectoUseCase,
     private readonly obtenerEntregableProyectoUseCase: ObtenerEntregableProyectoUseCase,
     private readonly crearEntregableProyectoUseCase: CrearEntregableProyectoUseCase,
     private readonly actualizarEntregableProyectoUseCase: ActualizarEntregableProyectoUseCase,
@@ -109,6 +112,31 @@ export class EntregableController {
       offset,
     });
     return ApiResponseDto.success(data, 'Entregables obtenidos exitosamente');
+  }
+
+  @ApiOperation({
+    summary: 'Opciones de entregables por proyecto (select)',
+    description:
+      'Devuelve { value, label } para CustomSelectSearch según el proyecto seleccionado.',
+  })
+  @ApiQuery({
+    name: 'idProyecto',
+    required: true,
+    type: Number,
+    description: 'ID del proyecto',
+  })
+  @ApiResponse({ status: 200, type: [EntregableSelectOptionDto] })
+  @Get('opciones-select')
+  @HttpCode(HttpStatus.OK)
+  async listarEntregablesSelect(
+    @Query('idProyecto', ParseIntPipe) idProyecto: number,
+  ) {
+    const data =
+      await this.listarEntregablesSelectProyectoUseCase.execute(idProyecto);
+    return ApiResponseDto.success(
+      data,
+      'Opciones de entregables obtenidas exitosamente',
+    );
   }
 
   @ApiOperation({ summary: 'Obtener entregable por id' })

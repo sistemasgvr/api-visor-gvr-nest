@@ -684,7 +684,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     if (idActividad == null || idActividad < 1) return null;
     const result = await this.databaseFunctionService.callFunction<
       Record<string, unknown>
-    >('con_ObtenerActividad', [idActividad]);
+    >('con_ObtenerActividadV2', [idActividad]);
     const row = result?.[0];
     if (!row) return null;
     // El driver puede devolver la columna como diajornada, diaJornada o fechajornada (minúsculas)
@@ -735,7 +735,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   ): Promise<ActividadCreada | null> {
     const rows =
       await this.databaseFunctionService.callFunction<ActividadCreada>(
-        'con_CrearActividad',
+        'con_CrearActividadV2',
         [
           params.idJornada,
           params.idProyecto,
@@ -750,6 +750,9 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
           params.idEstadoActividad ?? null,
           params.idModalidad ?? null,
           params.idUsuarioCreacion ?? null,
+          params.idEntregable ?? null,
+          params.incidenciaDetallada ?? null,
+          params.entregableCulminado ?? false,
         ],
       );
     return rows?.[0] ?? null;
@@ -801,7 +804,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   ): Promise<ActividadCreada | null> {
     const rows =
       await this.databaseFunctionService.callFunction<ActividadCreada>(
-        'con_ActualizarActividad',
+        'con_ActualizarActividadV2',
         [
           params.idActividad,
           params.idProyecto,
@@ -816,6 +819,9 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
           params.idModalidad ?? null,
           params.idUsuarioModificacion ?? null,
           params.corregirObservacion === true,
+          params.idEntregable ?? null,
+          params.incidenciaDetallada ?? null,
+          params.entregableCulminado ?? false,
         ],
       );
     return rows?.[0] ?? null;
