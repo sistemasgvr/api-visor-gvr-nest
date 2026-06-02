@@ -329,7 +329,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
       estadojornada?: string | null;
     };
     const result = await this.databaseFunctionService.callFunction<Row>(
-      'con_ListarActividades',
+      'con_ListarActividadesV2',
       [
         idJornada ?? null,
         idTrabajador ?? null,

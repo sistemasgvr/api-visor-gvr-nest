@@ -84,6 +84,10 @@ export interface ActividadListItem {
   idtipoactividad: number;
   nombreactividad: string;
   descripciondetallada: string | null;
+  incidenciadetallada?: string | null;
+  identregable?: number | null;
+  nombreentregable?: string | null;
+  entregableculminado?: boolean;
   horainicio: string;
   horafin: string;
   horasdedicadas: number;
