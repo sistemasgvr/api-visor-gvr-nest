@@ -1281,7 +1281,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     if (dIni == null || dFin == null) return [];
     const rows = await this.databaseFunctionService.callFunction<
       Record<string, unknown>
-    >('con_ListarActividadesPeriodoReporte', [idTrabajador, dIni, dFin]);
+    >('con_ListarActividadesPeriodoReporteV2', [idTrabajador, dIni, dFin]);
     if (!rows?.length) return [];
     const intermediates = rows
       .map((r) => {
@@ -1310,6 +1310,27 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
           r['linkevidencia'] != null && String(r['linkevidencia']).trim() !== ''
             ? String(r['linkevidencia']).trim()
             : null;
+        const idEntRaw = r['identregable'];
+        const idEntNum =
+          idEntRaw != null && String(idEntRaw).trim() !== ''
+            ? Number(idEntRaw)
+            : null;
+        const identregable =
+          idEntNum != null && Number.isFinite(idEntNum) && idEntNum > 0
+            ? idEntNum
+            : null;
+        const nombreentregable =
+          r['nombreentregable'] != null &&
+          String(r['nombreentregable']).trim() !== ''
+            ? String(r['nombreentregable']).trim()
+            : null;
+        const entregableculminadoRaw = r['entregableculminado'];
+        const entregableculminado =
+          entregableculminadoRaw === true ||
+          entregableculminadoRaw === 't' ||
+          entregableculminadoRaw === 'true' ||
+          entregableculminadoRaw === 1 ||
+          entregableculminadoRaw === '1';
         return {
           diajornada,
           nombreactividad,
@@ -1334,6 +1355,9 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
           linkevidencia,
           horainicio,
           linea,
+          identregable,
+          nombreentregable,
+          entregableculminado,
           evidenciasRaw: r['evidencias'],
         };
       })

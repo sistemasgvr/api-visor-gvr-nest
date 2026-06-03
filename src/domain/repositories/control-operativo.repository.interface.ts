@@ -380,6 +380,10 @@ export interface ActividadInformeServicioLinea {
   evidencias?: ActividadEvidenciaItem[];
   /** Resumen «tipo (o nombre actividad) - proyecto» para viñetas / deduplicado. */
   linea: string;
+  /** Entregable asociado (v2 reporte Word). */
+  identregable?: number | null;
+  nombreentregable?: string | null;
+  entregableculminado?: boolean | null;
 }
 
 /** Retorno del cron único de cierre de jornadas (concroncierrejornadas). */

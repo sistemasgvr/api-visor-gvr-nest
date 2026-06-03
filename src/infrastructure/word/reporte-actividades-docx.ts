@@ -123,6 +123,20 @@ function formatHorasPe(n: number | null | undefined): string {
   }).format(n);
 }
 
+function formatEntregableInforme(a: ActividadInformeServicioLinea): string {
+  const nombre = s(a.nombreentregable);
+  if (nombre) return nombre;
+  const id = a.identregable;
+  if (id != null && id > 0) return `Entregable ${id}`;
+  return '—';
+}
+
+function formatEntregableCulminadoInforme(a: ActividadInformeServicioLinea): string {
+  const id = a.identregable;
+  if (id == null || id <= 0) return '—';
+  return a.entregableculminado === true ? 'Sí' : 'No';
+}
+
 /** Encabezado de día agrupador: «Lunes 15 de mayo de 2026». */
 function formatoEncabezadoDiaInforme(raw: string | null | undefined): string {
   const ymd = normalizeStoredValueToYmd(raw);
@@ -237,6 +251,8 @@ function tablaActividadInformeCompacta(input: {
   modalidad: string;
   horas: string;
   estado: string;
+  entregable: string;
+  entregableCulminado: string;
   incluirHorasDedicadas: boolean;
 }): Table {
   const anchoValorExpandidoPct = ANCHO_ETIQUETA_DOBLE + ANCHO_VALOR_DOBLE * 2;
@@ -301,6 +317,14 @@ function tablaActividadInformeCompacta(input: {
         ],
       }),
       filaModalidadHoras,
+      new TableRow({
+        children: [
+          celdaEtiquetaInforme('Entregable', ANCHO_ETIQUETA_DOBLE),
+          celdaValorInforme(input.entregable, ANCHO_VALOR_DOBLE),
+          celdaEtiquetaInforme('Entregable culminado', ANCHO_ETIQUETA_DOBLE),
+          celdaValorInforme(input.entregableCulminado, ANCHO_VALOR_DOBLE),
+        ],
+      }),
       new TableRow({
         children: [
           celdaEtiquetaInforme('Estado', ANCHO_ETIQUETA_DOBLE),
@@ -585,7 +609,7 @@ async function appendDetalleActividades(
         new TextRun({
           size: 22,
           text:
-            'Detalle de cada actividad: datos generales, descripción, enlace libre si existe, y evidencias con enlace (o vista previa si la imagen está disponible).',
+            'Detalle de cada actividad: datos generales, entregable, descripción, enlace libre si existe, y evidencias con enlace (o vista previa si la imagen está disponible).',
         }),
       ],
     }),
@@ -659,6 +683,8 @@ async function appendDetalleActividades(
         modalidad: s(a.nombremodalidad),
         horas: formatHorasPe(a.horasdedicadas),
         estado: s(a.estadoactividad),
+        entregable: formatEntregableInforme(a),
+        entregableCulminado: formatEntregableCulminadoInforme(a),
         incluirHorasDedicadas,
       }),
     );
