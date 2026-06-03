@@ -28,8 +28,6 @@ import {
 /** Textos fijos de la primera página (no en genconfiguraciongeneral). */
 const TEXTO_RESUMEN_LABORES_P1 =
   'Las labores que se realizaron se detallan a continuación:';
-const NOTA_PIE_PAGINA1 =
-  'INDICACIONES: EN LAS SIGUIENTES PAGINAS DETALLAR LABORES SEGÚN CORRESPONDA';
 
 const MAX_EVIDENCIA_BYTES = 6_000_000;
 
@@ -805,7 +803,6 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
   const actividades = input.actividadesDetalle ?? [];
   const bullets = buildResumenLaboresPortada(actividades);
   const resumen = TEXTO_RESUMEN_LABORES_P1;
-  const notaPie = NOTA_PIE_PAGINA1;
 
   const children: (Paragraph | Table)[] = [];
 
@@ -967,14 +964,6 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
           italics: true,
         }),
       ],
-    }),
-  );
-
-  children.push(
-    new Paragraph({
-      alignment: AlignmentType.BOTH,
-      spacing: { before: 280, after: 480 },
-      children: [new TextRun({ text: notaPie, italics: true, size: 18 })],
     }),
   );
 
