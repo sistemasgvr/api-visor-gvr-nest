@@ -98,19 +98,30 @@ export class EntregableController {
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarEntregables(
+    @Req() request: Request,
     @Query('idProyecto', new ParseIntPipe({ optional: true })) idProyecto?: number,
     @Query('busqueda') busqueda?: string,
     @Query('idEstado', new ParseIntPipe({ optional: true })) idEstado?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
+    @Query('soloVigentes') soloVigentes?: string,
   ) {
-    const data = await this.listarEntregablesProyectoUseCase.execute({
-      idProyecto,
-      busqueda: busqueda ?? '',
-      idEstado,
-      limit,
-      offset,
-    });
+    const token = this.extractTokenFromHeader(request);
+    if (!token) throw new UnauthorizedException('Token no proporcionado');
+    const payload = await this.jwtService.verifyAsync(token);
+
+    const data = await this.listarEntregablesProyectoUseCase.execute(
+      {
+        idProyecto,
+        busqueda: busqueda ?? '',
+        idEstado,
+        limit,
+        offset,
+        soloVigentes:
+          soloVigentes === '0' || soloVigentes === 'false' ? false : true,
+      },
+      payload.sub,
+    );
     return ApiResponseDto.success(data, 'Entregables obtenidos exitosamente');
   }
 

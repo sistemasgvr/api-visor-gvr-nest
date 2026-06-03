@@ -303,10 +303,12 @@ export class ProyectoRepository implements IProyectoRepository {
       idEstado = null,
       limit = 10,
       offset = 0,
+      idUsuario = null,
+      soloVigentes = true,
     } = params;
     const result = await this.databaseFunctionService.callFunction<any>(
       'pro_ListarEntregablesProyecto',
-      [idProyecto, busqueda, idEstado, limit, offset],
+      [idProyecto, busqueda, idEstado, limit, offset, idUsuario, soloVigentes],
     );
 
     if (!result || result.length === 0) {

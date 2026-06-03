@@ -12,7 +12,14 @@ export class ListarEntregablesProyectoUseCase {
     private readonly proyectoRepository: IProyectoRepository,
   ) {}
 
-  async execute(params: ListarEntregablesProyectoParams) {
-    return this.proyectoRepository.listarEntregablesProyecto(params);
+  async execute(
+    params: ListarEntregablesProyectoParams,
+    idUsuario?: number,
+  ) {
+    return this.proyectoRepository.listarEntregablesProyecto({
+      ...params,
+      idUsuario,
+      soloVigentes: params.soloVigentes ?? true,
+    });
   }
 }

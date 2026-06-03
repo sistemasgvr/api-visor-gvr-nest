@@ -80,6 +80,8 @@ export interface ListarEntregablesProyectoParams {
   idEstado?: number;
   limit?: number;
   offset?: number;
+  idUsuario?: number;
+  soloVigentes?: boolean;
 }
 
 export interface ListarEntregablesProyectoResponse {
