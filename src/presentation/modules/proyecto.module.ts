@@ -19,6 +19,7 @@ import { CrearDocumentoProyectoUseCase } from '../../application/use-cases/proye
 import { ActualizarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-documento-proyecto.use-case';
 import { EliminarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-documento-proyecto.use-case';
 import { ListarEntregablesProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-proyecto.use-case';
+import { ListarEntregablesSelectProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-select-proyecto.use-case';
 import { ObtenerEntregableProyectoUseCase } from '../../application/use-cases/proyecto/obtener-entregable-proyecto.use-case';
 import { CrearEntregableProyectoUseCase } from '../../application/use-cases/proyecto/crear-entregable-proyecto.use-case';
 import { ActualizarEntregableProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-entregable-proyecto.use-case';
@@ -70,6 +71,7 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
     ActualizarDocumentoProyectoUseCase,
     EliminarDocumentoProyectoUseCase,
     ListarEntregablesProyectoUseCase,
+    ListarEntregablesSelectProyectoUseCase,
     ObtenerEntregableProyectoUseCase,
     CrearEntregableProyectoUseCase,
     ActualizarEntregableProyectoUseCase,

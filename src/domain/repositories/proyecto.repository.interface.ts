@@ -93,6 +93,11 @@ export interface ListarEntregablesProyectoResponse {
   };
 }
 
+export interface EntregableSelectOption {
+  value: number;
+  label: string;
+}
+
 export interface CrearEntregableProyectoData {
   idProyecto: number;
   nombre: string;
@@ -182,6 +187,9 @@ export interface IProyectoRepository {
   listarEntregablesProyecto(
     params: ListarEntregablesProyectoParams,
   ): Promise<ListarEntregablesProyectoResponse>;
+  listarEntregablesParaSelect(
+    idProyecto: number,
+  ): Promise<EntregableSelectOption[]>;
   obtenerEntregablePorId(idEntregable: number): Promise<any | null>;
   crearEntregableProyecto(
     idProyecto: number,
