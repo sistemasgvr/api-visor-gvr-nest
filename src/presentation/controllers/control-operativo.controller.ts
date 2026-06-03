@@ -500,7 +500,7 @@ export class ControlOperativoController {
       idEstadoJornada: id,
     });
     if (!ok) {
-      return ApiResponseDto.badRequest(
+      throw new BadRequestException(
         'No se pudo actualizar el estado de la jornada',
       );
     }

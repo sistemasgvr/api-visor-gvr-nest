@@ -64,6 +64,24 @@ function getScalarInt(row: any): number {
   return 0;
 }
 
+/** PostgreSQL devuelve booleanos escalares en una columna con el nombre de la función (casing variable). */
+function getScalarBool(row: unknown): boolean {
+  if (row == null) return false;
+  if (row === true || row === false) return row === true;
+  if (typeof row !== 'object') {
+    if (row === 't' || row === 'true' || row === 1 || row === '1') return true;
+    return false;
+  }
+  const record = row as Record<string, unknown>;
+  const keys = Object.keys(record);
+  if (keys.length === 0) return false;
+  const value = record[keys[0]];
+  if (value === true || value === 't' || value === 'true' || value === 1 || value === '1') {
+    return true;
+  }
+  return false;
+}
+
 /** Query param vacío (ej. fechaFin=) → null; evita invalid input syntax for type date: "". */
 function queryDateOrNull(v: string | null | undefined): string | null {
   if (v == null) return null;
@@ -896,15 +914,11 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     idEstadoJornada: number,
     idUsuarioModificacion?: number,
   ): Promise<boolean> {
-    const row = await this.databaseFunctionService.callFunctionSingle<any>(
+    const row = await this.databaseFunctionService.callFunctionSingle<unknown>(
       'con_ActualizarEstadoJornada',
       [idJornada, idEstadoJornada, idUsuarioModificacion ?? null],
     );
-    return (
-      row === true ||
-      row?.con_actualizarestadojornada === true ||
-      row?.conactualizarestadojornada === true
-    );
+    return getScalarBool(row);
   }
 
   async listarReporteGeneral(
