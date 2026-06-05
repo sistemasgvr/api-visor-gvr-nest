@@ -28,6 +28,7 @@ import { MinioStorageService } from '../../infrastructure/storage/minio-storage.
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { UploadEvidenciaDto } from '../../application/dtos/storage/upload-evidencia.dto';
 import { UploadPrefixedDto } from '../../application/dtos/storage/upload-prefixed.dto';
+import { UploadVisorElementoFotoDto } from '../../application/dtos/storage/upload-visor-elemento-foto.dto';
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
@@ -118,6 +119,65 @@ export class StorageController {
       file,
     });
     return ApiResponseDto.success(meta, 'Archivo subido correctamente');
+  }
+
+  @Post('visor-elemento-fotos')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: MAX_UPLOAD_BYTES },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary: 'Subir foto de avance de obra (MinIO)',
+    description:
+      'Guarda en `visor-elemento-fotos-gvr/{proyecto}/{item}/{YYYY-MM-DD}/{id}-Avance Obra (n).{ext}`.',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file', 'itemId', 'identificador', 'dia'],
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        idProyectoAcc: { type: 'string', description: 'UUID proyecto ACC' },
+        itemId: { type: 'string', example: 'urn:adsk.wipprod:dm.lineage:...' },
+        identificador: {
+          type: 'integer',
+          description: 'id anclaje en BD o objectId Forge antes de crear',
+        },
+        dia: { type: 'string', example: '2026-06-05' },
+        indiceFoto: { type: 'integer', example: 1, description: 'Orden 1..10' },
+      },
+    },
+  })
+  async uploadVisorElementoFoto(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: UploadVisorElementoFotoDto,
+    @Req() req: Request,
+  ) {
+    const idProyectoAcc = (dto.idProyectoAcc ?? '').trim();
+    if (!idProyectoAcc) {
+      throw new BadRequestException('idProyectoAcc es obligatorio');
+    }
+    const meta = await this.minioStorage.uploadVisorElementoFoto({
+      idProyectoAcc,
+      itemId: dto.itemId,
+      identificador: dto.identificador,
+      dia: dto.dia,
+      file,
+      indiceFoto: dto.indiceFoto,
+    });
+    const viewUrl =
+      await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
+        meta.publicUrl,
+      );
+    return ApiResponseDto.success(
+      { ...meta, viewUrl },
+      'Imagen subida correctamente',
+    );
   }
 
   @Post('upload')

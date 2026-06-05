@@ -21,6 +21,7 @@ import { DataManagementProjectsModule } from './presentation/modules/data-manage
 import { DataManagementItemsModule } from './presentation/modules/data-management-items.module';
 import { DataManagementVersionsModule } from './presentation/modules/data-management-versions.module';
 import { AccViewerModule } from './presentation/modules/acc-viewer.module';
+import { AccVisorElementoFotoModule } from './presentation/modules/acc-visor-elemento-foto.module';
 import { AccIssuesModule } from './presentation/modules/acc-issues.module';
 import { AccReviewsModule } from './presentation/modules/acc-reviews.module';
 import { IssuesBim360Module } from './presentation/modules/issues-bim360.module';
@@ -72,6 +73,7 @@ import { StorageModule } from './infrastructure/storage/storage.module';
     AccModule,
     AccProjectsModule,
     AccIssuesModule,
+    AccVisorElementoFotoModule,
     AccReviewsModule,
     IssuesBim360Module,
     AccResourcesModule,

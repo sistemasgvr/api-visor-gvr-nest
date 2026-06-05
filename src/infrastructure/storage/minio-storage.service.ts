@@ -19,6 +19,8 @@ import { randomUUID } from 'crypto';
 import {
   buildEvidenciaArchivoObjectName,
   buildEvidenciaObjectKey,
+  buildVisorElementoFotoArchivoObjectName,
+  buildVisorElementoFotoObjectKey,
   extensionDesdeArchivoEvidencia,
   isEvidenciaMinioObjectKey,
   normalizeS3ObjectKey,
@@ -307,6 +309,54 @@ export class MinioStorageService {
       userId: params.userId,
       userDisplayName: params.userDisplayName,
       diaActividad: params.diaActividad,
+      objectName,
+    });
+    return this.putObject({
+      key,
+      body: opt.buffer,
+      contentType: opt.mimetype || undefined,
+    });
+  }
+
+  /**
+   * visor-elemento-fotos-gvr/{proyecto}/{item}/{YYYY-MM-DD}/{id}-Avance Obra (n).{ext}
+   */
+  async uploadVisorElementoFoto(params: {
+    idProyectoAcc: string;
+    itemId: string;
+    /** id del anclaje en BD, o objectId Forge antes de crear el anclaje */
+    identificador: number;
+    dia: string;
+    file: Express.Multer.File;
+    indiceFoto?: number;
+  }): Promise<UploadedObjectMeta> {
+    const opt = await this.evidenciaImageOptimizer.optimizeForStorage({
+      buffer: params.file.buffer,
+      mimetype: params.file.mimetype || 'application/octet-stream',
+      originalname: params.file.originalname || 'archivo',
+    });
+    if (!opt.buffer?.length) {
+      throw new BadRequestException('Archivo vacío o no recibido');
+    }
+    const ext = extensionDesdeArchivoEvidencia(
+      opt.originalname,
+      opt.mimetype,
+    );
+    const idx =
+      params.indiceFoto != null &&
+      Number.isFinite(params.indiceFoto) &&
+      params.indiceFoto >= 1
+        ? Math.min(10, Math.max(1, Math.trunc(params.indiceFoto)))
+        : 1;
+    const objectName = buildVisorElementoFotoArchivoObjectName(
+      params.identificador,
+      idx,
+      ext,
+    );
+    const key = buildVisorElementoFotoObjectKey({
+      idProyectoAcc: params.idProyectoAcc,
+      itemId: params.itemId,
+      dia: params.dia,
       objectName,
     });
     return this.putObject({

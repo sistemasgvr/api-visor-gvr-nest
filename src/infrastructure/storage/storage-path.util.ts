@@ -151,6 +151,44 @@ export function isEvidenciaMinioObjectKey(key: string): boolean {
   const k = (key ?? '').trim();
   return (
     k.startsWith('evidencias-actividades-gvr/') ||
-    k.startsWith('evidencias-actividades/')
+    k.startsWith('evidencias-actividades/') ||
+    k.startsWith('visor-elemento-fotos-gvr/')
   );
+}
+
+export const VISOR_ELEMENTO_FOTO_ETIQUETA = 'Avance Obra';
+
+/**
+ * visor-elemento-fotos-gvr/{proyecto}/{item}/{YYYY-MM-DD}/{objectName}
+ */
+export function buildVisorElementoFotoObjectKey(params: {
+  idProyectoAcc: string;
+  itemId: string;
+  dia: string;
+  objectName: string;
+}): string {
+  const projectSeg = slugifyPathSegment(params.idProyectoAcc, 80);
+  const itemRaw = (params.itemId ?? '')
+    .replace(/^urn:adsk\.wipprod:dm\.lineage:/i, '')
+    .slice(0, 48);
+  const itemSeg = slugifyPathSegment(itemRaw || 'documento', 60);
+  const dateSeg = yyyymmddToCarpetaFecha(params.dia);
+  const name = params.objectName
+    .replace(/[/\\]/g, '')
+    .replace(/\.\.+/g, '.');
+  return `visor-elemento-fotos-gvr/${projectSeg}/${itemSeg}/${dateSeg}/${name}`;
+}
+
+/** p. ej. 42-Avance Obra (3).jpg */
+export function buildVisorElementoFotoArchivoObjectName(
+  identificador: number,
+  indice1Based: number,
+  extSinPunto: string,
+): string {
+  const t = (extSinPunto || 'bin')
+    .replace(/^\./, '')
+    .toLowerCase();
+  const ext = /^[a-z0-9]{1,12}$/.test(t) ? t : 'bin';
+  const idx = Math.min(10, Math.max(1, Math.trunc(indice1Based)));
+  return `${identificador}-${VISOR_ELEMENTO_FOTO_ETIQUETA} (${idx}).${ext}`;
 }
