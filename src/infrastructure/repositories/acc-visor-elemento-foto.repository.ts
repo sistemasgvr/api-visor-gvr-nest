@@ -34,6 +34,21 @@ function pickStr(row: Record<string, unknown> | null, key: string): string | nul
   return s.length > 0 ? s : null;
 }
 
+function pickDateStr(row: Record<string, unknown> | null, key: string): string | null {
+  if (!row) return null;
+  const v = row[key] ?? row[key.toLowerCase()];
+  if (v == null) return null;
+  if (v instanceof Date && !Number.isNaN(v.getTime())) {
+    const y = v.getFullYear();
+    const m = String(v.getMonth() + 1).padStart(2, '0');
+    const d = String(v.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  const s = String(v).trim();
+  if (!s) return null;
+  return s.slice(0, 10);
+}
+
 function archivosToJson(archivos: VisorElementoFotoArchivoEntrada[]): string {
   const payload = archivos.map((a) => ({
     url: a.url,
@@ -43,6 +58,7 @@ function archivosToJson(archivos: VisorElementoFotoArchivoEntrada[]): string {
       a.tamanoBytes != null && Number.isFinite(a.tamanoBytes)
         ? Math.trunc(a.tamanoBytes)
         : null,
+    fechaAvance: a.fechaAvance?.trim() || null,
   }));
   return JSON.stringify(payload);
 }
@@ -254,10 +270,15 @@ export class AccVisorElementoFotoRepository implements IAccVisorElementoFotoRepo
               tipoMime: pickStr(r, 'tipomime'),
               tamanoBytes: pickInt(r, 'tamanobytes'),
               ordenArchivo: pickInt(r, 'ordenarchivo') ?? 0,
+              fechaAvance: pickDateStr(r, 'fechaavance') ?? pickDateStr(r, 'fechaAvance'),
             };
           }),
       )
-    ).sort((a, b) => a.ordenArchivo - b.ordenArchivo);
+    ).sort((a, b) => {
+      const dateCmp = (b.fechaAvance ?? '').localeCompare(a.fechaAvance ?? '');
+      if (dateCmp !== 0) return dateCmp;
+      return a.ordenArchivo - b.ordenArchivo;
+    });
 
     let viewerState: Record<string, unknown> | null = null;
     const rawState = head.viewerstate ?? head.viewerState;

@@ -1,9 +1,9 @@
-import type { VisorElementoFotoArchivoEntrada } from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
-import { MAX_VISOR_ELEMENTO_FOTO_ARCHIVOS } from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
+import type {
+  VisorElementoFotoArchivoEntrada,
+} from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
 
 export function normalizarArchivosVisorElementoFoto(
   archivos: VisorElementoFotoArchivoEntrada[] | undefined,
-  max = MAX_VISOR_ELEMENTO_FOTO_ARCHIVOS,
 ): VisorElementoFotoArchivoEntrada[] {
   const seen = new Map<string, VisorElementoFotoArchivoEntrada>();
   for (const a of archivos ?? []) {
@@ -18,7 +18,8 @@ export function normalizarArchivosVisorElementoFoto(
         tb != null && Number.isFinite(tb)
           ? Math.min(Math.trunc(tb as number), Number.MAX_SAFE_INTEGER)
           : null,
+      fechaAvance: a.fechaAvance?.trim() || null,
     });
   }
-  return [...seen.values()].slice(0, max);
+  return [...seen.values()];
 }

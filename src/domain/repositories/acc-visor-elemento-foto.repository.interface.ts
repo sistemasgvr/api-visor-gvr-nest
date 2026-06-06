@@ -2,13 +2,12 @@ export const ACC_VISOR_ELEMENTO_FOTO_REPOSITORY = Symbol(
   'ACC_VISOR_ELEMENTO_FOTO_REPOSITORY',
 );
 
-export const MAX_VISOR_ELEMENTO_FOTO_ARCHIVOS = 10;
-
 export interface VisorElementoFotoArchivoEntrada {
   url: string;
   nombreOriginal?: string | null;
   tipoMime?: string | null;
   tamanoBytes?: number | null;
+  fechaAvance?: string | null;
 }
 
 export interface CrearVisorElementoFotoParams {
@@ -82,6 +81,7 @@ export interface VisorElementoFotoArchivoItem {
   tipoMime: string | null;
   tamanoBytes: number | null;
   ordenArchivo: number;
+  fechaAvance: string | null;
 }
 
 export interface VisorElementoFotoDetalle {

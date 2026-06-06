@@ -131,7 +131,7 @@ export class AccVisorElementoFotoController {
 
   @Post(':id/archivos')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Agregar imágenes a anclaje existente (máx. 10 total)' })
+  @ApiOperation({ summary: 'Agregar imágenes a anclaje existente' })
   async agregarArchivos(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AgregarArchivosVisorElementoFotoDto,

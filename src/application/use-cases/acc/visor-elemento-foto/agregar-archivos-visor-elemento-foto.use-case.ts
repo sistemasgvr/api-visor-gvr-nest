@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import {
   ACC_VISOR_ELEMENTO_FOTO_REPOSITORY,
-  MAX_VISOR_ELEMENTO_FOTO_ARCHIVOS,
   type IAccVisorElementoFotoRepository,
 } from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
 import type { AgregarArchivosVisorElementoFotoDto } from '../../../dtos/acc/visor-elemento-foto/visor-elemento-foto.dto';
@@ -31,11 +30,6 @@ export class AgregarArchivosVisorElementoFotoUseCase {
     const archivos = normalizarArchivosVisorElementoFoto(dto.archivos);
     if (archivos.length === 0) {
       throw new BadRequestException('No hay imágenes para agregar');
-    }
-    if (existing.cantidadArchivos + archivos.length > MAX_VISOR_ELEMENTO_FOTO_ARCHIVOS) {
-      throw new BadRequestException(
-        `Máximo ${MAX_VISOR_ELEMENTO_FOTO_ARCHIVOS} imágenes por elemento`,
-      );
     }
     try {
       await this.repository.agregarArchivos({

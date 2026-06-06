@@ -32,6 +32,12 @@ export class VisorElementoFotoArchivoDto {
   @IsInt()
   @Min(0)
   tamanoBytes?: number;
+
+  /** Fecha del avance (YYYY-MM-DD), puede ser distinta a la fecha de subida */
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  fechaAvance?: string;
 }
 
 export class CrearVisorElementoFotoDto {
