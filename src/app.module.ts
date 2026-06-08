@@ -46,6 +46,7 @@ import { ControlOperativoModule } from './presentation/modules/control-operativo
 import { DashboardModule } from './presentation/modules/dashboard/dashboard.module';
 import { DemoModule } from './presentation/modules/demo.module';
 import { MailModule } from './presentation/modules/mail.module';
+import { MailPlantillaModule } from './presentation/modules/mail-plantilla.module';
 import { PdfModule } from './infrastructure/pdf/pdf.module';
 import { StorageModule } from './infrastructure/storage/storage.module';
 
@@ -110,6 +111,7 @@ import { StorageModule } from './infrastructure/storage/storage.module';
     DashboardModule,
     DemoModule,
     MailModule.register(),
+    MailPlantillaModule,
   ],
 })
 export class AppModule {}

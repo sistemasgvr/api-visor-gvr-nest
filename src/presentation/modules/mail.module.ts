@@ -18,6 +18,10 @@ import { MailService } from '../../application/services/mail.service';
 import { InlineMailJobPublisher } from '../../infrastructure/mail/inline-mail-job-publisher.service';
 import { BullMailJobPublisher } from '../../infrastructure/mail/bull-mail-job-publisher.service';
 import { MailQueueProcessor } from '../../infrastructure/mail/mail-queue.processor';
+import { MailPlantillaCorreoRepository } from '../../infrastructure/repositories/mail-plantilla-correo.repository';
+import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../../domain/repositories/mail-plantilla-correo.repository.interface';
+import { MjmlCompilerService } from '../../infrastructure/mail/mjml-compiler.service';
+import { MailPlantillaRenderService } from '../../infrastructure/mail/mail-plantilla-render.service';
 
 function isMailQueueEnabled(): boolean {
   return (
@@ -63,6 +67,13 @@ export class MailModule {
         provide: EMAIL_DISPATCH_LOG_REPOSITORY,
         useExisting: EmailDispatchLogRepository,
       },
+      MailPlantillaCorreoRepository,
+      {
+        provide: MAIL_PLANTILLA_CORREO_REPOSITORY,
+        useExisting: MailPlantillaCorreoRepository,
+      },
+      MjmlCompilerService,
+      MailPlantillaRenderService,
       HandlebarsMailRendererService,
       { provide: MAIL_RENDERER, useExisting: HandlebarsMailRendererService },
       NodemailerMailTransportService,
@@ -83,7 +94,16 @@ export class MailModule {
       global: true,
       imports,
       providers,
-      exports: [MailService, EnqueueOutboundEmailUseCase, MAIL_JOB_PUBLISHER],
+      exports: [
+        MailService,
+        EnqueueOutboundEmailUseCase,
+        MAIL_JOB_PUBLISHER,
+        MAIL_PLANTILLA_CORREO_REPOSITORY,
+        MjmlCompilerService,
+        MailPlantillaRenderService,
+        MAIL_TRANSPORT,
+        EMAIL_DISPATCH_LOG_REPOSITORY,
+      ],
     };
   }
 }

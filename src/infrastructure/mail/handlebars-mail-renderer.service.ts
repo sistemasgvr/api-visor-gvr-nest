@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as handlebars from 'handlebars';
@@ -6,8 +6,11 @@ import type {
   IMailRenderer,
   RenderedMail,
 } from '../../domain/services/mail-renderer.interface';
+import type { IMailPlantillaCorreoRepository } from '../../domain/repositories/mail-plantilla-correo.repository.interface';
+import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../../domain/repositories/mail-plantilla-correo.repository.interface';
 import { MAIL_TEMPLATE_REGISTRY } from './template-registry';
 import { MailTemplateRenderException } from '../../shared/exceptions/mail.exceptions';
+import { MailPlantillaRenderService } from './mail-plantilla-render.service';
 
 @Injectable()
 export class HandlebarsMailRendererService implements IMailRenderer {
@@ -19,7 +22,36 @@ export class HandlebarsMailRendererService implements IMailRenderer {
     handlebars.TemplateDelegate
   >();
 
+  constructor(
+    @Inject(MAIL_PLANTILLA_CORREO_REPOSITORY)
+    private readonly plantillaRepository: IMailPlantillaCorreoRepository,
+    private readonly plantillaRenderService: MailPlantillaRenderService,
+  ) {}
+
   async render(
+    templateId: string,
+    variables: Record<string, unknown>,
+    subjectOverride?: string,
+  ): Promise<RenderedMail> {
+    const plantillaBd = await this.plantillaRepository.obtenerPorSlug(
+      templateId,
+      true,
+    );
+
+    if (plantillaBd) {
+      return this.plantillaRenderService.render({
+        asuntoPlantilla: subjectOverride ?? plantillaBd.asuntoPlantilla,
+        cuerpoMjml: plantillaBd.cuerpoMjml,
+        cuerpoHtml: plantillaBd.cuerpoHtml,
+        claveLayout: plantillaBd.claveLayout,
+        variables,
+      });
+    }
+
+    return this.renderFromFilesystem(templateId, variables, subjectOverride);
+  }
+
+  private async renderFromFilesystem(
     templateId: string,
     variables: Record<string, unknown>,
     subjectOverride?: string,
@@ -28,7 +60,7 @@ export class HandlebarsMailRendererService implements IMailRenderer {
     if (!def) {
       throw new HttpException(
         {
-          message: `Plantilla de correo no registrada: "${templateId}". Añádala en template-registry y en templates/.`,
+          message: `Plantilla de correo no registrada: "${templateId}". Créela en mail/plantillas o añádala en template-registry.`,
           code: 'MAIL_TEMPLATE_UNKNOWN',
         },
         HttpStatus.NOT_FOUND,
