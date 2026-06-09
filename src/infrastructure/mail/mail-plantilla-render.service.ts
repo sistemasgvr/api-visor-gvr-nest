@@ -14,6 +14,10 @@ export interface MailPlantillaRenderInput {
   variables?: Record<string, unknown>;
 }
 
+export interface MailPlantillaRenderedResult extends RenderedMail {
+  mjmlWarnings: string[];
+}
+
 @Injectable()
 export class MailPlantillaRenderService {
   private readonly templatesRoot = path.join(__dirname, 'templates');
@@ -21,7 +25,7 @@ export class MailPlantillaRenderService {
 
   constructor(private readonly mjmlCompiler: MjmlCompilerService) {}
 
-  async render(input: MailPlantillaRenderInput): Promise<RenderedMail> {
+  async render(input: MailPlantillaRenderInput): Promise<MailPlantillaRenderedResult> {
     const variables = input.variables ?? {};
     const claveLayout = (input.claveLayout ?? 'base').trim() || 'base';
     const asuntoPlantilla = (input.asuntoPlantilla ?? '').trim();
@@ -30,7 +34,10 @@ export class MailPlantillaRenderService {
       throw new BadRequestException('El asunto de la plantilla es obligatorio');
     }
 
-    const bodyHtml = await this.resolveBodyHtml(input.cuerpoMjml, input.cuerpoHtml);
+    const { html: bodyHtml, mjmlWarnings } = await this.resolveBodyHtml(
+      input.cuerpoMjml,
+      input.cuerpoHtml,
+    );
     const layoutTpl = await this.getLayoutTemplate(claveLayout);
 
     let innerHtml: string;
@@ -53,23 +60,24 @@ export class MailPlantillaRenderService {
       subject = '[Correo]';
     }
 
-    return { subject, html };
+    return { subject, html, mjmlWarnings };
   }
 
   private async resolveBodyHtml(
     cuerpoMjml?: string | null,
     cuerpoHtml?: string | null,
-  ): Promise<string> {
+  ): Promise<{ html: string; mjmlWarnings: string[] }> {
     const mjml = cuerpoMjml?.trim();
     if (mjml) {
       if (this.mjmlCompiler.looksLikeHtml(mjml) && !this.mjmlCompiler.looksLikeMjml(mjml)) {
-        return mjml;
+        return { html: mjml, mjmlWarnings: [] };
       }
-      return (await this.mjmlCompiler.compile(mjml)).html;
+      const compiled = await this.mjmlCompiler.compile(mjml);
+      return { html: compiled.html, mjmlWarnings: compiled.errors };
     }
     const html = cuerpoHtml?.trim();
     if (html) {
-      return html;
+      return { html, mjmlWarnings: [] };
     }
     throw new BadRequestException(
       'Debe proporcionar cuerpoMjml o cuerpoHtml para renderizar',

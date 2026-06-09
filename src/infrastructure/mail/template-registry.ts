@@ -30,4 +30,24 @@ export const MAIL_TEMPLATE_REGISTRY: Record<string, MailTemplateDefinition> = {
     file: 'revision-reviewer-notify.hbs',
     defaultSubject: '[{{appName}}] {{actionHeading}} — {{reviewLabel}}',
   },
+  'user-invitation': {
+    file: 'notification.hbs',
+    defaultSubject: 'Te invitaron a {{appName}}',
+  },
+  'password-changed': {
+    file: 'notification.hbs',
+    defaultSubject: 'Tu contraseña fue actualizada',
+  },
+  'account-locked': {
+    file: 'internal-alert.hbs',
+    defaultSubject: 'Tu cuenta fue bloqueada temporalmente',
+  },
+  'task-assigned': {
+    file: 'notification.hbs',
+    defaultSubject: '[{{appName}}] Nueva tarea: {{taskTitle}}',
+  },
+  'digest-summary': {
+    file: 'notification.hbs',
+    defaultSubject: '[{{appName}}] Resumen diario',
+  },
 };

@@ -20,6 +20,7 @@ export class PreviewMailPlantillaUseCase {
       subject: rendered.subject,
       html: rendered.html,
       templateId: input.templateId,
+      mjmlWarnings: rendered.mjmlWarnings,
     };
   }
 }
