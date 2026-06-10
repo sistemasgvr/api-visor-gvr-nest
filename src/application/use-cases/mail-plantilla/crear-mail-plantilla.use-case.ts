@@ -29,6 +29,7 @@ export class CrearMailPlantillaUseCase {
       cuerpoHtml,
       designJson: dto.designJson ?? null,
       esquemaVariables: dto.esquemaVariables,
+      variablesPrueba: dto.variablesPrueba,
       claveLayout: dto.claveLayout ?? 'base',
       esSistema: dto.esSistema ?? false,
     });

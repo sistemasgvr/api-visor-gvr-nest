@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Body,
   Param,
@@ -38,6 +39,8 @@ import { SembrarMailPlantillasSistemaUseCase } from '../../application/use-cases
 import { ListMailPlantillaQueryDto } from '../../application/dtos/mail-plantilla/list-mail-plantilla-query.dto';
 import { CreateMailPlantillaDto } from '../../application/dtos/mail-plantilla/create-mail-plantilla.dto';
 import { UpdateMailPlantillaDto } from '../../application/dtos/mail-plantilla/update-mail-plantilla.dto';
+import { UpdateVariablesPruebaMailPlantillaDto } from '../../application/dtos/mail-plantilla/update-variables-prueba-mail-plantilla.dto';
+import { ActualizarVariablesPruebaMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/actualizar-variables-prueba-mail-plantilla.use-case';
 import {
   PreviewMailPlantillaDto,
   TestSendMailPlantillaDto,
@@ -54,6 +57,7 @@ export class MailPlantillaController {
     private readonly obtenerUseCase: ObtenerMailPlantillaUseCase,
     private readonly crearUseCase: CrearMailPlantillaUseCase,
     private readonly actualizarUseCase: ActualizarMailPlantillaUseCase,
+    private readonly actualizarVariablesPruebaUseCase: ActualizarVariablesPruebaMailPlantillaUseCase,
     private readonly eliminarUseCase: EliminarMailPlantillaUseCase,
     private readonly listarHistorialUseCase: ListarHistorialMailPlantillaUseCase,
     private readonly obtenerHistorialUseCase: ObtenerHistorialMailPlantillaUseCase,
@@ -149,6 +153,23 @@ export class MailPlantillaController {
   ) {
     const userId = await this.getUserIdFromRequest(request);
     const data = await this.actualizarUseCase.execute(id, dto, userId);
+    return ApiResponseDto.success(data, data.message);
+  }
+
+  @ApiOperation({ summary: 'Actualizar variables de prueba (sin nueva versión)' })
+  @Patch(':id/variables-prueba')
+  @HttpCode(HttpStatus.OK)
+  async actualizarVariablesPrueba(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateVariablesPruebaMailPlantillaDto,
+    @Req() request: Request,
+  ) {
+    const userId = await this.getUserIdFromRequest(request);
+    const data = await this.actualizarVariablesPruebaUseCase.execute(
+      id,
+      dto,
+      userId,
+    );
     return ApiResponseDto.success(data, data.message);
   }
 

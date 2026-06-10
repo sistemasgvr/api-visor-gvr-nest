@@ -37,6 +37,7 @@ export interface CrearMailPlantillaData {
   cuerpoHtml?: string | null;
   designJson?: Record<string, unknown> | null;
   esquemaVariables?: MailTemplateVariableSchemaItem[];
+  variablesPrueba?: Record<string, unknown>;
   claveLayout?: string;
   esSistema?: boolean;
 }
@@ -51,6 +52,7 @@ export interface ActualizarMailPlantillaData {
   cuerpoHtml?: string | null;
   designJson?: Record<string, unknown> | null;
   esquemaVariables?: MailTemplateVariableSchemaItem[];
+  variablesPrueba?: Record<string, unknown>;
   claveLayout?: string;
   estado?: number;
 }
@@ -77,6 +79,11 @@ export interface IMailPlantillaCorreoRepository {
   crear(data: CrearMailPlantillaData): Promise<SqlMutationResult>;
   actualizar(data: ActualizarMailPlantillaData): Promise<SqlMutationResult>;
   eliminar(id: number, idUsuario: number): Promise<SqlMutationResult>;
+  actualizarVariablesPrueba(
+    id: number,
+    idUsuario: number,
+    variablesPrueba: Record<string, unknown>,
+  ): Promise<SqlMutationResult>;
   listarHistorial(
     idPlantilla: number,
     limit?: number,

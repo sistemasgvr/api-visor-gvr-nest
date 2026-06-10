@@ -114,6 +114,8 @@ export function mapMailPlantillaDetalleRow(
     esquemaVariables: parseVariables(
       pick(row, 'esquemavariables', 'esquemaVariables'),
     ),
+    variablesPrueba:
+      parseJsonObject(pick(row, 'variablesprueba', 'variablesPrueba')) ?? {},
   };
 }
 
@@ -131,6 +133,7 @@ export function mapMailPlantillaSlugRow(
     cuerpoHtml: detalle.cuerpoHtml,
     designJson: detalle.designJson,
     esquemaVariables: detalle.esquemaVariables,
+    variablesPrueba: detalle.variablesPrueba,
     claveLayout: detalle.claveLayout,
     esSistema: detalle.esSistema,
     numeroVersion: detalle.numeroVersion,
@@ -186,6 +189,8 @@ export function mapMailPlantillaHistorialDetalleRow(
     esquemaVariables: parseVariables(
       pick(row, 'esquemavariables', 'esquemaVariables'),
     ),
+    variablesPrueba:
+      parseJsonObject(pick(row, 'variablesprueba', 'variablesPrueba')) ?? {},
   };
 }
 

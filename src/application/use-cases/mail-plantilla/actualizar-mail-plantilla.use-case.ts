@@ -36,6 +36,7 @@ export class ActualizarMailPlantillaUseCase {
       cuerpoHtml,
       designJson: dto.designJson,
       esquemaVariables: dto.esquemaVariables,
+      variablesPrueba: dto.variablesPrueba,
       claveLayout: dto.claveLayout,
       estado: dto.estado,
     });

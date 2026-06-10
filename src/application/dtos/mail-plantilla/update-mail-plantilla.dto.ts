@@ -54,6 +54,14 @@ export class UpdateMailPlantillaDto {
   @Type(() => MailTemplateVariableDto)
   esquemaVariables?: MailTemplateVariableDto[];
 
+  @ApiPropertyOptional({
+    description: 'Valores JSON para vista previa / envío de prueba en el editor admin',
+    example: { name: 'Juan', appName: 'GVR' },
+  })
+  @IsOptional()
+  @IsObject()
+  variablesPrueba?: Record<string, unknown>;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

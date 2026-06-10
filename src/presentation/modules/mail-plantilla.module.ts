@@ -8,6 +8,7 @@ import { ListarMailPlantillasUseCase } from '../../application/use-cases/mail-pl
 import { ObtenerMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/obtener-mail-plantilla.use-case';
 import { CrearMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/crear-mail-plantilla.use-case';
 import { ActualizarMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/actualizar-mail-plantilla.use-case';
+import { ActualizarVariablesPruebaMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/actualizar-variables-prueba-mail-plantilla.use-case';
 import { EliminarMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/eliminar-mail-plantilla.use-case';
 import { ListarHistorialMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/listar-historial-mail-plantilla.use-case';
 import { ObtenerHistorialMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/obtener-historial-mail-plantilla.use-case';
@@ -38,6 +39,7 @@ import { SembrarMailPlantillasSistemaUseCase } from '../../application/use-cases
     ObtenerMailPlantillaUseCase,
     CrearMailPlantillaUseCase,
     ActualizarMailPlantillaUseCase,
+    ActualizarVariablesPruebaMailPlantillaUseCase,
     EliminarMailPlantillaUseCase,
     ListarHistorialMailPlantillaUseCase,
     ObtenerHistorialMailPlantillaUseCase,

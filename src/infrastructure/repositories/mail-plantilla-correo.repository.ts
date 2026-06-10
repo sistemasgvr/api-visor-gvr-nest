@@ -93,6 +93,9 @@ export class MailPlantillaCorreoRepository implements IMailPlantillaCorreoReposi
       data.esquemaVariables?.length
         ? JSON.stringify(data.esquemaVariables)
         : null,
+      data.variablesPrueba !== undefined
+        ? JSON.stringify(data.variablesPrueba ?? {})
+        : null,
       data.claveLayout ?? 'base',
       data.esSistema ?? false,
     ]);
@@ -118,8 +121,26 @@ export class MailPlantillaCorreoRepository implements IMailPlantillaCorreoReposi
       data.esquemaVariables !== undefined
         ? JSON.stringify(data.esquemaVariables ?? [])
         : null,
+      data.variablesPrueba !== undefined
+        ? JSON.stringify(data.variablesPrueba ?? {})
+        : null,
       data.claveLayout ?? null,
       data.estado ?? null,
+    ]);
+    return mapSqlMutationRow(row);
+  }
+
+  async actualizarVariablesPrueba(
+    id: number,
+    idUsuario: number,
+    variablesPrueba: Record<string, unknown>,
+  ): Promise<SqlMutationResult> {
+    const row = await this.databaseFunctionService.callFunctionSingle<
+      Record<string, unknown>
+    >('mail_ActualizarVariablesPruebaPlantillaCorreo', [
+      id,
+      idUsuario,
+      JSON.stringify(variablesPrueba ?? {}),
     ]);
     return mapSqlMutationRow(row);
   }

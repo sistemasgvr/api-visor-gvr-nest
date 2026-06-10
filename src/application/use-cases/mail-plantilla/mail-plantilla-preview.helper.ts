@@ -18,6 +18,9 @@ export async function resolveMailPlantillaPreviewInput(
   dto: PreviewMailPlantillaDto,
   repository: IMailPlantillaCorreoRepository,
 ): Promise<MailPlantillaRenderInput & { templateId: string }> {
+  const hasInlineBodyOverride =
+    dto.cuerpoHtml !== undefined || dto.cuerpoMjml !== undefined;
+
   if (dto.id != null) {
     const plantilla = await repository.obtenerPorId(dto.id);
     if (!plantilla) {
@@ -26,8 +29,12 @@ export async function resolveMailPlantillaPreviewInput(
     return {
       templateId: plantilla.slug,
       asuntoPlantilla: dto.asuntoPlantilla ?? plantilla.asuntoPlantilla,
-      cuerpoMjml: pickNonEmpty(dto.cuerpoMjml, plantilla.cuerpoMjml),
-      cuerpoHtml: pickNonEmpty(dto.cuerpoHtml, plantilla.cuerpoHtml),
+      cuerpoMjml: hasInlineBodyOverride
+        ? pickNonEmpty(dto.cuerpoMjml)
+        : pickNonEmpty(dto.cuerpoMjml, plantilla.cuerpoMjml),
+      cuerpoHtml: hasInlineBodyOverride
+        ? pickNonEmpty(dto.cuerpoHtml)
+        : pickNonEmpty(dto.cuerpoHtml, plantilla.cuerpoHtml),
       claveLayout: dto.claveLayout ?? plantilla.claveLayout,
       variables: dto.variables,
     };
@@ -39,8 +46,12 @@ export async function resolveMailPlantillaPreviewInput(
       return {
         templateId: plantilla.slug,
         asuntoPlantilla: dto.asuntoPlantilla ?? plantilla.asuntoPlantilla,
-        cuerpoMjml: pickNonEmpty(dto.cuerpoMjml, plantilla.cuerpoMjml),
-        cuerpoHtml: pickNonEmpty(dto.cuerpoHtml, plantilla.cuerpoHtml),
+        cuerpoMjml: hasInlineBodyOverride
+          ? pickNonEmpty(dto.cuerpoMjml)
+          : pickNonEmpty(dto.cuerpoMjml, plantilla.cuerpoMjml),
+        cuerpoHtml: hasInlineBodyOverride
+          ? pickNonEmpty(dto.cuerpoHtml)
+          : pickNonEmpty(dto.cuerpoHtml, plantilla.cuerpoHtml),
         claveLayout: dto.claveLayout ?? plantilla.claveLayout,
         variables: dto.variables,
       };

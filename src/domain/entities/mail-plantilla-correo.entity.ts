@@ -32,6 +32,7 @@ export interface MailPlantillaCorreoDetalle extends MailPlantillaCorreoListItem 
   cuerpoHtml: string | null;
   designJson: Record<string, unknown> | null;
   esquemaVariables: MailTemplateVariableSchemaItem[];
+  variablesPrueba: Record<string, unknown>;
 }
 
 export interface MailPlantillaCorreoHistorialItem {
@@ -54,6 +55,7 @@ export interface MailPlantillaCorreoHistorialDetalle
   cuerpoHtml: string | null;
   designJson: Record<string, unknown> | null;
   esquemaVariables: MailTemplateVariableSchemaItem[];
+  variablesPrueba: Record<string, unknown>;
 }
 
 export interface MailPlantillaCorreoSlugRow {
@@ -66,6 +68,7 @@ export interface MailPlantillaCorreoSlugRow {
   cuerpoHtml: string | null;
   designJson: Record<string, unknown> | null;
   esquemaVariables: MailTemplateVariableSchemaItem[];
+  variablesPrueba: Record<string, unknown>;
   claveLayout: string;
   esSistema: boolean;
   numeroVersion: number;
