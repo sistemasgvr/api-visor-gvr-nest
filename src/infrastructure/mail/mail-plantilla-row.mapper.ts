@@ -196,7 +196,13 @@ export function mapMailPlantillaHistorialDetalleRow(
 
 export function mapSqlMutationRow(
   row: Record<string, unknown> | null | undefined,
-): { success: boolean; message: string; id_plantilla?: number; numeroVersion?: number } {
+): {
+  success: boolean;
+  message: string;
+  id_plantilla?: number;
+  numeroVersion?: number;
+  id_historial?: number;
+} {
   if (!row) {
     return { success: false, message: 'Sin respuesta de la base de datos' };
   }
@@ -204,6 +210,7 @@ export function mapSqlMutationRow(
     success: Boolean(pick(row, 'success')),
     message: String(pick(row, 'message') ?? ''),
     id_plantilla: pick<number>(row, 'id_plantilla', 'idPlantilla'),
+    id_historial: pick<number>(row, 'id_historial', 'idHistorial'),
     numeroVersion: pick<number>(
       row,
       'nuevaversion',

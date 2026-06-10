@@ -12,6 +12,7 @@ import { ActualizarVariablesPruebaMailPlantillaUseCase } from '../../application
 import { EliminarMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/eliminar-mail-plantilla.use-case';
 import { ListarHistorialMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/listar-historial-mail-plantilla.use-case';
 import { ObtenerHistorialMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/obtener-historial-mail-plantilla.use-case';
+import { EliminarHistorialMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/eliminar-historial-mail-plantilla.use-case';
 import { PreviewMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/preview-mail-plantilla.use-case';
 import { TestSendMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/test-send-mail-plantilla.use-case';
 import { SembrarMailPlantillasSistemaUseCase } from '../../application/use-cases/mail-plantilla/sembrar-mail-plantillas-sistema.use-case';
@@ -43,6 +44,7 @@ import { SembrarMailPlantillasSistemaUseCase } from '../../application/use-cases
     EliminarMailPlantillaUseCase,
     ListarHistorialMailPlantillaUseCase,
     ObtenerHistorialMailPlantillaUseCase,
+    EliminarHistorialMailPlantillaUseCase,
     PreviewMailPlantillaUseCase,
     TestSendMailPlantillaUseCase,
     SembrarMailPlantillasSistemaUseCase,

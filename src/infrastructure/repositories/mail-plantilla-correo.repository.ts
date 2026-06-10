@@ -190,6 +190,16 @@ export class MailPlantillaCorreoRepository implements IMailPlantillaCorreoReposi
     return row ? mapMailPlantillaHistorialDetalleRow(row) : null;
   }
 
+  async eliminarHistorial(
+    idHistorial: number,
+    idUsuario: number,
+  ): Promise<SqlMutationResult> {
+    const row = await this.databaseFunctionService.callFunctionSingle<
+      Record<string, unknown>
+    >('mail_EliminarHistorialPlantillaCorreo', [idHistorial, idUsuario]);
+    return mapSqlMutationRow(row);
+  }
+
   async sembrarPlantillasSistema(
     idUsuario?: number | null,
   ): Promise<SembrarPlantillaResult[]> {

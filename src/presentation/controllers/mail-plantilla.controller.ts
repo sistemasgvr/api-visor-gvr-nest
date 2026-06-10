@@ -33,6 +33,7 @@ import { ActualizarMailPlantillaUseCase } from '../../application/use-cases/mail
 import { EliminarMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/eliminar-mail-plantilla.use-case';
 import { ListarHistorialMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/listar-historial-mail-plantilla.use-case';
 import { ObtenerHistorialMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/obtener-historial-mail-plantilla.use-case';
+import { EliminarHistorialMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/eliminar-historial-mail-plantilla.use-case';
 import { PreviewMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/preview-mail-plantilla.use-case';
 import { TestSendMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/test-send-mail-plantilla.use-case';
 import { SembrarMailPlantillasSistemaUseCase } from '../../application/use-cases/mail-plantilla/sembrar-mail-plantillas-sistema.use-case';
@@ -61,6 +62,7 @@ export class MailPlantillaController {
     private readonly eliminarUseCase: EliminarMailPlantillaUseCase,
     private readonly listarHistorialUseCase: ListarHistorialMailPlantillaUseCase,
     private readonly obtenerHistorialUseCase: ObtenerHistorialMailPlantillaUseCase,
+    private readonly eliminarHistorialUseCase: EliminarHistorialMailPlantillaUseCase,
     private readonly previewUseCase: PreviewMailPlantillaUseCase,
     private readonly testSendUseCase: TestSendMailPlantillaUseCase,
     private readonly sembrarUseCase: SembrarMailPlantillasSistemaUseCase,
@@ -108,6 +110,18 @@ export class MailPlantillaController {
   ) {
     const data = await this.obtenerHistorialUseCase.execute(idHistorial);
     return ApiResponseDto.success(data);
+  }
+
+  @ApiOperation({ summary: 'Eliminar versión histórica' })
+  @Delete('historial/:idHistorial')
+  @HttpCode(HttpStatus.OK)
+  async eliminarHistorial(
+    @Param('idHistorial', ParseIntPipe) idHistorial: number,
+    @Req() request: Request,
+  ) {
+    const userId = await this.getUserIdFromRequest(request);
+    const data = await this.eliminarHistorialUseCase.execute(idHistorial, userId);
+    return ApiResponseDto.success(data, data.message);
   }
 
   @ApiOperation({ summary: 'Historial de versiones de una plantilla' })

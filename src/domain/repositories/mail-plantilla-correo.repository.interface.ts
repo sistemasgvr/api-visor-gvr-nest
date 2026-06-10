@@ -62,6 +62,7 @@ export interface SqlMutationResult {
   message: string;
   id_plantilla?: number;
   numeroVersion?: number;
+  id_historial?: number;
 }
 
 export interface SembrarPlantillaResult {
@@ -95,6 +96,10 @@ export interface IMailPlantillaCorreoRepository {
   obtenerHistorialPorId(
     idHistorial: number,
   ): Promise<MailPlantillaCorreoHistorialDetalle | null>;
+  eliminarHistorial(
+    idHistorial: number,
+    idUsuario: number,
+  ): Promise<SqlMutationResult>;
   sembrarPlantillasSistema(
     idUsuario?: number | null,
   ): Promise<SembrarPlantillaResult[]>;
