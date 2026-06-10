@@ -14,6 +14,7 @@ import { MAIL_TRANSPORT } from '../../../domain/services/mail-transport.interfac
 import type { IEmailDispatchLogRepository } from '../../../domain/repositories/email-dispatch-log.repository.interface';
 import { EMAIL_DISPATCH_LOG_REPOSITORY } from '../../../domain/repositories/email-dispatch-log.repository.interface';
 import { MailSendFailedException } from '../../../shared/exceptions/mail.exceptions';
+import { resolveMailHtmlInlineDataUris } from '../../../infrastructure/mail/mail-inline-data-uri.resolver';
 
 export interface SendOutboundEmailInput extends OutboundMailJobPayload {
   /** Id de job BullMQ cuando el envío proviene de la cola */
@@ -95,13 +96,18 @@ export class SendOutboundEmailUseCase {
         input.subjectOverride,
       );
 
+      const { html, attachments } = resolveMailHtmlInlineDataUris(
+        rendered.html,
+      );
+
       await this.mailTransport.send({
         to,
         cc: input.cc,
         bcc: input.bcc,
         subject: rendered.subject,
-        html: rendered.html,
+        html,
         text: rendered.text,
+        attachments: attachments.length ? attachments : undefined,
       });
 
       this.logger.log(

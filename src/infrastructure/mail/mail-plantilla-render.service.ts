@@ -67,6 +67,11 @@ export class MailPlantillaRenderService {
     cuerpoMjml?: string | null,
     cuerpoHtml?: string | null,
   ): Promise<{ html: string; mjmlWarnings: string[] }> {
+    const html = cuerpoHtml?.trim();
+    if (html) {
+      return { html, mjmlWarnings: [] };
+    }
+
     const mjml = cuerpoMjml?.trim();
     if (mjml) {
       if (this.mjmlCompiler.looksLikeHtml(mjml) && !this.mjmlCompiler.looksLikeMjml(mjml)) {
@@ -74,10 +79,6 @@ export class MailPlantillaRenderService {
       }
       const compiled = await this.mjmlCompiler.compile(mjml);
       return { html: compiled.html, mjmlWarnings: compiled.errors };
-    }
-    const html = cuerpoHtml?.trim();
-    if (html) {
-      return { html, mjmlWarnings: [] };
     }
     throw new BadRequestException(
       'Debe proporcionar cuerpoMjml o cuerpoHtml para renderizar',

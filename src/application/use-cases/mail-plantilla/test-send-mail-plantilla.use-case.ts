@@ -14,6 +14,7 @@ import { EMAIL_DISPATCH_LOG_REPOSITORY } from '../../../domain/repositories/emai
 import { TestSendMailPlantillaDto } from '../../dtos/mail-plantilla/preview-mail-plantilla.dto';
 import { MailPlantillaRenderService } from '../../../infrastructure/mail/mail-plantilla-render.service';
 import { resolveMailPlantillaPreviewInput } from './mail-plantilla-preview.helper';
+import { resolveMailHtmlInlineDataUris } from '../../../infrastructure/mail/mail-inline-data-uri.resolver';
 
 @Injectable()
 export class TestSendMailPlantillaUseCase {
@@ -55,10 +56,15 @@ export class TestSendMailPlantillaUseCase {
     }
 
     try {
+      const { html, attachments } = resolveMailHtmlInlineDataUris(
+        rendered.html,
+      );
+
       await this.mailTransport.send({
         to: [{ email, name: dto.nombreDestinatario?.trim() }],
         subject: rendered.subject,
-        html: rendered.html,
+        html,
+        attachments: attachments.length ? attachments : undefined,
       });
 
       await this.dispatchLogRepository.record({

@@ -87,6 +87,15 @@ export class NodemailerMailTransportService implements IMailTransport {
     if (message.bcc?.length) {
       mail.bcc = this.formatRecipients(message.bcc);
     }
+    if (message.attachments?.length) {
+      mail.attachments = message.attachments.map((attachment) => ({
+        filename: attachment.filename,
+        content: attachment.content,
+        contentType: attachment.contentType,
+        cid: attachment.cid,
+        contentDisposition: 'inline' as const,
+      }));
+    }
 
     try {
       const info = await transport.sendMail(mail);

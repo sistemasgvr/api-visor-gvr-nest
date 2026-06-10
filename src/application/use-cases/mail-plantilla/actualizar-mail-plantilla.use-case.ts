@@ -24,6 +24,11 @@ export class ActualizarMailPlantillaUseCase {
       );
       cuerpoMjml = prepared.cuerpoMjml;
       cuerpoHtml = prepared.cuerpoHtml;
+
+      // GrapesJS envía cuerpoMjml vacío: limpiar MJML obsoleto en BD (SQL distingue NULL vs '').
+      if (dto.cuerpoMjml !== undefined && !dto.cuerpoMjml?.trim()) {
+        cuerpoMjml = '';
+      }
     }
 
     const resultado = await this.repository.actualizar({

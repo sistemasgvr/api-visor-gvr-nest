@@ -1,5 +1,12 @@
 import type { EmailRecipient } from '../mail/outbound-mail.types';
 
+export interface MailTransportAttachment {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+  cid: string;
+}
+
 export interface MailTransportMessage {
   to: EmailRecipient[];
   cc?: EmailRecipient[];
@@ -7,6 +14,7 @@ export interface MailTransportMessage {
   subject: string;
   html: string;
   text?: string;
+  attachments?: MailTransportAttachment[];
 }
 
 export interface IMailTransport {
