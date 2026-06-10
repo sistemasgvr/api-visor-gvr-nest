@@ -32,6 +32,7 @@ import { ActualizarContratoTrabajadorUseCase } from '../../application/use-cases
 import { CrearContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/crear-contrato-trabajador.use-case';
 import { EliminarContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-contrato-trabajador.use-case';
 import { EliminarTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-trabajador.use-case';
+import { ActivarTrabajadorUseCase } from '../../application/use-cases/trabajador/activar-trabajador.use-case';
 import { ResetearContrasenaUseCase } from '../../application/use-cases/trabajador/resetear-contrasena.use-case';
 import { CreateTrabajadorDto } from '../../application/dtos/trabajador/create-trabajador.dto';
 import { UpdateTrabajadorDto } from '../../application/dtos/trabajador/update-trabajador.dto';
@@ -60,6 +61,7 @@ export class TrabajadorController {
     private readonly crearContratoTrabajadorUseCase: CrearContratoTrabajadorUseCase,
     private readonly eliminarContratoTrabajadorUseCase: EliminarContratoTrabajadorUseCase,
     private readonly eliminarTrabajadorUseCase: EliminarTrabajadorUseCase,
+    private readonly activarTrabajadorUseCase: ActivarTrabajadorUseCase,
     private readonly resetearContrasenaUseCase: ResetearContrasenaUseCase,
     private readonly jwtService: JwtService,
   ) {}
@@ -391,6 +393,36 @@ export class TrabajadorController {
     );
 
     return ApiResponseDto.success(data, 'Trabajador eliminado exitosamente');
+  }
+
+  /**
+   * Activar trabajador inactivo (reactiva trabajador y usuario asociado)
+   * POST /trabajadores/:id/activar
+   */
+  @ApiOperation({
+    summary: 'Activar trabajador inactivo',
+    description: 'Reactiva el trabajador (estado=1) y su usuario en authUsuarios.',
+  })
+  @Post(':id/activar')
+  @HttpCode(HttpStatus.OK)
+  async activarTrabajador(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: Request,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
+    }
+
+    const payload = await this.jwtService.verifyAsync(token);
+    const idUsuarioModificacion = payload.sub;
+
+    const data = await this.activarTrabajadorUseCase.execute(
+      id,
+      idUsuarioModificacion,
+    );
+
+    return ApiResponseDto.success(data, 'Trabajador activado exitosamente');
   }
 
   /**

@@ -166,6 +166,10 @@ export interface ITrabajadorRepository {
     idTrabajador: number,
     idUsuarioModificacion: number,
   ): Promise<any>;
+  activarTrabajador(
+    idTrabajador: number,
+    idUsuarioModificacion: number,
+  ): Promise<any>;
   resetearContrasena(
     idTrabajador: number,
     idUsuarioModificacion: number,

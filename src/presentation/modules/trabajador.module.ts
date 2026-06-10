@@ -12,6 +12,7 @@ import { ActualizarContratoTrabajadorUseCase } from '../../application/use-cases
 import { CrearContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/crear-contrato-trabajador.use-case';
 import { EliminarContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-contrato-trabajador.use-case';
 import { EliminarTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-trabajador.use-case';
+import { ActivarTrabajadorUseCase } from '../../application/use-cases/trabajador/activar-trabajador.use-case';
 import { ResetearContrasenaUseCase } from '../../application/use-cases/trabajador/resetear-contrasena.use-case';
 import { ObtenerFotoPerfilTrabajadorUseCase } from '../../application/use-cases/trabajador/obtener-foto-perfil-trabajador.use-case';
 import { SubirFirmaTrabajadorUseCase } from '../../application/use-cases/trabajador/subir-firma-trabajador.use-case';
@@ -63,6 +64,7 @@ import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
     CrearContratoTrabajadorUseCase,
     EliminarContratoTrabajadorUseCase,
     EliminarTrabajadorUseCase,
+    ActivarTrabajadorUseCase,
     ResetearContrasenaUseCase,
     // JWT Strategy
     JwtStrategy,

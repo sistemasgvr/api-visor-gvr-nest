@@ -425,6 +425,18 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     return result;
   }
 
+  async activarTrabajador(
+    idTrabajador: number,
+    idUsuarioModificacion: number,
+  ): Promise<any> {
+    const result = await this.databaseFunctionService.callFunctionSingle<any>(
+      'tra_ActivarTrabajador',
+      [idTrabajador, idUsuarioModificacion],
+    );
+
+    return result;
+  }
+
   async resetearContrasena(
     idTrabajador: number,
     idUsuarioModificacion: number,
