@@ -4,10 +4,9 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import type { ITrabajadorRepository } from '../../../domain/repositories/trabajador.repository.interface';
 import { TRABAJADOR_REPOSITORY } from '../../../domain/repositories/trabajador.repository.interface';
-import { MailService } from '../../services/mail.service';
+import { EnviarCorreoBienvenidaUseCase } from '../mail/enviar-correo-bienvenida.use-case';
 
 export interface EnviarCorreoBienvenidaDemoResult {
   idTrabajador: number;
@@ -24,8 +23,7 @@ export class EnviarCorreoBienvenidaDemoUseCase {
   constructor(
     @Inject(TRABAJADOR_REPOSITORY)
     private readonly trabajadorRepository: ITrabajadorRepository,
-    private readonly mailService: MailService,
-    private readonly configService: ConfigService,
+    private readonly enviarCorreoBienvenidaUseCase: EnviarCorreoBienvenidaUseCase,
   ) {}
 
   async execute(
@@ -59,22 +57,19 @@ export class EnviarCorreoBienvenidaDemoUseCase {
     ).trim();
     const nombre = nombreCompleto || 'Usuario';
 
-    const frontend =
-      this.configService.get<string>('FRONTEND_URLS')?.split(',')[0]?.trim() ||
-      '';
-    const appName =
-      this.configService.get<string>('MAIL_FROM_NAME')?.trim() || 'GVR PE';
+    const { sent, jobId, skippedReason } =
+      await this.enviarCorreoBienvenidaUseCase.execute({
+        idTrabajador,
+        correo,
+        nombre,
+        correlationIdPrefix: 'demo-bienvenida',
+      });
 
-    const { jobId } = await this.mailService.enqueue({
-      templateId: 'welcome',
-      to: [{ email: correo, name: nombre }],
-      variables: {
-        name: nombre,
-        appName,
-        ...(frontend ? { loginUrl: frontend } : {}),
-      },
-      correlationId: `demo-bienvenida-${idTrabajador}`,
-    });
+    if (!sent) {
+      throw new BadRequestException(
+        skippedReason || 'No se pudo encolar el correo de bienvenida',
+      );
+    }
 
     return {
       idTrabajador,

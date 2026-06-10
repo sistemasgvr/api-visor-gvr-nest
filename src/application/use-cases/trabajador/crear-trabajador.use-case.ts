@@ -2,12 +2,14 @@ import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { ITrabajadorRepository } from '../../../domain/repositories/trabajador.repository.interface';
 import { TRABAJADOR_REPOSITORY } from '../../../domain/repositories/trabajador.repository.interface';
 import { CreateTrabajadorDto } from '../../dtos/trabajador/create-trabajador.dto';
+import { EnviarCorreoBienvenidaUseCase } from '../mail/enviar-correo-bienvenida.use-case';
 
 @Injectable()
 export class CrearTrabajadorUseCase {
   constructor(
     @Inject(TRABAJADOR_REPOSITORY)
     private readonly trabajadorRepository: ITrabajadorRepository,
+    private readonly enviarCorreoBienvenidaUseCase: EnviarCorreoBienvenidaUseCase,
   ) {}
 
   async execute(createDto: CreateTrabajadorDto, idUsuarioCreacion: number) {
@@ -40,6 +42,15 @@ export class CrearTrabajadorUseCase {
           idUsuarioCreacion,
         );
       }
+    }
+
+    if (idTrabajador) {
+      const nombre = `${createDto.nombres} ${createDto.apellidos}`.trim();
+      await this.enviarCorreoBienvenidaUseCase.execute({
+        idTrabajador,
+        correo: createDto.correo,
+        nombre,
+      });
     }
 
     return {

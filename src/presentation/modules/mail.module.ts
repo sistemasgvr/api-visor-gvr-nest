@@ -14,6 +14,7 @@ import { NodemailerMailTransportService } from '../../infrastructure/mail/nodema
 import { EmailDispatchLogRepository } from '../../infrastructure/repositories/email-dispatch-log.repository';
 import { SendOutboundEmailUseCase } from '../../application/use-cases/mail/send-outbound-email.use-case';
 import { EnqueueOutboundEmailUseCase } from '../../application/use-cases/mail/enqueue-outbound-email.use-case';
+import { EnviarCorreoBienvenidaUseCase } from '../../application/use-cases/mail/enviar-correo-bienvenida.use-case';
 import { MailService } from '../../application/services/mail.service';
 import { InlineMailJobPublisher } from '../../infrastructure/mail/inline-mail-job-publisher.service';
 import { BullMailJobPublisher } from '../../infrastructure/mail/bull-mail-job-publisher.service';
@@ -82,6 +83,7 @@ export class MailModule {
       publisherImpl,
       { provide: MAIL_JOB_PUBLISHER, useExisting: publisherImpl },
       EnqueueOutboundEmailUseCase,
+      EnviarCorreoBienvenidaUseCase,
       MailService,
     ];
 
@@ -96,6 +98,7 @@ export class MailModule {
       providers,
       exports: [
         MailService,
+        EnviarCorreoBienvenidaUseCase,
         EnqueueOutboundEmailUseCase,
         MAIL_JOB_PUBLISHER,
         MAIL_PLANTILLA_CORREO_REPOSITORY,
