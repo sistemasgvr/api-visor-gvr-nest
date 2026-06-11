@@ -2,6 +2,10 @@ import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { INovedadRepository } from '../../../domain/repositories/novedad.repository.interface';
 import { NOVEDAD_REPOSITORY } from '../../../domain/repositories/novedad.repository.interface';
 import { UpdateNovedadLanzamientoDto } from '../../dtos/novedad/update-novedad-lanzamiento.dto';
+import {
+  normalizarFechaPublicacionNovedad,
+  normalizarFechaVigenciaNovedad,
+} from '../../../shared/utils/novedad-dates.util';
 
 @Injectable()
 export class EditarNovedadLanzamientoUseCase {
@@ -17,7 +21,10 @@ export class EditarNovedadLanzamientoUseCase {
   ) {
     const resultado = await this.novedadRepository.editarLanzamiento({
       id,
-      ...dto,
+      titulo: dto.titulo,
+      fechaPublicacion: normalizarFechaPublicacionNovedad(dto.fechaPublicacion),
+      fechaVigenciaHasta: normalizarFechaVigenciaNovedad(dto.fechaVigenciaHasta),
+      textoBotonCerrar: dto.textoBotonCerrar,
       idUsuarioModificacion,
     });
 

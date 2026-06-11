@@ -17,9 +17,7 @@ export interface ListarNovedadLanzamientosResponse {
 }
 
 export interface CrearNovedadLanzamientoData {
-  codigoVersion: string;
   titulo: string;
-  descripcion?: string | null;
   fechaPublicacion?: Date | string | null;
   fechaVigenciaHasta?: Date | string | null;
   textoBotonCerrar?: string;
@@ -28,9 +26,7 @@ export interface CrearNovedadLanzamientoData {
 
 export interface EditarNovedadLanzamientoData {
   id: number;
-  codigoVersion: string;
   titulo: string;
-  descripcion?: string | null;
   fechaPublicacion?: Date | string | null;
   fechaVigenciaHasta?: Date | string | null;
   textoBotonCerrar?: string | null;

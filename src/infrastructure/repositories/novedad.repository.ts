@@ -137,9 +137,7 @@ export class NovedadRepository implements INovedadRepository {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
       'gen_CrearNovedadLanzamiento',
       [
-        data.codigoVersion,
         data.titulo,
-        data.descripcion ?? null,
         data.fechaPublicacion ?? null,
         data.fechaVigenciaHasta ?? null,
         data.textoBotonCerrar ?? 'Entendido',
@@ -155,9 +153,7 @@ export class NovedadRepository implements INovedadRepository {
       'gen_EditarNovedadLanzamiento',
       [
         data.id,
-        data.codigoVersion,
         data.titulo,
-        data.descripcion ?? null,
         data.fechaPublicacion ?? null,
         data.fechaVigenciaHasta ?? null,
         data.textoBotonCerrar ?? null,
