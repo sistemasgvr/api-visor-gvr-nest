@@ -2984,6 +2984,10 @@ export class AutodeskApiService {
         pagination: response.data.pagination || {},
       };
     } catch (error: any) {
+      const status = error.response?.status;
+      if (status === 404 || status === 504) {
+        return { data: [], pagination: {} };
+      }
       throw new Error(
         `Error al obtener adjuntos: ${error.response?.data?.message || error.message}`,
       );
@@ -3762,6 +3766,10 @@ export class AutodeskApiService {
         pagination: response.data.pagination || {},
       };
     } catch (error: any) {
+      const status = error.response?.status;
+      if (status === 404 || status === 504) {
+        return { data: [], pagination: {} };
+      }
       throw new Error(
         `Error al obtener adjuntos BIM 360: ${error.response?.data?.message || error.message}`,
       );
@@ -6676,11 +6684,13 @@ export class AutodeskApiService {
       } = {
         uploadKey,
       };
-      if (Array.isArray(options?.eTags) && options.eTags.length > 0) {
-        payload.eTags = options.eTags;
+      const eTags = options?.eTags;
+      if (Array.isArray(eTags) && eTags.length > 0) {
+        payload.eTags = eTags;
       }
-      if (typeof options?.size === 'number' && Number.isFinite(options.size)) {
-        payload.size = Math.max(0, Math.trunc(options.size));
+      const uploadSize = options?.size;
+      if (typeof uploadSize === 'number' && Number.isFinite(uploadSize)) {
+        payload.size = Math.max(0, Math.trunc(uploadSize));
       }
 
       const response = await this.httpClient.post<any>(url, payload, {

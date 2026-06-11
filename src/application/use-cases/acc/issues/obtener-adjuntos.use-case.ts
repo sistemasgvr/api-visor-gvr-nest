@@ -29,12 +29,22 @@ export class ObtenerAdjuntosUseCase {
     if (dto.offset) filters.offset = dto.offset.toString();
     if (dto.sort) filters.sort = dto.sort;
 
-    const resultado = await this.autodeskApiService.obtenerAdjuntos(
-      accessToken,
-      projectId,
-      issueId,
-      filters,
-    );
+    let resultado;
+    try {
+      resultado = await this.autodeskApiService.obtenerAdjuntos(
+        accessToken,
+        projectId,
+        issueId,
+        filters,
+      );
+    } catch {
+      resultado = await this.autodeskApiService.obtenerAdjuntosBim360(
+        accessToken,
+        projectId,
+        issueId,
+        filters,
+      );
+    }
 
     // Enriquecer adjuntos con información del usuario real desde auditoría
     if (resultado && resultado.data && Array.isArray(resultado.data)) {
