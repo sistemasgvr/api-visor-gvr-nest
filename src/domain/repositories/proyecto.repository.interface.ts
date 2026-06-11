@@ -82,6 +82,13 @@ export interface ListarEntregablesProyectoParams {
   offset?: number;
   idUsuario?: number;
   soloVigentes?: boolean;
+  esAdminSistemas?: boolean;
+}
+
+export interface ListarEntregablesParaSelectParams {
+  idProyecto: number;
+  idUsuario?: number;
+  esAdminSistemas?: boolean;
 }
 
 export interface ListarEntregablesProyectoResponse {
@@ -190,7 +197,7 @@ export interface IProyectoRepository {
     params: ListarEntregablesProyectoParams,
   ): Promise<ListarEntregablesProyectoResponse>;
   listarEntregablesParaSelect(
-    idProyecto: number,
+    params: ListarEntregablesParaSelectParams,
   ): Promise<EntregableSelectOption[]>;
   obtenerEntregablePorId(idEntregable: number): Promise<any | null>;
   crearEntregableProyecto(

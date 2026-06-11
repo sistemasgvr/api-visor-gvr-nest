@@ -15,11 +15,13 @@ export class ListarEntregablesProyectoUseCase {
   async execute(
     params: ListarEntregablesProyectoParams,
     idUsuario?: number,
+    esAdminSistemas = false,
   ) {
     return this.proyectoRepository.listarEntregablesProyecto({
       ...params,
       idUsuario,
       soloVigentes: params.soloVigentes ?? true,
+      esAdminSistemas,
     });
   }
 }

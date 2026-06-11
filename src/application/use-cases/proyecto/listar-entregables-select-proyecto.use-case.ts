@@ -12,8 +12,16 @@ export class ListarEntregablesSelectProyectoUseCase {
     private readonly proyectoRepository: IProyectoRepository,
   ) {}
 
-  async execute(idProyecto: number): Promise<EntregableSelectOption[]> {
+  async execute(
+    idProyecto: number,
+    idUsuario?: number,
+    esAdminSistemas = false,
+  ): Promise<EntregableSelectOption[]> {
     if (idProyecto == null || idProyecto < 1) return [];
-    return this.proyectoRepository.listarEntregablesParaSelect(idProyecto);
+    return this.proyectoRepository.listarEntregablesParaSelect({
+      idProyecto,
+      idUsuario,
+      esAdminSistemas,
+    });
   }
 }

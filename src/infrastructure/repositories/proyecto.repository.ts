@@ -10,6 +10,7 @@ import type {
   CrearDocumentoProyectoData,
   ActualizarDocumentoProyectoData,
   ListarEntregablesProyectoParams,
+  ListarEntregablesParaSelectParams,
   ListarEntregablesProyectoResponse,
   EntregableSelectOption,
   CrearEntregableProyectoData,
@@ -305,10 +306,20 @@ export class ProyectoRepository implements IProyectoRepository {
       offset = 0,
       idUsuario = null,
       soloVigentes = true,
+      esAdminSistemas = false,
     } = params;
     const result = await this.databaseFunctionService.callFunction<any>(
       'pro_ListarEntregablesProyecto',
-      [idProyecto, busqueda, idEstado, limit, offset, idUsuario, soloVigentes],
+      [
+        idProyecto,
+        busqueda,
+        idEstado,
+        limit,
+        offset,
+        idUsuario,
+        soloVigentes,
+        esAdminSistemas,
+      ],
     );
 
     if (!result || result.length === 0) {
@@ -339,13 +350,14 @@ export class ProyectoRepository implements IProyectoRepository {
   }
 
   async listarEntregablesParaSelect(
-    idProyecto: number,
+    params: ListarEntregablesParaSelectParams,
   ): Promise<EntregableSelectOption[]> {
+    const { idProyecto, idUsuario = null, esAdminSistemas = false } = params;
     if (idProyecto == null || idProyecto < 1) return [];
     const result =
       await this.databaseFunctionService.callFunction<EntregableSelectOption>(
         'pro_ListarEntregablesParaSelect',
-        [idProyecto],
+        [idProyecto, idUsuario, esAdminSistemas],
       );
     return Array.isArray(result) ? result : [];
   }

@@ -26,6 +26,11 @@ import {
 } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import type { JwtPayload } from '../../infrastructure/auth/jwt.strategy';
+import {
+  esAdminSistemas,
+  extraerIdsRoles,
+} from '../../shared/utils/admin-sistemas.util';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { ListarEntregablesProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-proyecto.use-case';
 import { ListarEntregablesSelectProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-select-proyecto.use-case';
@@ -108,7 +113,8 @@ export class EntregableController {
   ) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
-    const payload = await this.jwtService.verifyAsync(token);
+    const payload = (await this.jwtService.verifyAsync(token)) as JwtPayload;
+    const rolesIds = extraerIdsRoles(payload.roles);
 
     const data = await this.listarEntregablesProyectoUseCase.execute(
       {
@@ -121,6 +127,7 @@ export class EntregableController {
           soloVigentes === '0' || soloVigentes === 'false' ? false : true,
       },
       payload.sub,
+      esAdminSistemas(rolesIds),
     );
     return ApiResponseDto.success(data, 'Entregables obtenidos exitosamente');
   }
@@ -140,10 +147,19 @@ export class EntregableController {
   @Get('opciones-select')
   @HttpCode(HttpStatus.OK)
   async listarEntregablesSelect(
+    @Req() request: Request,
     @Query('idProyecto', ParseIntPipe) idProyecto: number,
   ) {
-    const data =
-      await this.listarEntregablesSelectProyectoUseCase.execute(idProyecto);
+    const token = this.extractTokenFromHeader(request);
+    if (!token) throw new UnauthorizedException('Token no proporcionado');
+    const payload = (await this.jwtService.verifyAsync(token)) as JwtPayload;
+    const rolesIds = extraerIdsRoles(payload.roles);
+
+    const data = await this.listarEntregablesSelectProyectoUseCase.execute(
+      idProyecto,
+      payload.sub,
+      esAdminSistemas(rolesIds),
+    );
     return ApiResponseDto.success(
       data,
       'Opciones de entregables obtenidas exitosamente',
