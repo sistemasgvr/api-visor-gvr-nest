@@ -225,6 +225,11 @@ export class BroadcastGateway
       return true;
     }
 
+    // Marcas de revisión del visor ACC por proyecto
+    if (/^acc\.projects\.[^.]+\.visor-marcas-revision$/.test(channel)) {
+      return true;
+    }
+
     // Canal privado por usuario: 'App.Models.User.{id}'
     const userChannelMatch = channel.match(/^App\.Models\.User\.(\d+)$/);
     if (userChannelMatch) {

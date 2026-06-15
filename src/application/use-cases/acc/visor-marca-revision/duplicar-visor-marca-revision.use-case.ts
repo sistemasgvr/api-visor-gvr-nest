@@ -9,12 +9,14 @@ import {
 } from '../../../../domain/repositories/acc-visor-marca-revision.repository.interface';
 import type { DuplicarVisorMarcaRevisionDto } from '../../../dtos/acc/visor-marca-revision/visor-marca-revision.dto';
 import { assertOperacionMarcaRevision } from './visor-marca-revision.util';
+import { VisorMarcaRevisionSyncService } from './visor-marca-revision-sync.service';
 
 @Injectable()
 export class DuplicarVisorMarcaRevisionUseCase {
   constructor(
     @Inject(ACC_VISOR_MARCA_REVISION_REPOSITORY)
     private readonly repository: IAccVisorMarcaRevisionRepository,
+    private readonly syncService: VisorMarcaRevisionSyncService,
   ) {}
 
   async execute(
@@ -40,6 +42,7 @@ export class DuplicarVisorMarcaRevisionUseCase {
     if (!detalle) {
       throw new BadRequestException('Marca duplicada pero no visible para el usuario');
     }
+    this.syncService.emit('duplicated', detalle, idUsuario);
     return detalle;
   }
 }

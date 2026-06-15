@@ -5,12 +5,14 @@ import {
 } from '../../../../domain/repositories/acc-visor-marca-revision.repository.interface';
 import type { ActualizarVisorMarcaRevisionDto } from '../../../dtos/acc/visor-marca-revision/visor-marca-revision.dto';
 import { assertOperacionMarcaRevision } from './visor-marca-revision.util';
+import { VisorMarcaRevisionSyncService } from './visor-marca-revision-sync.service';
 
 @Injectable()
 export class ActualizarVisorMarcaRevisionUseCase {
   constructor(
     @Inject(ACC_VISOR_MARCA_REVISION_REPOSITORY)
     private readonly repository: IAccVisorMarcaRevisionRepository,
+    private readonly syncService: VisorMarcaRevisionSyncService,
   ) {}
 
   async execute(id: number, dto: ActualizarVisorMarcaRevisionDto, idUsuario: number) {
@@ -34,6 +36,7 @@ export class ActualizarVisorMarcaRevisionUseCase {
       { success: detalle != null, message: 'Marca no encontrada' },
       'obtener la marca',
     );
+    this.syncService.emit('updated', detalle!, idUsuario);
     return detalle!;
   }
 }

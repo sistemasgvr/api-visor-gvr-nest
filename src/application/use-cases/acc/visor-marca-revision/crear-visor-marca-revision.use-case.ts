@@ -9,12 +9,14 @@ import {
   type IAccVisorMarcaRevisionRepository,
 } from '../../../../domain/repositories/acc-visor-marca-revision.repository.interface';
 import type { CrearVisorMarcaRevisionDto } from '../../../dtos/acc/visor-marca-revision/visor-marca-revision.dto';
+import { VisorMarcaRevisionSyncService } from './visor-marca-revision-sync.service';
 
 @Injectable()
 export class CrearVisorMarcaRevisionUseCase {
   constructor(
     @Inject(ACC_VISOR_MARCA_REVISION_REPOSITORY)
     private readonly repository: IAccVisorMarcaRevisionRepository,
+    private readonly syncService: VisorMarcaRevisionSyncService,
   ) {}
 
   async execute(
@@ -57,6 +59,7 @@ export class CrearVisorMarcaRevisionUseCase {
     if (!detalle) {
       throw new BadRequestException('Marca creada pero no visible para el usuario');
     }
+    this.syncService.emit('created', detalle, idUsuario);
     return detalle;
   }
 }

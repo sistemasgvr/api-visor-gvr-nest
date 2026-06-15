@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AccVisorMarcaRevisionController } from '../controllers/acc-visor-marca-revision.controller';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { BroadcastModule } from './broadcast.module';
 import { AccVisorMarcaRevisionRepository } from '../../infrastructure/repositories/acc-visor-marca-revision.repository';
 import { ACC_VISOR_MARCA_REVISION_REPOSITORY } from '../../domain/repositories/acc-visor-marca-revision.repository.interface';
 import { CrearVisorMarcaRevisionUseCase } from '../../application/use-cases/acc/visor-marca-revision/crear-visor-marca-revision.use-case';
@@ -13,9 +14,10 @@ import { ListarVisorMarcasRevisionUseCase } from '../../application/use-cases/ac
 import { ContarVisorMarcasRevisionUseCase } from '../../application/use-cases/acc/visor-marca-revision/contar-visor-marcas-revision.use-case';
 import { ObtenerVisorMarcaRevisionUseCase } from '../../application/use-cases/acc/visor-marca-revision/obtener-visor-marca-revision.use-case';
 import { SincronizarMarkupIdApsVisorMarcaRevisionUseCase } from '../../application/use-cases/acc/visor-marca-revision/sincronizar-markup-id-aps-visor-marca-revision.use-case';
+import { VisorMarcaRevisionSyncService } from '../../application/use-cases/acc/visor-marca-revision/visor-marca-revision-sync.service';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, BroadcastModule],
   controllers: [AccVisorMarcaRevisionController],
   providers: [
     CrearVisorMarcaRevisionUseCase,
@@ -28,6 +30,7 @@ import { SincronizarMarkupIdApsVisorMarcaRevisionUseCase } from '../../applicati
     ContarVisorMarcasRevisionUseCase,
     ObtenerVisorMarcaRevisionUseCase,
     SincronizarMarkupIdApsVisorMarcaRevisionUseCase,
+    VisorMarcaRevisionSyncService,
     {
       provide: ACC_VISOR_MARCA_REVISION_REPOSITORY,
       useClass: AccVisorMarcaRevisionRepository,
