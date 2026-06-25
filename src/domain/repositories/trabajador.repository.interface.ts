@@ -35,6 +35,7 @@ export interface CrearTrabajadorData {
   contactoEmergenciaNombre?: string;
   idContactoEmergenciaParentesco?: number;
   direccionDomiciliaria?: string;
+  observaciones?: string;
   idPais?: number;
   idDepartamento?: number;
   idProvincia?: number;
@@ -104,6 +105,7 @@ export interface EditarTrabajadorData {
   contactoEmergenciaNombre?: string;
   idContactoEmergenciaParentesco?: number;
   direccionDomiciliaria?: string;
+  observaciones?: string;
   idPais?: number;
   idDepartamento?: number;
   idProvincia?: number;

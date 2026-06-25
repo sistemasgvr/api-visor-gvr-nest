@@ -34,6 +34,7 @@ export class UpdateTrabajadorDto {
   @Type(() => Number)
   idContactoEmergenciaParentesco?: number;
   @IsOptional() @IsString() direccionDomiciliaria?: string;
+  @IsOptional() @IsString() observaciones?: string;
   @IsOptional() @IsInt() idPais?: number;
   @IsOptional() @IsInt() idDepartamento?: number;
   @IsOptional() @IsInt() idProvincia?: number;

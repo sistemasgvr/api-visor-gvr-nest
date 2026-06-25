@@ -10,6 +10,7 @@ export class Trabajador {
   idUsuario?: number;
   idModalidad?: number;
   modalidad?: string;
+  observaciones?: string;
   estado: number;
   fechaCreacion?: Date;
   fechaModificacion?: Date;
