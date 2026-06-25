@@ -10,6 +10,7 @@ import {
   UseGuards,
   Inject,
   Headers,
+  Body,
 } from '@nestjs/common';
 import * as express from 'express';
 import axios from 'axios';
@@ -25,6 +26,8 @@ import type { IAuthRepository } from '../../domain/repositories/auth.repository.
 import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.repository.interface';
 import type { IAuditoriaRepository } from '../../domain/repositories/auditoria.repository.interface';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RefrescarToken3LeggedUseCase } from '../../application/use-cases/acc/refrescar-token-3legged.use-case';
+import { AccToken } from '../../domain/entities/acc-token.entity';
 
 @ApiTags('collabora')
 @Controller('collabora')
@@ -42,7 +45,43 @@ export class CollaboraController {
     private readonly authRepository: IAuthRepository,
     @Inject(AUDITORIA_REPOSITORY)
     private readonly auditoriaRepository: IAuditoriaRepository,
+    private readonly refrescarToken3LeggedUseCase: RefrescarToken3LeggedUseCase,
   ) {}
+
+  /**
+   * Obtiene un access_token de Autodesk vigente y lo sincroniza en la sesión WOPI.
+   */
+  private async resolveAccAccessToken(
+    userId: number,
+    wopiSessionToken: string,
+  ): Promise<string | null> {
+    let accToken =
+      await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
+    if (!accToken) return null;
+
+    if (this.autodeskApiService.esTokenExpirado(accToken.expiraEn)) {
+      try {
+        const refreshed =
+          await this.refrescarToken3LeggedUseCase.execute(userId);
+        accToken = new AccToken({
+          ...accToken,
+          tokenAcceso: refreshed.access_token,
+          expiraEn: refreshed.expires_at,
+        });
+      } catch (err) {
+        this.logger.warn(
+          `[Collabora] No se pudo refrescar token ACC para usuario ${userId}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        return null;
+      }
+    }
+
+    this.documentTokenService.updateSessionAccessToken(
+      wopiSessionToken,
+      accToken.tokenAcceso,
+    );
+    return accToken.tokenAcceso;
+  }
 
   /**
    * Endpoint para obtener la URL de Collabora para abrir un documento
@@ -181,6 +220,7 @@ export class CollaboraController {
           collaboraUrl,
           fileName: fileInfo.fileName,
           wopiSrc: wopiSrcUrl,
+          sessionToken: userSessionToken,
         },
         message: 'Configuración de Collabora generada exitosamente',
       };
@@ -192,6 +232,58 @@ export class CollaboraController {
         error: error instanceof Error ? error.message : String(error),
       };
     }
+  }
+
+  /**
+   * Mantiene viva la sesión WOPI mientras el usuario edita en Collabora (sin recargar iframe).
+   * POST /api/collabora/session/keepalive
+   */
+  @ApiOperation({
+    summary: 'Renovar sesión WOPI y token ACC durante edición en Collabora',
+  })
+  @Post('session/keepalive')
+  @UseGuards(JwtAuthGuard)
+  async keepaliveCollaboraSession(
+    @Body() body: { sessionToken?: string },
+    @Req() req: express.Request,
+  ) {
+    const userId = Number(req.user?.sub) || 0;
+    const sessionToken = String(body?.sessionToken ?? '').trim();
+
+    if (!userId || userId < 1) {
+      return { status: 401, message: 'Usuario no autenticado' };
+    }
+    if (!sessionToken) {
+      return { status: 400, message: 'sessionToken requerido' };
+    }
+
+    const session =
+      this.documentTokenService.validateUserSessionToken(sessionToken);
+    if (!session || session.userId !== userId) {
+      return {
+        status: 403,
+        message: 'Sesión de edición inválida o expirada. Vuelva a abrir el documento.',
+      };
+    }
+
+    const accAccessToken = await this.resolveAccAccessToken(userId, sessionToken);
+    if (!accAccessToken) {
+      return {
+        status: 401,
+        message:
+          'Token de Autodesk no disponible. Reconecta tu cuenta de Autodesk.',
+      };
+    }
+
+    const expiresAt =
+      this.documentTokenService.touchUserSession(sessionToken) ??
+      session.expiresAt;
+
+    return {
+      status: 200,
+      data: { expiresAt: expiresAt.toISOString() },
+      message: 'Sesión de edición renovada',
+    };
   }
 
   /**
@@ -273,7 +365,11 @@ export class CollaboraController {
         return res.status(403).json({ error: 'Documento no autorizado' });
       }
 
-      if (!tokenData.accessToken) {
+      const accAccessToken = await this.resolveAccAccessToken(
+        tokenData.userId,
+        accessToken,
+      );
+      if (!accAccessToken) {
         return res
           .status(401)
           .json({ error: 'Token de Autodesk no disponible' });
@@ -293,7 +389,7 @@ export class CollaboraController {
       } else {
         try {
           const itemInfo = await this.autodeskApiService.obtenerItemPorId(
-            tokenData.accessToken,
+            accAccessToken,
             projectIdNorm,
             tokenData.itemId,
           );
@@ -310,12 +406,12 @@ export class CollaboraController {
 
       const fileInfo = tokenData.versionId
         ? await this.autodeskApiService.obtenerStorageUrlPorVersion(
-            tokenData.accessToken,
+            accAccessToken,
             tokenData.projectId,
             tokenData.versionId,
           )
         : await this.autodeskApiService.obtenerStorageUrl(
-            tokenData.accessToken,
+            accAccessToken,
             tokenData.projectId,
             tokenData.itemId,
           );
@@ -468,7 +564,11 @@ export class CollaboraController {
         return res.status(403).json({ error: 'Documento no autorizado' });
       }
 
-      if (!tokenData.accessToken) {
+      const accAccessToken = await this.resolveAccAccessToken(
+        tokenData.userId,
+        accessToken,
+      );
+      if (!accAccessToken) {
         return res
           .status(401)
           .json({ error: 'Token de Autodesk no disponible' });
@@ -480,12 +580,12 @@ export class CollaboraController {
 
       const fileInfo = tokenData.versionId
         ? await this.autodeskApiService.obtenerStorageUrlPorVersion(
-            tokenData.accessToken,
+            accAccessToken,
             tokenData.projectId,
             tokenData.versionId,
           )
         : await this.autodeskApiService.obtenerStorageUrl(
-            tokenData.accessToken,
+            accAccessToken,
             tokenData.projectId,
             tokenData.itemId,
           );
@@ -636,7 +736,11 @@ export class CollaboraController {
           .json({ error: 'Documento abierto en modo solo lectura' });
       }
 
-      if (!tokenData.accessToken) {
+      const accAccessToken = await this.resolveAccAccessToken(
+        tokenData.userId,
+        accessToken,
+      );
+      if (!accAccessToken) {
         setWopiCors();
         return res
           .status(401)
@@ -710,7 +814,7 @@ export class CollaboraController {
       // Necesitamos el folderId del item actual, pero como itemId es el URN del item,
       // vamos a obtener información del item primero
       const itemInfo = await this.autodeskApiService.obtenerItemPorId(
-        tokenData.accessToken,
+        accAccessToken,
         projectIdNorm,
         tokenData.itemId,
       );
@@ -736,7 +840,7 @@ export class CollaboraController {
       }
 
       const storageResult = await this.autodeskApiService.crearStorageParaItem(
-        tokenData.accessToken,
+        accAccessToken,
         projectIdNorm,
         folderId,
         tokenData.fileName,
@@ -773,7 +877,7 @@ export class CollaboraController {
       this.logger.log('[WOPI PutFile] Obteniendo URL firmada de S3...');
 
       const signedResult = await this.autodeskApiService.obtenerUrlFirmadaS3(
-        tokenData.accessToken,
+        accAccessToken,
         bucketKey,
         objectKey,
         1,
@@ -805,7 +909,7 @@ export class CollaboraController {
       this.logger.log('[WOPI PutFile] Completando subida...');
 
       await this.autodeskApiService.completarSubida(
-        tokenData.accessToken,
+        accAccessToken,
         bucketKey,
         objectKey,
         uploadKey,
@@ -835,7 +939,7 @@ export class CollaboraController {
       };
 
       const versionResult = await this.autodeskApiService.crearVersion(
-        tokenData.accessToken,
+        accAccessToken,
         projectIdNorm,
         versionData,
       );

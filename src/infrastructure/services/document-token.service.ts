@@ -127,10 +127,10 @@ export class DocumentTokenService {
     UserSessionTokenData & { token: string; wopiPermission: 'edit' | 'view' }
   > = new Map();
 
-  /** Duración base de la sesión WOPI: 8 horas (evita que al cambiar de pestaña caduque pronto) */
-  private readonly WOPI_SESSION_EXPIRATION_MINUTES = 8 * 60;
+  /** Duración base de la sesión WOPI: 12 horas */
+  private readonly WOPI_SESSION_EXPIRATION_MINUTES = 12 * 60;
   /** Al cada validación se prorroga la sesión este tiempo (sliding expiration) */
-  private readonly WOPI_SESSION_SLIDE_MINUTES = 60;
+  private readonly WOPI_SESSION_SLIDE_MINUTES = 120;
 
   /**
    * Crea un token de sesión de usuario para WOPI. Se usa como access_token en la URL
@@ -192,6 +192,31 @@ export class DocumentTokenService {
       expiresAt: newExpiresAt,
       wopiPermission: session.wopiPermission ?? 'edit',
     };
+  }
+
+  /** Actualiza el token de Autodesk almacenado en la sesión WOPI (p. ej. tras refresh ACC). */
+  updateSessionAccessToken(
+    wopiSessionToken: string,
+    accessToken: string,
+  ): boolean {
+    const session = this.userSessions.get(wopiSessionToken);
+    if (!session) return false;
+    session.accessToken = accessToken;
+    return true;
+  }
+
+  /** Prorroga la sesión WOPI sin exigir una operación WOPI (keepalive desde el visor). */
+  touchUserSession(wopiSessionToken: string): Date | null {
+    const session = this.userSessions.get(wopiSessionToken);
+    if (!session || new Date() > session.expiresAt) {
+      if (session) this.userSessions.delete(wopiSessionToken);
+      return null;
+    }
+    const newExpiresAt = new Date(
+      Date.now() + this.WOPI_SESSION_SLIDE_MINUTES * 60 * 1000,
+    );
+    session.expiresAt = newExpiresAt;
+    return newExpiresAt;
   }
 
   /**

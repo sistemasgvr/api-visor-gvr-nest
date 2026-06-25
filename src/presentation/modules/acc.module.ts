@@ -39,6 +39,6 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
     RevocarTokenUseCase,
     ValidarExpiracionUseCase,
   ],
-  exports: [ACC_REPOSITORY, AutodeskApiService],
+  exports: [ACC_REPOSITORY, AutodeskApiService, RefrescarToken3LeggedUseCase],
 })
 export class AccModule {}
