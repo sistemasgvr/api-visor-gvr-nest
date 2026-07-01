@@ -464,6 +464,7 @@ export interface ReporteGeneralItem {
   nombreproyecto: string | null;
   nombreactividad: string;
   descripciondetallada: string | null;
+  incidenciadetallada: string | null;
   horasdedicadas: number;
   horainicio: string | null;
   horafin: string | null;
