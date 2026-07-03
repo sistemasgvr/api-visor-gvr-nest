@@ -814,7 +814,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
   const destinatario = s(row.linea_destinatario);
   const puestoContrato = s(row.puesto_trabajo);
   const puestoInforme =
-    puestoContrato.length > 0 ? puestoContrato : 'puesto según contrato';
+    puestoContrato.length > 0 ? puestoContrato : 'Servicio según contrato';
   const preparador = s(row.nombrecompletotrabajador);
   const nombreFirma =
     preparador || '(apellidos y nombres completos)';
