@@ -99,7 +99,15 @@ export class NodemailerMailTransportService implements IMailTransport {
 
     try {
       const info = await transport.sendMail(mail);
-      this.logger.debug(`MessageId=${String(info.messageId)} to=${to}`);
+      const accepted = Array.isArray(info.accepted)
+        ? info.accepted.join(',')
+        : String(info.accepted ?? '');
+      const rejected = Array.isArray(info.rejected)
+        ? info.rejected.join(',')
+        : String(info.rejected ?? '');
+      this.logger.debug(
+        `MessageId=${String(info.messageId)} accepted=${accepted || 'n/a'} rejected=${rejected || 'n/a'} response=${String(info.response ?? 'n/a')} to=${to}`,
+      );
     } catch (err) {
       const raw = err instanceof Error ? err.message : String(err);
       const code =

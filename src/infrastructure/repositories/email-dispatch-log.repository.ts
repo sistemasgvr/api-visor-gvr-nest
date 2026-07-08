@@ -29,9 +29,10 @@ export class EmailDispatchLogRepository implements IEmailDispatchLogRepository {
 
   async record(entry: EmailDispatchLogEntry): Promise<void> {
     try {
-      await this.dataSource.query(
-        `INSERT INTO email_dispatch_logs (template_id, recipients, status, error_message, job_id, correlation_id)
-         VALUES ($1, $2::jsonb, $3, $4, $5, $6)`,
+      const rows = await this.dataSource.query<{ id: string }[]>(
+        `INSERT INTO public.email_dispatch_logs (template_id, recipients, status, error_message, job_id, correlation_id)
+         VALUES ($1, $2::jsonb, $3, $4, $5, $6)
+         RETURNING id`,
         [
           entry.templateId,
           JSON.stringify(entry.recipientEmails),
@@ -40,6 +41,9 @@ export class EmailDispatchLogRepository implements IEmailDispatchLogRepository {
           entry.jobId ?? null,
           entry.correlationId ?? null,
         ],
+      );
+      this.logger.log(
+        `email_dispatch_logs insertado id=${rows?.[0]?.id ?? 'n/a'} template=${entry.templateId} status=${entry.status} to=${entry.recipientEmails.join(',')}`,
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
