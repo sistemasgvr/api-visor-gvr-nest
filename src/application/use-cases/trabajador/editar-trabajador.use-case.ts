@@ -30,20 +30,22 @@ export class EditarTrabajadorUseCase {
       );
     }
 
-    await this.trabajadorRepository.eliminarAdjuntosPorTrabajador(idTrabajador);
-    if (adjuntos?.length) {
-      const valid = adjuntos.filter(
-        (a) =>
-          a?.idTipoAdjunto != null &&
-          a?.ruta != null &&
-          String(a.ruta).trim() !== '',
-      );
-      if (valid.length) {
-        await this.trabajadorRepository.insertarAdjuntos(
-          idTrabajador,
-          valid,
-          idUsuarioModificacion,
+    if (adjuntos !== undefined) {
+      await this.trabajadorRepository.eliminarAdjuntosPorTrabajador(idTrabajador);
+      if (adjuntos.length) {
+        const valid = adjuntos.filter(
+          (a) =>
+            a?.idTipoAdjunto != null &&
+            a?.ruta != null &&
+            String(a.ruta).trim() !== '',
         );
+        if (valid.length) {
+          await this.trabajadorRepository.insertarAdjuntos(
+            idTrabajador,
+            valid,
+            idUsuarioModificacion,
+          );
+        }
       }
     }
 
