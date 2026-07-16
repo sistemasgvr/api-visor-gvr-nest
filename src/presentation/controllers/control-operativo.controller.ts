@@ -63,6 +63,7 @@ import { AgregarEvidenciasActividadDto } from '../../application/dtos/control-op
 import { ExportarActividadesWordMasivoDto } from '../../application/dtos/control-operativo/exportar-actividades-word-masivo.dto';
 import type { ActividadEvidenciaEntrada } from '../../domain/repositories/control-operativo.repository.interface';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ROLES_ADMIN_CONTROL_OPERATIVO } from '../../domain/constants/auth-role.constants';
 
 @ApiTags('control-operativo')
 @Controller('control-operativo')
@@ -1127,16 +1128,16 @@ export class ControlOperativoController {
     return ids.length > 0 ? ids : null;
   }
 
-  /** Parsea query rolesAdmin (ej. "1,5,11") a número[]. Si viene vacío, devuelve [1, 5, 11] por compatibilidad. */
+  /** Parsea query rolesAdmin a número[]. Si viene vacío, usa ROLES_ADMIN_CONTROL_OPERATIVO. */
   private parseRolesAdminQuery(rolesAdmin?: string): number[] {
     if (rolesAdmin == null || (rolesAdmin = rolesAdmin.trim()) === '') {
-      return [1, 5, 11];
+      return [...ROLES_ADMIN_CONTROL_OPERATIVO];
     }
     const ids = rolesAdmin
       .split(',')
       .map((s) => parseInt(s.trim(), 10))
       .filter((n) => !Number.isNaN(n) && n >= 1);
-    return ids.length > 0 ? ids : [1, 5, 11];
+    return ids.length > 0 ? ids : [...ROLES_ADMIN_CONTROL_OPERATIVO];
   }
 
   /**

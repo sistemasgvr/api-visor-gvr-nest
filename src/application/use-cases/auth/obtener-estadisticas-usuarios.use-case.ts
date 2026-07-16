@@ -1,9 +1,10 @@
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
+import { ROLES_ADMIN_CONTROL_OPERATIVO } from '../../../domain/constants/auth-role.constants';
 
-/** IDs de roles que pueden ver estadísticas de usuarios: Administrador Sistemas, Administrador GVR, Gerencia */
-const ROLES_ESTADISTICAS_USUARIOS = [1, 5, 11];
+/** Roles que pueden ver estadísticas de usuarios (mismos que admin CO). */
+const ROLES_ESTADISTICAS_USUARIOS = ROLES_ADMIN_CONTROL_OPERATIVO;
 
 @Injectable()
 export class ObtenerEstadisticasUsuariosUseCase {

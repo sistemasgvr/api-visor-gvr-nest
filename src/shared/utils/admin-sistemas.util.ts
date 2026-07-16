@@ -1,6 +1,10 @@
 import type { AuthRolePayload } from '../types/authenticated-user';
+import {
+  AuthRole,
+  ROL_ADMINISTRADOR_SISTEMAS,
+} from '../../domain/constants/auth-role.constants';
 
-export const ROL_ADMINISTRADOR_SISTEMAS = 1;
+export { ROL_ADMINISTRADOR_SISTEMAS, AuthRole };
 
 export function extraerIdsRoles(roles?: AuthRolePayload[]): number[] {
   if (!roles?.length) return [];
@@ -9,7 +13,7 @@ export function extraerIdsRoles(roles?: AuthRolePayload[]): number[] {
     .filter((id) => Number.isFinite(id) && id > 0);
 }
 
-/** Solo Administrador Sistemas (rol 1) ve todos los entregables. */
+/** Solo Administrador Sistemas ve todos los entregables (salvo otras reglas). */
 export function esAdminSistemas(rolesIds: number[]): boolean {
   return rolesIds.includes(ROL_ADMINISTRADOR_SISTEMAS);
 }

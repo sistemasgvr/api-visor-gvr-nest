@@ -1,5 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  ID_ESTADO_ENTREGABLE_CULMINADO,
+  ID_ESTADO_ENTREGABLE_PROCESO,
+  ID_ESTADO_ENTREGABLE_RETRASO,
+  ID_LISTA_ESTADO_ENTREGABLE,
+} from '../../../domain/constants/estado-entregable.constants';
 
 export class UpdateEntregableProyectoDto {
   @ApiProperty({ example: 'Entrega fase 1 (rev.)', maxLength: 255 })
@@ -14,8 +28,8 @@ export class UpdateEntregableProyectoDto {
   descripcion?: string;
 
   @ApiPropertyOptional({
-    example: 562,
-    description: 'Estado del entregable (genListado idLista 46: 561 PROCESO, 562 CULMINADO, 563 RETRASO)',
+    example: ID_ESTADO_ENTREGABLE_CULMINADO,
+    description: `Estado del entregable (genListado idLista ${ID_LISTA_ESTADO_ENTREGABLE}: ${ID_ESTADO_ENTREGABLE_PROCESO} PROCESO, ${ID_ESTADO_ENTREGABLE_CULMINADO} CULMINADO, ${ID_ESTADO_ENTREGABLE_RETRASO} RETRASO)`,
   })
   @IsOptional()
   @IsInt()
@@ -36,4 +50,26 @@ export class UpdateEntregableProyectoDto {
   @IsOptional()
   @IsDateString()
   fechaEntrega?: string;
+
+  @ApiPropertyOptional({
+    example: [42],
+    description:
+      'Reemplaza el set de responsables. Omitir (junto con idTrabajadorResponsable) para no tocar responsables. [] quita todos.',
+    type: [Number],
+  })
+  @IsOptional()
+  @IsArray()
+  @Type(() => Number)
+  @IsInt({ each: true })
+  idTrabajadoresResponsables?: number[];
+
+  @ApiPropertyOptional({
+    example: 42,
+    description:
+      'Atajo v1. Si se envía, reemplaza el set con un solo id. Ignorado si viene `idTrabajadoresResponsables`.',
+    deprecated: true,
+  })
+  @IsOptional()
+  @IsInt()
+  idTrabajadorResponsable?: number;
 }

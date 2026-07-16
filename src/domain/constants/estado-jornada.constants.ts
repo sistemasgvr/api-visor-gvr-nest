@@ -1,6 +1,7 @@
 /**
  * IDs de Estado Jornada (genListadoOpciones, idlista 15).
  * Deben coincidir con la tabla genlistadoopciones.
+ * idLista: ID_LISTA_ESTADO_JORNADA en gen-listado.constants.ts
  */
 export const ID_ESTADO_JORNADA_ABIERTA = 372;
 export const ID_ESTADO_JORNADA_CERRADA = 373;

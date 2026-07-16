@@ -8,6 +8,7 @@ import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/contr
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
 import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
 import { BroadcastService } from '../../../shared/services/broadcast.service';
+import { emitirEntregableCulminado } from '../proyecto/entregable-notificaciones.helper';
 
 @Injectable()
 export class CrearActividadUseCase {
@@ -22,7 +23,6 @@ export class CrearActividadUseCase {
   ) {}
 
   async execute(params: CrearActividadParams): Promise<ActividadCreada | null> {
-    // Coordinador: el asignado al miembro del equipo en el proyecto o el primer coordinador del proyecto
     const idCoordinador =
       params.idCoordinador != null
         ? params.idCoordinador
@@ -122,10 +122,30 @@ export class CrearActividadUseCase {
       );
     }
 
+    if (
+      params.entregableCulminado === true &&
+      data.identregable != null &&
+      Number(data.identregable) > 0
+    ) {
+      const idUsuarioActor =
+        await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(
+          data.idtrabajador,
+        );
+      if (idUsuarioActor != null) {
+        await emitirEntregableCulminado({
+          broadcast: this.broadcastService,
+          proyectoRepository: this.proyectoRepository,
+          idEntregable: Number(data.identregable),
+          idUsuarioActor,
+          idTrabajadorActor: data.idtrabajador,
+          nombreActividad: data.nombreactividad,
+        });
+      }
+    }
+
     return data;
   }
 
-  /** Coordinador asignado al trabajador en el proyecto; si no tiene, el primer coordinador del proyecto. */
   private async obtenerIdCoordinadorParaTrabajadorEnProyecto(
     idProyecto: number,
     idTrabajador: number,

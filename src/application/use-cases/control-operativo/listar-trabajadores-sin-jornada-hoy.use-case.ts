@@ -3,6 +3,7 @@ import type { IControlOperativoRepository } from '../../../domain/repositories/c
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
+import { ROLES_ADMIN_CONTROL_OPERATIVO } from '../../../domain/constants/auth-role.constants';
 import type { TrabajadorSinJornadaHoyItem } from '../../../domain/repositories/control-operativo.repository.interface';
 
 export interface ListarTrabajadoresSinJornadaHoyResult {
@@ -32,7 +33,7 @@ export class ListarTrabajadoresSinJornadaHoyUseCase {
     }
     const permitidos = rolesAdminPermitidos?.length
       ? rolesAdminPermitidos
-      : [1, 5, 11];
+      : [...ROLES_ADMIN_CONTROL_OPERATIVO];
     const rolesIds = (perfil.roles as { id?: number }[])
       .map((r) => r?.id)
       .filter((id): id is number => id != null);

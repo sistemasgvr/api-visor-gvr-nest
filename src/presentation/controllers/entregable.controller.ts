@@ -46,6 +46,12 @@ import {
   ListarEntregablesDataDto,
   EntregableSelectOptionDto,
 } from '../../application/dtos/proyecto/entregable-response.dto';
+import {
+  ID_ESTADO_ENTREGABLE_CULMINADO,
+  ID_ESTADO_ENTREGABLE_PROCESO,
+  ID_ESTADO_ENTREGABLE_RETRASO,
+  ID_LISTA_ESTADO_ENTREGABLE,
+} from '../../domain/constants/estado-entregable.constants';
 
 @ApiTags('entregables')
 @ApiBearerAuth('access-token')
@@ -83,7 +89,7 @@ export class EntregableController {
     name: 'idEstado',
     required: false,
     type: Number,
-    description: 'Estado del entregable (lista 46: 561, 562, 563)',
+    description: `Estado del entregable (lista ${ID_LISTA_ESTADO_ENTREGABLE}: ${ID_ESTADO_ENTREGABLE_PROCESO}, ${ID_ESTADO_ENTREGABLE_CULMINADO}, ${ID_ESTADO_ENTREGABLE_RETRASO})`,
   })
   @ApiQuery({
     name: 'limit',
@@ -178,7 +184,7 @@ export class EntregableController {
 
   @ApiOperation({
     summary: 'Crear entregable',
-    description: 'Registra un entregable en un proyecto. idEstado por defecto 561 (PROCESO).',
+    description: `Registra un entregable en un proyecto. idEstado por defecto ${ID_ESTADO_ENTREGABLE_PROCESO} (PROCESO).`,
   })
   @ApiBody({
     type: CreateEntregableProyectoDto,
@@ -189,9 +195,10 @@ export class EntregableController {
           idProyecto: 1,
           nombre: 'Entrega fase 1',
           descripcion: 'Planos y memorias',
-          idEstado: 561,
+          idEstado: ID_ESTADO_ENTREGABLE_PROCESO,
           fechaEstimada: '2026-06-15T00:00:00.000Z',
           fechaEntrega: null,
+          idTrabajadoresResponsables: [42],
         },
       },
     },
@@ -205,10 +212,12 @@ export class EntregableController {
   ) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
-    const payload = await this.jwtService.verifyAsync(token);
+    const payload = (await this.jwtService.verifyAsync(token)) as JwtPayload;
+    const rolesIds = extraerIdsRoles(payload.roles);
     const data = await this.crearEntregableProyectoUseCase.execute(
       dto,
       payload.sub,
+      rolesIds,
     );
     return ApiResponseDto.created(data, 'Entregable creado exitosamente');
   }
@@ -223,9 +232,10 @@ export class EntregableController {
         value: {
           nombre: 'Entrega fase 1 (rev.)',
           descripcion: 'Descripción actualizada',
-          idEstado: 562,
+          idEstado: ID_ESTADO_ENTREGABLE_PROCESO,
           fechaEstimada: '2026-06-15T00:00:00.000Z',
           fechaEntrega: '2026-06-20T00:00:00.000Z',
+          idTrabajadoresResponsables: [42],
         },
       },
     },
@@ -240,11 +250,13 @@ export class EntregableController {
   ) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
-    const payload = await this.jwtService.verifyAsync(token);
+    const payload = (await this.jwtService.verifyAsync(token)) as JwtPayload;
+    const rolesIds = extraerIdsRoles(payload.roles);
     const data = await this.actualizarEntregableProyectoUseCase.execute(
       id,
       dto,
       payload.sub,
+      rolesIds,
     );
     return ApiResponseDto.success(data, 'Entregable actualizado exitosamente');
   }
@@ -260,10 +272,12 @@ export class EntregableController {
   ) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
-    const payload = await this.jwtService.verifyAsync(token);
+    const payload = (await this.jwtService.verifyAsync(token)) as JwtPayload;
+    const rolesIds = extraerIdsRoles(payload.roles);
     const data = await this.eliminarEntregableProyectoUseCase.execute(
       id,
       payload.sub,
+      rolesIds,
     );
     return ApiResponseDto.success(data, 'Entregable eliminado exitosamente');
   }

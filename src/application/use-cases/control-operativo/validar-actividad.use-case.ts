@@ -15,11 +15,10 @@ import type { IAuthRepository } from '../../../domain/repositories/auth.reposito
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
 import { BroadcastService } from '../../../shared/services/broadcast.service';
 import { esAccesoTotalValidacionActividades } from './validacion-acceso.util';
-
-/** Estados de validación: 375 Aprobado, 376 Observado, 377 Rechazado */
-const ESTADO_APROBADO = 375;
-const ESTADO_OBSERVADO = 376;
-const ESTADO_RECHAZADO = 377;
+import {
+  ID_ESTADO_ACTIVIDAD_APROBADO,
+  ID_ESTADO_ACTIVIDAD_RECHAZADO,
+} from '../../../domain/constants/estado-actividad.constants';
 
 export interface ValidarActividadInput {
   idActividad: number;
@@ -97,11 +96,11 @@ export class ValidarActividadUseCase {
         let type: string;
         let title: string;
         let message: string;
-        if (input.idEstadoActividad === ESTADO_APROBADO) {
+        if (input.idEstadoActividad === ID_ESTADO_ACTIVIDAD_APROBADO) {
           type = 'actividad_aprobada';
           title = 'Actividad aprobada';
           message = `ha aprobado tu actividad "${data.nombreactividad}".`;
-        } else if (input.idEstadoActividad === ESTADO_RECHAZADO) {
+        } else if (input.idEstadoActividad === ID_ESTADO_ACTIVIDAD_RECHAZADO) {
           type = 'actividad_rechazada';
           title = 'Actividad rechazada';
           message = `ha rechazado tu actividad "${data.nombreactividad}".`;

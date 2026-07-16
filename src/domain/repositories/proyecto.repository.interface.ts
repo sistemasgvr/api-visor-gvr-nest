@@ -114,6 +114,13 @@ export interface CrearEntregableProyectoData {
   idEstado?: number;
   fechaEstimada?: string | null;
   fechaEntrega?: string | null;
+  /**
+   * Contrato preferido (Fase 4). Se persiste en proEntregableResponsable.
+   * El primer id queda como principal en SQL.
+   */
+  idTrabajadoresResponsables?: number[] | null;
+  /** Atajo v1; si viene el array, el repositorio prioriza el array. */
+  idTrabajadorResponsable?: number | null;
 }
 
 export interface ActualizarEntregableProyectoData {
@@ -122,6 +129,13 @@ export interface ActualizarEntregableProyectoData {
   idEstado?: number | null;
   fechaEstimada?: string | null;
   fechaEntrega?: string | null;
+  /**
+   * undefined = no tocar responsables en SQL;
+   * array (incluso []) = reemplazar set.
+   */
+  idTrabajadoresResponsables?: number[] | null;
+  /** Atajo v1; ignorado si viene `idTrabajadoresResponsables`. */
+  idTrabajadorResponsable?: number | null;
 }
 
 /** Coordinador con sus miembros del equipo (proListarCoordinadoresProyecto) */
@@ -227,6 +241,20 @@ export interface IProyectoRepository {
     idTrabajador: number,
   ): Promise<number | null>;
   obtenerPrimerCoordinadorProyecto(idProyecto: number): Promise<number | null>;
+  /** id trabajador activo ligado al usuario (auth). */
+  obtenerIdTrabajadorPorIdUsuario(idUsuario: number): Promise<number | null>;
+  /** True si el trabajador figura en el proyecto (acceso / equipo). */
+  trabajadorPerteneceAProyecto(
+    idProyecto: number,
+    idTrabajador: number,
+  ): Promise<boolean>;
+  /** True si el trabajador es coordinador activo del proyecto. */
+  esCoordinadorEnProyecto(
+    idProyecto: number,
+    idTrabajador: number,
+  ): Promise<boolean>;
+  obtenerIdUsuarioPorIdTrabajador(idTrabajador: number): Promise<number | null>;
+  obtenerNombreTrabajadorPorId(idTrabajador: number): Promise<string | null>;
 }
 
 export const PROYECTO_REPOSITORY = 'PROYECTO_REPOSITORY';

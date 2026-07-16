@@ -17,7 +17,7 @@ import type {
   ActualizarEntregableProyectoData,
 } from '../../domain/repositories/proyecto.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
-
+import { ID_ESTADO_ENTREGABLE_PROCESO } from '../../domain/constants/estado-entregable.constants';
 @Injectable()
 export class ProyectoRepository implements IProyectoRepository {
   constructor(
@@ -309,7 +309,7 @@ export class ProyectoRepository implements IProyectoRepository {
       esAdminSistemas = false,
     } = params;
     const result = await this.databaseFunctionService.callFunction<any>(
-      'pro_ListarEntregablesProyecto',
+      'pro_ListarEntregablesProyectoV2',
       [
         idProyecto,
         busqueda,
@@ -356,17 +356,28 @@ export class ProyectoRepository implements IProyectoRepository {
     if (idProyecto == null || idProyecto < 1) return [];
     const result =
       await this.databaseFunctionService.callFunction<EntregableSelectOption>(
-        'pro_ListarEntregablesParaSelect',
+        'pro_ListarEntregablesParaSelectV2',
         [idProyecto, idUsuario, esAdminSistemas],
       );
     return Array.isArray(result) ? result : [];
   }
 
   async obtenerEntregablePorId(idEntregable: number): Promise<any | null> {
-    return this.databaseFunctionService.callFunctionSingle<any>(
-      'pro_ObtenerEntregablePorId',
+    const row = await this.databaseFunctionService.callFunctionSingle<any>(
+      'pro_ObtenerEntregablePorIdV2',
       [idEntregable],
     );
+    if (!row) return null;
+    let responsables = row.responsables;
+    if (typeof responsables === 'string') {
+      try {
+        responsables = JSON.parse(responsables);
+      } catch {
+        responsables = [];
+      }
+    }
+    if (!Array.isArray(responsables)) responsables = [];
+    return { ...row, responsables };
   }
 
   async crearEntregableProyecto(
@@ -374,16 +385,28 @@ export class ProyectoRepository implements IProyectoRepository {
     data: CrearEntregableProyectoData,
     idUsuarioCreacion: number,
   ): Promise<{ success: boolean; message: string; id?: number }> {
+    let responsables: number[] | null = null;
+    if (data.idTrabajadoresResponsables !== undefined) {
+      responsables = Array.isArray(data.idTrabajadoresResponsables)
+        ? data.idTrabajadoresResponsables.filter((id) => Number(id) > 0)
+        : [];
+    } else if (
+      data.idTrabajadorResponsable != null &&
+      data.idTrabajadorResponsable > 0
+    ) {
+      responsables = [data.idTrabajadorResponsable];
+    }
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'pro_CrearEntregable',
+      'pro_CrearEntregableV2',
       [
         idProyecto,
         data.nombre,
         data.descripcion ?? null,
-        data.idEstado ?? 561,
+        data.idEstado ?? ID_ESTADO_ENTREGABLE_PROCESO,
         data.fechaEstimada ?? null,
         data.fechaEntrega ?? null,
         idUsuarioCreacion,
+        responsables,
       ],
     );
     return result;
@@ -394,8 +417,21 @@ export class ProyectoRepository implements IProyectoRepository {
     data: ActualizarEntregableProyectoData,
     idUsuarioModificacion: number,
   ): Promise<{ success: boolean; message: string }> {
+    // null → SQL no toca responsables; [] → quita todos; [ids] → reemplaza
+    let responsables: number[] | null = null;
+    if (data.idTrabajadoresResponsables !== undefined) {
+      responsables = Array.isArray(data.idTrabajadoresResponsables)
+        ? data.idTrabajadoresResponsables.filter((id) => Number(id) > 0)
+        : [];
+    } else if (data.idTrabajadorResponsable !== undefined) {
+      responsables =
+        data.idTrabajadorResponsable != null &&
+        data.idTrabajadorResponsable > 0
+          ? [data.idTrabajadorResponsable]
+          : [];
+    }
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'pro_ActualizarEntregable',
+      'pro_ActualizarEntregableV2',
       [
         idEntregable,
         data.nombre,
@@ -404,6 +440,7 @@ export class ProyectoRepository implements IProyectoRepository {
         data.fechaEstimada ?? null,
         data.fechaEntrega ?? null,
         idUsuarioModificacion,
+        responsables,
       ],
     );
     return result;
@@ -475,5 +512,71 @@ export class ProyectoRepository implements IProyectoRepository {
       number | null
     >('pro_ObtenerPrimerCoordinadorProyecto', [idProyecto]);
     return result != null && Number(result) > 0 ? Number(result) : null;
+  }
+
+  async obtenerIdTrabajadorPorIdUsuario(
+    idUsuario: number,
+  ): Promise<number | null> {
+    if (idUsuario == null || idUsuario < 1) return null;
+    const rows = await this.databaseFunctionService.executeQuery<{
+      id: number;
+    }>('SELECT id FROM tratrabajador WHERE idusuario = $1 AND estado = 1 LIMIT 1', [
+      idUsuario,
+    ]);
+    const id = rows?.[0]?.id;
+    return id != null && Number(id) > 0 ? Number(id) : null;
+  }
+
+  async trabajadorPerteneceAProyecto(
+    idProyecto: number,
+    idTrabajador: number,
+  ): Promise<boolean> {
+    if (idProyecto == null || idProyecto < 1) return false;
+    if (idTrabajador == null || idTrabajador < 1) return false;
+    const rows = await this.databaseFunctionService.callFunction<{
+      idtrabajador?: number;
+    }>('con_ListarTrabajadoresPorProyecto', [idProyecto]);
+    return (rows ?? []).some(
+      (r) => Number(r.idtrabajador) === Number(idTrabajador),
+    );
+  }
+
+  async esCoordinadorEnProyecto(
+    idProyecto: number,
+    idTrabajador: number,
+  ): Promise<boolean> {
+    if (idProyecto == null || idProyecto < 1) return false;
+    if (idTrabajador == null || idTrabajador < 1) return false;
+    const coords = await this.listarCoordinadoresProyecto(idProyecto);
+    return coords.some((c) => Number(c.idtrabajador) === Number(idTrabajador));
+  }
+
+  async obtenerIdUsuarioPorIdTrabajador(
+    idTrabajador: number,
+  ): Promise<number | null> {
+    if (idTrabajador == null || idTrabajador < 1) return null;
+    const rows = await this.databaseFunctionService.executeQuery<{
+      idusuario: number | null;
+    }>(
+      'SELECT idusuario FROM tratrabajador WHERE id = $1 AND estado = 1 LIMIT 1',
+      [idTrabajador],
+    );
+    const idUsuario = rows?.[0]?.idusuario;
+    return idUsuario != null && Number(idUsuario) > 0 ? Number(idUsuario) : null;
+  }
+
+  async obtenerNombreTrabajadorPorId(
+    idTrabajador: number,
+  ): Promise<string | null> {
+    if (idTrabajador == null || idTrabajador < 1) return null;
+    const rows = await this.databaseFunctionService.executeQuery<{
+      nombre: string | null;
+    }>(
+      `SELECT TRIM(COALESCE(nombres, '') || ' ' || COALESCE(apellidos, '')) AS nombre
+       FROM tratrabajador WHERE id = $1 LIMIT 1`,
+      [idTrabajador],
+    );
+    const nombre = rows?.[0]?.nombre?.trim();
+    return nombre ? nombre : null;
   }
 }

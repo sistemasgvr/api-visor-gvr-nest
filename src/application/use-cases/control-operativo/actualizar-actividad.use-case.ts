@@ -5,7 +5,10 @@ import type {
   ActividadCreada,
 } from '../../../domain/repositories/control-operativo.repository.interface';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
+import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
+import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
 import { BroadcastService } from '../../../shared/services/broadcast.service';
+import { emitirEntregableCulminado } from '../proyecto/entregable-notificaciones.helper';
 
 @Injectable()
 export class ActualizarActividadUseCase {
@@ -14,6 +17,8 @@ export class ActualizarActividadUseCase {
   constructor(
     @Inject(CONTROL_OPERATIVO_REPOSITORY)
     private readonly controlOperativoRepository: IControlOperativoRepository,
+    @Inject(PROYECTO_REPOSITORY)
+    private readonly proyectoRepository: IProyectoRepository,
     private readonly broadcastService: BroadcastService,
   ) {}
 
@@ -51,7 +56,6 @@ export class ActualizarActividadUseCase {
           timestamp: new Date().toISOString(),
         };
 
-        // Notificar al que revisa: coordinador del proyecto (quien dejó la observación) o, si no hay, responsable del trabajador
         let idUsuarioANotificar: number | null = null;
         if (data.idcoordinador != null) {
           idUsuarioANotificar =
@@ -96,6 +100,27 @@ export class ActualizarActividadUseCase {
           'Error al emitir notificación de actividad corregida:',
           error,
         );
+      }
+    }
+
+    if (
+      params.entregableCulminado === true &&
+      data.identregable != null &&
+      Number(data.identregable) > 0
+    ) {
+      const idUsuarioActor =
+        await this.controlOperativoRepository.obtenerIdUsuarioPorIdTrabajador(
+          data.idtrabajador,
+        );
+      if (idUsuarioActor != null) {
+        await emitirEntregableCulminado({
+          broadcast: this.broadcastService,
+          proyectoRepository: this.proyectoRepository,
+          idEntregable: Number(data.identregable),
+          idUsuarioActor,
+          idTrabajadorActor: data.idtrabajador,
+          nombreActividad: data.nombreactividad,
+        });
       }
     }
 

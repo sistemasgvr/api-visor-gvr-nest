@@ -1,5 +1,6 @@
-/** genListado.id — Tipo de actividad (control operativo). */
-export const ID_LISTA_TIPO_ACTIVIDAD = 17;
+import { ID_LISTA_TIPO_ACTIVIDAD } from '../../domain/constants/gen-listado.constants';
+
+export { ID_LISTA_TIPO_ACTIVIDAD };
 
 /** Trim; en tipos de actividad, primera letra en mayúscula. */
 export function normalizeNombreOpcionLista(

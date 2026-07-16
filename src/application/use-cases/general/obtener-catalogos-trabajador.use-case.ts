@@ -1,6 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import type { IMenuRepository } from '../../../domain/repositories/menu.repository.interface';
 import { MENU_REPOSITORY } from '../../../domain/repositories/menu.repository.interface';
+import {
+  ID_LISTA_PUESTO_TRABAJO,
+  ID_LISTAS_CATALOGOS_TRABAJADOR_BASE,
+} from '../../../domain/constants/gen-listado.constants';
 
 const CLAVES_CATALOGOS_TRABAJADOR_BASE = [
   'gradoInstruccion',
@@ -11,11 +15,6 @@ const CLAVES_CATALOGOS_TRABAJADOR_BASE = [
   'tipoAdjunto',
   'parentesco',
 ] as const;
-
-/** genListado.id fijo para opciones de puesto de trabajo (trabajador / contrato). */
-const ID_LISTA_PUESTO_TRABAJO = 45;
-
-const DEFAULT_IDS_BASE = [8, 9, 10, 11, 12, 13, 14];
 
 const CLAVES_CATALOGOS_TRABAJADOR: readonly string[] = [
   ...CLAVES_CATALOGOS_TRABAJADOR_BASE,
@@ -41,8 +40,8 @@ export class ObtenerCatalogosTrabajadorUseCase {
   ) {}
 
   /**
-   * Catálogos del formulario trabajador. La octava lista es siempre idLista = 45 (puesto de trabajo).
-   * Opcional idListas: 7 IDs (base) o 8+ (se toman los 7 primeros como base y el puesto sigue siendo 45).
+   * Catálogos del formulario trabajador. La octava lista es siempre puesto de trabajo.
+   * Opcional idListas: 7 IDs (base) o 8+ (se toman los 7 primeros como base y el puesto sigue fijo).
    */
   async execute(idListas?: number[]): Promise<CatalogosTrabajador> {
     let ids: number[];
@@ -52,10 +51,10 @@ export class ObtenerCatalogosTrabajadorUseCase {
       } else if (idListas.length === 7) {
         ids = [...idListas, ID_LISTA_PUESTO_TRABAJO];
       } else {
-        ids = [...DEFAULT_IDS_BASE, ID_LISTA_PUESTO_TRABAJO];
+        ids = [...ID_LISTAS_CATALOGOS_TRABAJADOR_BASE, ID_LISTA_PUESTO_TRABAJO];
       }
     } else {
-      ids = [...DEFAULT_IDS_BASE, ID_LISTA_PUESTO_TRABAJO];
+      ids = [...ID_LISTAS_CATALOGOS_TRABAJADOR_BASE, ID_LISTA_PUESTO_TRABAJO];
     }
 
     const resultados = await Promise.all(

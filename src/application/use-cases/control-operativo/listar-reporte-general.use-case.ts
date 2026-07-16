@@ -6,6 +6,7 @@ import type {
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
 import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
+import { ROLES_ADMIN_CONTROL_OPERATIVO } from '../../../domain/constants/auth-role.constants';
 
 export interface ListarReporteGeneralInput {
   idUsuario: number;
@@ -47,7 +48,7 @@ export class ListarReporteGeneralUseCase {
       .filter((id): id is number => id != null);
     const permitidos = input.rolesAdminPermitidos?.length
       ? input.rolesAdminPermitidos
-      : [1, 5, 11];
+      : [...ROLES_ADMIN_CONTROL_OPERATIVO];
     const esAdmin = permitidos.some((id) => rolesIds.includes(id));
     if (!esAdmin) {
       throw new UnauthorizedException(

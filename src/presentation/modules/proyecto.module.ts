@@ -31,10 +31,12 @@ import { ProyectoRepository } from '../../infrastructure/repositories/proyecto.r
 import { PROYECTO_REPOSITORY } from '../../domain/repositories/proyecto.repository.interface';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
+import { BroadcastModule } from './broadcast.module';
 
 @Module({
   imports: [
     DatabaseModule,
+    BroadcastModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

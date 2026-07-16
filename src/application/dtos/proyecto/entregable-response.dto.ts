@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ID_ESTADO_ENTREGABLE_PROCESO } from '../../../domain/constants/estado-entregable.constants';
 
 /** Item devuelto en listado y detalle de entregables */
 export class EntregableItemDto {
@@ -17,7 +18,7 @@ export class EntregableItemDto {
   @ApiPropertyOptional({ example: 'Descripción del entregable' })
   descripcion?: string;
 
-  @ApiProperty({ example: 561 })
+  @ApiProperty({ example: ID_ESTADO_ENTREGABLE_PROCESO })
   idestado: number;
 
   @ApiPropertyOptional({ example: 'PROCESO' })
@@ -49,6 +50,35 @@ export class EntregableItemDto {
 
   @ApiPropertyOptional({ example: 'Juan Pérez' })
   nombreusuariomodificacion?: string;
+
+  @ApiPropertyOptional({
+    example: 42,
+    description: 'ID del responsable principal (atajo v1)',
+  })
+  idtrabajadorresponsable?: number | null;
+
+  @ApiPropertyOptional({
+    example: 'Carlos Frontado',
+    description: 'Nombre del responsable principal',
+  })
+  nombretrabajadorresponsable?: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Lista de responsables activos (preparado para multi-asignación)',
+    type: 'array',
+    example: [
+      {
+        idtrabajador: 42,
+        nombretrabajador: 'Carlos Frontado',
+        esprincipal: true,
+      },
+    ],
+  })
+  responsables?: Array<{
+    idtrabajador: number;
+    nombretrabajador: string;
+    esprincipal: boolean;
+  }>;
 }
 
 export class EntregableMutationResultDto {

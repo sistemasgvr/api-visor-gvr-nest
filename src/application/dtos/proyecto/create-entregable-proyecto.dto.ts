@@ -1,5 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  ID_ESTADO_ENTREGABLE_PROCESO,
+  ID_LISTA_ESTADO_ENTREGABLE,
+} from '../../../domain/constants/estado-entregable.constants';
 
 export class CreateEntregableProyectoDto {
   @ApiProperty({ example: 1, description: 'ID del proyecto GVR (proProyecto)' })
@@ -18,8 +30,8 @@ export class CreateEntregableProyectoDto {
   descripcion?: string;
 
   @ApiPropertyOptional({
-    example: 561,
-    description: 'Estado del entregable (genListado idLista 46). Por defecto 561 = PROCESO',
+    example: ID_ESTADO_ENTREGABLE_PROCESO,
+    description: `Estado del entregable (genListado idLista ${ID_LISTA_ESTADO_ENTREGABLE}). Por defecto ${ID_ESTADO_ENTREGABLE_PROCESO} = PROCESO`,
   })
   @IsOptional()
   @IsInt()
@@ -40,4 +52,26 @@ export class CreateEntregableProyectoDto {
   @IsOptional()
   @IsDateString()
   fechaEntrega?: string;
+
+  @ApiPropertyOptional({
+    example: [42],
+    description:
+      'IDs de trabajadores responsables (traTrabajador). Contrato preferido Fase 4. El primero queda como principal en SQL.',
+    type: [Number],
+  })
+  @IsOptional()
+  @IsArray()
+  @Type(() => Number)
+  @IsInt({ each: true })
+  idTrabajadoresResponsables?: number[];
+
+  @ApiPropertyOptional({
+    example: 42,
+    description:
+      'Atajo v1 (un solo responsable). Si viene `idTrabajadoresResponsables`, este campo se ignora.',
+    deprecated: true,
+  })
+  @IsOptional()
+  @IsInt()
+  idTrabajadorResponsable?: number;
 }

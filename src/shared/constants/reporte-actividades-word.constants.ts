@@ -1,3 +1,5 @@
+import { ROLES_ADMIN_CONTROL_OPERATIVO } from '../../domain/constants/auth-role.constants';
+
 /**
  * Política de exportación Word — informe de actividades (detalle por actividad).
  *
@@ -6,14 +8,9 @@
  *
  * Mantener alineado con `ROLES_ADMIN_CONTROL_OPERATIVO` en el front
  * (`front-visor-gvr/src/modules/controloperativo/config/roles.constants.ts`).
- * Para ampliar permisos, añadir ids aquí (y revisar el front si aplica).
  */
 export const REPORTE_ACTIVIDAD_WORD_ROLES_CON_HORAS_DEDICADAS: readonly number[] =
-  [
-    1, // Administrador Sistemas
-    5, // Gerencia
-    11, // Administrador GVR
-  ] as const;
+  ROLES_ADMIN_CONTROL_OPERATIVO;
 
 function idsRolesUsuario(
   roles: Array<{ id?: number | string | null } | null | undefined> | null | undefined,

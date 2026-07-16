@@ -21,6 +21,10 @@ import { ListarMenuRecursivoUseCase } from '../../application/use-cases/general/
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import {
+  ID_LISTA_PUESTO_TRABAJO,
+  ID_LISTAS_CATALOGOS_TRABAJADOR_BASE,
+} from '../../domain/constants/gen-listado.constants';
 
 @ApiTags('general')
 @ApiBearerAuth('access-token')
@@ -72,12 +76,11 @@ export class GeneralController {
 
   /**
    * Catálogos para formulario de trabajador (grado, carrera, banco, tipo/duración contrato, puesto de trabajo, etc.).
-   * GET /catalogos-trabajador o con idListas=8,9,10,11,12,13,14 (7 listas base; el puesto siempre usa idLista 45).
+   * GET /catalogos-trabajador o con idListas=<7 listas base>; el puesto siempre usa idLista puesto.
    */
   @ApiOperation({
     summary: 'Catálogos para formulario de trabajador',
-    description:
-      'Incluye grado, carrera, banco, tipo y duración de contrato, adjuntos, parentesco y puesto de trabajo (lista fija idLista=45). Opcional: idListas con 7 IDs (solo sustituye las 7 listas base) o 8+ (se usan los 7 primeros como base y el puesto sigue siendo 45).',
+    description: `Incluye grado, carrera, banco, tipo y duración de contrato, adjuntos, parentesco y puesto de trabajo (lista fija idLista=${ID_LISTA_PUESTO_TRABAJO}). Opcional: idListas con 7 IDs (solo sustituye las 7 listas base: ${ID_LISTAS_CATALOGOS_TRABAJADOR_BASE.join(',')}) o 8+ (se usan los 7 primeros como base y el puesto sigue siendo ${ID_LISTA_PUESTO_TRABAJO}).`,
   })
   @Get('catalogos-trabajador')
   @HttpCode(HttpStatus.OK)
