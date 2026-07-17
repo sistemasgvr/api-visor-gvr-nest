@@ -45,6 +45,12 @@ export class EntregableItemDto {
   @ApiPropertyOptional({ example: 'Juan Pérez' })
   nombreusuariocreacion?: string;
 
+  @ApiPropertyOptional({
+    example: 'https://storage.example.com/profiles/usuario.jpg',
+    description: 'URL resuelta de la foto de perfil del usuario creador',
+  })
+  fotoperfilusuariocreacion?: string | null;
+
   @ApiPropertyOptional({ example: 1 })
   idusuariomodificacion?: number;
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type {
   IProyectoRepository,
   ListarProyectosParams,
@@ -18,11 +18,62 @@ import type {
 } from '../../domain/repositories/proyecto.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
 import { ID_ESTADO_ENTREGABLE_PROCESO } from '../../domain/constants/estado-entregable.constants';
+import { MinioStorageService } from '../storage/minio-storage.service';
+
 @Injectable()
 export class ProyectoRepository implements IProyectoRepository {
+  private readonly logger = new Logger(ProyectoRepository.name);
+
   constructor(
     private readonly databaseFunctionService: DatabaseFunctionService,
+    private readonly minioStorage: MinioStorageService,
   ) {}
+
+  private async resolverFotoPerfil(
+    fotoAlmacenada: unknown,
+  ): Promise<string | null> {
+    const raw =
+      typeof fotoAlmacenada === 'string' ? fotoAlmacenada.trim() : '';
+    if (!raw) return null;
+    try {
+      return await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(raw);
+    } catch (error) {
+      this.logger.warn(
+        `No se pudo resolver URL de foto de perfil: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      return raw;
+    }
+  }
+
+  /** URL almacenada en genarchivo para el usuario (fallback si el SQL V2 aún no trae la columna). */
+  private async obtenerUrlFotoPerfilPorIdUsuario(
+    idUsuario: number,
+  ): Promise<string | null> {
+    if (idUsuario == null || idUsuario < 1) return null;
+    const rows = await this.databaseFunctionService.executeQuery<{
+      url: string | null;
+    }>(
+      `SELECT g.url AS url
+       FROM authusuarios u
+       LEFT JOIN genarchivo g ON g.id = u.idarchivofotoperfil AND g.estado = 1
+       WHERE u.id = $1 AND u.estado = 1
+       LIMIT 1`,
+      [idUsuario],
+    );
+    const url = rows?.[0]?.url;
+    return url != null && String(url).trim() !== '' ? String(url).trim() : null;
+  }
+
+  private pickFotoPerfilUsuarioCreacion(row: Record<string, unknown>): unknown {
+    return (
+      row.fotoperfilusuariocreacion ??
+      row.fotoPerfilUsuarioCreacion ??
+      row.fotoperfil ??
+      null
+    );
+  }
 
   async listarProyectos(
     params: ListarProyectosParams,
@@ -336,9 +387,31 @@ export class ProyectoRepository implements IProyectoRepository {
     }
 
     const totalRegistros = Number(result[0]?.total_registros ?? 0);
+    const fotosResueltas = new Map<string, Promise<string | null>>();
+    const data = await Promise.all(
+      result.map(async (row: Record<string, unknown>) => {
+        const raw =
+          typeof row.fotoperfilusuariocreacion === 'string'
+            ? row.fotoperfilusuariocreacion.trim()
+            : '';
+        let fotoPerfil: string | null = null;
+        if (raw) {
+          let pendiente = fotosResueltas.get(raw);
+          if (!pendiente) {
+            pendiente = this.resolverFotoPerfil(raw);
+            fotosResueltas.set(raw, pendiente);
+          }
+          fotoPerfil = await pendiente;
+        }
+        return {
+          ...row,
+          fotoperfilusuariocreacion: fotoPerfil,
+        };
+      }),
+    );
 
     return {
-      data: result,
+      data,
       pagination: {
         total: totalRegistros,
         limit,
@@ -377,7 +450,24 @@ export class ProyectoRepository implements IProyectoRepository {
       }
     }
     if (!Array.isArray(responsables)) responsables = [];
-    return { ...row, responsables };
+
+    let fotoRaw = this.pickFotoPerfilUsuarioCreacion(row);
+    if (
+      (fotoRaw == null || String(fotoRaw).trim() === '') &&
+      row.idusuariocreacion != null &&
+      Number(row.idusuariocreacion) > 0
+    ) {
+      fotoRaw = await this.obtenerUrlFotoPerfilPorIdUsuario(
+        Number(row.idusuariocreacion),
+      );
+    }
+
+    const fotoPerfilUsuarioCreacion = await this.resolverFotoPerfil(fotoRaw);
+    return {
+      ...row,
+      fotoperfilusuariocreacion: fotoPerfilUsuarioCreacion,
+      responsables,
+    };
   }
 
   async crearEntregableProyecto(
@@ -534,10 +624,10 @@ export class ProyectoRepository implements IProyectoRepository {
     if (idProyecto == null || idProyecto < 1) return false;
     if (idTrabajador == null || idTrabajador < 1) return false;
     const rows = await this.databaseFunctionService.callFunction<{
-      idtrabajador?: number;
-    }>('con_ListarTrabajadoresPorProyecto', [idProyecto]);
+      idproyecto?: number;
+    }>('pro_ListarProyectosAccesoTrabajador', [idTrabajador, false]);
     return (rows ?? []).some(
-      (r) => Number(r.idtrabajador) === Number(idTrabajador),
+      (r) => Number(r.idproyecto) === Number(idProyecto),
     );
   }
 

@@ -66,6 +66,10 @@ export class ActualizarEntregableProyectoUseCase {
 
     const resuelto = resolverIdsResponsablesEntrada(data);
     const idsAnteriores = idsResponsablesDesdeEntregable(actual);
+    const idTrabajadorActor =
+      await this.proyectoRepository.obtenerIdTrabajadorPorIdUsuario(
+        idUsuarioModificacion,
+      );
 
     if (resuelto.tocar) {
       if (resuelto.ids.length === 0) {
@@ -116,10 +120,6 @@ export class ActualizarEntregableProyectoUseCase {
     if (resuelto.tocar) {
       const nuevos = idsResponsablesNuevos(idsAnteriores, resuelto.ids);
       if (nuevos.length > 0) {
-        const idTrabajadorActor =
-          await this.proyectoRepository.obtenerIdTrabajadorPorIdUsuario(
-            idUsuarioModificacion,
-          );
         const nombreEntregable =
           data.nombre?.trim() ||
           String(actual.nombre ?? '').trim() ||

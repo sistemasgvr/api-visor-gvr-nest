@@ -32,11 +32,13 @@ import { PROYECTO_REPOSITORY } from '../../domain/repositories/proyecto.reposito
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 import { BroadcastModule } from './broadcast.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 
 @Module({
   imports: [
     DatabaseModule,
     BroadcastModule,
+    StorageModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
