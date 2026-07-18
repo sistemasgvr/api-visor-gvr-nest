@@ -1,4 +1,4 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
 import type {
   IControlOperativoRepository,
   LiderEquipoReporteGeneralItem,
@@ -25,7 +25,7 @@ export class ListarLideresEquipoReporteGeneralUseCase {
       input.idUsuario,
     );
     if (!perfil?.roles || !Array.isArray(perfil.roles)) {
-      throw new UnauthorizedException(
+      throw new ForbiddenException(
         'Solo administradores pueden acceder al reporte general',
       );
     }
@@ -37,7 +37,7 @@ export class ListarLideresEquipoReporteGeneralUseCase {
       : [...ROLES_ADMIN_CONTROL_OPERATIVO];
     const esAdmin = permitidos.some((id) => rolesIds.includes(id));
     if (!esAdmin) {
-      throw new UnauthorizedException(
+      throw new ForbiddenException(
         'Solo administradores pueden acceder al reporte general',
       );
     }

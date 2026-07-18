@@ -358,7 +358,15 @@ export class ProyectoRepository implements IProyectoRepository {
       idUsuario = null,
       soloVigentes = true,
       esAdminSistemas = false,
+      fechaInicio = null,
+      fechaFin = null,
     } = params;
+    const fInicio =
+      typeof fechaInicio === 'string' && fechaInicio.trim()
+        ? fechaInicio.trim()
+        : null;
+    const fFin =
+      typeof fechaFin === 'string' && fechaFin.trim() ? fechaFin.trim() : null;
     const result = await this.databaseFunctionService.callFunction<any>(
       'pro_ListarEntregablesProyectoV2',
       [
@@ -370,8 +378,29 @@ export class ProyectoRepository implements IProyectoRepository {
         idUsuario,
         soloVigentes,
         esAdminSistemas,
+        fInicio,
+        fFin,
       ],
     );
+
+    const conteosRaw = await this.databaseFunctionService.callFunction<{
+      idestado?: number;
+      estadonombre?: string | null;
+      cantidad?: number | string;
+    }>('pro_ContarEntregablesPorEstadoV2', [
+      idProyecto,
+      busqueda,
+      idUsuario,
+      soloVigentes,
+      esAdminSistemas,
+      fInicio,
+      fFin,
+    ]);
+    const conteosPorEstado = (conteosRaw ?? []).map((c) => ({
+      idestado: Number(c.idestado),
+      estadonombre: String(c.estadonombre ?? '').trim() || `Estado ${c.idestado}`,
+      cantidad: Number(c.cantidad ?? 0),
+    }));
 
     if (!result || result.length === 0) {
       return {
@@ -383,6 +412,7 @@ export class ProyectoRepository implements IProyectoRepository {
           total_pages: 0,
           current_page: 1,
         },
+        conteosPorEstado,
       };
     }
 
@@ -419,6 +449,7 @@ export class ProyectoRepository implements IProyectoRepository {
         total_pages: limit > 0 ? Math.ceil(totalRegistros / limit) : 0,
         current_page: limit > 0 ? Math.floor(offset / limit) + 1 : 1,
       },
+      conteosPorEstado,
     };
   }
 

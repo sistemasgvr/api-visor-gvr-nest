@@ -71,7 +71,7 @@ export class EntregableController {
   @ApiOperation({
     summary: 'Listar entregables',
     description:
-      'Listado paginado de entregables. Filtros opcionales por proyecto, estado y búsqueda (nombre, descripción o nombre de proyecto).',
+      'Listado paginado de entregables. Filtros opcionales por proyecto, estado, rango de fecha estimada y búsqueda.',
   })
   @ApiQuery({
     name: 'idProyecto',
@@ -90,6 +90,18 @@ export class EntregableController {
     required: false,
     type: Number,
     description: `Estado del entregable (lista ${ID_LISTA_ESTADO_ENTREGABLE}: ${ID_ESTADO_ENTREGABLE_PROCESO}, ${ID_ESTADO_ENTREGABLE_CULMINADO}, ${ID_ESTADO_ENTREGABLE_RETRASO})`,
+  })
+  @ApiQuery({
+    name: 'fechaInicio',
+    required: false,
+    type: String,
+    description: 'Inicio del rango (YYYY-MM-DD) sobre fecha estimada',
+  })
+  @ApiQuery({
+    name: 'fechaFin',
+    required: false,
+    type: String,
+    description: 'Fin del rango (YYYY-MM-DD) sobre fecha estimada',
   })
   @ApiQuery({
     name: 'limit',
@@ -113,6 +125,8 @@ export class EntregableController {
     @Query('idProyecto', new ParseIntPipe({ optional: true })) idProyecto?: number,
     @Query('busqueda') busqueda?: string,
     @Query('idEstado', new ParseIntPipe({ optional: true })) idEstado?: number,
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
     @Query('soloVigentes') soloVigentes?: string,
@@ -127,6 +141,8 @@ export class EntregableController {
         idProyecto,
         busqueda: busqueda ?? '',
         idEstado,
+        fechaInicio: (fechaInicio ?? '').trim() || null,
+        fechaFin: (fechaFin ?? '').trim() || null,
         limit,
         offset,
         soloVigentes:

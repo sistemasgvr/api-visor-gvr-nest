@@ -83,6 +83,10 @@ export interface ListarEntregablesProyectoParams {
   idUsuario?: number;
   soloVigentes?: boolean;
   esAdminSistemas?: boolean;
+  /** YYYY-MM-DD — filtra por fecha estimada (inclusive). */
+  fechaInicio?: string | null;
+  /** YYYY-MM-DD — filtra por fecha estimada (inclusive). */
+  fechaFin?: string | null;
 }
 
 export interface ListarEntregablesParaSelectParams {
@@ -100,6 +104,12 @@ export interface ListarEntregablesProyectoResponse {
     total_pages: number;
     current_page: number;
   };
+  /** Conteos por estado (misma visibilidad/filtros, sin filtrar por idEstado). */
+  conteosPorEstado: Array<{
+    idestado: number;
+    estadonombre: string;
+    cantidad: number;
+  }>;
 }
 
 export interface EntregableSelectOption {

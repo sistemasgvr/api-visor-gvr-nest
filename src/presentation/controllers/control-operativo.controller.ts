@@ -888,12 +888,15 @@ export class ControlOperativoController {
   }
 
   /**
-   * Lista trabajadores con al menos una actividad en el proyecto (para filtro Desempeño).
+   * Lista trabajadores del proyecto (Desempeño / asignación de entregables).
+   * Admin/Gerencia/Coordinador: listado del proyecto (+ el usuario actual si falta).
+   * Modelador/Desarrollador Web: solo su propia persona (autoasignación).
    * GET /control-operativo/trabajadores-por-proyecto?idProyecto=1&rolesAdmin=1,5,11
    */
   @ApiOperation({
-    summary: 'Trabajadores con actividad en el proyecto',
-    description: 'Para filtros del módulo Desempeño.',
+    summary: 'Trabajadores del proyecto',
+    description:
+      'Admin/coordinador: trabajadores con actividad en el proyecto. Colaborador: solo sí mismo.',
   })
   @Get('trabajadores-por-proyecto')
   @UseGuards(JwtAuthGuard)

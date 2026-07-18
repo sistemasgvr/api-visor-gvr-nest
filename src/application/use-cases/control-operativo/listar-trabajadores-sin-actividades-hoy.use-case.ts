@@ -1,4 +1,4 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
 import type { IControlOperativoRepository } from '../../../domain/repositories/control-operativo.repository.interface';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
@@ -27,7 +27,7 @@ export class ListarTrabajadoresSinActividadesHoyUseCase {
   ): Promise<ListarTrabajadoresSinActividadesHoyResult> {
     const perfil = await this.authRepository.obtenerPerfilUsuario(idUsuario);
     if (!perfil?.roles || !Array.isArray(perfil.roles)) {
-      throw new UnauthorizedException(
+      throw new ForbiddenException(
         'Solo administradores pueden ver quién no ha registrado actividades hoy',
       );
     }
@@ -39,7 +39,7 @@ export class ListarTrabajadoresSinActividadesHoyUseCase {
       .filter((id): id is number => id != null);
     const esAdmin = permitidos.some((id) => rolesIds.includes(id));
     if (!esAdmin) {
-      throw new UnauthorizedException(
+      throw new ForbiddenException(
         'Solo administradores pueden ver quién no ha registrado actividades hoy',
       );
     }

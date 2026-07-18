@@ -115,12 +115,29 @@ export class EntregablesPaginationDto {
   current_page: number;
 }
 
+export class EntregableConteoEstadoDto {
+  @ApiProperty({ example: 563 })
+  idestado: number;
+
+  @ApiProperty({ example: 'EN RETRASO' })
+  estadonombre: string;
+
+  @ApiProperty({ example: 4 })
+  cantidad: number;
+}
+
 export class ListarEntregablesDataDto {
   @ApiProperty({ type: [EntregableItemDto] })
   data: EntregableItemDto[];
 
   @ApiProperty({ type: EntregablesPaginationDto })
   pagination: EntregablesPaginationDto;
+
+  @ApiProperty({
+    type: [EntregableConteoEstadoDto],
+    description: 'Conteos por estado (misma visibilidad; no filtra por idEstado activo)',
+  })
+  conteosPorEstado: EntregableConteoEstadoDto[];
 }
 
 /** Opción { value, label } para CustomSelectSearch */
