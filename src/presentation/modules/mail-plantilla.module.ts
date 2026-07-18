@@ -6,6 +6,7 @@ import { MailPlantillaController } from '../controllers/mail-plantilla.controlle
 import { MailEnviosController } from '../controllers/mail-envios.controller';
 import { JwtStrategy } from '../../infrastructure/auth/jwt.strategy';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { StorageModule } from '../../infrastructure/storage/storage.module';
 import { TrabajadorRepository } from '../../infrastructure/repositories/trabajador.repository';
 import { TRABAJADOR_REPOSITORY } from '../../domain/repositories/trabajador.repository.interface';
 import { ListarMailPlantillasUseCase } from '../../application/use-cases/mail-plantilla/listar-mail-plantillas.use-case';
@@ -28,6 +29,7 @@ import { ReenviarPendientesMailEnvioUseCase } from '../../application/use-cases/
 @Module({
   imports: [
     DatabaseModule,
+    StorageModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

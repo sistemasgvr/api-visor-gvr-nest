@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type {
   ITrabajadorRepository,
   ListarTrabajadoresParams,
@@ -10,12 +10,34 @@ import type {
   EliminarContratoTrabajadorData,
 } from '../../domain/repositories/trabajador.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
+import { MinioStorageService } from '../storage/minio-storage.service';
 
 @Injectable()
 export class TrabajadorRepository implements ITrabajadorRepository {
+  private readonly logger = new Logger(TrabajadorRepository.name);
+
   constructor(
     private readonly databaseFunctionService: DatabaseFunctionService,
+    private readonly minioStorage: MinioStorageService,
   ) {}
+
+  private async resolverFotoPerfil(
+    fotoAlmacenada: unknown,
+  ): Promise<string | null> {
+    const raw =
+      typeof fotoAlmacenada === 'string' ? fotoAlmacenada.trim() : '';
+    if (!raw) return null;
+    try {
+      return await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(raw);
+    } catch (error) {
+      this.logger.warn(
+        `No se pudo resolver URL de foto de perfil: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      return raw;
+    }
+  }
 
   async listarTrabajadores(
     params: ListarTrabajadoresParams,
@@ -57,8 +79,29 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     // Extract total from first element
     const totalRegistros = result[0]?.total_registros || 0;
 
+    const fotosResueltas = new Map<string, Promise<string | null>>();
+    const data = await Promise.all(
+      result.map(async (row: Record<string, unknown>) => {
+        const raw =
+          typeof row.fotoperfil === 'string' ? row.fotoperfil.trim() : '';
+        let fotoPerfil: string | null = null;
+        if (raw) {
+          let pendiente = fotosResueltas.get(raw);
+          if (!pendiente) {
+            pendiente = this.resolverFotoPerfil(raw);
+            fotosResueltas.set(raw, pendiente);
+          }
+          fotoPerfil = await pendiente;
+        }
+        return {
+          ...row,
+          fotoperfil: fotoPerfil,
+        };
+      }),
+    );
+
     return {
-      data: result,
+      data,
       pagination: {
         total: totalRegistros,
         limit,
