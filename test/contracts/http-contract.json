@@ -276,7 +276,7 @@
   "src/presentation/dtos/data-management/versions/crear-referencia.dto.ts": "8c63c83afea4bb2ba23f790c2c6521fc7bdf2a05b7ebd56dd73de80a8554d98f",
   "src/presentation/dtos/data-management/versions/crear-version.dto.ts": "7b5e560a47c2f12ead7d9611717963bf368c1c2ffb29a45afb640515f5808ad5",
   "src/presentation/dtos/data-management/versions/index.ts": "2f01389e08b8403dd30511d206fd5ba3e760f52810f75ef2c1fd3870f6735828",
-  "src/presentation/controllers/calendarios.controller.ts": "8bbd65c737ddd6fd8ea96c792eeec7a279a5fde85e17c7c371477f9a0849e078",
+  "src/presentation/controllers/calendarios.controller.ts": "a1d1ea57302025d4c4ad154d7ad6ab62e1e07964fb0bbd89f4d5c1f53fe43540",
   "src/presentation/dtos/planificacion/calendarios/actualizar-calendario.dto.ts": "f0cee6106c316b939c1182b3ca973aaec74c37940c7c210601043b3069ab38bf",
   "src/presentation/dtos/planificacion/calendarios/calendario-params.dto.ts": "2d53d792c2c8f315239904d914dd2dd5b80aa7ff16da1d6fa6b69c5c53e8a6d6",
   "src/presentation/dtos/planificacion/calendarios/cambiar-estado-calendario.dto.ts": "6028d7b71181f62ecc480b9cfa8bb1a03025af65d2734787d20a42292326723f",
@@ -287,5 +287,8 @@
   "src/presentation/dtos/planificacion/calendarios/guardar-excepcion-calendario.dto.ts": "773950ed585c0f7afc81c2275eeb9b7f472c08fa2dcdc338fc8ebf37c4ff0777",
   "src/presentation/dtos/planificacion/calendarios/guardar-semana-calendario.dto.ts": "41cfbb44c8d015d000d9387d7d463e757f7960070fb4c32ad658d53e872ab2c2",
   "src/presentation/dtos/planificacion/calendarios/listar-calendarios.dto.ts": "26bf124de01e7a43e9dd81b3412da8a88ddc3674825708179be9c61110d0565c",
-  "src/presentation/dtos/planificacion/calendarios/revision-calendario.dto.ts": "9b6ffb086d137351d6a6b483d392d0ef7e814ad203894b587aa5b05193de4cd3"
+  "src/presentation/dtos/planificacion/calendarios/revision-calendario.dto.ts": "9b6ffb086d137351d6a6b483d392d0ef7e814ad203894b587aa5b05193de4cd3",
+  "src/presentation/dtos/planificacion/calendarios/crear-feriado.dto.ts": "8758aa4f91f03a5bc8ab65b8b71c2f6d31e9766157908320928edc12df7033b3",
+  "src/presentation/dtos/planificacion/calendarios/actualizar-feriado.dto.ts": "64cc6735836e31b000973644399fb420934f6ecdfad242ae857288d7e803d79a",
+  "src/presentation/dtos/planificacion/calendarios/listar-feriados.dto.ts": "e9ba72717fea64f618cb291acf6627086d8fb4d469f7fabd28975fb6073ea435"
 }

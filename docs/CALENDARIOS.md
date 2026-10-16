@@ -1,26 +1,26 @@
 # Backend de configuración de calendarios
 
-El backend usa las catorce funciones originales de calendario, actualizadas con `CREATE OR REPLACE`. Las tablas ya se aplicaron y verificaron en Supabase el 2026-10-16; el usuario confirmó la ejecución de funciones. El historial y orden de referencia están en [la guía SQL](../../api-visor-gvr-sql/docs/planificacion/CALENDARIOS.md#actualización-a-catálogos). No se crean versiones adicionales. El agente ejecutó exclusivamente cambios de tablas, sin modificar ni ejecutar las funciones.
+El backend integra la gestión central de feriados aplicada en Supabase el 2026-10-16: seis tablas y veinte funciones SQL originales con `CREATE OR REPLACE`, sin V2. Invoca dieciséis operaciones públicas y mantiene cuatro auxiliares internos. La ampliación está descrita en [la guía SQL de feriados centralizados](../../api-visor-gvr-sql/docs/planificacion/CALENDARIOS.md).
 
 Los tipos de excepción se reciben mediante `idtipo` (entero positivo de la lista 48), sin un enum de nombres ni una lista fija de IDs en el DTO. SQL valida que la opción pertenezca a esa lista y esté activa. El campo textual anterior `tipo` deja de aceptarse como entrada. La firma SQL de guardar excepción conserva el argumento existente `p_tipo text` para que `CREATE OR REPLACE` pueda reemplazarla sin crear sobrecargas: su contenido ahora es el ID numérico, convertido y validado dentro de SQL. El contrato HTTP recibe `idtipo` como número. Las respuestas conservan `tipo` como nombre vigente del catálogo e incluyen `idtipo`; las versiones incluyen `idestado` y `nombreestado` como referencia y nombre vigente. El listado incluye `idestadoversion` y `estadoversion`.
 
-La lista 47 corresponde al estado de versión (615 Borrador, 616 Publicada). La lista 48 contiene inicialmente 617 Nacional, **618 Especial y 619 Empresa**, según los IDs reales de Supabase. Usar los endpoints generales de opciones de lista existentes para obtener estos valores. El campo `estado` es 0/1 para borrado lógico en las cuatro tablas. El filtro del listado sigue aplicándose al estado de la cabecera. `activo` en excepciones indica si se aplica su efecto al calendario; no sustituye el borrado lógico.
+La lista 47 corresponde al estado de versión (615 Borrador, 616 Publicada). La lista 48 contiene inicialmente 617 Nacional, **618 Especial y 619 Empresa**, según los IDs reales de Supabase. Usar los endpoints generales de opciones de lista existentes para obtener estos valores. El campo `estado` es 0/1 para borrado lógico en las seis tablas. El filtro del listado sigue aplicándose al estado de la cabecera. `activo` en excepciones indica si se aplica su efecto al calendario; no sustituye el borrado lógico.
 
-Implementado el 16 de octubre de 2026 sobre las cuatro tablas y catorce funciones cuya ejecución manual confirmó el usuario. El backend no crea objetos, ejecuta migraciones ni precarga calendarios. No integra control operativo, actividades, asignaciones ni cálculo de cronogramas.
+Implementado el 16 de octubre de 2026 sobre las funciones de calendario y feriados centrales ya aplicadas en Supabase. El backend no crea objetos, ejecuta migraciones ni precarga calendarios. No integra control operativo, actividades, asignaciones ni cálculo de cronogramas.
 
-Las cuatro tablas terminan en el bloque estándar de auditoría: estado entero (1 por defecto), IDs de creación/modificación que admiten nulo y fechas timestamp sin zona horaria con CURRENT_TIMESTAMP. Las funciones reciben el usuario autenticado y registran su auditoría. Eliminar una excepción marca estado 0; guardar la semana conserva IDs y auditoría de creación mediante actualización/inserción. Los detalles, copias, publicación y disponibilidad excluyen versiones, días y excepciones eliminados.
+Las seis tablas terminan en el bloque estándar de auditoría: estado entero (1 por defecto), IDs de creación/modificación que admiten nulo y fechas timestamp sin zona horaria con CURRENT_TIMESTAMP. Las funciones reciben el usuario autenticado y registran su auditoría. Eliminar una excepción marca estado 0; guardar la semana conserva IDs y auditoría de creación mediante actualización/inserción. Los detalles, copias, publicación y disponibilidad excluyen versiones, días y excepciones eliminados.
 
 ## Organización
 
-- `domain/entities/calendario.entity.ts`: tipos del JSON de las funciones, sin entidades ORM ni decoradores.
+- `domain/entities/calendario.entity.ts` y `feriado.entity.ts`: tipos del JSON de las funciones, sin entidades ORM ni decoradores.
 - `domain/repositories/calendarios.repository.interface.ts`: contrato de persistencia y datos de configuración.
-- `application/use-cases/planificacion/calendarios`: doce operaciones, con clases TypeScript puras y registro mediante `applicationProvider`.
+- `application/use-cases/planificacion/calendarios`: dieciséis operaciones, con clases TypeScript puras y registro mediante `applicationProvider`.
 - `infrastructure/repositories/calendarios.repository.ts`: llamadas al `DatabaseFunctionService` existente, manteniendo nombres y orden de parámetros SQL.
 - `presentation/dtos/planificacion/calendarios`: validación HTTP y documentación Swagger.
 - `presentation/controllers/calendarios.controller.ts`: rutas y respuestas con `ApiResponseDto`.
 - `composition/modules/calendarios.module.ts`: ensamblaje con base de datos y autenticación existentes. Registrado en `AppModule`.
 
-No se añaden servicios genéricos, conexiones, dependencias npm ni una nueva forma de invocar funciones. Los auxiliares `pla_AutorizarCalendarios` y `pla_BloquearBorradorCalendario` permanecen internos a PostgreSQL y no tienen endpoints.
+No se añaden servicios genéricos, conexiones, dependencias npm ni una nueva forma de invocar funciones. Los auxiliares `pla_AutorizarCalendarios`, `pla_BloquearBorradorCalendario`, `pla_SincronizarFeriadosCalendario` y `pla_AplicarFeriadosCalendario` permanecen internos a PostgreSQL y no tienen endpoints.
 
 ## Endpoints
 
@@ -43,6 +43,32 @@ Todos requieren `Authorization: Bearer <token>`. Prefijo completo: **`/api/plani
 | `GET /versiones/:id/disponibilidad` | Query: `desde`, `hasta` en YYYY-MM-DD; rango inclusivo de hasta 366 días. | `pla_ObtenerDisponibilidadCalendario` |
 
 El ID del usuario se obtiene exclusivamente de `request.user` después de validar el JWT. No se acepta en body o query. No se confía en los roles del JWT para conceder escritura: las funciones comprueban el estado y los roles actuales del usuario en PostgreSQL. Se mantienen las autorizaciones de SQL, sin duplicar listas de roles en el backend.
+
+## Feriados centrales
+
+Se reutilizan el módulo, repositorio, conexión SQL y envoltura de respuesta existentes. Las rutas estáticas se registran antes de `/:id`.
+
+| Método y ruta relativa | Datos | Función SQL |
+| --- | --- | --- |
+| `GET /feriados` | Query: búsqueda de hasta 160 caracteres, estado 0/1 opcional, limit 1–100 (12 por defecto), offset desde 0. Omitir estado incluye todos. | `pla_ListarFeriados` |
+| `GET /feriados/:id` | ID del feriado central. | `pla_ObtenerFeriado` |
+| `POST /feriados` | Fecha, nombre, idtipo, minutosefectivos, activo opcional y selección completa idcalendarios. | `pla_GuardarFeriado` |
+| `PUT /feriados/:id` | Los mismos datos completos más revisión actual del feriado. | `pla_GuardarFeriado` |
+| `DELETE /feriados/:id` | Query obligatoria revision del feriado. Borrado lógico. | `pla_EliminarFeriado` |
+
+Ejemplo de creación:
+
+```json
+{"fecha":"2026-10-08","nombre":"Combate de Angamos","idtipo":617,"minutosefectivos":0,"activo":true,"idcalendarios":[1,2]}
+```
+
+La selección reemplaza todas las asignaciones: `[]` conserva la definición sin calendarios. Los IDs deben ser enteros positivos únicos; se envían como arreglo PostgreSQL en una única llamada. SQL aplica la operación completa de forma atómica, valida autorizaciones y conserva las publicaciones. No se duplican esas reglas en el backend.
+
+El detalle devuelve `feriado` y `calendarios`. Guardar y eliminar añaden `aplicacion`, con `idcalendario`, `idversion`, `pendiente` y `creadoborrador`. SQL sincroniza borradores y puede crearlos para calendarios activos publicados; las asignaciones a calendarios inactivos publicados quedan pendientes hasta reactivarlos. Publicar continúa siendo una acción explícita.
+
+El cliente debe conservar `data.feriado.revision` para editar o eliminar y recargar los calendarios afectados, sus versiones y vistas previas tras una mutación. Los cambios centrales pueden modificar revisiones de borradores; no reutilizar revisiones anteriores de calendario.
+
+El detalle del calendario incluye `idferiado` y `gestioncentralizada` en cada excepción; disponibilidad incluye `idferiado`. Solo las excepciones sin origen central admiten edición o eliminación local. Intentar modificar una vinculada devuelve 409 con `CALENDARIOS_FERIADO_CENTRALIZADO` e indica que se gestiona desde el registro central.
 
 ## Ejemplos de entradas
 
@@ -99,7 +125,7 @@ Los DTO rechazan campos extra, identificadores no positivos o fuera de integer S
 | 401 | Respuesta de autenticación existente. | JWT ausente, inválido, expirado o usuario inválido en el token. |
 | 400 | Validación HTTP o `CALENDARIOS_DATOS_INVALIDOS`. | Datos, referencias o restricciones inválidas. |
 | 403 | `CALENDARIOS_ACCESO_DENEGADO` | Usuario inactivo o sin autorización de SQL. |
-| 404 | `CALENDARIOS_NO_ENCONTRADO` | Calendario, versión o excepción inexistente. |
+| 404 | `CALENDARIOS_NO_ENCONTRADO` | Calendario, versión, excepción o feriado inexistente. |
 | 409 | `CALENDARIOS_DUPLICADO` | Nombre o fecha duplicados. |
 | 409 | `CALENDARIOS_REVISION_OBSOLETA` | Edición concurrente/revisión obsoleta. |
 | 409 | `CALENDARIOS_ESTADO_INCOMPATIBLE` | Publicación, borrador o calendario en estado incompatible. |
@@ -119,6 +145,6 @@ npm run lint:ci
 npm run build
 ```
 
-Las pruebas comprueban el contrato de las doce funciones públicas, JWT real en HTTP, validación, revisión, JSONB y errores. El ensamblaje completo de módulos sigue verificándose con DataSource simulado. Ninguna prueba conecta a Supabase ni ejecuta SQL real.
+Las pruebas comprueban las operaciones públicas de calendario y feriados centrales, JWT real en HTTP, validación, revisión, JSONB y errores. El ensamblaje completo de módulos sigue verificándose con DataSource simulado. Ninguna prueba conecta a Supabase ni ejecuta SQL real.
 
-La creación remota de cuatro tablas y catorce funciones está confirmada por el usuario. La revisión posterior verificó firmas, columnas y catálogos en solo lectura, sin ejecutar funciones de negocio ni comparar sus cuerpos. Las cuatro tablas quedaron aplicadas y verificadas; el usuario confirmó la ejecución de las catorce funciones, que el agente dejó intactas. El rol de conexión configurado para el backend debe disponer de los permisos exigidos por los scripts SQL; no se cambian permisos desde el backend. El siguiente paso es comprobar estos endpoints en el entorno de pruebas y luego desarrollar el frontend modular.
+Las tablas y funciones centrales ya están aplicadas en Supabase. Este cambio de backend no ejecuta migraciones ni modifica datos remotos. Las pruebas HTTP utilizan DataSource simulado. El rol de conexión debe disponer de los permisos exigidos por los scripts SQL. Queda pendiente conectar el frontend a la gestión central y realizar la validación integrada con sesión autenticada y datos reales.

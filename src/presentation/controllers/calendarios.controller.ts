@@ -45,6 +45,13 @@ import { GuardarSemanaCalendarioDto } from '../dtos/planificacion/calendarios/gu
 import { GuardarExcepcionCalendarioDto } from '../dtos/planificacion/calendarios/guardar-excepcion-calendario.dto';
 import { RevisionCalendarioDto } from '../dtos/planificacion/calendarios/revision-calendario.dto';
 import { DisponibilidadCalendarioDto } from '../dtos/planificacion/calendarios/disponibilidad-calendario.dto';
+import { ListarFeriadosUseCase } from '../../application/use-cases/planificacion/calendarios/listar-feriados.use-case';
+import { ObtenerFeriadoUseCase } from '../../application/use-cases/planificacion/calendarios/obtener-feriado.use-case';
+import { GuardarFeriadoUseCase } from '../../application/use-cases/planificacion/calendarios/guardar-feriado.use-case';
+import { EliminarFeriadoUseCase } from '../../application/use-cases/planificacion/calendarios/eliminar-feriado.use-case';
+import { CrearFeriadoDto } from '../dtos/planificacion/calendarios/crear-feriado.dto';
+import { ActualizarFeriadoDto } from '../dtos/planificacion/calendarios/actualizar-feriado.dto';
+import { ListarFeriadosDto } from '../dtos/planificacion/calendarios/listar-feriados.dto';
 
 @ApiTags('planificacion-calendarios')
 @ApiBearerAuth('access-token')
@@ -64,7 +71,93 @@ export class CalendariosController {
     private readonly publicarUseCase: PublicarVersionCalendarioUseCase,
     private readonly cambiarEstadoUseCase: CambiarEstadoCalendarioUseCase,
     private readonly disponibilidadUseCase: ObtenerDisponibilidadCalendarioUseCase,
+    private readonly listarFeriadosUseCase: ListarFeriadosUseCase,
+    private readonly obtenerFeriadoUseCase: ObtenerFeriadoUseCase,
+    private readonly guardarFeriadoUseCase: GuardarFeriadoUseCase,
+    private readonly eliminarFeriadoUseCase: EliminarFeriadoUseCase,
   ) {}
+
+  @Get('feriados')
+  @ApiOperation({
+    summary:
+      'Listar feriados centrales y sus calendarios, con filtros y paginación',
+  })
+  async listarFeriados(
+    @Req() request: Request,
+    @Query() query: ListarFeriadosDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.listarFeriadosUseCase.execute(this.idUsuario(request), query),
+    );
+  }
+
+  @Get('feriados/:id')
+  @ApiOperation({
+    summary:
+      'Consultar un feriado central, su revisión y asignaciones pendientes',
+  })
+  async obtenerFeriado(
+    @Req() request: Request,
+    @Param() params: CalendarioIdParamsDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.obtenerFeriadoUseCase.execute(
+        this.idUsuario(request),
+        params.id,
+      ),
+    );
+  }
+
+  @Post('feriados')
+  @ApiOperation({
+    summary: 'Crear un feriado central con su selección de calendarios',
+  })
+  async crearFeriado(@Req() request: Request, @Body() data: CrearFeriadoDto) {
+    return ApiResponseDto.created(
+      await this.guardarFeriadoUseCase.execute(this.idUsuario(request), data),
+      'Feriado creado',
+    );
+  }
+
+  @Put('feriados/:id')
+  @ApiOperation({
+    summary:
+      'Actualizar un feriado y reemplazar su selección completa de calendarios; requiere revisión del feriado',
+  })
+  async actualizarFeriado(
+    @Req() request: Request,
+    @Param() params: CalendarioIdParamsDto,
+    @Body() data: ActualizarFeriadoDto,
+  ) {
+    return ApiResponseDto.updated(
+      await this.guardarFeriadoUseCase.execute(
+        this.idUsuario(request),
+        data,
+        params.id,
+      ),
+      'Feriado actualizado',
+    );
+  }
+
+  @Delete('feriados/:id')
+  @ApiOperation({
+    summary:
+      'Eliminar lógicamente un feriado central; requiere revisión del feriado en query',
+  })
+  async eliminarFeriado(
+    @Req() request: Request,
+    @Param() params: CalendarioIdParamsDto,
+    @Query() query: RevisionCalendarioDto,
+  ) {
+    return ApiResponseDto.deleted(
+      await this.eliminarFeriadoUseCase.execute(
+        this.idUsuario(request),
+        params.id,
+        query.revision,
+      ),
+      'Feriado eliminado',
+    );
+  }
 
   @Get()
   @ApiOperation({
@@ -152,7 +245,7 @@ export class CalendariosController {
   }
 
   @Post('versiones/:id/excepciones')
-  @ApiOperation({ summary: 'Crear feriado o día especial en el borrador' })
+  @ApiOperation({ summary: 'Crear una excepción local en el borrador' })
   async crearExcepcion(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,
@@ -170,7 +263,8 @@ export class CalendariosController {
 
   @Put('versiones/:id/excepciones/:idexcepcion')
   @ApiOperation({
-    summary: 'Editar, activar o desactivar un feriado o día especial',
+    summary:
+      'Editar una excepción local; los feriados centrales se gestionan en /feriados',
   })
   async actualizarExcepcion(
     @Req() request: Request,

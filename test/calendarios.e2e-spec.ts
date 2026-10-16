@@ -352,4 +352,233 @@ describe('Configuración HTTP de calendarios', () => {
       .expect(404);
     expect(query).not.toHaveBeenCalled();
   });
+  const datosFeriado = {
+    fecha: '2026-10-08',
+    nombre: ' Angamos ',
+    idtipo: 617,
+    minutosefectivos: 0,
+    idcalendarios: [6, 7],
+  };
+  const feriado = {
+    feriado: { id: 10, nombre: 'Angamos', revision: 4, estado: 1 },
+    calendarios: [{ id: 6, pendiente: false }],
+  };
+  const mutacionFeriado = {
+    ...feriado,
+    aplicacion: [
+      { idcalendario: 6, idversion: 9, pendiente: false, creadoborrador: true },
+      {
+        idcalendario: 7,
+        idversion: 12,
+        pendiente: true,
+        creadoborrador: false,
+      },
+    ],
+  };
+
+  it('enruta /feriados antes del ID de calendario y conserva filtros y paginación', async () => {
+    const listado = {
+      data: [feriado.feriado],
+      pagination: { total: 1, limit: 5, offset: 10 },
+    };
+    query.mockResolvedValueOnce([{ pla_ListarFeriados: listado }]);
+    const response = await request(app.getHttpServer() as Server)
+      .get(base + '/feriados?busqueda=Angamos&estado=0&limit=5&offset=10')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect((response.body as { data: unknown }).data).toEqual(listado);
+    expect(query).toHaveBeenCalledWith(
+      'SELECT * FROM "pla_ListarFeriados"($1, $2, $3, $4, $5)',
+      [23, 'Angamos', 0, 5, 10],
+    );
+  });
+  it('lista feriados con los valores por defecto documentados', async () => {
+    query.mockResolvedValueOnce([
+      {
+        pla_ListarFeriados: {
+          data: [],
+          pagination: { total: 0, limit: 12, offset: 0 },
+        },
+      },
+    ]);
+    await request(app.getHttpServer() as Server)
+      .get(base + '/feriados')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect(query).toHaveBeenCalledWith(
+      'SELECT * FROM "pla_ListarFeriados"($1, $2, $3, $4, $5)',
+      [23, '', null, 12, 0],
+    );
+  });
+  it('consulta el feriado y sus asignaciones mediante el ID del path', async () => {
+    query.mockResolvedValueOnce([{ pla_ObtenerFeriado: feriado }]);
+    const response = await request(app.getHttpServer() as Server)
+      .get(base + '/feriados/10')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect((response.body as { data: unknown }).data).toEqual(feriado);
+    expect(query).toHaveBeenCalledWith(
+      'SELECT * FROM "pla_ObtenerFeriado"($1, $2)',
+      [23, 10],
+    );
+  });
+  it('crea un feriado con una única llamada SQL, arreglo PostgreSQL y usuario del JWT', async () => {
+    query.mockResolvedValueOnce([{ pla_GuardarFeriado: mutacionFeriado }]);
+    const response = await request(app.getHttpServer() as Server)
+      .post(base + '/feriados')
+      .auth(token, { type: 'bearer' })
+      .send(datosFeriado)
+      .expect(201);
+    expect(query).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledWith(
+      'SELECT * FROM "pla_GuardarFeriado"($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      [23, '2026-10-08', 'Angamos', 617, 0, true, [6, 7], null, null],
+    );
+    expect((response.body as { data: unknown }).data).toEqual(mutacionFeriado);
+  });
+  it('actualiza con revisión del feriado y conserva selección vacía, cero minutos y activo false', async () => {
+    query.mockResolvedValueOnce([{ pla_GuardarFeriado: mutacionFeriado }]);
+    await request(app.getHttpServer() as Server)
+      .put(base + '/feriados/10')
+      .auth(token, { type: 'bearer' })
+      .send({ ...datosFeriado, revision: 4, idcalendarios: [], activo: false })
+      .expect(200);
+    expect(query).toHaveBeenCalledWith(
+      'SELECT * FROM "pla_GuardarFeriado"($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+      [23, '2026-10-08', 'Angamos', 617, 0, false, [], 10, 4],
+    );
+  });
+  it('elimina lógicamente con revisión y devuelve también calendarios afectados', async () => {
+    const eliminado = {
+      ...mutacionFeriado,
+      feriado: { ...feriado.feriado, estado: 0, revision: 5 },
+      calendarios: [],
+    };
+    query.mockResolvedValueOnce([{ pla_EliminarFeriado: eliminado }]);
+    const response = await request(app.getHttpServer() as Server)
+      .delete(base + '/feriados/10?revision=4')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect(query).toHaveBeenCalledWith(
+      'SELECT * FROM "pla_EliminarFeriado"($1, $2, $3)',
+      [23, 10, 4],
+    );
+    expect((response.body as { data: unknown }).data).toEqual(eliminado);
+  });
+  it.each([
+    { idcalendarios: undefined },
+    { idcalendarios: null },
+    { idcalendarios: [6, 6] },
+    { idcalendarios: [null] },
+    { idcalendarios: [0] },
+    { idcalendarios: [1.5] },
+    { idcalendarios: ['6'] },
+    { idcalendarios: [2147483648] },
+    { idcalendarios: [[6]] },
+    { fecha: '2026-02-30' },
+    { fecha: '2026-10-08T00:00:00Z' },
+    { fecha: '0000-01-01' },
+    { activo: null },
+    { idtipo: 0 },
+    { idtipo: '617' },
+    { minutosefectivos: -1 },
+    { minutosefectivos: 1440 },
+    { nombre: ' ' },
+    { idusuario: 99 },
+    { idferiado: 10 },
+    { revision: 4 },
+    { estado: 0 },
+  ])(
+    'rechaza datos inválidos o suplantados del feriado %j antes de SQL',
+    async (invalid) => {
+      await request(app.getHttpServer() as Server)
+        .post(base + '/feriados')
+        .auth(token, { type: 'bearer' })
+        .send({ ...datosFeriado, ...invalid })
+        .expect(400);
+      expect(query).not.toHaveBeenCalled();
+    },
+  );
+  it.each([
+    '/feriados?busqueda=' + 'x'.repeat(161),
+    '/feriados?limit=101',
+    '/feriados?offset=-1',
+    '/feriados?estado=2',
+    '/feriados/0',
+    '/feriados/2147483648',
+  ])('valida query/path central %s', async (path) => {
+    await request(app.getHttpServer() as Server)
+      .get(base + path)
+      .auth(token, { type: 'bearer' })
+      .expect(400);
+    expect(query).not.toHaveBeenCalled();
+  });
+  it('exige revisión en actualización y eliminación de feriados y JWT en su lectura', async () => {
+    await request(app.getHttpServer() as Server)
+      .put(base + '/feriados/10')
+      .auth(token, { type: 'bearer' })
+      .send(datosFeriado)
+      .expect(400);
+    await request(app.getHttpServer() as Server)
+      .delete(base + '/feriados/10')
+      .auth(token, { type: 'bearer' })
+      .expect(400);
+    await request(app.getHttpServer() as Server)
+      .get(base + '/feriados')
+      .expect(401);
+    expect(query).not.toHaveBeenCalled();
+  });
+  it.each([
+    ['23505', 409],
+    ['40001', 409],
+    ['42501', 403],
+    ['P0002', 404],
+    ['22023', 400],
+    ['XX000', 500],
+  ])(
+    'traduce el error central %s sin filtrar consultas',
+    async (code, status) => {
+      query.mockRejectedValueOnce({
+        driverError: { code, message: 'SQL privado y credenciales' },
+      });
+      const response = await request(app.getHttpServer() as Server)
+        .put(base + '/feriados/10')
+        .auth(token, { type: 'bearer' })
+        .send({ ...datosFeriado, revision: 4 })
+        .expect(status);
+      expect(JSON.stringify(response.body)).not.toContain('SQL privado');
+    },
+  );
+  it('explica que los feriados vinculados no se editan ni eliminan como excepciones locales', async () => {
+    for (const operation of ['put', 'delete'] as const) {
+      query.mockRejectedValueOnce({
+        driverError: {
+          code: '55000',
+          message:
+            'Este feriado se gestiona desde el registro central de feriados',
+        },
+      });
+      const route =
+        base +
+        '/versiones/9/excepciones/15' +
+        (operation === 'delete' ? '?revision=4' : '');
+      const req = request(app.getHttpServer() as Server)
+        [operation](route)
+        .auth(token, { type: 'bearer' });
+      if (operation === 'put')
+        req.send({ ...datosFeriado, idcalendarios: undefined, revision: 4 });
+      const response = await req.expect(409);
+      expect((response.body as { code: string }).code).toBe(
+        'CALENDARIOS_FERIADO_CENTRALIZADO',
+      );
+    }
+  });
+  it('mantiene internos los auxiliares de aplicación y sincronización', async () => {
+    for (const route of ['/feriados/sincronizar', '/feriados/aplicar'])
+      await request(app.getHttpServer() as Server)
+        .post(base + route)
+        .auth(token, { type: 'bearer' })
+        .expect(404);
+    expect(query).not.toHaveBeenCalled();
+  });
 });

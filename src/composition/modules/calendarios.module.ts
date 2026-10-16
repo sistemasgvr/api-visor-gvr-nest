@@ -1,3 +1,7 @@
+import { ListarFeriadosUseCase } from '../../application/use-cases/planificacion/calendarios/listar-feriados.use-case';
+import { ObtenerFeriadoUseCase } from '../../application/use-cases/planificacion/calendarios/obtener-feriado.use-case';
+import { GuardarFeriadoUseCase } from '../../application/use-cases/planificacion/calendarios/guardar-feriado.use-case';
+import { EliminarFeriadoUseCase } from '../../application/use-cases/planificacion/calendarios/eliminar-feriado.use-case';
 import { Module } from '@nestjs/common';
 import { CALENDARIOS_REPOSITORY } from '../../domain/repositories/calendarios.repository.interface';
 import { CalendariosRepository } from '../../infrastructure/repositories/calendarios.repository';
@@ -23,6 +27,10 @@ import { ObtenerDisponibilidadCalendarioUseCase } from '../../application/use-ca
   controllers: [CalendariosController],
   providers: [
     { provide: CALENDARIOS_REPOSITORY, useClass: CalendariosRepository },
+    applicationProvider(ListarFeriadosUseCase),
+    applicationProvider(ObtenerFeriadoUseCase),
+    applicationProvider(GuardarFeriadoUseCase),
+    applicationProvider(EliminarFeriadoUseCase),
     applicationProvider(ListarCalendariosUseCase),
     applicationProvider(ObtenerCalendarioUseCase),
     applicationProvider(CrearCalendarioUseCase),

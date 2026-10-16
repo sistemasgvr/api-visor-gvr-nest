@@ -1,3 +1,7 @@
+import { ListarFeriadosUseCase } from '../application/use-cases/planificacion/calendarios/listar-feriados.use-case';
+import { ObtenerFeriadoUseCase } from '../application/use-cases/planificacion/calendarios/obtener-feriado.use-case';
+import { GuardarFeriadoUseCase } from '../application/use-cases/planificacion/calendarios/guardar-feriado.use-case';
+import { EliminarFeriadoUseCase } from '../application/use-cases/planificacion/calendarios/eliminar-feriado.use-case';
 import { CALENDARIOS_REPOSITORY } from '../domain/repositories/calendarios.repository.interface';
 import { ListarCalendariosUseCase } from '../application/use-cases/planificacion/calendarios/listar-calendarios.use-case';
 import { ObtenerCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/obtener-calendario.use-case';
@@ -501,6 +505,10 @@ import { ActivityDocumentsAdapter } from '../infrastructure/word/activity-docume
 
 /** Ensamblaje de dependencias fuera de aplicación; los casos de uso son clases TypeScript puras. */
 const dependencies = new Map<Type<any>, InjectionToken[]>([
+  [ListarFeriadosUseCase, [CALENDARIOS_REPOSITORY]],
+  [ObtenerFeriadoUseCase, [CALENDARIOS_REPOSITORY]],
+  [GuardarFeriadoUseCase, [CALENDARIOS_REPOSITORY]],
+  [EliminarFeriadoUseCase, [CALENDARIOS_REPOSITORY]],
   [ListarCalendariosUseCase, [CALENDARIOS_REPOSITORY]],
   [ObtenerCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
   [CrearCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
