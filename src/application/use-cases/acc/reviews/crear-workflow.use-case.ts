@@ -1,16 +1,14 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { CrearWorkflowDto } from '../../../dtos/acc/reviews/crear-workflow.dto';
-import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
-import type { IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
-import { AUDITORIA_REPOSITORY } from '../../../../domain/repositories/auditoria.repository.interface';
+import type { AutodeskReviewsPort } from '../../../ports/autodesk/reviews.port';
 
-@Injectable()
+import type { IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { CrearWorkflowDto } from '../../../inputs/acc/reviews/crear-workflow.dto';
+import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
+
 export class CrearWorkflowUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskReviewsPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 

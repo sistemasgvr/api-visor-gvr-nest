@@ -1,35 +1,32 @@
-import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import type { IMailPlantillaCorreoRepository } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import type { IMailTransport } from '../../../domain/services/mail-transport.interface';
-import { MAIL_TRANSPORT } from '../../../domain/services/mail-transport.interface';
 import type { IEmailDispatchLogRepository } from '../../../domain/repositories/email-dispatch-log.repository.interface';
-import { EMAIL_DISPATCH_LOG_REPOSITORY } from '../../../domain/repositories/email-dispatch-log.repository.interface';
-import { TestSendMailPlantillaDto } from '../../dtos/mail-plantilla/preview-mail-plantilla.dto';
-import { MailPlantillaRenderService } from '../../../infrastructure/mail/mail-plantilla-render.service';
+import type { IMailPlantillaCorreoRepository } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
+import type { IMailTransport } from '../../../domain/services/mail-transport.interface';
+import { InvalidInputError } from '../../errors/application.error';
+import { resolveMailHtmlInlineDataUris } from '../../helpers/mail-inline-data-uri.resolver';
+import { TestSendMailPlantillaDto } from '../../inputs/mail-plantilla/preview-mail-plantilla.dto';
+import { MailPlantillaRenderPort } from '../../ports/mail-plantilla-render.port';
+import {
+  ApplicationLogger,
+  ConfigurationPort,
+  LoggerFactoryPort,
+} from '../../ports/runtime.port';
 import { resolveMailPlantillaPreviewInput } from './mail-plantilla-preview.helper';
-import { resolveMailHtmlInlineDataUris } from '../../../infrastructure/mail/mail-inline-data-uri.resolver';
 
-@Injectable()
 export class TestSendMailPlantillaUseCase {
-  private readonly logger = new Logger(TestSendMailPlantillaUseCase.name);
+  private readonly logger: ApplicationLogger;
 
   constructor(
-    @Inject(MAIL_PLANTILLA_CORREO_REPOSITORY)
     private readonly repository: IMailPlantillaCorreoRepository,
-    private readonly renderService: MailPlantillaRenderService,
-    @Inject(MAIL_TRANSPORT)
+    private readonly renderService: MailPlantillaRenderPort,
+
     private readonly mailTransport: IMailTransport,
-    @Inject(EMAIL_DISPATCH_LOG_REPOSITORY)
+
     private readonly dispatchLogRepository: IEmailDispatchLogRepository,
-    private readonly configService: ConfigService,
-  ) {}
+    private readonly configService: ConfigurationPort,
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(TestSendMailPlantillaUseCase.name);
+  }
 
   async execute(dto: TestSendMailPlantillaDto) {
     const input = await resolveMailPlantillaPreviewInput(dto, this.repository);
@@ -50,7 +47,7 @@ export class TestSendMailPlantillaUseCase {
         errorMessage: 'MAIL_DISABLED',
         correlationId: `mail-plantilla-test:${input.templateId}`,
       });
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'El envío de correo está deshabilitado (MAIL_ENABLED=false)',
       );
     }

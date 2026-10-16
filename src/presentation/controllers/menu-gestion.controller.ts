@@ -35,17 +35,17 @@ import { ListarMenuPadresDisponiblesUseCase } from '../../application/use-cases/
 import { ClonarMenuUseCase } from '../../application/use-cases/menu-gestion/clonar-menu.use-case';
 import { MoverMenuUseCase } from '../../application/use-cases/menu-gestion/mover-menu.use-case';
 import { ReordenarMenuUseCase } from '../../application/use-cases/menu-gestion/reordenar-menu.use-case';
-import { CreateMenuDto } from '../../application/dtos/menu-gestion/create-menu.dto';
-import { UpdateMenuDto } from '../../application/dtos/menu-gestion/update-menu.dto';
-import { AsignarRolMenuDto } from '../../application/dtos/menu-gestion/asignar-rol-menu.dto';
-import { AsignarRolesMenuDto } from '../../application/dtos/menu-gestion/asignar-roles-menu.dto';
-import { ClonarMenuDto } from '../../application/dtos/menu-gestion/clonar-menu.dto';
-import { MoverMenuDto } from '../../application/dtos/menu-gestion/mover-menu.dto';
-import { ReordenarMenuDto } from '../../application/dtos/menu-gestion/reordenar-menu.dto';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { CreateMenuDto } from '../dtos/menu-gestion/create-menu.dto';
+import { UpdateMenuDto } from '../dtos/menu-gestion/update-menu.dto';
+import { AsignarRolMenuDto } from '../dtos/menu-gestion/asignar-rol-menu.dto';
+import { AsignarRolesMenuDto } from '../dtos/menu-gestion/asignar-roles-menu.dto';
+import { ClonarMenuDto } from '../dtos/menu-gestion/clonar-menu.dto';
+import { MoverMenuDto } from '../dtos/menu-gestion/mover-menu.dto';
+import { ReordenarMenuDto } from '../dtos/menu-gestion/reordenar-menu.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
-import { BroadcastService } from '../../shared/services/broadcast.service';
+import { BroadcastService } from '../../infrastructure/events/broadcast.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('menu-gestion')
@@ -152,7 +152,9 @@ export class MenuGestionController {
     );
   }
 
-  @ApiOperation({ summary: 'Roles del sistema disponibles para asignar al menú' })
+  @ApiOperation({
+    summary: 'Roles del sistema disponibles para asignar al menú',
+  })
   @Get(':id/roles-disponibles')
   @HttpCode(HttpStatus.OK)
   async listarRolesDisponibles(@Param('id', ParseIntPipe) id: number) {

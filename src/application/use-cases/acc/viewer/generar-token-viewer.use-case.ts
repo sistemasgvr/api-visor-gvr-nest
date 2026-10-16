@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { GenerarTokenViewerDto } from '../../../dtos/acc/viewer/generar-token-viewer.dto';
+import type { AutodeskAuthPort } from '../../../ports/autodesk/auth.port';
 
-@Injectable()
+import { GenerarTokenViewerDto } from '../../../inputs/acc/viewer/generar-token-viewer.dto';
+
 export class GenerarTokenViewerUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAuthPort) {}
 
   async execute(dto: GenerarTokenViewerDto): Promise<any> {
     const scope = dto.scope || 'viewables:read';

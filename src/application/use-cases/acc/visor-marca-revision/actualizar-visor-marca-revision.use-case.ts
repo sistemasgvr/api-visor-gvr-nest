@@ -1,21 +1,19 @@
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  ACC_VISOR_MARCA_REVISION_REPOSITORY,
-  type IAccVisorMarcaRevisionRepository,
-} from '../../../../domain/repositories/acc-visor-marca-revision.repository.interface';
-import type { ActualizarVisorMarcaRevisionDto } from '../../../dtos/acc/visor-marca-revision/visor-marca-revision.dto';
-import { assertOperacionMarcaRevision } from './visor-marca-revision.util';
+import { type IAccVisorMarcaRevisionRepository } from '../../../../domain/repositories/acc-visor-marca-revision.repository.interface';
+import type { ActualizarVisorMarcaRevisionDto } from '../../../inputs/acc/visor-marca-revision/visor-marca-revision.dto';
 import { VisorMarcaRevisionSyncService } from './visor-marca-revision-sync.service';
+import { assertOperacionMarcaRevision } from './visor-marca-revision.util';
 
-@Injectable()
 export class ActualizarVisorMarcaRevisionUseCase {
   constructor(
-    @Inject(ACC_VISOR_MARCA_REVISION_REPOSITORY)
     private readonly repository: IAccVisorMarcaRevisionRepository,
     private readonly syncService: VisorMarcaRevisionSyncService,
   ) {}
 
-  async execute(id: number, dto: ActualizarVisorMarcaRevisionDto, idUsuario: number) {
+  async execute(
+    id: number,
+    dto: ActualizarVisorMarcaRevisionDto,
+    idUsuario: number,
+  ) {
     const result = await this.repository.actualizar({
       id,
       idUsuario,

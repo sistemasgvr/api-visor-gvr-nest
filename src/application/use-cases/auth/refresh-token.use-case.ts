@@ -1,15 +1,10 @@
-import {
-  Injectable,
-  Inject,
-  UnauthorizedException,
-  NotFoundException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import type { ISesionRepository } from '../../../domain/repositories/sesion.repository.interface';
-import { SESION_REPOSITORY } from '../../../domain/repositories/sesion.repository.interface';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
+import type { ISesionRepository } from '../../../domain/repositories/sesion.repository.interface';
+import {
+  NotFoundError,
+  UnauthenticatedError,
+} from '../../errors/application.error';
+import { ConfigurationPort, TokenServicePort } from '../../ports/runtime.port';
 
 export interface RefreshTokenResponse {
   token: string;
@@ -25,15 +20,13 @@ export const AUTH_REFRESH_ERROR_CODE = {
   TOKEN_PAYLOAD: 'AUTH_REFRESH_TOKEN_PAYLOAD',
 } as const;
 
-@Injectable()
 export class RefreshTokenUseCase {
   constructor(
-    @Inject(SESION_REPOSITORY)
     private readonly sesionRepository: ISesionRepository,
-    @Inject(AUTH_REPOSITORY)
+
     private readonly authRepository: IAuthRepository,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly jwtService: TokenServicePort,
+    private readonly configService: ConfigurationPort,
   ) {}
 
   async execute(
@@ -49,7 +42,7 @@ export class RefreshTokenUseCase {
     const sesion = await this.sesionRepository.obtenerSesionPorToken(token);
 
     if (!sesion || sesion.estado !== 1) {
-      throw new UnauthorizedException({
+      throw new UnauthenticatedError({
         message: 'Sesión inválida o expirada',
         code: AUTH_REFRESH_ERROR_CODE.SESSION_INVALID,
       });
@@ -62,7 +55,7 @@ export class RefreshTokenUseCase {
         ignoreExpiration: true,
       });
     } catch {
-      throw new UnauthorizedException({
+      throw new UnauthenticatedError({
         message: 'Token inválido',
         code: AUTH_REFRESH_ERROR_CODE.TOKEN_INVALID,
       });
@@ -71,14 +64,14 @@ export class RefreshTokenUseCase {
     const idUsuario =
       typeof payload.sub === 'number' ? payload.sub : Number(payload.sub);
     if (!Number.isInteger(idUsuario) || idUsuario !== sesion.idUsuario) {
-      throw new UnauthorizedException({
+      throw new UnauthenticatedError({
         message: 'Token no coincide con la sesión',
         code: AUTH_REFRESH_ERROR_CODE.TOKEN_SESSION_MISMATCH,
       });
     }
 
     if (!payload.correo || typeof payload.correo !== 'string') {
-      throw new UnauthorizedException({
+      throw new UnauthenticatedError({
         message: 'Token sin correo válido',
         code: AUTH_REFRESH_ERROR_CODE.TOKEN_PAYLOAD,
       });
@@ -87,7 +80,7 @@ export class RefreshTokenUseCase {
     const usuario = await this.authRepository.login(payload.correo);
 
     if (!usuario) {
-      throw new NotFoundException('Usuario no encontrado');
+      throw new NotFoundError('Usuario no encontrado');
     }
 
     // Generar nuevo token

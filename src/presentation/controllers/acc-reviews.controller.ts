@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 
 // Use Cases
 import { ObtenerRevisionesUseCase } from '../../application/use-cases/acc/reviews/obtener-revisiones.use-case';
@@ -36,20 +36,20 @@ import { DelegarPasoRevisionUseCase } from '../../application/use-cases/acc/revi
 import { EnviarResenaPasoUseCase } from '../../application/use-cases/acc/reviews/enviar-resena-paso.use-case';
 import { GetComentariosArchivoUseCase } from '../../application/use-cases/acc/reviews/get-comentarios-archivo.use-case';
 import { AddComentarioArchivoUseCase } from '../../application/use-cases/acc/reviews/add-comentario-archivo.use-case';
-import { AddComentarioArchivoDto } from '../../application/dtos/acc/reviews/add-comentario-archivo.dto';
+import { AddComentarioArchivoDto } from '../dtos/acc/reviews/add-comentario-archivo.dto';
 import { ExportarRevisionesPdfUseCase } from '../../application/use-cases/acc/reviews/exportar-revisiones-pdf.use-case';
 import { ExportarRevisionDetallePdfUseCase } from '../../application/use-cases/acc/reviews/exportar-revision-detalle-pdf.use-case';
 
 // DTOs
-import { ObtenerRevisionesDto } from '../../application/dtos/acc/reviews/obtener-revisiones.dto';
-import { ExportarRevisionesPdfQueryDto } from '../../application/dtos/acc/reviews/exportar-revisiones-pdf-query.dto';
-import { CrearRevisionDto } from '../../application/dtos/acc/reviews/crear-revision.dto';
-import { AgregarReferenciaRevisionDto } from '../../application/dtos/acc/reviews/agregar-referencia-revision.dto';
-import { AnularRevisionDto } from '../../application/dtos/acc/reviews/anular-revision.dto';
-import { SaltarPasoRevisionDto } from '../../application/dtos/acc/reviews/saltar-paso-revision.dto';
-import { VolverPasoAnteriorRevisionDto } from '../../application/dtos/acc/reviews/volver-paso-anterior-revision.dto';
-import { EnviarResenaPasoDto } from '../../application/dtos/acc/reviews/enviar-resena-paso.dto';
-import { NotificarRevisoresRevisionDto } from '../../application/dtos/acc/reviews/notificar-revisores-revision.dto';
+import { ObtenerRevisionesDto } from '../dtos/acc/reviews/obtener-revisiones.dto';
+import { ExportarRevisionesPdfQueryDto } from '../dtos/acc/reviews/exportar-revisiones-pdf-query.dto';
+import { CrearRevisionDto } from '../dtos/acc/reviews/crear-revision.dto';
+import { AgregarReferenciaRevisionDto } from '../dtos/acc/reviews/agregar-referencia-revision.dto';
+import { AnularRevisionDto } from '../dtos/acc/reviews/anular-revision.dto';
+import { SaltarPasoRevisionDto } from '../dtos/acc/reviews/saltar-paso-revision.dto';
+import { VolverPasoAnteriorRevisionDto } from '../dtos/acc/reviews/volver-paso-anterior-revision.dto';
+import { EnviarResenaPasoDto } from '../dtos/acc/reviews/enviar-resena-paso.dto';
+import { NotificarRevisoresRevisionDto } from '../dtos/acc/reviews/notificar-revisores-revision.dto';
 import { NotificarRevisoresRevisionUseCase } from '../../application/use-cases/acc/reviews/notificar-revisores-revision.use-case';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -171,7 +171,9 @@ export class AccReviewsController {
    * POST /acc/projects/:projectId/reviews
    * Crea una nueva revisi?n
    */
-  @ApiOperation({ summary: 'Crear revisión nueva en proyecto ACC/BIM Collaborate Pro' })
+  @ApiOperation({
+    summary: 'Crear revisión nueva en proyecto ACC/BIM Collaborate Pro',
+  })
   @Post()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -281,7 +283,9 @@ export class AccReviewsController {
    * GET /acc/projects/:projectId/reviews/:reviewId/workflow
    * Obtiene el workflow de una revisi?n
    */
-  @ApiOperation({ summary: 'Workflow estático Autodesk asociado a la revisión' })
+  @ApiOperation({
+    summary: 'Workflow estático Autodesk asociado a la revisión',
+  })
   @Get(':reviewId/workflow')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -349,7 +353,9 @@ export class AccReviewsController {
    * GET /acc/projects/:projectId/reviews/:reviewId/versions
    * Obtiene las versiones de documentos vinculados a una revisi?n
    */
-  @ApiOperation({ summary: 'Versiones BIM360/ACC relacionadas revisión actual' })
+  @ApiOperation({
+    summary: 'Versiones BIM360/ACC relacionadas revisión actual',
+  })
   @Get(':reviewId/versions')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -410,7 +416,9 @@ export class AccReviewsController {
    * POST /acc/projects/:projectId/reviews/:reviewId/references
    * Agrega una o varias referencias a una revisi?n
    */
-  @ApiOperation({ summary: 'Adjuntar referencias internas proyecto ↔ revisión ACC' })
+  @ApiOperation({
+    summary: 'Adjuntar referencias internas proyecto ↔ revisión ACC',
+  })
   @Post(':reviewId/references')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -720,9 +728,9 @@ export class AccReviewsController {
 
   /** GET /acc/projects/:projectId/reviews/:reviewId/files/:fileId/comments */
   @ApiOperation({
-    summary: 'Histórico de comentarios en archivo ACC embebidos en revisión GVR',
-    description:
-      'Resuelve id revision GVR-### antes de obtener comentarios.',
+    summary:
+      'Histórico de comentarios en archivo ACC embebidos en revisión GVR',
+    description: 'Resuelve id revision GVR-### antes de obtener comentarios.',
   })
   @Get(':reviewId/files/:fileId/comments')
   @UseGuards(JwtAuthGuard)
@@ -746,8 +754,7 @@ export class AccReviewsController {
   /** POST /acc/projects/:projectId/reviews/:reviewId/files/:fileId/comments */
   @ApiOperation({
     summary: 'Agregar marcador/discusión BIM sobre archivo de revisión',
-    description:
-      'Sincroniza con ACC Markups según archivo numérico asociado.',
+    description: 'Sincroniza con ACC Markups según archivo numérico asociado.',
   })
   @Post(':reviewId/files/:fileId/comments')
   @UseGuards(JwtAuthGuard)

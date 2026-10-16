@@ -42,7 +42,9 @@ export class MenuRepository implements IMenuRepository {
   }
 
   async obtenerIdListaPorNombre(nombre: string): Promise<number | null> {
-    const rows = await this.databaseFunctionService.executeQuery<{ id: number }>(
+    const rows = await this.databaseFunctionService.executeQuery<{
+      id: number;
+    }>(
       `SELECT id FROM genlistado WHERE LOWER(TRIM(nombre)) = LOWER(TRIM($1)) AND estado = 1 LIMIT 1`,
       [nombre],
     );

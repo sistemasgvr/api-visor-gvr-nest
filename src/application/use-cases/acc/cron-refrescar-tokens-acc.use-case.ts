@@ -1,6 +1,6 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
+
 import type { IAccRepository } from '../../../domain/repositories/acc.repository.interface';
-import { ACC_REPOSITORY } from '../../../domain/repositories/acc.repository.interface';
 import { RefrescarToken3LeggedUseCase } from './refrescar-token-3legged.use-case';
 
 export interface CronRefrescarTokensAccResult {
@@ -16,15 +16,17 @@ export interface CronRefrescarTokensAccResult {
  * llama a RefrescarToken3LeggedUseCase.execute(idUsuario), que obtiene el token con
  * obtenerToken3LeggedPorUsuario, refresca contra Autodesk y actualiza en BD.
  */
-@Injectable()
+
 export class CronRefrescarTokensAccUseCase {
-  private readonly logger = new Logger(CronRefrescarTokensAccUseCase.name);
+  private readonly logger: ApplicationLogger;
 
   constructor(
-    @Inject(ACC_REPOSITORY)
     private readonly accRepository: IAccRepository,
     private readonly refrescarToken3LeggedUseCase: RefrescarToken3LeggedUseCase,
-  ) {}
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(CronRefrescarTokensAccUseCase.name);
+  }
 
   async execute(): Promise<CronRefrescarTokensAccResult> {
     const tokens = await this.accRepository.listarTokensActivosParaRefresh();

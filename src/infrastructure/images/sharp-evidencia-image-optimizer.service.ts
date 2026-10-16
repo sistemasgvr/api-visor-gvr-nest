@@ -15,10 +15,10 @@ const DEFAULT_WEBP_EFFORT = 5;
 const MAX_INPUT_PIXELS = 100_000_000;
 
 @Injectable()
-export class SharpEvidenciaImageOptimizerService
-  implements IEvidenciaImageOptimizer
-{
-  private readonly logger = new Logger(SharpEvidenciaImageOptimizerService.name);
+export class SharpEvidenciaImageOptimizerService implements IEvidenciaImageOptimizer {
+  private readonly logger = new Logger(
+    SharpEvidenciaImageOptimizerService.name,
+  );
   private readonly enabled: boolean;
   private readonly maxEdge: number;
   private readonly webpQ: number;
@@ -27,8 +27,9 @@ export class SharpEvidenciaImageOptimizerService
 
   constructor(private readonly config: ConfigService) {
     this.enabled =
-      (this.config.get<string>('EVIDENCIA_IMAGE_OPTIMIZE') ?? 'true')
-        .toLowerCase() !== 'false';
+      (
+        this.config.get<string>('EVIDENCIA_IMAGE_OPTIMIZE') ?? 'true'
+      ).toLowerCase() !== 'false';
     const me = parseInt(
       this.config.get<string>('EVIDENCIA_IMAGE_MAX_EDGE_PX') ?? '',
       10,
@@ -74,7 +75,9 @@ export class SharpEvidenciaImageOptimizerService
 
     let meta: sharp.Metadata;
     try {
-      meta = await sharp(buffer, { limitInputPixels: MAX_INPUT_PIXELS }).metadata();
+      meta = await sharp(buffer, {
+        limitInputPixels: MAX_INPUT_PIXELS,
+      }).metadata();
     } catch (e) {
       this.logger.warn(
         'Evidencia: metadatos de imagen no legibles; se mantiene original',
@@ -121,13 +124,18 @@ export class SharpEvidenciaImageOptimizerService
       }
       return { buffer: out, mimetype: outMime, originalname: newName };
     } catch (e) {
-      this.logger.warn('Evidencia: error al optimizar imagen; se mantiene original');
+      this.logger.warn(
+        'Evidencia: error al optimizar imagen; se mantiene original',
+      );
       this.logger.debug(e);
       return { buffer, mimetype, originalname: name0 };
     }
   }
 
-  private replaceFileExtension(filename: string, extWithoutDot: string): string {
+  private replaceFileExtension(
+    filename: string,
+    extWithoutDot: string,
+  ): string {
     const base = (filename || 'archivo').replace(/[/\\]/g, '');
     const t = extWithoutDot.replace(/^\./, '').toLowerCase();
     if (!base.includes('.')) {

@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   ListarRecursosUseCase,
   ObtenerRecursoPorIdUseCase,
@@ -49,7 +49,7 @@ import {
   ActualizarNivelPermisoUsuarioDto,
   SincronizarPermisosUsuarioDto,
   ListarUsuariosDisponiblesRecursoDto,
-} from '../../application/dtos/acc/resources';
+} from '../dtos/acc/resources';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -85,7 +85,8 @@ export class AccResourcesController {
    * IMPORTANTE: Esta ruta debe ir ANTES de las rutas con parámetros dinámicos
    */
   @ApiOperation({
-    summary: 'Catálogo ACC de niveles de permiso (view/download/view+download...)',
+    summary:
+      'Catálogo ACC de niveles de permiso (view/download/view+download...)',
   })
   @Get('permission-levels')
   @HttpCode(HttpStatus.OK)
@@ -195,7 +196,9 @@ export class AccResourcesController {
    * GET - Obtener recurso ACC por ID
    * GET /acc/resources/:id
    */
-  @ApiOperation({ summary: 'Detalle simplificado de recurso interno + URN ACC' })
+  @ApiOperation({
+    summary: 'Detalle simplificado de recurso interno + URN ACC',
+  })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async show(@Param('id') id: string) {
@@ -428,8 +431,7 @@ export class AccResourcesController {
    */
   @ApiOperation({
     summary: 'Usuarios internos disponibles sin permiso sobre recurso ACC',
-    description:
-      'Incluye filtros texto y paginación; útil UI de asistentes.',
+    description: 'Incluye filtros texto y paginación; útil UI de asistentes.',
   })
   @Get(':resourceId/users/available')
   @HttpCode(HttpStatus.OK)
@@ -495,7 +497,9 @@ export class AccResourcesController {
    * POST - Asignar permiso de recurso a usuario (con nivel de permiso)
    * POST /acc/resources/users/permissions
    */
-  @ApiOperation({ summary: 'Dar permiso de recurso específico a usuario con nivel APS' })
+  @ApiOperation({
+    summary: 'Dar permiso de recurso específico a usuario con nivel APS',
+  })
   @Post('users/permissions')
   @HttpCode(HttpStatus.CREATED)
   async assignUserPermission(
@@ -519,7 +523,9 @@ export class AccResourcesController {
    * PATCH - Actualizar nivel de permiso de un usuario
    * PATCH /acc/resources/users/permissions/:id/level
    */
-  @ApiOperation({ summary: 'Cambiar nivel APS de una asignación usuario-recurso' })
+  @ApiOperation({
+    summary: 'Cambiar nivel APS de una asignación usuario-recurso',
+  })
   @Patch('users/permissions/:id/level')
   @HttpCode(HttpStatus.OK)
   async updateUserPermissionLevel(
@@ -582,8 +588,7 @@ export class AccResourcesController {
    */
   @ApiOperation({
     summary: 'Reconciliar todos los permisos de usuario contra ACC resources',
-    description:
-      'Sustituye el set configurado manteniendo trazabilidad en BD.',
+    description: 'Sustituye el set configurado manteniendo trazabilidad en BD.',
   })
   @Put('users/:userId/permissions/sync')
   @HttpCode(HttpStatus.OK)

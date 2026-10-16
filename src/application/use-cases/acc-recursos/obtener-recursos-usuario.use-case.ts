@@ -1,16 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import {
-  ACC_RECURSOS_REPOSITORY,
-  type IAccRecursosRepository,
-} from '../../../domain/repositories/acc-recursos.repository.interface';
-import { ObtenerRecursosUsuarioDto } from '../../dtos/acc-recursos/obtener-recursos-usuario.dto';
+import { type IAccRecursosRepository } from '../../../domain/repositories/acc-recursos.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
+import { ObtenerRecursosUsuarioDto } from '../../inputs/acc-recursos/obtener-recursos-usuario.dto';
 
-@Injectable()
 export class ObtenerRecursosUsuarioUseCase {
-  constructor(
-    @Inject(ACC_RECURSOS_REPOSITORY)
-    private readonly accRecursosRepository: IAccRecursosRepository,
-  ) {}
+  constructor(private readonly accRecursosRepository: IAccRecursosRepository) {}
 
   async execute(
     idUsuario: number,
@@ -22,7 +15,7 @@ export class ObtenerRecursosUsuarioUseCase {
 
     const rolesValidos = ['creador', 'asignado', 'modifico'];
     if (!rolesValidos.includes(rol)) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'Rol inválido. Debe ser: creador, asignado o modifico',
       );
     }

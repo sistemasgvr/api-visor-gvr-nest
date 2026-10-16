@@ -1,10 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
-import { CambiarEstadoWorkflowDto } from '../../../dtos/acc/reviews/cambiar-estado-workflow.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { CambiarEstadoWorkflowDto } from '../../../inputs/acc/reviews/cambiar-estado-workflow.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
-@Injectable()
 export class CambiarEstadoFlujoGvrUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     projectId: string,
@@ -13,7 +12,7 @@ export class CambiarEstadoFlujoGvrUseCase {
   ): Promise<{ id: string; mensaje: string }> {
     const flowId = parseInt(workflowId, 10);
     if (Number.isNaN(flowId)) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'Solo se puede cambiar el estado de flujos internos GVR (id numérico).',
       );
     }
@@ -22,19 +21,19 @@ export class CambiarEstadoFlujoGvrUseCase {
 
     let result: { id: number; mensaje: string }[];
     try {
-      result = await this.dbFunctionService.callFunction<{
+      result = await this.reviewsRepository.cambiarEstadoFlujoTrabajoGvr<{
         id: number;
         mensaje: string;
-      }>('acc_CambiarEstadoFlujoTrabajoGvr', [projectId, flowId, nombreEstado]);
+      }>([projectId, flowId, nombreEstado]);
     } catch (e: any) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         e?.message ?? 'No se pudo cambiar el estado del flujo.',
       );
     }
 
     const row = result?.[0];
     if (!row?.id) {
-      throw new BadRequestException('No se pudo cambiar el estado del flujo.');
+      throw new InvalidInputError('No se pudo cambiar el estado del flujo.');
     }
 
     return {

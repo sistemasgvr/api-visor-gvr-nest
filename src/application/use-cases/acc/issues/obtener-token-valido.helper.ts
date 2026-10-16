@@ -1,16 +1,11 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { UnauthenticatedError } from '../../../errors/application.error';
+import type { AutodeskIssuesPort } from '../../../ports/autodesk/issues.port';
 
-@Injectable()
 export default class ObtenerTokenValidoHelper {
   constructor(
-    @Inject(ACC_REPOSITORY)
     private readonly accRepository: IAccRepository,
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskIssuesPort,
   ) {}
 
   async execute(userId: number): Promise<string> {
@@ -18,14 +13,14 @@ export default class ObtenerTokenValidoHelper {
       await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
     if (!token) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'No se encontró un token de Autodesk vinculado a tu usuario. Por favor, vincula tu cuenta de Autodesk.',
       );
     }
 
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
       if (!token.tokenRefresco) {
-        throw new UnauthorizedException(
+        throw new UnauthenticatedError(
           'El token de Autodesk ha expirado y no se puede renovar. Por favor, vuelve a vincular tu cuenta.',
         );
       }
@@ -45,11 +40,11 @@ export default class ObtenerTokenValidoHelper {
         return nuevoToken.access_token;
       } catch (error: any) {
         if (error.message && error.message.includes('REFRESH_TOKEN_EXPIRED')) {
-          throw new UnauthorizedException(
+          throw new UnauthenticatedError(
             'Tu sesión de Autodesk ha expirado y no se pudo renovar. Por favor, vuelve a vincular tu cuenta.',
           );
         }
-        throw new UnauthorizedException(
+        throw new UnauthenticatedError(
           'Error al renovar el token de Autodesk. Por favor, vuelve a vincular tu cuenta.',
         );
       }

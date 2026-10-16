@@ -1,10 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
-import { SaltarPasoRevisionDto } from '../../../dtos/acc/reviews/saltar-paso-revision.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { SaltarPasoRevisionDto } from '../../../inputs/acc/reviews/saltar-paso-revision.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
-@Injectable()
 export class SaltarPasoRevisionUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     userId: number,
@@ -12,20 +11,15 @@ export class SaltarPasoRevisionUseCase {
     reviewId: number,
     dto: SaltarPasoRevisionDto,
   ): Promise<{ id: number; message: string }> {
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.saltarPasoRevision<{
       success: boolean;
       message: string;
       id_result: number;
-    }>('acc_SaltarPasoRevision', [
-      reviewId,
-      projectId,
-      userId,
-      dto?.notas ?? null,
-    ]);
+    }>([reviewId, projectId, userId, dto?.notas ?? null]);
 
     const row = rows?.[0];
     if (!row?.success) {
-      throw new BadRequestException(row?.message ?? 'Error al saltar el paso');
+      throw new InvalidInputError(row?.message ?? 'Error al saltar el paso');
     }
 
     return { id: row.id_result, message: row.message };

@@ -1,24 +1,20 @@
 import {
-  Injectable,
-  Inject,
-  Logger,
-  UnauthorizedException,
-  ForbiddenException,
-} from '@nestjs/common';
-import type {
-  IControlOperativoRepository,
-  ValidarActividadParams,
-  ActividadCreada,
-} from '../../../domain/repositories/control-operativo.repository.interface';
-import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
-import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
-import { BroadcastService } from '../../../shared/services/broadcast.service';
-import { esAccesoTotalValidacionActividades } from './validacion-acceso.util';
-import {
   ID_ESTADO_ACTIVIDAD_APROBADO,
   ID_ESTADO_ACTIVIDAD_RECHAZADO,
 } from '../../../domain/constants/estado-actividad.constants';
+import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
+import type {
+  ActividadCreada,
+  IControlOperativoRepository,
+  ValidarActividadParams,
+} from '../../../domain/repositories/control-operativo.repository.interface';
+import {
+  ForbiddenError,
+  UnauthenticatedError,
+} from '../../errors/application.error';
+import { BroadcastPort } from '../../ports/broadcast.port';
+import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
+import { esAccesoTotalValidacionActividades } from './validacion-acceso.util';
 
 export interface ValidarActividadInput {
   idActividad: number;
@@ -27,24 +23,25 @@ export interface ValidarActividadInput {
   idUsuario: number;
 }
 
-@Injectable()
 export class ValidarActividadUseCase {
-  private readonly logger = new Logger(ValidarActividadUseCase.name);
+  private readonly logger: ApplicationLogger;
 
   constructor(
-    @Inject(CONTROL_OPERATIVO_REPOSITORY)
     private readonly controlOperativoRepository: IControlOperativoRepository,
-    @Inject(AUTH_REPOSITORY)
+
     private readonly authRepository: IAuthRepository,
-    private readonly broadcastService: BroadcastService,
-  ) {}
+    private readonly broadcastService: BroadcastPort,
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(ValidarActividadUseCase.name);
+  }
 
   async execute(input: ValidarActividadInput): Promise<ActividadCreada | null> {
     const perfil = await this.authRepository.obtenerPerfilUsuario(
       input.idUsuario,
     );
     if (!perfil?.roles || !Array.isArray(perfil.roles)) {
-      throw new UnauthorizedException('Usuario no identificado');
+      throw new UnauthenticatedError('Usuario no identificado');
     }
     const rolesIds = (perfil.roles as { id?: number }[])
       .map((r) => r?.id)
@@ -64,9 +61,7 @@ export class ValidarActividadUseCase {
       esAdminTotalValidacion,
     );
     if (!puede) {
-      throw new ForbiddenException(
-        'No tiene permiso para validar esta actividad',
-      );
+      throw new ForbiddenError('No tiene permiso para validar esta actividad');
     }
     const params: ValidarActividadParams = {
       idActividad: input.idActividad,

@@ -1,3 +1,4 @@
+import type { ExportacionPermisosCarpetaPdfPort } from '../../application/ports/exportacion-permisos-carpeta-pdf.port';
 import {
   BadRequestException,
   ForbiddenException,
@@ -12,13 +13,13 @@ import {
   ACC_REPOSITORY,
   type IAccRepository,
 } from '../../domain/repositories/acc.repository.interface';
-import { normalizeExternalId } from '../../shared/utils/normalize-external-id.util';
+import { normalizeExternalId } from '../../domain/utils/normalize-external-id.util';
 import { AutodeskApiService } from './autodesk-api.service';
 import {
   HTML_PDF_GENERATOR,
   type IHtmlPdfGenerator,
 } from '../../domain/services/html-pdf-generator.interface';
-import type { ExportarPermisosCarpetaPdfDto } from '../../application/dtos/data-management/folders/exportar-permisos-carpeta-pdf.dto';
+import type { ExportarPermisosCarpetaPdfDto } from '../../application/inputs/data-management/folders/exportar-permisos-carpeta-pdf.dto';
 
 const MAX_CARPETAS = 2000;
 const MAX_FILAS = 5000;
@@ -46,7 +47,7 @@ function fmtFecha(iso: string | null | undefined): string {
 }
 
 @Injectable()
-export class ExportacionPermisosCarpetaPdfService {
+export class ExportacionPermisosCarpetaPdfService implements ExportacionPermisosCarpetaPdfPort {
   constructor(
     @Inject(ACC_REPOSITORY)
     private readonly accRepository: IAccRepository,

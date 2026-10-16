@@ -1,12 +1,9 @@
-import {
-  Injectable,
-  Inject,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
 import type { IAccRepository } from '../../../domain/repositories/acc.repository.interface';
-import { ACC_REPOSITORY } from '../../../domain/repositories/acc.repository.interface';
-import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
+import {
+  InvalidInputError,
+  NotFoundError,
+} from '../../errors/application.error';
+import type { AutodeskAuthPort } from '../../ports/autodesk/auth.port';
 
 export interface RefrescarToken3LeggedResponse {
   access_token: string;
@@ -14,13 +11,11 @@ export interface RefrescarToken3LeggedResponse {
   token_type: string;
 }
 
-@Injectable()
 export class RefrescarToken3LeggedUseCase {
   constructor(
-    @Inject(ACC_REPOSITORY)
     private readonly accRepository: IAccRepository,
-    @Inject(AutodeskApiService)
-    private readonly autodeskApiService: AutodeskApiService,
+
+    private readonly autodeskApiService: AutodeskAuthPort,
   ) {}
 
   async execute(idUsuario: number): Promise<RefrescarToken3LeggedResponse> {
@@ -29,13 +24,11 @@ export class RefrescarToken3LeggedUseCase {
       await this.accRepository.obtenerToken3LeggedPorUsuario(idUsuario);
 
     if (!tokenActual) {
-      throw new NotFoundException(
-        'No se encontró token activo para este usuario',
-      );
+      throw new NotFoundError('No se encontró token activo para este usuario');
     }
 
     if (!tokenActual.tokenRefresco) {
-      throw new BadRequestException('No hay refresh token disponible');
+      throw new InvalidInputError('No hay refresh token disponible');
     }
 
     try {
@@ -66,7 +59,7 @@ export class RefrescarToken3LeggedUseCase {
     } catch (error: any) {
       // Check if the error is due to expired refresh token
       if (error.message && error.message.includes('REFRESH_TOKEN_EXPIRED')) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           'Refresh token expirado o inválido. Por favor, vuelva a autenticarse mediante el flujo OAuth.',
         );
       }

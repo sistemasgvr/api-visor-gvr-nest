@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   ObtenerVersionPorIdUseCase,
   ObtenerFormatosDescargaUseCase,
@@ -30,7 +30,7 @@ import {
   CrearVersionDto,
   CrearReferenciaDto,
   ActualizarVersionDto,
-} from '../../application/dtos/data-management/versions';
+} from '../dtos/data-management/versions';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 

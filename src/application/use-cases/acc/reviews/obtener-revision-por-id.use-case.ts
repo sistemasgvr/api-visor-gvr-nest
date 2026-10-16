@@ -1,14 +1,14 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
+import { InvalidInputError } from '../../../errors/application.error';
+import type { AutodeskReviewsPort } from '../../../ports/autodesk/reviews.port';
 
-@Injectable()
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
+import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
+
 export class ObtenerRevisionPorIdUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskReviewsPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    private readonly dbFunctionService: DatabaseFunctionService,
+    private readonly reviewsRepository: InternalReviewsRepository,
   ) {}
 
   async execute(
@@ -16,31 +16,32 @@ export class ObtenerRevisionPorIdUseCase {
     projectId: string,
     reviewId: string,
   ): Promise<any> {
-    const internal = await this.dbFunctionService.callFunction<{
-      review_id: string;
-      sequence_id: number;
-      round_number: number;
-      status_name: string;
-      name: string;
-      notes: string | null;
-      workflow_id: string;
-      workflow_name: string;
-      workflow_notes: string | null;
-      created_at: string | Date;
-      updated_at: string | Date;
-      finished_at: string | Date | null;
-      current_step_number: number | null;
-      current_step_due_date: string | Date | null;
-      created_by_json: any;
-      steps_json: any;
-      candidates_current_json: any;
-      files_json: any;
-      activity_json: any;
-      files_total: number;
-      files_approved: number;
-      files_rejected: number;
-      progress_percent: number;
-    }>('acc_ObtenerRevisionInternaGvrPorId', [projectId, reviewId]);
+    const internal =
+      await this.reviewsRepository.obtenerRevisionInternaGvrPorId<{
+        review_id: string;
+        sequence_id: number;
+        round_number: number;
+        status_name: string;
+        name: string;
+        notes: string | null;
+        workflow_id: string;
+        workflow_name: string;
+        workflow_notes: string | null;
+        created_at: string | Date;
+        updated_at: string | Date;
+        finished_at: string | Date | null;
+        current_step_number: number | null;
+        current_step_due_date: string | Date | null;
+        created_by_json: any;
+        steps_json: any;
+        candidates_current_json: any;
+        files_json: any;
+        activity_json: any;
+        files_total: number;
+        files_approved: number;
+        files_rejected: number;
+        progress_percent: number;
+      }>([projectId, reviewId]);
 
     const row = internal?.[0];
     if (row) {
@@ -50,13 +51,11 @@ export class ObtenerRevisionPorIdUseCase {
         .filter((id) => Number.isFinite(id) && id > 0);
       if (fileIds.length > 0) {
         try {
-          const versionRows = await this.dbFunctionService.executeQuery<{
-            id: number;
-            urnversionacc: string;
-          }>(
-            `SELECT id, urnversionacc FROM "acc_RevisionArchivo" WHERE id = ANY($1::int[]) AND estado = 1`,
-            [fileIds],
-          );
+          const versionRows =
+            await this.reviewsRepository.obtenerVersionesArchivos<{
+              id: number;
+              urnversionacc: string;
+            }>([fileIds]);
           const vmap = new Map(
             versionRows.map((r) => [
               Number(r.id),
@@ -107,15 +106,8 @@ export class ObtenerRevisionPorIdUseCase {
                   if (itemId) {
                     const itemStr = String(itemId);
                     next = { ...next, urnItemAcc: itemStr };
-                    this.dbFunctionService
-                      .executeQuery(
-                        `UPDATE "acc_RevisionArchivo"
-                                             SET urnitemacc = $1,
-                                                 fechamodificacion = NOW()
-                                             WHERE id = $2
-                                               AND (urnitemacc IS NULL OR TRIM(COALESCE(urnitemacc, '')) = '')`,
-                        [itemStr, Number(f.id)],
-                      )
+                    this.reviewsRepository
+                      .actualizarArchivoEnriquecido([itemStr, Number(f.id)])
                       .catch(() => {
                         /* no bloquear */
                       });
@@ -142,16 +134,12 @@ export class ObtenerRevisionPorIdUseCase {
                     ? `V${versionNum}`
                     : (next.version ?? 'V1');
 
-                  this.dbFunctionService
-                    .executeQuery(
-                      `UPDATE "acc_RevisionArchivo"
-                                         SET nombrearchivomostrar = $1,
-                                             etiquetaversion      = $2,
-                                             fechamodificacion    = NOW()
-                                         WHERE id = $3
-                                           AND (nombrearchivomostrar IS NULL OR nombrearchivomostrar = '')`,
-                      [displayName, versionLabel, Number(f.id)],
-                    )
+                  this.reviewsRepository
+                    .actualizarNombreVersionArchivo([
+                      displayName,
+                      versionLabel,
+                      Number(f.id),
+                    ])
                     .catch(() => {
                       /* no bloquear si falla */
                     });
@@ -214,7 +202,7 @@ export class ObtenerRevisionPorIdUseCase {
         reviewId,
       );
     } catch {
-      throw new BadRequestException('Revisión no encontrada.');
+      throw new InvalidInputError('Revisión no encontrada.');
     }
   }
 }

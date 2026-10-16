@@ -1,3 +1,4 @@
+import type { ExportacionRevisionDetallePdfPort } from '../../application/ports/exportacion-revision-detalle-pdf.port';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
   HTML_PDF_GENERATOR,
@@ -36,7 +37,7 @@ function resolveInternalRevisionId(
 }
 
 @Injectable()
-export class ExportacionRevisionDetallePdfService {
+export class ExportacionRevisionDetallePdfService implements ExportacionRevisionDetallePdfPort {
   constructor(
     private readonly obtenerRevisionPorIdUseCase: ObtenerRevisionPorIdUseCase,
     private readonly getComentariosArchivoUseCase: GetComentariosArchivoUseCase,

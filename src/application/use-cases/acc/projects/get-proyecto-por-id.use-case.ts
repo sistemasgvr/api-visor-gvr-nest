@@ -1,16 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { GetProyectoPorIdDto } from '../../../dtos/acc/projects/get-proyecto-por-id.dto';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
 
-@Injectable()
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { GetProyectoPorIdDto } from '../../../inputs/acc/projects/get-proyecto-por-id.dto';
+
 export class GetProyectoPorIdUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(AUDITORIA_REPOSITORY)
+    private readonly autodeskApiService: AutodeskAdminPort,
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 

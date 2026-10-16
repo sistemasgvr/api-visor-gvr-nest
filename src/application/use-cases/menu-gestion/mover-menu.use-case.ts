@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IMenuGestionRepository } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { MENU_GESTION_REPOSITORY } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { MoverMenuDto } from '../../dtos/menu-gestion/mover-menu.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { MoverMenuDto } from '../../inputs/menu-gestion/mover-menu.dto';
 
-@Injectable()
 export class MoverMenuUseCase {
-  constructor(
-    @Inject(MENU_GESTION_REPOSITORY)
-    private readonly menuRepository: IMenuGestionRepository,
-  ) {}
+  constructor(private readonly menuRepository: IMenuGestionRepository) {}
 
   async execute(
     idMenu: number,
@@ -22,7 +17,7 @@ export class MoverMenuUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al mover el menú',
       );
     }

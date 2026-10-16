@@ -51,7 +51,10 @@ export function idsResponsablesDesdeEntregable(entregable: {
   idtrabajadorresponsable?: number | null;
   responsables?: Array<{ idtrabajador?: number | null }> | null;
 }): number[] {
-  if (Array.isArray(entregable.responsables) && entregable.responsables.length > 0) {
+  if (
+    Array.isArray(entregable.responsables) &&
+    entregable.responsables.length > 0
+  ) {
     return dedupePositivos(
       entregable.responsables.map((r) => Number(r.idtrabajador)),
     );

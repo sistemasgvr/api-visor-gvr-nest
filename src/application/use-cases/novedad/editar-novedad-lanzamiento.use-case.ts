@@ -1,18 +1,13 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { INovedadRepository } from '../../../domain/repositories/novedad.repository.interface';
-import { NOVEDAD_REPOSITORY } from '../../../domain/repositories/novedad.repository.interface';
-import { UpdateNovedadLanzamientoDto } from '../../dtos/novedad/update-novedad-lanzamiento.dto';
 import {
   normalizarFechaPublicacionNovedad,
   normalizarFechaVigenciaNovedad,
-} from '../../../shared/utils/novedad-dates.util';
+} from '../../../domain/utils/novedad-dates.util';
+import { InvalidInputError } from '../../errors/application.error';
+import { UpdateNovedadLanzamientoDto } from '../../inputs/novedad/update-novedad-lanzamiento.dto';
 
-@Injectable()
 export class EditarNovedadLanzamientoUseCase {
-  constructor(
-    @Inject(NOVEDAD_REPOSITORY)
-    private readonly novedadRepository: INovedadRepository,
-  ) {}
+  constructor(private readonly novedadRepository: INovedadRepository) {}
 
   async execute(
     id: number,
@@ -23,13 +18,15 @@ export class EditarNovedadLanzamientoUseCase {
       id,
       titulo: dto.titulo,
       fechaPublicacion: normalizarFechaPublicacionNovedad(dto.fechaPublicacion),
-      fechaVigenciaHasta: normalizarFechaVigenciaNovedad(dto.fechaVigenciaHasta),
+      fechaVigenciaHasta: normalizarFechaVigenciaNovedad(
+        dto.fechaVigenciaHasta,
+      ),
       textoBotonCerrar: dto.textoBotonCerrar,
       idUsuarioModificacion,
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al actualizar el lanzamiento',
       );
     }

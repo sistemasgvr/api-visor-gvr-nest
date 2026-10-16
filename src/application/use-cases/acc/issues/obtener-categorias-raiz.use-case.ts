@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ObtenerCategoriasRaizDto } from '../../../dtos/acc/issues/obtener-categorias-raiz.dto';
+import type { AutodeskIssuesPort } from '../../../ports/autodesk/issues.port';
+
+import { ObtenerCategoriasRaizDto } from '../../../inputs/acc/issues/obtener-categorias-raiz.dto';
 import ObtenerTokenValidoHelper from './obtener-token-valido.helper';
 
-@Injectable()
 export class ObtenerCategoriasRaizUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskIssuesPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
   ) {}
 

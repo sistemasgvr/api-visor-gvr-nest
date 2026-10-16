@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   GuardarRecursoUseCase,
   ObtenerRecursoUseCase,
@@ -29,7 +29,7 @@ import {
   ObtenerRecursosUsuarioDto,
   ObtenerRecursosProyectoDto,
   ObtenerRecursosHijosDto,
-} from '../../application/dtos/acc-recursos';
+} from '../dtos/acc-recursos';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('acc')
@@ -51,7 +51,9 @@ export class AccRecursosController {
    * GET /acc-recursos/usuario/:id
    * IMPORTANTE: Esta ruta debe ir antes de la ruta genérica :tipo/:id
    */
-  @ApiOperation({ summary: 'Listar recursos ACC vinculados a un usuario interno' })
+  @ApiOperation({
+    summary: 'Listar recursos ACC vinculados a un usuario interno',
+  })
   @Get('usuario/:id')
   @HttpCode(HttpStatus.OK)
   async obtenerRecursosUsuario(
@@ -176,7 +178,10 @@ export class AccRecursosController {
    * PUT - Actualizar recurso ACC
    * PUT /acc-recursos/:tipo/:id
    */
-  @ApiOperation({ summary: 'Actualizar recurso ACC', description: 'Incluye metadatos locales y vínculos.' })
+  @ApiOperation({
+    summary: 'Actualizar recurso ACC',
+    description: 'Incluye metadatos locales y vínculos.',
+  })
   @Put(':tipo/:id')
   @HttpCode(HttpStatus.OK)
   async actualizarRecurso(

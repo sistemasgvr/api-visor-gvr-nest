@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 
 // Use Cases
 import { ObtenerWorkflowsUseCase } from '../../application/use-cases/acc/reviews/obtener-workflows.use-case';
@@ -30,9 +30,9 @@ import {
 import { ObtenerWorkflowCandidatosUseCase } from '../../application/use-cases/acc/reviews/obtener-workflow-candidatos.use-case';
 
 // DTOs
-import { ObtenerWorkflowsDto } from '../../application/dtos/acc/reviews/obtener-workflows.dto';
-import { CrearWorkflowDto } from '../../application/dtos/acc/reviews/crear-workflow.dto';
-import { CambiarEstadoWorkflowDto } from '../../application/dtos/acc/reviews/cambiar-estado-workflow.dto';
+import { ObtenerWorkflowsDto } from '../dtos/acc/reviews/obtener-workflows.dto';
+import { CrearWorkflowDto } from '../dtos/acc/reviews/crear-workflow.dto';
+import { CambiarEstadoWorkflowDto } from '../dtos/acc/reviews/cambiar-estado-workflow.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('acc')

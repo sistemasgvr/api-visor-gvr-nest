@@ -80,14 +80,12 @@ export async function rasterBufferToDocxRaster(
     if (!meta.format) return null;
     if (meta.format === 'svg' || meta.format === 'pdf') return null;
 
-    const pipeline = sharp(buffer, sharpOpts)
-      .rotate()
-      .resize({
-        width: maxEdgePx,
-        height: maxEdgePx,
-        fit: 'inside',
-        withoutEnlargement: true,
-      });
+    const pipeline = sharp(buffer, sharpOpts).rotate().resize({
+      width: maxEdgePx,
+      height: maxEdgePx,
+      fit: 'inside',
+      withoutEnlargement: true,
+    });
 
     if (meta.hasAlpha) {
       const out = await pipeline.png({ compressionLevel: 7 }).toBuffer();

@@ -18,9 +18,9 @@ import { AppModule } from './app.module';
 import { useRequestId } from './bootstrap/apply-core-middlewares';
 import { envs } from './config';
 import { isOriginAllowed } from './config/cors-origins.util';
-import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
-import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
-import { spanishValidationExceptionFactory } from './shared/validation/spanish-validation-messages';
+import { GlobalExceptionFilter } from './presentation/filters/global-exception.filter';
+import { LoggingInterceptor } from './presentation/interceptors/logging.interceptor';
+import { spanishValidationExceptionFactory } from './presentation/validation/spanish-validation-messages';
 
 async function bootstrap() {
   const logger = new Logger('Main.ts');
@@ -136,23 +136,38 @@ async function bootstrap() {
     .addTag('health', 'Estado del servicio')
     .addTag('demo', 'Ejemplos y pruebas')
     .addTag('storage', 'MinIO: presign, evidencias y subidas')
-    .addTag('trabajadores', 'CRUD trabajadores, administradores y foto de perfil por id')
+    .addTag(
+      'trabajadores',
+      'CRUD trabajadores, administradores y foto de perfil por id',
+    )
     .addTag('empresas', 'Empresas cliente y datos corporativos')
     .addTag('usuarios', 'Credenciales y perfil de usuario')
-    .addTag('proyectos', 'Proyectos GVR: CRUD, accesos, documentos y coordinadores')
-    .addTag('entregables', 'Entregables de proyecto (Control Operativo): listado global, CRUD y paginación')
+    .addTag(
+      'proyectos',
+      'Proyectos GVR: CRUD, accesos, documentos y coordinadores',
+    )
+    .addTag(
+      'entregables',
+      'Entregables de proyecto (Control Operativo): listado global, CRUD y paginación',
+    )
     .addTag('roles', 'Roles y permisos (API rolesv2)')
     .addTag('permisos', 'Catálogo de permisos')
     .addTag('general', 'Menús, listas desplegables y catálogos')
     .addTag('ubicacion', 'País, departamento, provincia y distrito')
-    .addTag('control-operativo', 'Jornadas, actividades, evidencias, validación y reportes')
+    .addTag(
+      'control-operativo',
+      'Jornadas, actividades, evidencias, validación y reportes',
+    )
     .addTag('dashboard', 'Indicadores del panel principal')
     .addTag('notificaciones', 'Notificaciones en aplicación')
     .addTag('broadcast', 'WebSocket y presencia')
     .addTag('auditoria', 'Registro de auditoría')
     .addTag('bim360', 'Integración Autodesk BIM 360 / ACC')
     .addTag('acc', 'Autodesk Construction Cloud (cuenta, proyectos, viewer)')
-    .addTag('acc-data', 'ACC Data Management: buckets, carpetas, items y versiones')
+    .addTag(
+      'acc-data',
+      'ACC Data Management: buckets, carpetas, items y versiones',
+    )
     .addTag('collabora', 'Collabora Online / WOPI para documentos Office')
     .addTag('office-document', 'Documentos Office y metadatos')
     .addTag('menu-gestion', 'Gestión de menús del sistema')

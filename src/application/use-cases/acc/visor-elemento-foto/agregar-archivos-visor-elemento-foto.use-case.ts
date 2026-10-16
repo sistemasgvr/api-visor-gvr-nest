@@ -1,22 +1,13 @@
+import { type IAccVisorElementoFotoRepository } from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import {
-  ACC_VISOR_ELEMENTO_FOTO_REPOSITORY,
-  type IAccVisorElementoFotoRepository,
-} from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
-import type { AgregarArchivosVisorElementoFotoDto } from '../../../dtos/acc/visor-elemento-foto/visor-elemento-foto.dto';
+  InvalidInputError,
+  NotFoundError,
+} from '../../../errors/application.error';
+import type { AgregarArchivosVisorElementoFotoDto } from '../../../inputs/acc/visor-elemento-foto/visor-elemento-foto.dto';
 import { normalizarArchivosVisorElementoFoto } from './visor-elemento-foto.util';
 
-@Injectable()
 export class AgregarArchivosVisorElementoFotoUseCase {
-  constructor(
-    @Inject(ACC_VISOR_ELEMENTO_FOTO_REPOSITORY)
-    private readonly repository: IAccVisorElementoFotoRepository,
-  ) {}
+  constructor(private readonly repository: IAccVisorElementoFotoRepository) {}
 
   async execute(
     id: number,
@@ -25,11 +16,11 @@ export class AgregarArchivosVisorElementoFotoUseCase {
   ) {
     const existing = await this.repository.obtenerPorId(id);
     if (!existing) {
-      throw new NotFoundException('Anclaje de fotos no encontrado');
+      throw new NotFoundError('Anclaje de fotos no encontrado');
     }
     const archivos = normalizarArchivosVisorElementoFoto(dto.archivos);
     if (archivos.length === 0) {
-      throw new BadRequestException('No hay imágenes para agregar');
+      throw new InvalidInputError('No hay imágenes para agregar');
     }
     try {
       await this.repository.agregarArchivos({
@@ -38,7 +29,7 @@ export class AgregarArchivosVisorElementoFotoUseCase {
         idUsuario,
       });
     } catch (err) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         err instanceof Error ? err.message : 'No se pudieron agregar imágenes',
       );
     }

@@ -1,18 +1,16 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IMailPlantillaCorreoRepository } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
 
-@Injectable()
 export class EliminarHistorialMailPlantillaUseCase {
-  constructor(
-    @Inject(MAIL_PLANTILLA_CORREO_REPOSITORY)
-    private readonly repository: IMailPlantillaCorreoRepository,
-  ) {}
+  constructor(private readonly repository: IMailPlantillaCorreoRepository) {}
 
   async execute(idHistorial: number, idUsuario: number) {
-    const resultado = await this.repository.eliminarHistorial(idHistorial, idUsuario);
+    const resultado = await this.repository.eliminarHistorial(
+      idHistorial,
+      idUsuario,
+    );
     if (!resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado.message || 'Error al eliminar la versión histórica',
       );
     }

@@ -1,13 +1,13 @@
-import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
-import type { IControlOperativoRepository } from '../../../domain/repositories/control-operativo.repository.interface';
-import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
 import {
   AuthRole,
   ROLES_ADMIN_CONTROL_OPERATIVO,
 } from '../../../domain/constants/auth-role.constants';
-import type { TrabajadorPorProyectoItem } from '../../../domain/repositories/control-operativo.repository.interface';
+import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
+import type {
+  IControlOperativoRepository,
+  TrabajadorPorProyectoItem,
+} from '../../../domain/repositories/control-operativo.repository.interface';
+import { ForbiddenError } from '../../errors/application.error';
 
 export interface ListarTrabajadoresPorProyectoInput {
   idUsuario: number;
@@ -24,12 +24,10 @@ const ROLES_ACCESO_LISTA_TRABAJADORES_PROYECTO: number[] = [
   AuthRole.DesarrolladorWeb,
 ];
 
-@Injectable()
 export class ListarTrabajadoresPorProyectoUseCase {
   constructor(
-    @Inject(CONTROL_OPERATIVO_REPOSITORY)
     private readonly controlOperativoRepository: IControlOperativoRepository,
-    @Inject(AUTH_REPOSITORY)
+
     private readonly authRepository: IAuthRepository,
   ) {}
 
@@ -40,7 +38,7 @@ export class ListarTrabajadoresPorProyectoUseCase {
       input.idUsuario,
     );
     if (!perfil?.roles || !Array.isArray(perfil.roles)) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'No tienes permiso para listar trabajadores del proyecto',
       );
     }
@@ -52,7 +50,7 @@ export class ListarTrabajadoresPorProyectoUseCase {
       rolesIds.includes(id),
     );
     if (!puedeAcceder) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'No tienes permiso para listar trabajadores del proyecto',
       );
     }

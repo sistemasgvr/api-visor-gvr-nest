@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IRolRepository } from '../../../domain/repositories/rol.repository.interface';
-import { ROL_REPOSITORY } from '../../../domain/repositories/rol.repository.interface';
-import { CreateRolDto } from '../../dtos/rol/create-rol.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { CreateRolDto } from '../../inputs/rol/create-rol.dto';
 
-@Injectable()
 export class CrearRolUseCase {
-  constructor(
-    @Inject(ROL_REPOSITORY)
-    private readonly rolRepository: IRolRepository,
-  ) {}
+  constructor(private readonly rolRepository: IRolRepository) {}
 
   async execute(createDto: CreateRolDto, idUsuarioCreacion: number) {
     const resultado = await this.rolRepository.crearRol({
@@ -17,7 +12,7 @@ export class CrearRolUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al crear el rol',
       );
     }

@@ -1,16 +1,8 @@
-import { Injectable, Inject } from '@nestjs/common';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../domain/repositories/auditoria.repository.interface';
-import { ListarAuditoriasDto } from '../../dtos/auditoria/listar-auditorias.dto';
+import { type IAuditoriaRepository } from '../../../domain/repositories/auditoria.repository.interface';
+import { ListarAuditoriasDto } from '../../inputs/auditoria/listar-auditorias.dto';
 
-@Injectable()
 export class ListarAuditoriasUseCase {
-  constructor(
-    @Inject(AUDITORIA_REPOSITORY)
-    private readonly auditoriaRepository: IAuditoriaRepository,
-  ) {}
+  constructor(private readonly auditoriaRepository: IAuditoriaRepository) {}
 
   async execute(dto: ListarAuditoriasDto): Promise<any> {
     const limit = dto.limit || 20;

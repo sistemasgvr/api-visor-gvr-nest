@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ObtenerUrlMiniaturaDto } from '../../../dtos/acc/issues/obtener-url-miniatura.dto';
+import type { AutodeskIssuesPort } from '../../../ports/autodesk/issues.port';
+
+import { ObtenerUrlMiniaturaDto } from '../../../inputs/acc/issues/obtener-url-miniatura.dto';
 import ObtenerTokenValidoHelper from './obtener-token-valido.helper';
 
-@Injectable()
 export class ObtenerUrlMiniaturaUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskIssuesPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
   ) {}
 

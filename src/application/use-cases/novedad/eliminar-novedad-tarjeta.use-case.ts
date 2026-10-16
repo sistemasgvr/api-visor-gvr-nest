@@ -1,14 +1,11 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { INovedadRepository } from '../../../domain/repositories/novedad.repository.interface';
-import { NOVEDAD_REPOSITORY } from '../../../domain/repositories/novedad.repository.interface';
-import { NovedadTarjetaMediaStorageService } from '../../../infrastructure/services/novedad-tarjeta-media-storage.service';
+import { InvalidInputError } from '../../errors/application.error';
+import { NovedadTarjetaMediaStoragePort } from '../../ports/novedad-tarjeta-media-storage.port';
 
-@Injectable()
 export class EliminarNovedadTarjetaUseCase {
   constructor(
-    @Inject(NOVEDAD_REPOSITORY)
     private readonly novedadRepository: INovedadRepository,
-    private readonly novedadTarjetaMediaStorage: NovedadTarjetaMediaStorageService,
+    private readonly novedadTarjetaMediaStorage: NovedadTarjetaMediaStoragePort,
   ) {}
 
   async execute(id: number, idUsuarioModificacion: number) {
@@ -21,7 +18,7 @@ export class EliminarNovedadTarjetaUseCase {
     );
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al eliminar la tarjeta',
       );
     }

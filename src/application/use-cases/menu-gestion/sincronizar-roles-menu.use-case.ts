@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IMenuGestionRepository } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { MENU_GESTION_REPOSITORY } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { AsignarRolesMenuDto } from '../../dtos/menu-gestion/asignar-roles-menu.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { AsignarRolesMenuDto } from '../../inputs/menu-gestion/asignar-roles-menu.dto';
 
-@Injectable()
 export class SincronizarRolesMenuUseCase {
-  constructor(
-    @Inject(MENU_GESTION_REPOSITORY)
-    private readonly menuRepository: IMenuGestionRepository,
-  ) {}
+  constructor(private readonly menuRepository: IMenuGestionRepository) {}
 
   async execute(
     idMenu: number,
@@ -22,7 +17,7 @@ export class SincronizarRolesMenuUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al sincronizar los roles del menú',
       );
     }

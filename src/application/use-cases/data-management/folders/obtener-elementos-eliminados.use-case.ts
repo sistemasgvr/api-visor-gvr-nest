@@ -1,27 +1,18 @@
-import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
-import {
-  ACC_RESOURCES_REPOSITORY,
-  type IAccResourcesRepository,
-} from '../../../../domain/repositories/acc-resources.repository.interface';
+import { ForbiddenError } from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
 
-@Injectable()
+import { type IAccResourcesRepository } from '../../../../domain/repositories/acc-resources.repository.interface';
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+
 export class ObtenerElementosEliminadosUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
-    @Inject(ACC_RESOURCES_REPOSITORY)
+
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 
@@ -35,13 +26,13 @@ export class ObtenerElementosEliminadosUseCase {
       await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
     if (!token) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'No se encontró token de acceso. Por favor, autoriza la aplicación de Autodesk primero.',
       );
     }
 
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'El token de Autodesk ha expirado. Por favor, refresca tu token.',
       );
     }
@@ -157,9 +148,7 @@ export class ObtenerElementosEliminadosUseCase {
           deletedAt,
           fileName:
             itemType === 'items'
-              ? item.attributes?.name ||
-                item.attributes?.displayName ||
-                null
+              ? item.attributes?.name || item.attributes?.displayName || null
               : null,
         };
       }),

@@ -1,22 +1,16 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import {
-  ACC_RESOURCES_REPOSITORY,
-  type IAccResourcesRepository,
-} from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ObtenerCarpetasPrincipalesDto } from '../../../dtos/data-management/projects/obtener-carpetas-principales.dto';
+import { UnauthenticatedError } from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
 
-@Injectable()
+import { type IAccResourcesRepository } from '../../../../domain/repositories/acc-resources.repository.interface';
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { ObtenerCarpetasPrincipalesDto } from '../../../inputs/data-management/projects/obtener-carpetas-principales.dto';
+
 export class ObtenerCarpetasPrincipalesUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
-    @Inject(ACC_RESOURCES_REPOSITORY)
+
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 
@@ -31,13 +25,13 @@ export class ObtenerCarpetasPrincipalesUseCase {
       await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
     if (!token) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'No se encontró token de acceso. Por favor, autoriza la aplicación primero.',
       );
     }
 
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'El token ha expirado. Por favor, refresca tu token.',
       );
     }

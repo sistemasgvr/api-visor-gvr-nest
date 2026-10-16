@@ -49,8 +49,7 @@ export interface MailPlantillaCorreoHistorialItem {
   fechaCreacion: Date | string;
 }
 
-export interface MailPlantillaCorreoHistorialDetalle
-  extends MailPlantillaCorreoHistorialItem {
+export interface MailPlantillaCorreoHistorialDetalle extends MailPlantillaCorreoHistorialItem {
   cuerpoMjml: string | null;
   cuerpoHtml: string | null;
   designJson: Record<string, unknown> | null;

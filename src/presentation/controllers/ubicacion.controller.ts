@@ -8,9 +8,12 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { DatabaseFunctionService } from '../../infrastructure/database/database-function.service';
+import { ListarPaisesUseCase } from '../../application/use-cases/ubicacion/listar-paises.use-case';
+import { ListarDepartamentosUseCase } from '../../application/use-cases/ubicacion/listar-departamentos.use-case';
+import { ListarProvinciasUseCase } from '../../application/use-cases/ubicacion/listar-provincias.use-case';
+import { ListarDistritosUseCase } from '../../application/use-cases/ubicacion/listar-distritos.use-case';
 
 @ApiTags('ubicacion')
 @ApiBearerAuth('access-token')
@@ -18,17 +21,17 @@ import { DatabaseFunctionService } from '../../infrastructure/database/database-
 @UseGuards(JwtAuthGuard)
 export class UbicacionController {
   constructor(
-    private readonly databaseFunctionService: DatabaseFunctionService,
+    private readonly listarPaisesUseCase: ListarPaisesUseCase,
+    private readonly listarDepartamentosUseCase: ListarDepartamentosUseCase,
+    private readonly listarProvinciasUseCase: ListarProvinciasUseCase,
+    private readonly listarDistritosUseCase: ListarDistritosUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Listar países' })
   @Get('paises')
   @HttpCode(HttpStatus.OK)
   async listarPaises() {
-    const data = await this.databaseFunctionService.callFunction<any>(
-      'gen_ListarPaises',
-      [],
-    );
+    const data = await this.listarPaisesUseCase.execute();
     return ApiResponseDto.success(data || [], 'Países obtenidos exitosamente');
   }
 
@@ -41,10 +44,7 @@ export class UbicacionController {
   async listarDepartamentos(
     @Query('idPais', new ParseIntPipe({ optional: true })) idPais?: number,
   ) {
-    const data = await this.databaseFunctionService.callFunction<any>(
-      'gen_ListarDepartamentos',
-      [idPais ?? null],
-    );
+    const data = await this.listarDepartamentosUseCase.execute(idPais);
     return ApiResponseDto.success(
       data || [],
       'Departamentos obtenidos exitosamente',
@@ -61,10 +61,7 @@ export class UbicacionController {
     @Query('idDepartamento', new ParseIntPipe({ optional: true }))
     idDepartamento?: number,
   ) {
-    const data = await this.databaseFunctionService.callFunction<any>(
-      'gen_ListarProvincias',
-      [idDepartamento ?? null],
-    );
+    const data = await this.listarProvinciasUseCase.execute(idDepartamento);
     return ApiResponseDto.success(
       data || [],
       'Provincias obtenidas exitosamente',
@@ -81,10 +78,7 @@ export class UbicacionController {
     @Query('idProvincia', new ParseIntPipe({ optional: true }))
     idProvincia?: number,
   ) {
-    const data = await this.databaseFunctionService.callFunction<any>(
-      'gen_ListarDistritos',
-      [idProvincia ?? null],
-    );
+    const data = await this.listarDistritosUseCase.execute(idProvincia);
     return ApiResponseDto.success(
       data || [],
       'Distritos obtenidos exitosamente',

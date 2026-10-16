@@ -1,10 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { ExportacionRevisionDetallePdfService } from '../../../../infrastructure/services/exportacion-revision-detalle-pdf.service';
+import { ExportacionRevisionDetallePdfPort } from '../../../ports/exportacion-revision-detalle-pdf.port';
 
-@Injectable()
 export class ExportarRevisionDetallePdfUseCase {
   constructor(
-    private readonly exportacionRevisionDetallePdfService: ExportacionRevisionDetallePdfService,
+    private readonly exportacionRevisionDetallePdfService: ExportacionRevisionDetallePdfPort,
   ) {}
 
   async execute(

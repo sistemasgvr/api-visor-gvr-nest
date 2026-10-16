@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 
 // Use cases
 import { ObtenerProyectosHubUseCase } from '../../application/use-cases/data-management/projects/obtener-proyectos-hub.use-case';
@@ -25,14 +25,14 @@ import { ObtenerEstadoDescargaUseCase } from '../../application/use-cases/data-m
 import { ObtenerEstadoJobUseCase } from '../../application/use-cases/data-management/projects/obtener-estado-job.use-case';
 
 // DTOs
-import { ObtenerProyectosDto } from '../../application/dtos/data-management/projects/obtener-proyectos.dto';
-import { ObtenerProyectoPorIdDto } from '../../application/dtos/data-management/projects/obtener-proyecto-por-id.dto';
-import { ObtenerHubDeProyectoDto } from '../../application/dtos/data-management/projects/obtener-hub-de-proyecto.dto';
-import { ObtenerCarpetasPrincipalesDto } from '../../application/dtos/data-management/projects/obtener-carpetas-principales.dto';
-import { CrearStorageDto } from '../../application/dtos/data-management/projects/crear-storage.dto';
-import { CrearDescargaDto } from '../../application/dtos/data-management/projects/crear-descarga.dto';
-import { ObtenerEstadoDescargaDto } from '../../application/dtos/data-management/projects/obtener-estado-descarga.dto';
-import { ObtenerEstadoJobDto } from '../../application/dtos/data-management/projects/obtener-estado-job.dto';
+import { ObtenerProyectosDto } from '../dtos/data-management/projects/obtener-proyectos.dto';
+import { ObtenerProyectoPorIdDto } from '../dtos/data-management/projects/obtener-proyecto-por-id.dto';
+import { ObtenerHubDeProyectoDto } from '../dtos/data-management/projects/obtener-hub-de-proyecto.dto';
+import { ObtenerCarpetasPrincipalesDto } from '../dtos/data-management/projects/obtener-carpetas-principales.dto';
+import { CrearStorageDto } from '../dtos/data-management/projects/crear-storage.dto';
+import { CrearDescargaDto } from '../dtos/data-management/projects/crear-descarga.dto';
+import { ObtenerEstadoDescargaDto } from '../dtos/data-management/projects/obtener-estado-descarga.dto';
+import { ObtenerEstadoJobDto } from '../dtos/data-management/projects/obtener-estado-job.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('acc-data')
@@ -134,7 +134,9 @@ export class DataManagementProjectsController {
    * GET - Obtener carpetas principales (top folders) de un proyecto
    * GET /data-management/projects/hubs/:hubId/projects/:projectId/topFolders
    */
-  @ApiOperation({ summary: 'Carpetas de nivel superior (Project Files/BIM 360, etc.)' })
+  @ApiOperation({
+    summary: 'Carpetas de nivel superior (Project Files/BIM 360, etc.)',
+  })
   @Get('hubs/:hubId/projects/:projectId/topFolders')
   @HttpCode(HttpStatus.OK)
   async obtenerCarpetasPrincipales(
@@ -166,7 +168,9 @@ export class DataManagementProjectsController {
    * POST - Crear storage para subir archivos
    * POST /data-management/projects/:projectId/storage
    */
-  @ApiOperation({ summary: 'Crear objeto temporal de storage OSS para uploads' })
+  @ApiOperation({
+    summary: 'Crear objeto temporal de storage OSS para uploads',
+  })
   @Post(':projectId/storage')
   @HttpCode(HttpStatus.CREATED)
   async crearStorage(

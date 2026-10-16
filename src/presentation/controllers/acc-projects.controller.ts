@@ -18,9 +18,9 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
-import { RequestInfoHelper } from '../../shared/helpers/request-info.helper';
-import { getAccProjectImageUploadMaxBytes } from '../../shared/constants/acc-project-image.constants';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { RequestInfoHelper } from '../http/request-info.helper';
+import { getAccProjectImageUploadMaxBytes } from '../../config/acc-project-image.config';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import {
   ACC_REPOSITORY,
@@ -41,16 +41,16 @@ import { ActivarServicioProyectoUseCase } from '../../application/use-cases/acc/
 import { DesactivarServicioProyectoUseCase } from '../../application/use-cases/acc/projects/desactivar-servicio-proyecto.use-case';
 
 // DTOs
-import { GetProyectosDto } from '../../application/dtos/acc/projects/get-proyectos.dto';
-import { GetProyectoPorIdDto } from '../../application/dtos/acc/projects/get-proyecto-por-id.dto';
-import { GetPlantillasDto } from '../../application/dtos/acc/projects/get-plantillas.dto';
-import { GetProyectosPorTipoDto } from '../../application/dtos/acc/projects/get-proyectos-por-tipo.dto';
-import { GetProyectosActivosDto } from '../../application/dtos/acc/projects/get-proyectos-activos.dto';
-import { CrearProyectoDto } from '../../application/dtos/acc/projects/crear-proyecto.dto';
-import { ClonarProyectoDto } from '../../application/dtos/acc/projects/clonar-proyecto.dto';
-import { ActualizarProyectoDto } from '../../application/dtos/acc/projects/actualizar-proyecto.dto';
-import { SubirImagenProyectoDto } from '../../application/dtos/acc/projects/subir-imagen-proyecto.dto';
-import { ActivarServicioProyectoDto } from '../../application/dtos/acc/projects/activar-servicio-proyecto.dto';
+import { GetProyectosDto } from '../dtos/acc/projects/get-proyectos.dto';
+import { GetProyectoPorIdDto } from '../dtos/acc/projects/get-proyecto-por-id.dto';
+import { GetPlantillasDto } from '../dtos/acc/projects/get-plantillas.dto';
+import { GetProyectosPorTipoDto } from '../dtos/acc/projects/get-proyectos-por-tipo.dto';
+import { GetProyectosActivosDto } from '../dtos/acc/projects/get-proyectos-activos.dto';
+import { CrearProyectoDto } from '../dtos/acc/projects/crear-proyecto.dto';
+import { ClonarProyectoDto } from '../dtos/acc/projects/clonar-proyecto.dto';
+import { ActualizarProyectoDto } from '../dtos/acc/projects/actualizar-proyecto.dto';
+import { SubirImagenProyectoDto } from '../dtos/acc/projects/subir-imagen-proyecto.dto';
+import { ActivarServicioProyectoDto } from '../dtos/acc/projects/activar-servicio-proyecto.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('acc')
@@ -230,7 +230,10 @@ export class AccProjectsController {
    * POST - Crear nuevo proyecto
    * POST /acc/projects/:accountId/crear
    */
-  @ApiOperation({ summary: 'Crear proyecto vacío desde cero', description: 'Operación asíncrona típica (202).' })
+  @ApiOperation({
+    summary: 'Crear proyecto vacío desde cero',
+    description: 'Operación asíncrona típica (202).',
+  })
   @Post(':accountId/crear')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.ACCEPTED)

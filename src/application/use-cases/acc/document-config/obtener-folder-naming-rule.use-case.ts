@@ -1,13 +1,8 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import type { IAccDocumentConfigRepository } from '../../../../domain/repositories/acc-document-config.repository.interface';
-import { ACC_DOCUMENT_CONFIG_REPOSITORY } from '../../../../domain/repositories/acc-document-config.repository.interface';
+import { NotFoundError } from '../../../errors/application.error';
 
-@Injectable()
 export class ObtenerFolderNamingRuleUseCase {
-  constructor(
-    @Inject(ACC_DOCUMENT_CONFIG_REPOSITORY)
-    private readonly repository: IAccDocumentConfigRepository,
-  ) {}
+  constructor(private readonly repository: IAccDocumentConfigRepository) {}
 
   async execute(projectExternalId: string, folderExternalId: string) {
     const result = await this.repository.obtenerFolderNamingRule(
@@ -16,7 +11,7 @@ export class ObtenerFolderNamingRuleUseCase {
     );
 
     if (!result || result.success === false) {
-      throw new NotFoundException(
+      throw new NotFoundError(
         result?.message ?? 'Sin regla de nomenclatura para esta carpeta',
       );
     }

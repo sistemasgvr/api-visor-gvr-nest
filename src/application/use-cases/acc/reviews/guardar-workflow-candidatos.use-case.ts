@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
 export interface WorkflowCandidatoInput {
   idUsuario: number;
@@ -13,9 +12,8 @@ export interface GuardarWorkflowCandidatosDto {
   candidatos: WorkflowCandidatoInput[];
 }
 
-@Injectable()
 export class GuardarWorkflowCandidatosUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     accWorkflowId: string,
@@ -25,9 +23,6 @@ export class GuardarWorkflowCandidatosUseCase {
   ): Promise<{ success: boolean; message: string; total: number }> {
     const isGvrNumericId = /^\d+$/.test(String(accWorkflowId).trim());
 
-    const fn = isGvrNumericId
-      ? 'acc_GuardarFlujoCandidatosGvr'
-      : 'acc_GuardarWorkflowCandidatos';
     const args = isGvrNumericId
       ? [
           parseInt(String(accWorkflowId).trim(), 10),
@@ -42,11 +37,11 @@ export class GuardarWorkflowCandidatosUseCase {
           idUsuarioCreacion ?? null,
         ];
 
-    const result = await this.dbFunctionService.callFunction<{
+    const result = await this.reviewsRepository.guardarCandidatos<{
       success: boolean;
       message: string;
       total: number;
-    }>(fn, args);
+    }>(isGvrNumericId, args);
 
     return result[0] ?? { success: false, message: 'Sin respuesta', total: 0 };
   }

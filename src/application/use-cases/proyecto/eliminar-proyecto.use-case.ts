@@ -1,13 +1,8 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
-import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
 
-@Injectable()
 export class EliminarProyectoUseCase {
-  constructor(
-    @Inject(PROYECTO_REPOSITORY)
-    private readonly proyectoRepository: IProyectoRepository,
-  ) {}
+  constructor(private readonly proyectoRepository: IProyectoRepository) {}
 
   async execute(idProyecto: number, idUsuarioModificacion: number) {
     const resultado = await this.proyectoRepository.eliminarProyecto(
@@ -16,7 +11,7 @@ export class EliminarProyectoUseCase {
     );
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al eliminar el proyecto',
       );
     }

@@ -1,15 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
 import type {
   IAccResourcesRepository,
   ListarRecursosParams,
 } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ListarRecursosDto } from '../../../dtos/acc/resources/listar-recursos.dto';
+import { ListarRecursosDto } from '../../../inputs/acc/resources/listar-recursos.dto';
 
-@Injectable()
 export class ListarRecursosUseCase {
   constructor(
-    @Inject(ACC_RESOURCES_REPOSITORY)
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 

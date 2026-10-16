@@ -30,22 +30,22 @@ import type { JwtPayload } from '../../infrastructure/auth/jwt.strategy';
 import {
   esAdminSistemas,
   extraerIdsRoles,
-} from '../../shared/utils/admin-sistemas.util';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+} from '../../domain/utils/admin-sistemas.util';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { ListarEntregablesProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-proyecto.use-case';
 import { ListarEntregablesSelectProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-select-proyecto.use-case';
 import { ObtenerEntregableProyectoUseCase } from '../../application/use-cases/proyecto/obtener-entregable-proyecto.use-case';
 import { CrearEntregableProyectoUseCase } from '../../application/use-cases/proyecto/crear-entregable-proyecto.use-case';
 import { ActualizarEntregableProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-entregable-proyecto.use-case';
 import { EliminarEntregableProyectoUseCase } from '../../application/use-cases/proyecto/eliminar-entregable-proyecto.use-case';
-import { CreateEntregableProyectoDto } from '../../application/dtos/proyecto/create-entregable-proyecto.dto';
-import { UpdateEntregableProyectoDto } from '../../application/dtos/proyecto/update-entregable-proyecto.dto';
+import { CreateEntregableProyectoDto } from '../dtos/proyecto/create-entregable-proyecto.dto';
+import { UpdateEntregableProyectoDto } from '../dtos/proyecto/update-entregable-proyecto.dto';
 import {
   EntregableItemDto,
   EntregableMutationResultDto,
   ListarEntregablesDataDto,
   EntregableSelectOptionDto,
-} from '../../application/dtos/proyecto/entregable-response.dto';
+} from '../dtos/proyecto/entregable-response.dto';
 import {
   ID_ESTADO_ENTREGABLE_CULMINADO,
   ID_ESTADO_ENTREGABLE_PROCESO,
@@ -117,12 +117,17 @@ export class EntregableController {
     example: 0,
     description: 'Desplazamiento para paginación (default 0)',
   })
-  @ApiResponse({ status: 200, description: 'Listado paginado', type: ListarEntregablesDataDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado paginado',
+    type: ListarEntregablesDataDto,
+  })
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarEntregables(
     @Req() request: Request,
-    @Query('idProyecto', new ParseIntPipe({ optional: true })) idProyecto?: number,
+    @Query('idProyecto', new ParseIntPipe({ optional: true }))
+    idProyecto?: number,
     @Query('busqueda') busqueda?: string,
     @Query('idEstado', new ParseIntPipe({ optional: true })) idEstado?: number,
     @Query('fechaInicio') fechaInicio?: string,

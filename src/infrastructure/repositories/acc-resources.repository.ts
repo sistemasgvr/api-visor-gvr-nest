@@ -16,7 +16,7 @@ import type {
   SincronizarPermisosProyectoData,
 } from '../../domain/repositories/acc-resources.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
-import { normalizeExternalId } from '../../shared/utils/normalize-external-id.util';
+import { normalizeExternalId } from '../../domain/utils/normalize-external-id.util';
 
 @Injectable()
 export class AccResourcesRepository implements IAccResourcesRepository {

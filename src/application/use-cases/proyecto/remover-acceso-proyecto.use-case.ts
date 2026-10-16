@@ -1,13 +1,8 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
-import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
 
-@Injectable()
 export class RemoverAccesoProyectoUseCase {
-  constructor(
-    @Inject(PROYECTO_REPOSITORY)
-    private readonly proyectoRepository: IProyectoRepository,
-  ) {}
+  constructor(private readonly proyectoRepository: IProyectoRepository) {}
 
   async execute(
     idProyecto: number,
@@ -20,7 +15,7 @@ export class RemoverAccesoProyectoUseCase {
     );
 
     if (!resultado?.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message ?? 'Error al remover acceso',
       );
     }

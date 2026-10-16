@@ -1,18 +1,14 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ObtenerComentariosDto } from '../../../dtos/acc/issues/obtener-comentarios.dto';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
+import type { AutodeskIssuesPort } from '../../../ports/autodesk/issues.port';
+
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { ObtenerComentariosDto } from '../../../inputs/acc/issues/obtener-comentarios.dto';
 import ObtenerTokenValidoHelper from './obtener-token-valido.helper';
 
-@Injectable()
 export class ObtenerComentariosUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskIssuesPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 

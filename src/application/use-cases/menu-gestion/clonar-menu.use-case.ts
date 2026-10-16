@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IMenuGestionRepository } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { MENU_GESTION_REPOSITORY } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { ClonarMenuDto } from '../../dtos/menu-gestion/clonar-menu.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { ClonarMenuDto } from '../../inputs/menu-gestion/clonar-menu.dto';
 
-@Injectable()
 export class ClonarMenuUseCase {
-  constructor(
-    @Inject(MENU_GESTION_REPOSITORY)
-    private readonly menuRepository: IMenuGestionRepository,
-  ) {}
+  constructor(private readonly menuRepository: IMenuGestionRepository) {}
 
   async execute(
     idMenu: number,
@@ -24,7 +19,7 @@ export class ClonarMenuUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al clonar el menú',
       );
     }

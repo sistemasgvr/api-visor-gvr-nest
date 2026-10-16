@@ -117,9 +117,13 @@ export interface CrearVisorElementoFotoResult {
 }
 
 export interface IAccVisorElementoFotoRepository {
-  crear(params: CrearVisorElementoFotoParams): Promise<CrearVisorElementoFotoResult>;
+  crear(
+    params: CrearVisorElementoFotoParams,
+  ): Promise<CrearVisorElementoFotoResult>;
   actualizar(params: ActualizarVisorElementoFotoParams): Promise<void>;
-  agregarArchivos(params: AgregarArchivosVisorElementoFotoParams): Promise<number>;
+  agregarArchivos(
+    params: AgregarArchivosVisorElementoFotoParams,
+  ): Promise<number>;
   listarPorDocumento(
     idProyectoAcc: string,
     documentUrn: string,

@@ -1,5 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
 export interface ReferenciaRevision {
   id: number;
@@ -17,12 +16,11 @@ export interface ReferenciaRevision {
   nombreModificador: string;
 }
 
-@Injectable()
 export class ObtenerReferenciasRevisionUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(idRevision: number): Promise<ReferenciaRevision[]> {
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.obtenerReferenciasRevision<{
       id: number;
       id_revision: number;
       id_proyecto_acc: string;
@@ -36,7 +34,7 @@ export class ObtenerReferenciasRevisionUseCase {
       fecha_creacion: string | Date;
       nombre_creador: string;
       nombre_modificador: string;
-    }>('acc_ObtenerReferenciasRevision', [idRevision]);
+    }>([idRevision]);
 
     return (rows ?? []).map((r) => ({
       id: r.id,

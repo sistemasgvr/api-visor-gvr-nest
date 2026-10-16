@@ -1,15 +1,12 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IRolRepository } from '../../../domain/repositories/rol.repository.interface';
-import { ROL_REPOSITORY } from '../../../domain/repositories/rol.repository.interface';
-import { GestionarRolesUsuarioDto } from '../../dtos/rol/gestionar-roles-usuario.dto';
-import { BroadcastService } from '../../../shared/services/broadcast.service';
+import { InvalidInputError } from '../../errors/application.error';
+import { GestionarRolesUsuarioDto } from '../../inputs/rol/gestionar-roles-usuario.dto';
+import { BroadcastPort } from '../../ports/broadcast.port';
 
-@Injectable()
 export class GestionarRolesUsuarioUseCase {
   constructor(
-    @Inject(ROL_REPOSITORY)
     private readonly rolRepository: IRolRepository,
-    private readonly broadcastService: BroadcastService,
+    private readonly broadcastService: BroadcastPort,
   ) {}
 
   async execute(
@@ -25,7 +22,7 @@ export class GestionarRolesUsuarioUseCase {
       );
 
       if (!resultado) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           'No se pudo gestionar los roles del usuario',
         );
       }
@@ -55,9 +52,9 @@ export class GestionarRolesUsuarioUseCase {
     } catch (error: any) {
       // Si es una excepción de PostgreSQL, extraer el mensaje
       if (error?.message) {
-        throw new BadRequestException(error.message);
+        throw new InvalidInputError(error.message);
       }
-      throw new BadRequestException('Error al gestionar los roles del usuario');
+      throw new InvalidInputError('Error al gestionar los roles del usuario');
     }
   }
 }

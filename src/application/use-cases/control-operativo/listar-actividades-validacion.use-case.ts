@@ -1,9 +1,9 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import type { IControlOperativoRepository } from '../../../domain/repositories/control-operativo.repository.interface';
-import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
-import type { ListarActividadesValidacionResult } from '../../../domain/repositories/control-operativo.repository.interface';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
+import type {
+  IControlOperativoRepository,
+  ListarActividadesValidacionResult,
+} from '../../../domain/repositories/control-operativo.repository.interface';
+import { UnauthenticatedError } from '../../errors/application.error';
 import { esAccesoTotalValidacionActividades } from './validacion-acceso.util';
 
 export interface ListarActividadesValidacionInput {
@@ -15,12 +15,10 @@ export interface ListarActividadesValidacionInput {
   offset?: number;
 }
 
-@Injectable()
 export class ListarActividadesValidacionUseCase {
   constructor(
-    @Inject(CONTROL_OPERATIVO_REPOSITORY)
     private readonly controlOperativoRepository: IControlOperativoRepository,
-    @Inject(AUTH_REPOSITORY)
+
     private readonly authRepository: IAuthRepository,
   ) {}
 
@@ -31,7 +29,7 @@ export class ListarActividadesValidacionUseCase {
       input.idUsuario,
     );
     if (!perfil?.roles || !Array.isArray(perfil.roles)) {
-      throw new UnauthorizedException('Usuario no identificado');
+      throw new UnauthenticatedError('Usuario no identificado');
     }
     const rolesIds = (perfil.roles as { id?: number }[])
       .map((r) => r?.id)

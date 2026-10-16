@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { ITrabajadorRepository } from '../../../domain/repositories/trabajador.repository.interface';
-import { TRABAJADOR_REPOSITORY } from '../../../domain/repositories/trabajador.repository.interface';
-import { UpdateTrabajadorDto } from '../../dtos/trabajador/update-trabajador.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { UpdateTrabajadorDto } from '../../inputs/trabajador/update-trabajador.dto';
 
-@Injectable()
 export class EditarTrabajadorUseCase {
-  constructor(
-    @Inject(TRABAJADOR_REPOSITORY)
-    private readonly trabajadorRepository: ITrabajadorRepository,
-  ) {}
+  constructor(private readonly trabajadorRepository: ITrabajadorRepository) {}
 
   async execute(
     idTrabajador: number,
@@ -25,13 +20,15 @@ export class EditarTrabajadorUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al editar el trabajador',
       );
     }
 
     if (adjuntos !== undefined) {
-      await this.trabajadorRepository.eliminarAdjuntosPorTrabajador(idTrabajador);
+      await this.trabajadorRepository.eliminarAdjuntosPorTrabajador(
+        idTrabajador,
+      );
       if (adjuntos.length) {
         const valid = adjuntos.filter(
           (a) =>

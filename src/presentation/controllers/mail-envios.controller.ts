@@ -10,13 +10,9 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { ListarCoberturaEnviosMailUseCase } from '../../application/use-cases/mail-envio/listar-cobertura-envios-mail.use-case';
 import { ListarLogsEnvioMailUseCase } from '../../application/use-cases/mail-envio/listar-logs-envio-mail.use-case';
 import { ReenviarMailEnvioUseCase } from '../../application/use-cases/mail-envio/reenviar-mail-envio.use-case';
@@ -24,11 +20,11 @@ import { ReenviarPendientesMailEnvioUseCase } from '../../application/use-cases/
 import {
   ListMailEnvioCoberturaQueryDto,
   ListMailEnvioLogsQueryDto,
-} from '../../application/dtos/mail-envio/list-mail-envio-query.dto';
+} from '../dtos/mail-envio/list-mail-envio-query.dto';
 import {
   ReenviarMailEnvioDto,
   ReenviarPendientesMailEnvioDto,
-} from '../../application/dtos/mail-envio/reenviar-mail-envio.dto';
+} from '../dtos/mail-envio/reenviar-mail-envio.dto';
 
 @ApiTags('mail-envios')
 @ApiBearerAuth('access-token')

@@ -1,17 +1,17 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { GetProyectosPorTipoDto } from '../../../dtos/acc/projects/get-proyectos-por-tipo.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
 
-@Injectable()
+import { GetProyectosPorTipoDto } from '../../../inputs/acc/projects/get-proyectos-por-tipo.dto';
+
 export class GetProyectosPorTipoUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAdminPort) {}
 
   async execute(accountId: string, dto: GetProyectosPorTipoDto): Promise<any> {
     // Filter empty tipos
     const tipos = dto.tipos.filter((tipo) => tipo && tipo.trim() !== '');
 
     if (tipos.length === 0) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'Debe proporcionar al menos un tipo de proyecto válido',
       );
     }

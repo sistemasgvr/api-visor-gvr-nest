@@ -1,14 +1,12 @@
-import { Injectable } from '@nestjs/common';
 import {
   ExportarIncidenciasDto,
   FormatoExportacion,
-} from '../../../dtos/acc/issues/exportar-incidencias.dto';
-import { ExportacionIncidenciasService } from '../../../../infrastructure/services/exportacion-incidencias.service';
+} from '../../../inputs/acc/issues/exportar-incidencias.dto';
+import { ExportacionIncidenciasPort } from '../../../ports/exportacion-incidencias.port';
 
-@Injectable()
 export class ExportarIncidenciasUseCase {
   constructor(
-    private readonly exportacionIncidenciasService: ExportacionIncidenciasService,
+    private readonly exportacionIncidenciasService: ExportacionIncidenciasPort,
   ) {}
 
   async execute(

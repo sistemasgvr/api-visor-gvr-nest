@@ -25,10 +25,10 @@ import {
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { MinioStorageService } from '../../infrastructure/storage/minio-storage.service';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
-import { UploadEvidenciaDto } from '../../application/dtos/storage/upload-evidencia.dto';
-import { UploadPrefixedDto } from '../../application/dtos/storage/upload-prefixed.dto';
-import { UploadVisorElementoFotoDto } from '../../application/dtos/storage/upload-visor-elemento-foto.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { UploadEvidenciaDto } from '../dtos/storage/upload-evidencia.dto';
+import { UploadPrefixedDto } from '../dtos/storage/upload-prefixed.dto';
+import { UploadVisorElementoFotoDto } from '../dtos/storage/upload-visor-elemento-foto.dto';
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
@@ -41,7 +41,11 @@ export class StorageController {
 
   @Get('presign')
   @HttpCode(HttpStatus.OK)
-  @ApiQuery({ name: 'key', required: true, description: 'Clave del objeto en el bucket' })
+  @ApiQuery({
+    name: 'key',
+    required: true,
+    description: 'Clave del objeto en el bucket',
+  })
   @ApiQuery({
     name: 'expires',
     required: false,
@@ -109,7 +113,8 @@ export class StorageController {
     @Req() req: Request,
   ) {
     const user = req.user!;
-    const displayName = user.nombre?.trim() || user.correo || `usuario-${user.id}`;
+    const displayName =
+      user.nombre?.trim() || user.correo || `usuario-${user.id}`;
     const meta = await this.minioStorage.uploadEvidenciaUsuarioActividad({
       userId: user.id,
       userDisplayName: displayName,
@@ -170,10 +175,9 @@ export class StorageController {
       file,
       indiceFoto: dto.indiceFoto,
     });
-    const viewUrl =
-      await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
-        meta.publicUrl,
-      );
+    const viewUrl = await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
+      meta.publicUrl,
+    );
     return ApiResponseDto.success(
       { ...meta, viewUrl },
       'Imagen subida correctamente',
@@ -215,10 +219,9 @@ export class StorageController {
       file,
       filename: dto.filename,
     });
-    const viewUrl =
-      await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
-        meta.publicUrl,
-      );
+    const viewUrl = await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
+      meta.publicUrl,
+    );
     return ApiResponseDto.success(
       { ...meta, viewUrl },
       'Archivo subido correctamente',

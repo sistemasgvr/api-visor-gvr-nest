@@ -1,24 +1,17 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ObtenerIncidenciasDto } from '../../../dtos/acc/issues/obtener-incidencias.dto';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
-import {
-  ACC_RECURSOS_REPOSITORY,
-  type IAccRecursosRepository,
-} from '../../../../domain/repositories/acc-recursos.repository.interface';
+import type { AutodeskIssuesPort } from '../../../ports/autodesk/issues.port';
+
+import { type IAccRecursosRepository } from '../../../../domain/repositories/acc-recursos.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { ObtenerIncidenciasDto } from '../../../inputs/acc/issues/obtener-incidencias.dto';
 import ObtenerTokenValidoHelper from './obtener-token-valido.helper';
 
-@Injectable()
 export class ObtenerIncidenciasUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskIssuesPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
-    @Inject(ACC_RECURSOS_REPOSITORY)
+
     private readonly accRecursosRepository: IAccRecursosRepository,
   ) {}
 

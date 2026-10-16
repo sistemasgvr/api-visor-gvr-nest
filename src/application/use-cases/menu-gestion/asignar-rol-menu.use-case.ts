@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IMenuGestionRepository } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { MENU_GESTION_REPOSITORY } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { AsignarRolMenuDto } from '../../dtos/menu-gestion/asignar-rol-menu.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { AsignarRolMenuDto } from '../../inputs/menu-gestion/asignar-rol-menu.dto';
 
-@Injectable()
 export class AsignarRolMenuUseCase {
-  constructor(
-    @Inject(MENU_GESTION_REPOSITORY)
-    private readonly menuRepository: IMenuGestionRepository,
-  ) {}
+  constructor(private readonly menuRepository: IMenuGestionRepository) {}
 
   async execute(
     idMenu: number,
@@ -22,7 +17,7 @@ export class AsignarRolMenuUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al asignar el rol',
       );
     }

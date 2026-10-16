@@ -6,7 +6,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../../infrastructure/auth/jwt-auth.guard';
 
 import { ObtenerCantidadProyectosVigentesUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-proyectos-vigentes.use-case';

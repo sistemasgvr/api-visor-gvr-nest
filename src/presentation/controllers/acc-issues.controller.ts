@@ -19,8 +19,8 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
-import { RequestInfoHelper } from '../../shared/helpers/request-info.helper';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { RequestInfoHelper } from '../http/request-info.helper';
 
 // Use Cases
 import { ObtenerPerfilUsuarioUseCase } from '../../application/use-cases/acc/issues/obtener-perfil-usuario.use-case';
@@ -45,21 +45,21 @@ import { ExportarIncidenciasUseCase } from '../../application/use-cases/acc/issu
 import { ObtenerActividadIncidenciaUseCase } from '../../application/use-cases/acc/issues/obtener-actividad-incidencia.use-case';
 
 // DTOs
-import { ObtenerTiposIncidenciasDto } from '../../application/dtos/acc/issues/obtener-tipos-incidencias.dto';
-import { ObtenerDefinicionesAtributosDto } from '../../application/dtos/acc/issues/obtener-definiciones-atributos.dto';
-import { ObtenerMapeosAtributosDto } from '../../application/dtos/acc/issues/obtener-mapeos-atributos.dto';
-import { ObtenerCategoriasRaizDto } from '../../application/dtos/acc/issues/obtener-categorias-raiz.dto';
-import { ObtenerIncidenciasPorDocumentoDto } from '../../application/dtos/acc/issues/obtener-incidencias-por-documento.dto';
-import { ObtenerUrlMiniaturaDto } from '../../application/dtos/acc/issues/obtener-url-miniatura.dto';
-import { ObtenerIncidenciasDto } from '../../application/dtos/acc/issues/obtener-incidencias.dto';
-import { CrearIncidenciaDto } from '../../application/dtos/acc/issues/crear-incidencia.dto';
-import { ActualizarIncidenciaDto } from '../../application/dtos/acc/issues/actualizar-incidencia.dto';
-import { ObtenerComentariosDto } from '../../application/dtos/acc/issues/obtener-comentarios.dto';
-import { CrearComentarioDto } from '../../application/dtos/acc/issues/crear-comentario.dto';
-import { CrearAdjuntoDto } from '../../application/dtos/acc/issues/crear-adjunto.dto';
-import { ObtenerAdjuntosDto } from '../../application/dtos/acc/issues/obtener-adjuntos.dto';
-import { AsignarIncidenciaDto } from '../../application/dtos/acc/issues/asignar-incidencia.dto';
-import { ExportarIncidenciasDto } from '../../application/dtos/acc/issues/exportar-incidencias.dto';
+import { ObtenerTiposIncidenciasDto } from '../dtos/acc/issues/obtener-tipos-incidencias.dto';
+import { ObtenerDefinicionesAtributosDto } from '../dtos/acc/issues/obtener-definiciones-atributos.dto';
+import { ObtenerMapeosAtributosDto } from '../dtos/acc/issues/obtener-mapeos-atributos.dto';
+import { ObtenerCategoriasRaizDto } from '../dtos/acc/issues/obtener-categorias-raiz.dto';
+import { ObtenerIncidenciasPorDocumentoDto } from '../dtos/acc/issues/obtener-incidencias-por-documento.dto';
+import { ObtenerUrlMiniaturaDto } from '../dtos/acc/issues/obtener-url-miniatura.dto';
+import { ObtenerIncidenciasDto } from '../dtos/acc/issues/obtener-incidencias.dto';
+import { CrearIncidenciaDto } from '../dtos/acc/issues/crear-incidencia.dto';
+import { ActualizarIncidenciaDto } from '../dtos/acc/issues/actualizar-incidencia.dto';
+import { ObtenerComentariosDto } from '../dtos/acc/issues/obtener-comentarios.dto';
+import { CrearComentarioDto } from '../dtos/acc/issues/crear-comentario.dto';
+import { CrearAdjuntoDto } from '../dtos/acc/issues/crear-adjunto.dto';
+import { ObtenerAdjuntosDto } from '../dtos/acc/issues/obtener-adjuntos.dto';
+import { AsignarIncidenciaDto } from '../dtos/acc/issues/asignar-incidencia.dto';
+import { ExportarIncidenciasDto } from '../dtos/acc/issues/exportar-incidencias.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('acc')
@@ -173,7 +173,9 @@ export class AccIssuesController {
    * GET - Obtener definiciones de atributos
    * GET /acc/projects/:projectId/issue-attribute-definitions
    */
-  @ApiOperation({ summary: 'Definiciones de atributos personalizados Issues ACC' })
+  @ApiOperation({
+    summary: 'Definiciones de atributos personalizados Issues ACC',
+  })
   @Get('issue-attribute-definitions')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -940,8 +942,7 @@ export class AccIssuesController {
    */
   @ApiOperation({
     summary: 'Autosuggest personas internas al asignar',
-    description:
-      'Utiliza filtros busqueda/limit desde query para combos UI.',
+    description: 'Utiliza filtros busqueda/limit desde query para combos UI.',
   })
   @Get('users/available')
   @UseGuards(JwtAuthGuard)

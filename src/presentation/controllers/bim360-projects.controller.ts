@@ -12,7 +12,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   CrearProyectoBim360UseCase,
   ObtenerProyectosLegacyUseCase,
@@ -29,7 +29,7 @@ import {
   ObtenerProyectosNewDto,
   ActualizarProyectoBim360Dto,
   ActualizarImagenProyectoBim360Dto,
-} from '../../application/dtos/bim360/projects';
+} from '../dtos/bim360/projects';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -170,7 +170,8 @@ export class Bim360ProjectsController {
    */
   @ApiOperation({
     summary: 'Obtener issueContainerId del proyecto',
-    description: 'Identificador necesario para algunas APIs de incidencias BIM 360.',
+    description:
+      'Identificador necesario para algunas APIs de incidencias BIM 360.',
   })
   @Get(':accountId/:projectId/issue-container-id')
   @HttpCode(HttpStatus.OK)

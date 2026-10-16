@@ -1,13 +1,7 @@
-import { Injectable, Inject } from '@nestjs/common';
 import type { IMenuRepository } from '../../../domain/repositories/menu.repository.interface';
-import { MENU_REPOSITORY } from '../../../domain/repositories/menu.repository.interface';
 
-@Injectable()
 export class ListarMenuOpcionesUseCase {
-  constructor(
-    @Inject(MENU_REPOSITORY)
-    private readonly menuRepository: IMenuRepository,
-  ) {}
+  constructor(private readonly menuRepository: IMenuRepository) {}
 
   async execute(): Promise<any[]> {
     const menuOpciones = await this.menuRepository.listarMenuOpciones();

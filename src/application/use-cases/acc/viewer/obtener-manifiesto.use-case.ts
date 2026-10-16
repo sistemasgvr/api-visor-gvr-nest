@@ -1,9 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
+import type { AutodeskAuthPort } from '../../../ports/autodesk/auth.port';
 
-@Injectable()
 export class ObtenerManifiestoUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAuthPort) {}
 
   async execute(urn: string): Promise<any> {
     return await this.autodeskApiService.obtenerManifiesto(urn);

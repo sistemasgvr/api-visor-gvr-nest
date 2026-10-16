@@ -1,20 +1,12 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import {
-  ACC_RECURSOS_REPOSITORY,
-  type IAccRecursosRepository,
-} from '../../../domain/repositories/acc-recursos.repository.interface';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../domain/repositories/auditoria.repository.interface';
-import { GuardarRecursoDto } from '../../dtos/acc-recursos/guardar-recurso.dto';
+import { type IAccRecursosRepository } from '../../../domain/repositories/acc-recursos.repository.interface';
+import { type IAuditoriaRepository } from '../../../domain/repositories/auditoria.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
+import { GuardarRecursoDto } from '../../inputs/acc-recursos/guardar-recurso.dto';
 
-@Injectable()
 export class GuardarRecursoUseCase {
   constructor(
-    @Inject(ACC_RECURSOS_REPOSITORY)
     private readonly accRecursosRepository: IAccRecursosRepository,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 
@@ -25,10 +17,10 @@ export class GuardarRecursoUseCase {
     userAgent: string,
   ): Promise<any> {
     if (!dto.recurso_tipo) {
-      throw new BadRequestException('El tipo de recurso es requerido');
+      throw new InvalidInputError('El tipo de recurso es requerido');
     }
     if (!dto.recurso_id) {
-      throw new BadRequestException('El ID del recurso es requerido');
+      throw new InvalidInputError('El ID del recurso es requerido');
     }
 
     const resultado = await this.accRecursosRepository.guardarRecurso(
@@ -47,7 +39,7 @@ export class GuardarRecursoUseCase {
     );
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al guardar recurso ACC',
       );
     }

@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ObtenerMapeosAtributosDto } from '../../../dtos/acc/issues/obtener-mapeos-atributos.dto';
+import type { AutodeskIssuesPort } from '../../../ports/autodesk/issues.port';
+
+import { ObtenerMapeosAtributosDto } from '../../../inputs/acc/issues/obtener-mapeos-atributos.dto';
 import ObtenerTokenValidoHelper from './obtener-token-valido.helper';
 
-@Injectable()
 export class ObtenerMapeosAtributosUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskIssuesPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
   ) {}
 

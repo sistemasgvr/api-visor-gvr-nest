@@ -19,7 +19,7 @@ import { CrearOpcionListaUseCase } from '../../application/use-cases/general/cre
 import { ObtenerCatalogosTrabajadorUseCase } from '../../application/use-cases/general/obtener-catalogos-trabajador.use-case';
 import { ListarMenuRecursivoUseCase } from '../../application/use-cases/general/listar-menu-recursivo.use-case';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import {
   ID_LISTA_PUESTO_TRABAJO,

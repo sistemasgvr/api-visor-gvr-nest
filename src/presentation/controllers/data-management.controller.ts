@@ -16,10 +16,10 @@ import { ObtenerProyectoPorIdUseCase } from '../../application/use-cases/data-ma
 import { ObtenerItemsUseCase } from '../../application/use-cases/data-management/obtener-items.use-case';
 import { ObtenerItemPorIdUseCase } from '../../application/use-cases/data-management/obtener-item-por-id.use-case';
 import { ObtenerVersionesItemUseCase } from '../../application/use-cases/data-management/obtener-versiones-item.use-case';
-import { ObtenerHubsDto } from '../../application/dtos/data-management/obtener-hubs.dto';
-import { ObtenerProyectosDto } from '../../application/dtos/data-management/obtener-proyectos.dto';
-import { ObtenerItemsDto } from '../../application/dtos/data-management/obtener-items.dto';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ObtenerHubsDto } from '../dtos/data-management/obtener-hubs.dto';
+import { ObtenerProyectosDto } from '../dtos/data-management/obtener-proyectos.dto';
+import { ObtenerItemsDto } from '../dtos/data-management/obtener-items.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('acc-data')
@@ -40,7 +40,9 @@ export class DataManagementController {
    * Obtener todos los hubs accesibles
    * GET /data-management/hubs
    */
-  @ApiOperation({ summary: 'Listar hubs ACC a los que tiene acceso el usuario' })
+  @ApiOperation({
+    summary: 'Listar hubs ACC a los que tiene acceso el usuario',
+  })
   @Get('hubs')
   @HttpCode(HttpStatus.OK)
   async obtenerHubs(@Req() request: Request, @Query() dto: ObtenerHubsDto) {

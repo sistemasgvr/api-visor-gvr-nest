@@ -1,10 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
-import { VolverPasoAnteriorRevisionDto } from '../../../dtos/acc/reviews/volver-paso-anterior-revision.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { VolverPasoAnteriorRevisionDto } from '../../../inputs/acc/reviews/volver-paso-anterior-revision.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
-@Injectable()
 export class VolverPasoAnteriorRevisionUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     userId: number,
@@ -12,20 +11,15 @@ export class VolverPasoAnteriorRevisionUseCase {
     reviewId: number,
     dto: VolverPasoAnteriorRevisionDto,
   ): Promise<{ id: number; message: string }> {
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.volverPasoAnterior<{
       success: boolean;
       message: string;
       id_result: number;
-    }>('acc_VolverPasoAnterior', [
-      reviewId,
-      projectId,
-      userId,
-      dto?.notas ?? null,
-    ]);
+    }>([reviewId, projectId, userId, dto?.notas ?? null]);
 
     const row = rows?.[0];
     if (!row?.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         row?.message ?? 'Error al volver al paso anterior',
       );
     }

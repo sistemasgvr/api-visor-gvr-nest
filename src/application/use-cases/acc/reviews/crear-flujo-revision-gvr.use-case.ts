@@ -1,6 +1,6 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
-import { CrearWorkflowDto } from '../../../dtos/acc/reviews/crear-workflow.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { CrearWorkflowDto } from '../../../inputs/acc/reviews/crear-workflow.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 import {
   buildFlujoRevisionPayload,
   resolveEstadoFlujoNombre,
@@ -16,9 +16,9 @@ export interface CrearFlujoRevisionGvrResult {
 /**
  * Crea un flujo de trabajo de aprobación en la BD GVR mediante acc_CrearFlujoRevision.
  */
-@Injectable()
+
 export class CrearFlujoRevisionGvrUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     userId: number,
@@ -27,9 +27,7 @@ export class CrearFlujoRevisionGvrUseCase {
   ): Promise<CrearFlujoRevisionGvrResult> {
     const steps = dto.steps ?? [];
     if (steps.length === 0) {
-      throw new BadRequestException(
-        'Debe incluir al menos un paso (iniciador).',
-      );
+      throw new InvalidInputError('Debe incluir al menos un paso (iniciador).');
     }
 
     const estadoNombre = resolveEstadoFlujoNombre(dto);
@@ -42,19 +40,15 @@ export class CrearFlujoRevisionGvrUseCase {
       mensaje: string;
     }[];
     try {
-      result = await this.dbFunctionService.callFunction<{
+      result = await this.reviewsRepository.crearFlujoRevision<{
         id: number;
         nombre: string;
         idProyectoAcc: string;
         mensaje: string;
-      }>('acc_CrearFlujoRevision', [
-        projectId,
-        userId,
-        JSON.stringify(payload),
-      ]);
+      }>([projectId, userId, JSON.stringify(payload)]);
     } catch (e: any) {
       const msg = e?.message ?? String(e);
-      throw new BadRequestException(
+      throw new InvalidInputError(
         msg.includes('listado') || msg.includes('violates')
           ? 'Error al crear el flujo: verifique datos y seeds de listados (acc_flujo_*).'
           : msg,
@@ -63,7 +57,7 @@ export class CrearFlujoRevisionGvrUseCase {
 
     const row = result?.[0];
     if (!row?.id) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         row?.mensaje ?? 'No se pudo crear el flujo de trabajo.',
       );
     }

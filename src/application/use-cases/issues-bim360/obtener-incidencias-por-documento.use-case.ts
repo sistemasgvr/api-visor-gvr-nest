@@ -1,24 +1,17 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
-import { ObtenerIncidenciasPorDocumentoDto } from '../../dtos/issues-bim360/obtener-incidencias-por-documento.dto';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../domain/repositories/auditoria.repository.interface';
-import {
-  ACC_RECURSOS_REPOSITORY,
-  type IAccRecursosRepository,
-} from '../../../domain/repositories/acc-recursos.repository.interface';
+import type { AutodeskBim360Port } from '../../ports/autodesk/bim360.port';
+
+import { type IAccRecursosRepository } from '../../../domain/repositories/acc-recursos.repository.interface';
+import { type IAuditoriaRepository } from '../../../domain/repositories/auditoria.repository.interface';
+import { ObtenerIncidenciasPorDocumentoDto } from '../../inputs/issues-bim360/obtener-incidencias-por-documento.dto';
 import ObtenerTokenValidoHelper from '../acc/issues/obtener-token-valido.helper';
 
-@Injectable()
 export class ObtenerIncidenciasPorDocumentoBim360UseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskBim360Port,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
-    @Inject(ACC_RECURSOS_REPOSITORY)
+
     private readonly accRecursosRepository: IAccRecursosRepository,
   ) {}
 

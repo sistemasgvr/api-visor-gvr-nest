@@ -13,7 +13,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   ObtenerUsuariosProyectoUseCase,
   ObtenerUsuarioProyectoPorIdUseCase,
@@ -29,7 +29,7 @@ import {
   AgregarUsuarioProyectoDto,
   ImportarUsuariosProyectoDto,
   ActualizarUsuarioProyectoDto,
-} from '../../application/dtos/acc/project-users';
+} from '../dtos/acc/project-users';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('acc')

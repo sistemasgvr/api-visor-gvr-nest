@@ -1,14 +1,14 @@
-import { Logger } from '@nestjs/common';
-import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
-import type { BroadcastService } from '../../../shared/services/broadcast.service';
+import type { ApplicationLogger } from '../../ports/runtime.port';
 
-const logger = new Logger('EntregableNotificaciones');
+import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
+import { BroadcastPort } from '../../ports/broadcast.port';
 
 /**
  * Notifica al colaborador asignado (skip si el responsable es el mismo usuario que actúa).
  */
 export async function emitirEntregableAsignado(params: {
-  broadcast: BroadcastService;
+  logger: ApplicationLogger;
+  broadcast: BroadcastPort;
   proyectoRepository: IProyectoRepository;
   idEntregable: number;
   nombreEntregable: string;
@@ -19,6 +19,7 @@ export async function emitirEntregableAsignado(params: {
   idTrabajadorActor?: number | null;
   fechaEstimada?: string | null;
 }): Promise<void> {
+  const logger = params.logger;
   try {
     const {
       broadcast,
@@ -86,13 +87,15 @@ export async function emitirEntregableAsignado(params: {
  * Notifica al creador del entregable cuando se marca culminado vía actividad.
  */
 export async function emitirEntregableCulminado(params: {
-  broadcast: BroadcastService;
+  logger: ApplicationLogger;
+  broadcast: BroadcastPort;
   proyectoRepository: IProyectoRepository;
   idEntregable: number;
   idUsuarioActor: number;
   idTrabajadorActor?: number | null;
   nombreActividad?: string | null;
 }): Promise<void> {
+  const logger = params.logger;
   try {
     const entregable = await params.proyectoRepository.obtenerEntregablePorId(
       params.idEntregable,
@@ -121,7 +124,8 @@ export async function emitirEntregableCulminado(params: {
         : null;
 
     const nombreEntregable =
-      String(entregable.nombre ?? '').trim() || `Entregable #${params.idEntregable}`;
+      String(entregable.nombre ?? '').trim() ||
+      `Entregable #${params.idEntregable}`;
 
     const notification = {
       type: 'entregable_culminado',

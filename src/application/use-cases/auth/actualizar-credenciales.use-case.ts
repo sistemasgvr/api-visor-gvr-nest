@@ -1,20 +1,19 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
-import { UpdateCredentialsDto } from '../../dtos/auth/update-credentials.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { PasswordHasherPort } from '../../ports/runtime.port';
+
 import {
   PASSWORD_POLICY_MESSAGE,
   PASSWORD_POLICY_REGEX,
-} from '../../../shared/validation/password-policy';
+} from '../../../domain/policies/password-policy';
+import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
+import { UpdateCredentialsDto } from '../../inputs/auth/update-credentials.dto';
+import { TokenServicePort } from '../../ports/runtime.port';
 
-@Injectable()
 export class ActualizarCredencialesUseCase {
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly authRepository: IAuthRepository,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: TokenServicePort,
+    private readonly passwordHasher: PasswordHasherPort,
   ) {}
 
   async execute(
@@ -26,7 +25,7 @@ export class ActualizarCredencialesUseCase {
     const nuevaContrasenaLimpia = updateDto.nuevaContrasena?.trim() ?? '';
 
     if (!nuevoCorreoLimpio && !nuevaContrasenaLimpia) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'Debe proporcionar al menos el nuevo correo o la nueva contraseña',
       );
     }
@@ -35,9 +34,12 @@ export class ActualizarCredencialesUseCase {
     let contrasenaHasheada: string | null = null;
     if (nuevaContrasenaLimpia) {
       if (!PASSWORD_POLICY_REGEX.test(nuevaContrasenaLimpia)) {
-        throw new BadRequestException(PASSWORD_POLICY_MESSAGE);
+        throw new InvalidInputError(PASSWORD_POLICY_MESSAGE);
       }
-      contrasenaHasheada = await bcrypt.hash(nuevaContrasenaLimpia, 10);
+      contrasenaHasheada = await this.passwordHasher.hash(
+        nuevaContrasenaLimpia,
+        10,
+      );
     }
 
     // Call repository to update credentials
@@ -49,9 +51,7 @@ export class ActualizarCredencialesUseCase {
     );
 
     if (!resultado) {
-      throw new BadRequestException(
-        'No se pudieron actualizar las credenciales',
-      );
+      throw new InvalidInputError('No se pudieron actualizar las credenciales');
     }
 
     return resultado;

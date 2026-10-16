@@ -1,10 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
-import { EnviarResenaPasoDto } from '../../../dtos/acc/reviews/enviar-resena-paso.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { EnviarResenaPasoDto } from '../../../inputs/acc/reviews/enviar-resena-paso.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
-@Injectable()
 export class EnviarResenaPasoUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     userId: number,
@@ -21,23 +20,15 @@ export class EnviarResenaPasoUseCase {
         )
       : '[]';
 
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.enviarResenaPaso<{
       success: boolean;
       message: string;
       id_result: number;
-    }>('acc_EnviarResenaPaso', [
-      reviewId,
-      projectId,
-      userId,
-      dto?.notas ?? null,
-      docStatuses,
-    ]);
+    }>([reviewId, projectId, userId, dto?.notas ?? null, docStatuses]);
 
     const row = rows?.[0];
     if (!row?.success) {
-      throw new BadRequestException(
-        row?.message ?? 'Error al enviar la reseña',
-      );
+      throw new InvalidInputError(row?.message ?? 'Error al enviar la reseña');
     }
     return { id: row.id_result, message: row.message };
   }

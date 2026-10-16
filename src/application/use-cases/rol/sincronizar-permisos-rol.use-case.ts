@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IRolRepository } from '../../../domain/repositories/rol.repository.interface';
-import { ROL_REPOSITORY } from '../../../domain/repositories/rol.repository.interface';
-import { AsignarPermisosDto } from '../../dtos/rol/asignar-permisos.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { AsignarPermisosDto } from '../../inputs/rol/asignar-permisos.dto';
 
-@Injectable()
 export class SincronizarPermisosRolUseCase {
-  constructor(
-    @Inject(ROL_REPOSITORY)
-    private readonly rolRepository: IRolRepository,
-  ) {}
+  constructor(private readonly rolRepository: IRolRepository) {}
 
   async execute(
     idRol: number,
@@ -22,7 +17,7 @@ export class SincronizarPermisosRolUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al sincronizar los permisos',
       );
     }

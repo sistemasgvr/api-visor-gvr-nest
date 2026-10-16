@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { MailService } from '../../services/mail.service';
+import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
+
 import { EMAIL_TEMPLATE_IDS } from '../../../domain/mail/email-template-id';
+import { ConfigurationPort } from '../../ports/runtime.port';
+import { MailService } from '../../services/mail.service';
 
 export interface EnviarCorreoBienvenidaInput {
   idTrabajador: number;
@@ -16,14 +17,16 @@ export interface EnviarCorreoBienvenidaResult {
   skippedReason?: string;
 }
 
-@Injectable()
 export class EnviarCorreoBienvenidaUseCase {
-  private readonly logger = new Logger(EnviarCorreoBienvenidaUseCase.name);
+  private readonly logger: ApplicationLogger;
 
   constructor(
     private readonly mailService: MailService,
-    private readonly configService: ConfigService,
-  ) {}
+    private readonly configService: ConfigurationPort,
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(EnviarCorreoBienvenidaUseCase.name);
+  }
 
   async execute(
     input: EnviarCorreoBienvenidaInput,

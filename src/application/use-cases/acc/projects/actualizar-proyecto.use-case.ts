@@ -1,16 +1,13 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ActualizarProyectoDto } from '../../../dtos/acc/projects/actualizar-proyecto.dto';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
+import { InvalidInputError } from '../../../errors/application.error';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
 
-@Injectable()
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { ActualizarProyectoDto } from '../../../inputs/acc/projects/actualizar-proyecto.dto';
+
 export class ActualizarProyectoUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(AUDITORIA_REPOSITORY)
+    private readonly autodeskApiService: AutodeskAdminPort,
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 
@@ -49,7 +46,7 @@ export class ActualizarProyectoUseCase {
     if (dto.projectValue) projectData.projectValue = dto.projectValue;
 
     if (Object.keys(projectData).length === 0) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'Debe proporcionar al menos un campo para actualizar',
       );
     }

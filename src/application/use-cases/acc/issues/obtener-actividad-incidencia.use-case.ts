@@ -1,11 +1,12 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
+  ApplicationLogger,
+  LoggerFactoryPort,
+} from '../../../ports/runtime.port';
+
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { stripGvrFirmaDelComentario } from '../../../../domain/utils/strip-gvr-firma-text.util';
+import { ObtenerComentariosDto } from '../../../inputs/acc/issues/obtener-comentarios.dto';
 import { ObtenerComentariosUseCase } from './obtener-comentarios.use-case';
-import { ObtenerComentariosDto } from '../../../dtos/acc/issues/obtener-comentarios.dto';
-import { stripGvrFirmaDelComentario } from '../../../../shared/utils/strip-gvr-firma-text.util';
 
 export type ActividadEntrada = {
   id: string;
@@ -21,15 +22,19 @@ export type ActividadEntrada = {
  * Línea de tiempo: auditoría GVR (publicación, comentarios creados vía GVR, adjuntos, etc.)
  * + comentarios del API de Construction Issues (incl. creados fuera de GVR).
  */
-@Injectable()
+
 export class ObtenerActividadIncidenciaUseCase {
-  private readonly logger = new Logger(ObtenerActividadIncidenciaUseCase.name);
+  private readonly logger: ApplicationLogger;
 
   constructor(
-    @Inject(AUDITORIA_REPOSITORY)
     private readonly auditoriaRepository: IAuditoriaRepository,
     private readonly obtenerComentariosUseCase: ObtenerComentariosUseCase,
-  ) {}
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(
+      ObtenerActividadIncidenciaUseCase.name,
+    );
+  }
 
   async execute(
     userId: number,

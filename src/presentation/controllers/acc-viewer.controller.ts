@@ -8,7 +8,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 
 // Use cases
 import { GenerarTokenViewerUseCase } from '../../application/use-cases/acc/viewer/generar-token-viewer.use-case';
@@ -17,8 +17,8 @@ import { ObtenerManifiestoUseCase } from '../../application/use-cases/acc/viewer
 import { ObtenerMetadatosUseCase } from '../../application/use-cases/acc/viewer/obtener-metadatos.use-case';
 
 // DTOs
-import { GenerarTokenViewerDto } from '../../application/dtos/acc/viewer/generar-token-viewer.dto';
-import { ObtenerTokenPublicoDto } from '../../application/dtos/acc/viewer/obtener-token-publico.dto';
+import { GenerarTokenViewerDto } from '../dtos/acc/viewer/generar-token-viewer.dto';
+import { ObtenerTokenPublicoDto } from '../dtos/acc/viewer/obtener-token-publico.dto';
 
 @ApiTags('acc')
 @Controller('acc/viewer')

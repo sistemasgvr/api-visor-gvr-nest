@@ -1,13 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import {
-  AutodeskApiService,
-  Token2LeggedResponse,
-} from '../../../infrastructure/services/autodesk-api.service';
-import { ObtenerToken2LeggedDto } from '../../dtos/acc/obtener-token-2legged.dto';
+import { ObtenerToken2LeggedDto } from '../../inputs/acc/obtener-token-2legged.dto';
+import type { Token2LeggedResponse } from '../../ports/autodesk-api.port';
+import type { AutodeskAuthPort } from '../../ports/autodesk/auth.port';
 
-@Injectable()
 export class ObtenerToken2LeggedUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAuthPort) {}
 
   async execute(dto: ObtenerToken2LeggedDto): Promise<Token2LeggedResponse> {
     // Default scopes if not provided

@@ -1,27 +1,22 @@
-import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
+import { ROLES_ADMIN_CONTROL_OPERATIVO } from '../../../domain/constants/auth-role.constants';
+import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import type {
   IControlOperativoRepository,
   ReporteHorasTrabajadorRangoParams,
   ReporteHorasTrabajadorRangoResult,
 } from '../../../domain/repositories/control-operativo.repository.interface';
-import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
-import { ROLES_ADMIN_CONTROL_OPERATIVO } from '../../../domain/constants/auth-role.constants';
+import { ForbiddenError } from '../../errors/application.error';
 
-export interface ListarReporteHorasMesProyectoTrabajadorInput
-  extends ReporteHorasTrabajadorRangoParams {
+export interface ListarReporteHorasMesProyectoTrabajadorInput extends ReporteHorasTrabajadorRangoParams {
   idUsuario: number;
   /** IDs de roles considerados admin (enviados por el front desde ROLES_ADMIN_CONTROL_OPERATIVO). */
   rolesAdminPermitidos: number[];
 }
 
-@Injectable()
 export class ListarReporteHorasMesProyectoTrabajadorUseCase {
   constructor(
-    @Inject(CONTROL_OPERATIVO_REPOSITORY)
     private readonly controlOperativoRepository: IControlOperativoRepository,
-    @Inject(AUTH_REPOSITORY)
+
     private readonly authRepository: IAuthRepository,
   ) {}
 
@@ -32,7 +27,7 @@ export class ListarReporteHorasMesProyectoTrabajadorUseCase {
       input.idUsuario,
     );
     if (!perfil?.roles || !Array.isArray(perfil.roles)) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'Solo administradores pueden acceder a este reporte',
       );
     }
@@ -44,7 +39,7 @@ export class ListarReporteHorasMesProyectoTrabajadorUseCase {
       : [...ROLES_ADMIN_CONTROL_OPERATIVO];
     const esAdmin = permitidos.some((id) => rolesIds.includes(id));
     if (!esAdmin) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'Solo administradores pueden acceder a este reporte',
       );
     }

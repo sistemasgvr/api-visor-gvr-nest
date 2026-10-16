@@ -1,14 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
-import { ValidarExpiracionDto } from '../../dtos/acc/validar-expiracion.dto';
+import type { AutodeskAuthPort } from '../../ports/autodesk/auth.port';
+
+import { ValidarExpiracionDto } from '../../inputs/acc/validar-expiracion.dto';
 
 export interface ValidarExpiracionResponse {
   expirado: boolean;
 }
 
-@Injectable()
 export class ValidarExpiracionUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAuthPort) {}
 
   async execute(dto: ValidarExpiracionDto): Promise<ValidarExpiracionResponse> {
     const esExpirado = this.autodeskApiService.esTokenExpirado(dto.expires_at);

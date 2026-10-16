@@ -1,11 +1,12 @@
+import type { ExportacionRevisionesPdfPort } from '../../application/ports/exportacion-revisiones-pdf.port';
 import { Inject, Injectable } from '@nestjs/common';
 import {
   HTML_PDF_GENERATOR,
   type IHtmlPdfGenerator,
 } from '../../domain/services/html-pdf-generator.interface';
 import { ObtenerRevisionesUseCase } from '../../application/use-cases/acc/reviews/obtener-revisiones.use-case';
-import type { ExportarRevisionesPdfQueryDto } from '../../application/dtos/acc/reviews/exportar-revisiones-pdf-query.dto';
-import type { ObtenerRevisionesDto } from '../../application/dtos/acc/reviews/obtener-revisiones.dto';
+import type { ExportarRevisionesPdfQueryDto } from '../../application/inputs/acc/reviews/exportar-revisiones-pdf-query.dto';
+import type { ObtenerRevisionesDto } from '../../application/inputs/acc/reviews/obtener-revisiones.dto';
 
 const PAGE_SIZE = 50;
 const MAX_EXPORT_ROWS = 3000;
@@ -68,7 +69,7 @@ function initiatedSummary(row: RevisionRow): string {
 }
 
 @Injectable()
-export class ExportacionRevisionesPdfService {
+export class ExportacionRevisionesPdfService implements ExportacionRevisionesPdfPort {
   constructor(
     private readonly obtenerRevisionesUseCase: ObtenerRevisionesUseCase,
     @Inject(HTML_PDF_GENERATOR)

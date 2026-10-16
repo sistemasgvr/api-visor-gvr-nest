@@ -1,11 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { ExportacionPermisosCarpetaPdfService } from '../../../../infrastructure/services/exportacion-permisos-carpeta-pdf.service';
-import type { ExportarPermisosCarpetaPdfDto } from '../../../dtos/data-management/folders/exportar-permisos-carpeta-pdf.dto';
+import type { ExportarPermisosCarpetaPdfDto } from '../../../inputs/data-management/folders/exportar-permisos-carpeta-pdf.dto';
+import { ExportacionPermisosCarpetaPdfPort } from '../../../ports/exportacion-permisos-carpeta-pdf.port';
 
-@Injectable()
 export class ExportarPermisosCarpetaPdfUseCase {
   constructor(
-    private readonly exportacionPermisosCarpetaPdfService: ExportacionPermisosCarpetaPdfService,
+    private readonly exportacionPermisosCarpetaPdfService: ExportacionPermisosCarpetaPdfPort,
   ) {}
 
   async execute(

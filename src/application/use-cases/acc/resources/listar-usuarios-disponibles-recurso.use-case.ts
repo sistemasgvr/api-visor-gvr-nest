@@ -1,15 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
 import type {
   IAccResourcesRepository,
   ListarUsuariosDisponiblesRecursoParams,
 } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ListarUsuariosDisponiblesRecursoDto } from '../../../dtos/acc/resources/listar-usuarios-disponibles-recurso.dto';
+import { ListarUsuariosDisponiblesRecursoDto } from '../../../inputs/acc/resources/listar-usuarios-disponibles-recurso.dto';
 
-@Injectable()
 export class ListarUsuariosDisponiblesRecursoUseCase {
   constructor(
-    @Inject(ACC_RESOURCES_REPOSITORY)
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 

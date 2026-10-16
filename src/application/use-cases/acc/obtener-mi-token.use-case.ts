@@ -1,7 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common';
 import type { IAccRepository } from '../../../domain/repositories/acc.repository.interface';
-import { ACC_REPOSITORY } from '../../../domain/repositories/acc.repository.interface';
-import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
+import type { AutodeskAuthPort } from '../../ports/autodesk/auth.port';
 
 export interface ObtenerMiTokenResponse {
   token_id: number;
@@ -11,13 +9,11 @@ export interface ObtenerMiTokenResponse {
   es_expirado: boolean;
 }
 
-@Injectable()
 export class ObtenerMiTokenUseCase {
   constructor(
-    @Inject(ACC_REPOSITORY)
     private readonly accRepository: IAccRepository,
-    @Inject(AutodeskApiService)
-    private readonly autodeskApiService: AutodeskApiService,
+
+    private readonly autodeskApiService: AutodeskAuthPort,
   ) {}
 
   /**

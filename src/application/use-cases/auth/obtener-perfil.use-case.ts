@@ -1,26 +1,20 @@
-import {
-  Injectable,
-  Inject,
-  UnauthorizedException,
-  NotFoundException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import type { ISesionRepository } from '../../../domain/repositories/sesion.repository.interface';
-import { SESION_REPOSITORY } from '../../../domain/repositories/sesion.repository.interface';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
-import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
-import { resolveTrabajadorFirmaViewUrl } from '../../../shared/utils/resolve-trabajador-firma-url.util';
+import type { ISesionRepository } from '../../../domain/repositories/sesion.repository.interface';
+import {
+  NotFoundError,
+  UnauthenticatedError,
+} from '../../errors/application.error';
+import { resolveTrabajadorFirmaViewUrl } from '../../helpers/resolve-trabajador-firma-url.util';
+import { MinioStoragePort } from '../../ports/minio-storage.port';
+import { TokenServicePort } from '../../ports/runtime.port';
 
-@Injectable()
 export class ObtenerPerfilUseCase {
   constructor(
-    @Inject(SESION_REPOSITORY)
     private readonly sesionRepository: ISesionRepository,
-    @Inject(AUTH_REPOSITORY)
+
     private readonly authRepository: IAuthRepository,
-    private readonly jwtService: JwtService,
-    private readonly minioStorage: MinioStorageService,
+    private readonly jwtService: TokenServicePort,
+    private readonly minioStorage: MinioStoragePort,
   ) {}
 
   async execute(token: string): Promise<any> {
@@ -29,24 +23,25 @@ export class ObtenerPerfilUseCase {
     try {
       payload = this.jwtService.verify(token);
     } catch (error) {
-      throw new UnauthorizedException('Token inválido o expirado');
+      throw new UnauthenticatedError('Token inválido o expirado');
     }
 
     // Verificar sesión activa
     const sesion = await this.sesionRepository.obtenerSesionPorToken(token);
 
     if (!sesion || sesion.estado !== 1) {
-      throw new UnauthorizedException('Sesión inválida o expirada');
+      throw new UnauthenticatedError('Sesión inválida o expirada');
     }
 
     // Obtener perfil completo del usuario
     const perfil = await this.authRepository.obtenerPerfilUsuario(payload.sub);
 
     if (!perfil) {
-      throw new NotFoundException('Perfil no encontrado');
+      throw new NotFoundError('Perfil no encontrado');
     }
 
-    const fotoStored = perfil.fotoperfil != null ? String(perfil.fotoperfil) : '';
+    const fotoStored =
+      perfil.fotoperfil != null ? String(perfil.fotoperfil) : '';
     if (fotoStored.trim()) {
       const viewUrl =
         await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(fotoStored);

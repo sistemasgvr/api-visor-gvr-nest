@@ -1,29 +1,18 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import {
-  ACC_RECURSOS_REPOSITORY,
-  type IAccRecursosRepository,
-} from '../../../../domain/repositories/acc-recursos.repository.interface';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
-import {
-  AUTH_REPOSITORY,
-  type IAuthRepository,
-} from '../../../../domain/repositories/auth.repository.interface';
-import { BroadcastService } from '../../../../shared/services/broadcast.service';
-import { AsignarIncidenciaDto } from '../../../dtos/acc/issues/asignar-incidencia.dto';
+import { type IAccRecursosRepository } from '../../../../domain/repositories/acc-recursos.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { type IAuthRepository } from '../../../../domain/repositories/auth.repository.interface';
+import { InvalidInputError } from '../../../errors/application.error';
+import { AsignarIncidenciaDto } from '../../../inputs/acc/issues/asignar-incidencia.dto';
+import { BroadcastPort } from '../../../ports/broadcast.port';
 
-@Injectable()
 export class AsignarIncidenciaUseCase {
   constructor(
-    @Inject(ACC_RECURSOS_REPOSITORY)
     private readonly accRecursosRepository: IAccRecursosRepository,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
-    @Inject(AUTH_REPOSITORY)
+
     private readonly authRepository: IAuthRepository,
-    private readonly broadcastService: BroadcastService,
+    private readonly broadcastService: BroadcastPort,
   ) {}
 
   async execute(
@@ -66,7 +55,7 @@ export class AsignarIncidenciaUseCase {
       );
 
       if (!recurso || recurso.success === false) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           recurso?.message || 'Error al crear el registro de asignación',
         );
       }
@@ -157,7 +146,7 @@ export class AsignarIncidenciaUseCase {
     }
 
     if (!resultado || resultado.success === false) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al asignar la incidencia',
       );
     }

@@ -102,7 +102,9 @@ export class MailPlantillaCorreoRepository implements IMailPlantillaCorreoReposi
     return mapSqlMutationRow(row);
   }
 
-  async actualizar(data: ActualizarMailPlantillaData): Promise<SqlMutationResult> {
+  async actualizar(
+    data: ActualizarMailPlantillaData,
+  ): Promise<SqlMutationResult> {
     const row = await this.databaseFunctionService.callFunctionSingle<
       Record<string, unknown>
     >('mail_ActualizarPlantillaCorreo', [

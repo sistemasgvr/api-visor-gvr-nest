@@ -1,24 +1,19 @@
-import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
-import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
 import { ROLES_ADMIN_CONTROL_OPERATIVO } from '../../../domain/constants/auth-role.constants';
+import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
+import { ForbiddenError } from '../../errors/application.error';
 
 /** Roles que pueden ver estadísticas de usuarios (mismos que admin CO). */
 const ROLES_ESTADISTICAS_USUARIOS = ROLES_ADMIN_CONTROL_OPERATIVO;
 
-@Injectable()
 export class ObtenerEstadisticasUsuariosUseCase {
-  constructor(
-    @Inject(AUTH_REPOSITORY)
-    private readonly authRepository: IAuthRepository,
-  ) {}
+  constructor(private readonly authRepository: IAuthRepository) {}
 
   async execute(
     idUsuario: number,
   ): Promise<{ total: number; conectados: number }> {
     const perfil = await this.authRepository.obtenerPerfilUsuario(idUsuario);
     if (!perfil?.roles || !Array.isArray(perfil.roles)) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'Solo Administrador GVR, Administrador Sistema o Gerencia pueden ver las estadísticas de usuarios',
       );
     }
@@ -29,7 +24,7 @@ export class ObtenerEstadisticasUsuariosUseCase {
       rolesIds.includes(id),
     );
     if (!permitido) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'Solo Administrador GVR, Administrador Sistema o Gerencia pueden ver las estadísticas de usuarios',
       );
     }

@@ -1,11 +1,8 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { NOTIFICACIONES_REPOSITORY } from '../../../domain/repositories/notificaciones.repository.interface';
 import type { INotificacionesRepository } from '../../../domain/repositories/notificaciones.repository.interface';
+import { NotFoundError } from '../../errors/application.error';
 
-@Injectable()
 export class EliminarNotificacionUseCase {
   constructor(
-    @Inject(NOTIFICACIONES_REPOSITORY)
     private readonly notificacionesRepository: INotificacionesRepository,
   ) {}
 
@@ -15,9 +12,7 @@ export class EliminarNotificacionUseCase {
       idUsuario,
     );
     if (!deleted) {
-      throw new NotFoundException(
-        'Notificación no encontrada o ya fue eliminada',
-      );
+      throw new NotFoundError('Notificación no encontrada o ya fue eliminada');
     }
   }
 }

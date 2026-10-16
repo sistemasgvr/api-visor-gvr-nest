@@ -1,20 +1,13 @@
-import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
-import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
+import {
+  ForbiddenError,
+  InvalidInputError,
+  NotFoundError,
+} from '../../errors/application.error';
 import { puedeGestionarEntregable } from './entregable-acceso.helper';
 
-@Injectable()
 export class EliminarEntregableProyectoUseCase {
-  constructor(
-    @Inject(PROYECTO_REPOSITORY)
-    private readonly proyectoRepository: IProyectoRepository,
-  ) {}
+  constructor(private readonly proyectoRepository: IProyectoRepository) {}
 
   async execute(
     idEntregable: number,
@@ -24,7 +17,7 @@ export class EliminarEntregableProyectoUseCase {
     const actual =
       await this.proyectoRepository.obtenerEntregablePorId(idEntregable);
     if (!actual) {
-      throw new NotFoundException('El entregable no existe o ya fue eliminado');
+      throw new NotFoundError('El entregable no existe o ya fue eliminado');
     }
 
     const puede = await puedeGestionarEntregable(this.proyectoRepository, {
@@ -33,7 +26,7 @@ export class EliminarEntregableProyectoUseCase {
       rolesIds,
     });
     if (!puede) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'No tienes permiso para eliminar este entregable',
       );
     }
@@ -44,7 +37,7 @@ export class EliminarEntregableProyectoUseCase {
     );
 
     if (!resultado?.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al eliminar el entregable',
       );
     }

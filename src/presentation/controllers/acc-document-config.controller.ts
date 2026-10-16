@@ -16,7 +16,7 @@ import {
 import type { Request } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   CreateNamingStandardFromTemplateUseCase,
   GenerarNombreDocumentoUseCase,
@@ -32,13 +32,13 @@ import {
   UpsertFolderNamingRuleUseCase,
   EliminarFolderNamingRuleUseCase,
 } from '../../application/use-cases/acc/document-config';
-import { CreateNamingStandardFromTemplateDto } from '../../application/dtos/acc/document-config/create-naming-standard-from-template.dto';
-import { ListDocumentAttributesQueryDto } from '../../application/dtos/acc/document-config/list-document-attributes-query.dto';
-import { UpsertDocumentAttributeDto } from '../../application/dtos/acc/document-config/upsert-document-attribute.dto';
-import { UpsertDocumentNamingStandardDto } from '../../application/dtos/acc/document-config/upsert-document-naming-standard.dto';
-import { UpsertFolderNamingRuleDto } from '../../application/dtos/acc/document-config/upsert-folder-naming-rule.dto';
-import { GenerarNombreDocumentoDto } from '../../application/dtos/acc/document-config/generar-nombre-documento.dto';
-import { UpsertDocumentMetadataDto } from '../../application/dtos/acc/document-config/upsert-document-metadata.dto';
+import { CreateNamingStandardFromTemplateDto } from '../dtos/acc/document-config/create-naming-standard-from-template.dto';
+import { ListDocumentAttributesQueryDto } from '../dtos/acc/document-config/list-document-attributes-query.dto';
+import { UpsertDocumentAttributeDto } from '../dtos/acc/document-config/upsert-document-attribute.dto';
+import { UpsertDocumentNamingStandardDto } from '../dtos/acc/document-config/upsert-document-naming-standard.dto';
+import { UpsertFolderNamingRuleDto } from '../dtos/acc/document-config/upsert-folder-naming-rule.dto';
+import { GenerarNombreDocumentoDto } from '../dtos/acc/document-config/generar-nombre-documento.dto';
+import { UpsertDocumentMetadataDto } from '../dtos/acc/document-config/upsert-document-metadata.dto';
 
 @ApiTags('acc')
 @ApiBearerAuth('access-token')
@@ -108,7 +108,10 @@ export class AccDocumentConfigController {
       idUsuario: userId,
     });
 
-    return ApiResponseDto.success(data, String(data.message ?? 'Atributo guardado'));
+    return ApiResponseDto.success(
+      data,
+      String(data.message ?? 'Atributo guardado'),
+    );
   }
 
   @Get(':projectExternalId/naming-standards')
@@ -116,10 +119,14 @@ export class AccDocumentConfigController {
   async listarNamingStandards(
     @Param('projectExternalId') projectExternalId: string,
   ) {
-    const data = await this.listarDocumentNamingStandardsUseCase.execute(
-      projectExternalId,
+    const data =
+      await this.listarDocumentNamingStandardsUseCase.execute(
+        projectExternalId,
+      );
+    return ApiResponseDto.success(
+      data,
+      'Nomenclaturas obtenidas correctamente',
     );
-    return ApiResponseDto.success(data, 'Nomenclaturas obtenidas correctamente');
   }
 
   @Post(':projectExternalId/naming-standards')
@@ -174,10 +181,10 @@ export class AccDocumentConfigController {
   }
 
   @Get(':projectExternalId/naming-templates/:templateCode/preview')
-  @ApiOperation({ summary: 'Obtener vista previa de plantilla de nomenclatura' })
-  async getNamingTemplatePreview(
-    @Param('templateCode') templateCode: string,
-  ) {
+  @ApiOperation({
+    summary: 'Obtener vista previa de plantilla de nomenclatura',
+  })
+  async getNamingTemplatePreview(@Param('templateCode') templateCode: string) {
     const data = this.obtenerNamingTemplatePreviewUseCase.execute(templateCode);
     return ApiResponseDto.success(data, 'Plantilla obtenida correctamente');
   }
@@ -192,7 +199,10 @@ export class AccDocumentConfigController {
       projectExternalId,
       folderExternalId,
     );
-    return ApiResponseDto.success(data, 'Regla de carpeta obtenida correctamente');
+    return ApiResponseDto.success(
+      data,
+      'Regla de carpeta obtenida correctamente',
+    );
   }
 
   @Put(':projectExternalId/folders/:folderExternalId/naming-rule')
@@ -219,7 +229,9 @@ export class AccDocumentConfigController {
 
   @Delete(':projectExternalId/folders/:folderExternalId/naming-rule')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Quitar nomenclatura asignada directamente a una carpeta' })
+  @ApiOperation({
+    summary: 'Quitar nomenclatura asignada directamente a una carpeta',
+  })
   async eliminarFolderNamingRule(
     @Param('projectExternalId') projectExternalId: string,
     @Param('folderExternalId') folderExternalId: string,
@@ -265,7 +277,10 @@ export class AccDocumentConfigController {
       projectExternalId,
       folderExternalId,
     );
-    return ApiResponseDto.success(data, 'Metadatos de carpeta obtenidos correctamente');
+    return ApiResponseDto.success(
+      data,
+      'Metadatos de carpeta obtenidos correctamente',
+    );
   }
 
   @Get(':projectExternalId/metadata/:itemExternalId')

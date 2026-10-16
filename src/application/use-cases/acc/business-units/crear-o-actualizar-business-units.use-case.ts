@@ -1,10 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { CrearOActualizarBusinessUnitsDto } from '../../../dtos/acc/business-units/crear-o-actualizar-business-units.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
 
-@Injectable()
+import { CrearOActualizarBusinessUnitsDto } from '../../../inputs/acc/business-units/crear-o-actualizar-business-units.dto';
+
 export class CrearOActualizarBusinessUnitsUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAdminPort) {}
 
   async execute(
     accountId: string,
@@ -15,7 +15,7 @@ export class CrearOActualizarBusinessUnitsUseCase {
     ]);
 
     if (this.autodeskApiService.esTokenExpirado(token.expires_at)) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'El token ha expirado. Por favor, genera un nuevo token.',
       );
     }

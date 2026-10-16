@@ -1,8 +1,8 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IAccRepository } from '../../../domain/repositories/acc.repository.interface';
-import { ACC_REPOSITORY } from '../../../domain/repositories/acc.repository.interface';
-import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
-import { CallbackAutorizacionDto } from '../../dtos/acc/callback-autorizacion.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import type { AutodeskAuthPort } from '../../ports/autodesk/auth.port';
+
+import { CallbackAutorizacionDto } from '../../inputs/acc/callback-autorizacion.dto';
 
 export interface CallbackAutorizacionResponse {
   token_id: number;
@@ -11,13 +11,11 @@ export interface CallbackAutorizacionResponse {
   token_type: string;
 }
 
-@Injectable()
 export class CallbackAutorizacionUseCase {
   constructor(
-    @Inject(ACC_REPOSITORY)
     private readonly accRepository: IAccRepository,
-    @Inject(AutodeskApiService)
-    private readonly autodeskApiService: AutodeskApiService,
+
+    private readonly autodeskApiService: AutodeskAuthPort,
   ) {}
 
   async execute(
@@ -25,13 +23,13 @@ export class CallbackAutorizacionUseCase {
     idUsuario: number,
   ): Promise<CallbackAutorizacionResponse> {
     if (dto.error) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         `Error en autorización: ${dto.error_description || dto.error}`,
       );
     }
 
     if (!dto.code) {
-      throw new BadRequestException('No se recibió el código de autorización');
+      throw new InvalidInputError('No se recibió el código de autorización');
     }
 
     // Note: State validation is skipped here as we don't have server-side session persistence.

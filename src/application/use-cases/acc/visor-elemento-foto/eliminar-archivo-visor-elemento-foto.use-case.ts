@@ -1,20 +1,11 @@
-import {
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import {
-  ACC_VISOR_ELEMENTO_FOTO_REPOSITORY,
-  type IAccVisorElementoFotoRepository,
-} from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
-import { MinioStorageService } from '../../../../infrastructure/storage/minio-storage.service';
+import { type IAccVisorElementoFotoRepository } from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
+import { NotFoundError } from '../../../errors/application.error';
+import { MinioStoragePort } from '../../../ports/minio-storage.port';
 
-@Injectable()
 export class EliminarArchivoVisorElementoFotoUseCase {
   constructor(
-    @Inject(ACC_VISOR_ELEMENTO_FOTO_REPOSITORY)
     private readonly repository: IAccVisorElementoFotoRepository,
-    private readonly minioStorage: MinioStorageService,
+    private readonly minioStorage: MinioStoragePort,
   ) {}
 
   async execute(
@@ -28,7 +19,7 @@ export class EliminarArchivoVisorElementoFotoUseCase {
       idUsuario,
     );
     if (url == null) {
-      throw new NotFoundException('Imagen no encontrada o ya eliminada');
+      throw new NotFoundError('Imagen no encontrada o ya eliminada');
     }
     await this.minioStorage.tryDeleteEvidenciaStoredObject(url);
   }

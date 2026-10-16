@@ -1,7 +1,7 @@
 import {
   CrearWorkflowDto,
   WorkflowCandidatoInput,
-} from '../../../dtos/acc/reviews/crear-workflow.dto';
+} from '../../../inputs/acc/reviews/crear-workflow.dto';
 
 /** Resuelve nombre de opción BD acc_flujo_estado */
 export function resolveEstadoFlujoNombre(

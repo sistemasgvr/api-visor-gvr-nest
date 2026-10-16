@@ -1,11 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
+import type { AutodeskReviewsPort } from '../../../ports/autodesk/reviews.port';
+
 import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
 
-@Injectable()
 export class ObtenerProgresoRevisionUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskReviewsPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
   ) {}
 

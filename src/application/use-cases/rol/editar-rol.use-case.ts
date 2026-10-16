@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IRolRepository } from '../../../domain/repositories/rol.repository.interface';
-import { ROL_REPOSITORY } from '../../../domain/repositories/rol.repository.interface';
-import { UpdateRolDto } from '../../dtos/rol/update-rol.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { UpdateRolDto } from '../../inputs/rol/update-rol.dto';
 
-@Injectable()
 export class EditarRolUseCase {
-  constructor(
-    @Inject(ROL_REPOSITORY)
-    private readonly rolRepository: IRolRepository,
-  ) {}
+  constructor(private readonly rolRepository: IRolRepository) {}
 
   async execute(
     idRol: number,
@@ -22,7 +17,7 @@ export class EditarRolUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al editar el rol',
       );
     }

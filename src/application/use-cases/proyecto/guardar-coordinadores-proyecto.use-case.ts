@@ -1,17 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
 import type {
-  IProyectoRepository,
   GuardarCoordinadoresProyectoPayload,
+  IProyectoRepository,
 } from '../../../domain/repositories/proyecto.repository.interface';
-import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
-import type { GuardarCoordinadoresProyectoDto } from '../../dtos/proyecto/guardar-coordinadores-proyecto.dto';
+import type { GuardarCoordinadoresProyectoDto } from '../../inputs/proyecto/guardar-coordinadores-proyecto.dto';
 
-@Injectable()
 export class GuardarCoordinadoresProyectoUseCase {
-  constructor(
-    @Inject(PROYECTO_REPOSITORY)
-    private readonly proyectoRepository: IProyectoRepository,
-  ) {}
+  constructor(private readonly proyectoRepository: IProyectoRepository) {}
 
   async execute(
     idProyecto: number,

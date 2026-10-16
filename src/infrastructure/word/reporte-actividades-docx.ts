@@ -2,9 +2,12 @@ import type {
   ActividadInformeServicioLinea,
   DatosReporteActividadesRow,
 } from '../../domain/repositories/control-operativo.repository.interface';
-import { normalizeStoredValueToYmd } from '../../shared/utils/date.util';
+import { normalizeStoredValueToYmd } from '../../domain/utils/date.util';
 import axios from 'axios';
-import { rasterBufferDocxDisplayTransformation, rasterBufferToDocxRaster } from '../images/raster-buffer-to-docx-raster';
+import {
+  rasterBufferDocxDisplayTransformation,
+  rasterBufferToDocxRaster,
+} from '../images/raster-buffer-to-docx-raster';
 import {
   AlignmentType,
   convertInchesToTwip,
@@ -61,7 +64,10 @@ function formatFechaCortaPe(ymd: string): string {
 }
 
 function formatFechaLargaEsPe(ymd: string): string {
-  const p = ymd.trim().split('-').map((x) => parseInt(x, 10));
+  const p = ymd
+    .trim()
+    .split('-')
+    .map((x) => parseInt(x, 10));
   if (p.length !== 3 || p.some((n) => !Number.isFinite(n))) return ymd;
   const [y, m, d] = p;
   const dt = new Date(y, m - 1, d);
@@ -105,7 +111,9 @@ function buildResumenLaboresPortada(
     const baseTrim = s(act.linea);
     const base =
       baseTrim ||
-      (tipo ? `${tipo.replace(/\s+/g, ' ').trim()} - ${proyecto.replace(/\s+/g, ' ').trim()}` : '');
+      (tipo
+        ? `${tipo.replace(/\s+/g, ' ').trim()} - ${proyecto.replace(/\s+/g, ' ').trim()}`
+        : '');
     if (!base.trim()) continue;
     const key = normalizarParaClaveViñeta(base);
     if (!key || vistos.has(key)) continue;
@@ -131,7 +139,9 @@ function formatEntregableInforme(a: ActividadInformeServicioLinea): string {
   return '—';
 }
 
-function formatEntregableCulminadoInforme(a: ActividadInformeServicioLinea): string {
+function formatEntregableCulminadoInforme(
+  a: ActividadInformeServicioLinea,
+): string {
   const id = a.identregable;
   if (id == null || id <= 0) return '—';
   return a.entregableculminado === true ? 'Sí' : 'No';
@@ -164,7 +174,9 @@ function guessImageType(buf: Buffer): 'png' | 'jpg' {
 }
 
 /** Una línea de texto por cada salto proveniente del SQL (dirección empresa). */
-function pieFooterParagraphs(direccionPie: string | null | undefined): Paragraph[] {
+function pieFooterParagraphs(
+  direccionPie: string | null | undefined,
+): Paragraph[] {
   const raw = direccionPie != null ? String(direccionPie).trim() : '';
   if (!raw) return [];
   const lines = raw
@@ -294,7 +306,10 @@ function tablaActividadInformeCompacta(input: {
     rows: [
       new TableRow({
         children: [
-          celdaEtiquetaInforme(`Actividad ${input.nEnDia}`, ANCHO_ETIQUETA_DOBLE),
+          celdaEtiquetaInforme(
+            `Actividad ${input.nEnDia}`,
+            ANCHO_ETIQUETA_DOBLE,
+          ),
           new TableCell({
             columnSpan: 3,
             width: { size: anchoValorExpandidoPct, type: WidthType.PERCENTAGE },
@@ -302,7 +317,9 @@ function tablaActividadInformeCompacta(input: {
             children: [
               new Paragraph({
                 alignment: AlignmentType.BOTH,
-                children: [new TextRun({ text: input.titulo || '—', size: 22 })],
+                children: [
+                  new TextRun({ text: input.titulo || '—', size: 22 }),
+                ],
               }),
             ],
           }),
@@ -335,7 +352,9 @@ function tablaActividadInformeCompacta(input: {
             children: [
               new Paragraph({
                 alignment: AlignmentType.BOTH,
-                children: [new TextRun({ text: input.estado || '—', size: 22 })],
+                children: [
+                  new TextRun({ text: input.estado || '—', size: 22 }),
+                ],
               }),
             ],
           }),
@@ -484,7 +503,11 @@ async function appendEvidenciasForActividad(
           new Paragraph({
             spacing: { before: 120, after: 60 },
             children: [
-              new TextRun({ text: 'Enlace de actividad: ', bold: true, size: 22 }),
+              new TextRun({
+                text: 'Enlace de actividad: ',
+                bold: true,
+                size: 22,
+              }),
               new ExternalHyperlink({
                 children: [
                   new TextRun({
@@ -507,7 +530,11 @@ async function appendEvidenciasForActividad(
         new Paragraph({
           spacing: { before: 120, after: 60 },
           children: [
-            new TextRun({ text: 'Enlace de actividad: ', bold: true, size: 22 }),
+            new TextRun({
+              text: 'Enlace de actividad: ',
+              bold: true,
+              size: 22,
+            }),
             new TextRun({ text: linkLegacy, size: 20 }),
           ],
         }),
@@ -608,8 +635,7 @@ async function appendDetalleActividades(
       children: [
         new TextRun({
           size: 22,
-          text:
-            'Detalle de cada actividad: datos generales, entregable, descripción, enlace libre si existe, y evidencias con enlace (o vista previa si la imagen está disponible).',
+          text: 'Detalle de cada actividad: datos generales, entregable, descripción, enlace libre si existe, y evidencias con enlace (o vista previa si la imagen está disponible).',
         }),
       ],
     }),
@@ -659,9 +685,7 @@ async function appendDetalleActividades(
             after: 140,
           },
           bullet: { level: 0 },
-          children: [
-            new TextRun({ text: textoDia, bold: true, size: 24 }),
-          ],
+          children: [new TextRun({ text: textoDia, bold: true, size: 24 })],
         }),
       );
       primerEncabezadoDiaDelDocumento = false;
@@ -670,9 +694,7 @@ async function appendDetalleActividades(
     nEnDia += 1;
     const titulo = s(a.nombreactividad) || `Sin título (${nEnDia})`;
 
-    children.push(
-      spacerAntesBloqueActividad(nEnDia === 1 ? 100 : 180),
-    );
+    children.push(spacerAntesBloqueActividad(nEnDia === 1 ? 100 : 180));
 
     children.push(
       tablaActividadInformeCompacta({
@@ -816,8 +838,7 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
   const puestoInforme =
     puestoContrato.length > 0 ? puestoContrato : 'Servicio según contrato';
   const preparador = s(row.nombrecompletotrabajador);
-  const nombreFirma =
-    preparador || '(apellidos y nombres completos)';
+  const nombreFirma = preparador || '(apellidos y nombres completos)';
   const periodoDe = formatFechaCortaPe(fechaInicioYmd);
   const periodoAl = formatFechaCortaPe(fechaFinYmd);
   const fechaLarga = formatFechaLargaEsPe(fechaEmisionYmd);
@@ -902,15 +923,13 @@ export async function buildReporteActividadesPrimeraPaginaBuffer(
       spacing: { after: 280 },
       children: [
         new TextRun({
-          text:
-            'El presente informe detalla las actividades llevadas a cabo en el periodo comprendido entre el ',
+          text: 'El presente informe detalla las actividades llevadas a cabo en el periodo comprendido entre el ',
         }),
         new TextRun({ text: periodoDe, bold: true }),
         new TextRun({ text: ' y el ' }),
         new TextRun({ text: periodoAl, bold: true }),
         new TextRun({
-          text:
-            ', según el contrato de locación de servicios como ',
+          text: ', según el contrato de locación de servicios como ',
         }),
         new TextRun({ text: puestoInforme, bold: true }),
         new TextRun({

@@ -1,4 +1,10 @@
-import { Injectable, BadRequestException, Logger, Inject } from '@nestjs/common';
+import type { WorkerSignatureStoragePort } from '../../application/ports/worker-signature-storage.port';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  Inject,
+} from '@nestjs/common';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -23,7 +29,7 @@ export interface SavedWorkerSignatureMeta {
 }
 
 @Injectable()
-export class WorkerSignatureStorageService {
+export class WorkerSignatureStorageService implements WorkerSignatureStoragePort {
   private readonly logger = new Logger(WorkerSignatureStorageService.name);
 
   constructor(

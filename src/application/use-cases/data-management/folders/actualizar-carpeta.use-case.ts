@@ -1,22 +1,16 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
-import { ActualizarCarpetaDto } from '../../../dtos/data-management/folders/actualizar-carpeta.dto';
+import { UnauthenticatedError } from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
 
-@Injectable()
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { ActualizarCarpetaDto } from '../../../inputs/data-management/folders/actualizar-carpeta.dto';
+
 export class ActualizarCarpetaUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 
@@ -33,13 +27,13 @@ export class ActualizarCarpetaUseCase {
       await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
     if (!token) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'No se encontró token de acceso. Por favor, autoriza la aplicación primero.',
       );
     }
 
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'El token ha expirado. Por favor, refresca tu token.',
       );
     }

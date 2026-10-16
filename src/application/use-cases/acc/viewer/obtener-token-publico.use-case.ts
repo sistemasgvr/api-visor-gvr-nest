@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ObtenerTokenPublicoDto } from '../../../dtos/acc/viewer/obtener-token-publico.dto';
+import type { AutodeskAuthPort } from '../../../ports/autodesk/auth.port';
 
-@Injectable()
+import { ObtenerTokenPublicoDto } from '../../../inputs/acc/viewer/obtener-token-publico.dto';
+
 export class ObtenerTokenPublicoUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAuthPort) {}
 
   async execute(dto: ObtenerTokenPublicoDto): Promise<any> {
     // Token público con scope viewables:read

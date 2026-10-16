@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { INovedadRepository } from '../../../domain/repositories/novedad.repository.interface';
-import { NOVEDAD_REPOSITORY } from '../../../domain/repositories/novedad.repository.interface';
-import { SincronizarRolesNovedadDto } from '../../dtos/novedad/sincronizar-roles-novedad.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { SincronizarRolesNovedadDto } from '../../inputs/novedad/sincronizar-roles-novedad.dto';
 
-@Injectable()
 export class SincronizarRolesNovedadUseCase {
-  constructor(
-    @Inject(NOVEDAD_REPOSITORY)
-    private readonly novedadRepository: INovedadRepository,
-  ) {}
+  constructor(private readonly novedadRepository: INovedadRepository) {}
 
   async execute(
     idNovedadLanzamiento: number,
@@ -22,7 +17,7 @@ export class SincronizarRolesNovedadUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al sincronizar los roles',
       );
     }

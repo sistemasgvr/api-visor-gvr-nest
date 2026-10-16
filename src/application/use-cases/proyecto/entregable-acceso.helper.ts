@@ -70,7 +70,10 @@ export async function puedeGestionarEntregable(
 
   const idProyecto = Number(entregable.idproyecto);
   if (idProyecto > 0) {
-    const esCoord = await repo.esCoordinadorEnProyecto(idProyecto, idTrabajador);
+    const esCoord = await repo.esCoordinadorEnProyecto(
+      idProyecto,
+      idTrabajador,
+    );
     if (esCoord) return true;
   }
 

@@ -1,15 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
 import type {
   IAccResourcesRepository,
   ListarPermisosRolParams,
 } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ListarPermisosRolDto } from '../../../dtos/acc/resources/listar-permisos-rol.dto';
+import { ListarPermisosRolDto } from '../../../inputs/acc/resources/listar-permisos-rol.dto';
 
-@Injectable()
 export class ListarPermisosRolUseCase {
   constructor(
-    @Inject(ACC_RESOURCES_REPOSITORY)
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 

@@ -19,7 +19,9 @@ function pickJsonbFromFunctionRow(
   if (!row || typeof row !== 'object') {
     return null;
   }
-  const values = Object.values(row).filter((v) => v !== undefined && v !== null);
+  const values = Object.values(row).filter(
+    (v) => v !== undefined && v !== null,
+  );
   if (values.length === 1) {
     return values[0];
   }
@@ -59,7 +61,9 @@ export class NovedadRepository implements INovedadRepository {
     private readonly dataSource: DataSource,
   ) {}
 
-  async obtenerIdLanzamientoPorTarjeta(idTarjeta: number): Promise<number | null> {
+  async obtenerIdLanzamientoPorTarjeta(
+    idTarjeta: number,
+  ): Promise<number | null> {
     const rows = await this.dataSource.query<
       { idnovedadlanzamiento: number }[]
     >(
@@ -89,8 +93,12 @@ export class NovedadRepository implements INovedadRepository {
   async listarLanzamientos(
     params: ListarNovedadLanzamientosParams,
   ): Promise<ListarNovedadLanzamientosResponse> {
-    const { busqueda = '', soloActivos = false, limit = 20, offset = 0 } =
-      params;
+    const {
+      busqueda = '',
+      soloActivos = false,
+      limit = 20,
+      offset = 0,
+    } = params;
 
     const result = await this.databaseFunctionService.callFunction<any>(
       'gen_ListarNovedadLanzamientos',
@@ -179,11 +187,7 @@ export class NovedadRepository implements INovedadRepository {
   async sincronizarRoles(data: SincronizarRolesNovedadData): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
       'gen_SincronizarRolesNovedad',
-      [
-        data.idNovedadLanzamiento,
-        data.roles ?? [],
-        data.idUsuarioModificacion,
-      ],
+      [data.idNovedadLanzamiento, data.roles ?? [], data.idUsuarioModificacion],
     );
 
     return result;

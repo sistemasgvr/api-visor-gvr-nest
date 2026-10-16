@@ -1,20 +1,13 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
-import {
-  ACC_VISOR_MARCA_REVISION_REPOSITORY,
   type CrearVisorMarcaRevisionParams,
   type IAccVisorMarcaRevisionRepository,
 } from '../../../../domain/repositories/acc-visor-marca-revision.repository.interface';
-import type { CrearVisorMarcaRevisionDto } from '../../../dtos/acc/visor-marca-revision/visor-marca-revision.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import type { CrearVisorMarcaRevisionDto } from '../../../inputs/acc/visor-marca-revision/visor-marca-revision.dto';
 import { VisorMarcaRevisionSyncService } from './visor-marca-revision-sync.service';
 
-@Injectable()
 export class CrearVisorMarcaRevisionUseCase {
   constructor(
-    @Inject(ACC_VISOR_MARCA_REVISION_REPOSITORY)
     private readonly repository: IAccVisorMarcaRevisionRepository,
     private readonly syncService: VisorMarcaRevisionSyncService,
   ) {}
@@ -50,14 +43,16 @@ export class CrearVisorMarcaRevisionUseCase {
 
     const result = await this.repository.crear(params);
     if (!result.success) {
-      throw new BadRequestException(result.message);
+      throw new InvalidInputError(result.message);
     }
     if (result.id == null) {
-      throw new BadRequestException('No se pudo crear la marca de revisión');
+      throw new InvalidInputError('No se pudo crear la marca de revisión');
     }
     const detalle = await this.repository.obtenerPorId(result.id, idUsuario);
     if (!detalle) {
-      throw new BadRequestException('Marca creada pero no visible para el usuario');
+      throw new InvalidInputError(
+        'Marca creada pero no visible para el usuario',
+      );
     }
     this.syncService.emit('created', detalle, idUsuario);
     return detalle;

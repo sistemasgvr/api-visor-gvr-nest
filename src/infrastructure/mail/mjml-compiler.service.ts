@@ -1,3 +1,4 @@
+import type { MjmlCompilerPort } from '../../application/ports/mjml-compiler.port';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import mjml2html from 'mjml';
 
@@ -7,7 +8,7 @@ export interface MjmlCompileResult {
 }
 
 @Injectable()
-export class MjmlCompilerService {
+export class MjmlCompilerService implements MjmlCompilerPort {
   async compile(mjmlSource: string): Promise<MjmlCompileResult> {
     const trimmed = (mjmlSource ?? '').trim();
     if (!trimmed) {

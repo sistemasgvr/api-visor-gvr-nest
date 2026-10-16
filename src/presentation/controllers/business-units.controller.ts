@@ -11,7 +11,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   ObtenerBusinessUnitsUseCase,
   ObtenerBusinessUnitPorIdUseCase,
@@ -25,7 +25,7 @@ import {
   ObtenerBusinessUnitsHijasDto,
   BuscarBusinessUnitsDto,
   CrearOActualizarBusinessUnitsDto,
-} from '../../application/dtos/acc/business-units';
+} from '../dtos/acc/business-units';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('business-units')

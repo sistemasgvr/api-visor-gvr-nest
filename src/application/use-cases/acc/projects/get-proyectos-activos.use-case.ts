@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { GetProyectosActivosDto } from '../../../dtos/acc/projects/get-proyectos-activos.dto';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
 
-@Injectable()
+import { GetProyectosActivosDto } from '../../../inputs/acc/projects/get-proyectos-activos.dto';
+
 export class GetProyectosActivosUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAdminPort) {}
 
   async execute(accountId: string, dto: GetProyectosActivosDto): Promise<any> {
     const options: Record<string, any> = {};

@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IMenuGestionRepository } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { MENU_GESTION_REPOSITORY } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { CreateMenuDto } from '../../dtos/menu-gestion/create-menu.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { CreateMenuDto } from '../../inputs/menu-gestion/create-menu.dto';
 
-@Injectable()
 export class CrearMenuUseCase {
-  constructor(
-    @Inject(MENU_GESTION_REPOSITORY)
-    private readonly menuRepository: IMenuGestionRepository,
-  ) {}
+  constructor(private readonly menuRepository: IMenuGestionRepository) {}
 
   async execute(createDto: CreateMenuDto, idUsuarioCreacion: number) {
     const resultado = await this.menuRepository.crearMenu({
@@ -17,7 +12,7 @@ export class CrearMenuUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al crear el menú',
       );
     }

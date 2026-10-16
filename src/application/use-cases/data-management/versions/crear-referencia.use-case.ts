@@ -1,16 +1,13 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import { CrearReferenciaDto } from '../../../dtos/data-management/versions/crear-referencia.dto';
+import { UnauthenticatedError } from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
 
-@Injectable()
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { CrearReferenciaDto } from '../../../inputs/data-management/versions/crear-referencia.dto';
+
 export class CrearReferenciaUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
   ) {}
 
@@ -24,13 +21,13 @@ export class CrearReferenciaUseCase {
       await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
     if (!token) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'No se encontró token de acceso válido. Por favor, autoriza la aplicación primero.',
       );
     }
 
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'El token ha expirado. Por favor, refresca tu token.',
       );
     }

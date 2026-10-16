@@ -1,16 +1,11 @@
-import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
-import type {
-  IProyectoRepository,
-  CrearEntregableProyectoData,
-} from '../../../domain/repositories/proyecto.repository.interface';
-import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
 import { ID_ESTADO_ENTREGABLE_CULMINADO } from '../../../domain/constants/estado-entregable.constants';
-import { BroadcastService } from '../../../shared/services/broadcast.service';
+import type {
+  CrearEntregableProyectoData,
+  IProyectoRepository,
+} from '../../../domain/repositories/proyecto.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
+import { BroadcastPort } from '../../ports/broadcast.port';
+import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
 import {
   esRolCoordinador,
   esRolModeladorColaborador,
@@ -19,15 +14,18 @@ import {
 import { emitirEntregableAsignado } from './entregable-notificaciones.helper';
 import { resolverIdsResponsablesEntrada } from './entregable-responsables.helper';
 
-@Injectable()
 export class CrearEntregableProyectoUseCase {
-  private readonly logger = new Logger(CrearEntregableProyectoUseCase.name);
+  private readonly logger: ApplicationLogger;
 
   constructor(
-    @Inject(PROYECTO_REPOSITORY)
     private readonly proyectoRepository: IProyectoRepository,
-    private readonly broadcastService: BroadcastService,
-  ) {}
+    private readonly broadcastService: BroadcastPort,
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(
+      CrearEntregableProyectoUseCase.name,
+    );
+  }
 
   async execute(
     data: CrearEntregableProyectoData,
@@ -35,7 +33,7 @@ export class CrearEntregableProyectoUseCase {
     rolesIds: number[] = [],
   ) {
     if (data.idEstado === ID_ESTADO_ENTREGABLE_CULMINADO) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'No se puede crear un entregable como CULMINADO. Márcalo desde una actividad.',
       );
     }
@@ -50,19 +48,19 @@ export class CrearEntregableProyectoUseCase {
 
     if (idsResponsables.length === 0) {
       if (esRolCoordinador(rolesIds)) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           'El responsable es obligatorio al crear un entregable como coordinador',
         );
       }
       if (esRolModeladorColaborador(rolesIds)) {
         if (idTrabajadorActor == null) {
-          throw new BadRequestException(
+          throw new InvalidInputError(
             'No se encontró trabajador activo para auto-asignarte como responsable',
           );
         }
         idsResponsables = [idTrabajadorActor];
       } else {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           'Debe indicar al menos un trabajador responsable del entregable',
         );
       }
@@ -75,7 +73,7 @@ export class CrearEntregableProyectoUseCase {
         idResponsable,
       );
       if (!okResponsable) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           `El responsable (id ${idResponsable}) debe pertenecer al proyecto (acceso o equipo configurado)`,
         );
       }
@@ -92,7 +90,7 @@ export class CrearEntregableProyectoUseCase {
     );
 
     if (!resultado?.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al crear el entregable',
       );
     }
@@ -100,6 +98,7 @@ export class CrearEntregableProyectoUseCase {
     if (resultado.id != null && resultado.id > 0) {
       for (const idResponsable of idsResponsables) {
         await emitirEntregableAsignado({
+          logger: this.loggerFactory.create('EntregableNotificaciones'),
           broadcast: this.broadcastService,
           proyectoRepository: this.proyectoRepository,
           idEntregable: resultado.id,

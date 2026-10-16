@@ -1,11 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { ExportacionRevisionesPdfService } from '../../../../infrastructure/services/exportacion-revisiones-pdf.service';
-import type { ExportarRevisionesPdfQueryDto } from '../../../dtos/acc/reviews/exportar-revisiones-pdf-query.dto';
+import type { ExportarRevisionesPdfQueryDto } from '../../../inputs/acc/reviews/exportar-revisiones-pdf-query.dto';
+import { ExportacionRevisionesPdfPort } from '../../../ports/exportacion-revisiones-pdf.port';
 
-@Injectable()
 export class ExportarRevisionesPdfUseCase {
   constructor(
-    private readonly exportacionRevisionesPdfService: ExportacionRevisionesPdfService,
+    private readonly exportacionRevisionesPdfService: ExportacionRevisionesPdfPort,
   ) {}
 
   async execute(

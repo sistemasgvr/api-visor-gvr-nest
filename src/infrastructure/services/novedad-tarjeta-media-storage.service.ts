@@ -1,8 +1,5 @@
-import {
-  Injectable,
-  BadRequestException,
-  Inject,
-} from '@nestjs/common';
+import type { NovedadTarjetaMediaStoragePort } from '../../application/ports/novedad-tarjeta-media-storage.port';
+import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { MinioStorageService } from '../storage/minio-storage.service';
 import type { IEvidenciaImageOptimizer } from '../../domain/services/evidencia-image-optimizer.interface';
@@ -25,7 +22,7 @@ export interface SavedNovedadTarjetaMedia {
 }
 
 @Injectable()
-export class NovedadTarjetaMediaStorageService {
+export class NovedadTarjetaMediaStorageService implements NovedadTarjetaMediaStoragePort {
   constructor(
     private readonly minioStorage: MinioStorageService,
     @Inject(EVIDENCIA_IMAGE_OPTIMIZER)

@@ -1,15 +1,12 @@
-import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
+import { ForbiddenError } from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
 
-@Injectable()
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+
 export class ObtenerItemPorIdUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
   ) {}
 
@@ -23,13 +20,13 @@ export class ObtenerItemPorIdUseCase {
       await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
     if (!token) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'No se encontró token de acceso. Por favor, autoriza la aplicación de Autodesk primero.',
       );
     }
 
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'El token de Autodesk ha expirado. Por favor, refresca tu token.',
       );
     }

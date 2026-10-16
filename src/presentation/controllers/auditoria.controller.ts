@@ -9,7 +9,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   ListarAuditoriasUseCase,
   ObtenerAuditoriaPorIdUseCase,
@@ -21,7 +21,7 @@ import {
   ListarAuditoriasDto,
   ObtenerHistorialUsuarioDto,
   ObtenerEstadisticasDto,
-} from '../../application/dtos/auditoria';
+} from '../dtos/auditoria';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('auditoria')
@@ -44,7 +44,8 @@ export class AuditoriaController {
    */
   @ApiOperation({
     summary: 'Estadísticas agregadas de auditoría',
-    description: 'Resúmenes por tipo de evento, usuario o período (según query).',
+    description:
+      'Resúmenes por tipo de evento, usuario o período (según query).',
   })
   @Get('estadisticas')
   @HttpCode(HttpStatus.OK)

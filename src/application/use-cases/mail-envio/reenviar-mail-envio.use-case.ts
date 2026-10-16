@@ -1,19 +1,14 @@
-import {
-  BadRequestException,
-  Injectable,
-  Inject,
-  NotFoundException,
-} from '@nestjs/common';
-import type { ITrabajadorRepository } from '../../../domain/repositories/trabajador.repository.interface';
-import { TRABAJADOR_REPOSITORY } from '../../../domain/repositories/trabajador.repository.interface';
 import { EMAIL_TEMPLATE_IDS } from '../../../domain/mail/email-template-id';
+import type { ITrabajadorRepository } from '../../../domain/repositories/trabajador.repository.interface';
+import {
+  InvalidInputError,
+  NotFoundError,
+} from '../../errors/application.error';
+import { ReenviarMailEnvioDto } from '../../inputs/mail-envio/reenviar-mail-envio.dto';
 import { EnviarCorreoBienvenidaUseCase } from '../mail/enviar-correo-bienvenida.use-case';
-import { ReenviarMailEnvioDto } from '../../dtos/mail-envio/reenviar-mail-envio.dto';
 
-@Injectable()
 export class ReenviarMailEnvioUseCase {
   constructor(
-    @Inject(TRABAJADOR_REPOSITORY)
     private readonly trabajadorRepository: ITrabajadorRepository,
     private readonly enviarCorreoBienvenidaUseCase: EnviarCorreoBienvenidaUseCase,
   ) {}
@@ -23,21 +18,23 @@ export class ReenviarMailEnvioUseCase {
       dto.idTrabajador,
     );
     if (!trabajador) {
-      throw new NotFoundException('Trabajador no encontrado');
+      throw new NotFoundError('Trabajador no encontrado');
     }
 
     if (dto.templateId === EMAIL_TEMPLATE_IDS.WELCOME) {
-      const correo = String(trabajador.correo ?? trabajador.Correo ?? '').trim();
+      const correo = String(
+        trabajador.correo ?? trabajador.Correo ?? '',
+      ).trim();
       if (!correo) {
-        throw new BadRequestException(
-          'El trabajador no tiene correo registrado',
-        );
+        throw new InvalidInputError('El trabajador no tiene correo registrado');
       }
 
       const nombreCompleto = String(
         trabajador.nombrecompleto ??
           trabajador.nombreCompleto ??
-          [trabajador.nombres, trabajador.apellidos].filter(Boolean).join(' ') ??
+          [trabajador.nombres, trabajador.apellidos]
+            .filter(Boolean)
+            .join(' ') ??
           '',
       ).trim();
       const nombre = nombreCompleto || 'Usuario';
@@ -50,7 +47,7 @@ export class ReenviarMailEnvioUseCase {
       });
 
       if (!result.sent) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           result.skippedReason ?? 'No se pudo encolar el correo',
         );
       }
@@ -61,7 +58,7 @@ export class ReenviarMailEnvioUseCase {
       };
     }
 
-    throw new BadRequestException(
+    throw new InvalidInputError(
       `Reenvío manual no disponible para la plantilla "${dto.templateId}"`,
     );
   }

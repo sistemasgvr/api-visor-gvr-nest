@@ -1,10 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
-import { AgregarReferenciaRevisionDto } from '../../../dtos/acc/reviews/agregar-referencia-revision.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { AgregarReferenciaRevisionDto } from '../../../inputs/acc/reviews/agregar-referencia-revision.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
-@Injectable()
 export class AgregarReferenciaRevisionUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     idRevision: number,
@@ -12,11 +11,11 @@ export class AgregarReferenciaRevisionUseCase {
     dto: AgregarReferenciaRevisionDto,
     userId: number,
   ): Promise<{ id: number; message: string }> {
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.agregarReferenciaRevision<{
       success: boolean;
       message: string;
       id_result: number;
-    }>('acc_AgregarReferenciaRevision', [
+    }>([
       idRevision,
       projectId,
       dto.tipoReferencia,
@@ -31,7 +30,7 @@ export class AgregarReferenciaRevisionUseCase {
 
     const row = rows?.[0];
     if (!row?.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         row?.message ?? 'Error al agregar referencia',
       );
     }

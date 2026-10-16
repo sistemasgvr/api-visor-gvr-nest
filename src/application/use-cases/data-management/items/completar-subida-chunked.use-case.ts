@@ -1,33 +1,22 @@
 import {
-  BadRequestException,
-  ForbiddenException,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
-import {
-  AUTH_REPOSITORY,
-  type IAuthRepository,
-} from '../../../../domain/repositories/auth.repository.interface';
-import { CompletarSubidaChunkedDto } from '../../../dtos/data-management/items/completar-subida-chunked.dto';
+  ForbiddenError,
+  InvalidInputError,
+} from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
 
-@Injectable()
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { type IAuthRepository } from '../../../../domain/repositories/auth.repository.interface';
+import { CompletarSubidaChunkedDto } from '../../../inputs/data-management/items/completar-subida-chunked.dto';
+
 export class CompletarSubidaChunkedUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
-    @Inject(AUTH_REPOSITORY)
+
     private readonly authRepository: IAuthRepository,
   ) {}
 
@@ -40,23 +29,26 @@ export class CompletarSubidaChunkedUseCase {
     userRole?: string,
   ) {
     if (!projectId) {
-      throw new BadRequestException('El ID del proyecto es requerido');
+      throw new InvalidInputError('El ID del proyecto es requerido');
     }
     if (!dto.folderId || !dto.fileName || !dto.storageId) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'folderId, fileName y storageId son requeridos',
       );
     }
 
-    const token = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
+    const token =
+      await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
     if (!token) {
-      throw new ForbiddenException('No se encontró token de Autodesk');
+      throw new ForbiddenError('No se encontró token de Autodesk');
     }
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new ForbiddenException('El token de Autodesk ha expirado.');
+      throw new ForbiddenError('El token de Autodesk ha expirado.');
     }
 
-    const projectIdNorm = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
+    const projectIdNorm = projectId.startsWith('b.')
+      ? projectId
+      : `b.${projectId}`;
 
     let existingItem: { id: string; attributes?: any } | null = null;
     try {
@@ -204,13 +196,18 @@ export class CompletarSubidaChunkedUseCase {
         try {
           const perfil = await this.authRepository.obtenerPerfilUsuario(userId);
           if (perfil) {
-            idEmpresaUsuario = perfil.idempresa ?? perfil.idEmpresaUsuario ?? null;
+            idEmpresaUsuario =
+              perfil.idempresa ?? perfil.idEmpresaUsuario ?? null;
             nombreEmpresaUsuario =
-              perfil.nombreempresa ?? perfil.nombreEmpresa ?? perfil.empresa ?? null;
+              perfil.nombreempresa ??
+              perfil.nombreEmpresa ??
+              perfil.empresa ??
+              null;
             if (!rolNombre) {
               const roles =
                 perfil.roles && Array.isArray(perfil.roles) ? perfil.roles : [];
-              rolNombre = roles[0]?.nombre ?? roles[0]?.name ?? perfil.rol ?? null;
+              rolNombre =
+                roles[0]?.nombre ?? roles[0]?.name ?? perfil.rol ?? null;
             }
           }
         } catch {

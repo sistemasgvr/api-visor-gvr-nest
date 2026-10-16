@@ -156,7 +156,7 @@ await this.mailService.enqueue({
 
 **Regla:** en `variables` solo manda las claves que **existen** en tu plantilla. Nada más.
 
-Registra la clase nueva en `src/presentation/modules/mail.module.ts` si otros módulos la van a usar.
+Registra la clase nueva en `src/composition/modules/mail.module.ts` si otros módulos la van a usar. Los componentes de aplicación se construyen mediante `applicationProvider`, con sus dependencias explícitas en `src/composition/application.providers.ts`.
 
 ---
 

@@ -1,12 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IAccResourcesRepository } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { AsignarPermisoDto } from '../../../dtos/acc/resources/asignar-permiso.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { AsignarPermisoDto } from '../../../inputs/acc/resources/asignar-permiso.dto';
 
-@Injectable()
 export class AsignarPermisoUseCase {
   constructor(
-    @Inject(ACC_RESOURCES_REPOSITORY)
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 
@@ -18,7 +15,7 @@ export class AsignarPermisoUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al asignar el permiso',
       );
     }

@@ -32,8 +32,7 @@ export class ProyectoRepository implements IProyectoRepository {
   private async resolverFotoPerfil(
     fotoAlmacenada: unknown,
   ): Promise<string | null> {
-    const raw =
-      typeof fotoAlmacenada === 'string' ? fotoAlmacenada.trim() : '';
+    const raw = typeof fotoAlmacenada === 'string' ? fotoAlmacenada.trim() : '';
     if (!raw) return null;
     try {
       return await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(raw);
@@ -398,7 +397,8 @@ export class ProyectoRepository implements IProyectoRepository {
     ]);
     const conteosPorEstado = (conteosRaw ?? []).map((c) => ({
       idestado: Number(c.idestado),
-      estadonombre: String(c.estadonombre ?? '').trim() || `Estado ${c.idestado}`,
+      estadonombre:
+        String(c.estadonombre ?? '').trim() || `Estado ${c.idestado}`,
       cantidad: Number(c.cantidad ?? 0),
     }));
 
@@ -546,8 +546,7 @@ export class ProyectoRepository implements IProyectoRepository {
         : [];
     } else if (data.idTrabajadorResponsable !== undefined) {
       responsables =
-        data.idTrabajadorResponsable != null &&
-        data.idTrabajadorResponsable > 0
+        data.idTrabajadorResponsable != null && data.idTrabajadorResponsable > 0
           ? [data.idTrabajadorResponsable]
           : [];
     }
@@ -641,9 +640,10 @@ export class ProyectoRepository implements IProyectoRepository {
     if (idUsuario == null || idUsuario < 1) return null;
     const rows = await this.databaseFunctionService.executeQuery<{
       id: number;
-    }>('SELECT id FROM tratrabajador WHERE idusuario = $1 AND estado = 1 LIMIT 1', [
-      idUsuario,
-    ]);
+    }>(
+      'SELECT id FROM tratrabajador WHERE idusuario = $1 AND estado = 1 LIMIT 1',
+      [idUsuario],
+    );
     const id = rows?.[0]?.id;
     return id != null && Number(id) > 0 ? Number(id) : null;
   }
@@ -683,7 +683,9 @@ export class ProyectoRepository implements IProyectoRepository {
       [idTrabajador],
     );
     const idUsuario = rows?.[0]?.idusuario;
-    return idUsuario != null && Number(idUsuario) > 0 ? Number(idUsuario) : null;
+    return idUsuario != null && Number(idUsuario) > 0
+      ? Number(idUsuario)
+      : null;
   }
 
   async obtenerNombreTrabajadorPorId(

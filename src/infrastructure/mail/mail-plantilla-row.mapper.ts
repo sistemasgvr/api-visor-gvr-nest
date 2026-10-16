@@ -7,7 +7,10 @@ import type {
   MailTemplateVariableSchemaItem,
 } from '../../domain/entities/mail-plantilla-correo.entity';
 
-function pick<T>(row: Record<string, unknown>, ...keys: string[]): T | undefined {
+function pick<T>(
+  row: Record<string, unknown>,
+  ...keys: string[]
+): T | undefined {
   for (const key of keys) {
     const value = row[key];
     if (value !== undefined && value !== null) {
@@ -17,9 +20,7 @@ function pick<T>(row: Record<string, unknown>, ...keys: string[]): T | undefined
   return undefined;
 }
 
-function parseJsonObject(
-  value: unknown,
-): Record<string, unknown> | null {
+function parseJsonObject(value: unknown): Record<string, unknown> | null {
   if (value == null) return null;
   if (typeof value === 'object' && !Array.isArray(value)) {
     return value as Record<string, unknown>;
@@ -27,7 +28,9 @@ function parseJsonObject(
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
-      return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+      return typeof parsed === 'object' &&
+        parsed !== null &&
+        !Array.isArray(parsed)
         ? (parsed as Record<string, unknown>)
         : null;
     } catch {
@@ -45,7 +48,9 @@ function parseVariables(value: unknown): MailTemplateVariableSchemaItem[] {
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
-      return Array.isArray(parsed) ? (parsed as MailTemplateVariableSchemaItem[]) : [];
+      return Array.isArray(parsed)
+        ? (parsed as MailTemplateVariableSchemaItem[])
+        : [];
     } catch {
       return [];
     }
@@ -70,31 +75,29 @@ export function mapMailPlantillaListRow(
     estado: Number(pick(row, 'estado') ?? 0),
     tieneMjml: Boolean(pick(row, 'tieneMjml', 'tiene_mjml')),
     tieneHtml: Boolean(pick(row, 'tieneHtml', 'tiene_html')),
-    tieneDesignJson: Boolean(
-      pick(row, 'tieneDesignJson', 'tiene_design_json'),
-    ),
+    tieneDesignJson: Boolean(pick(row, 'tieneDesignJson', 'tiene_design_json')),
     cantidadVariables: Number(
       pick(row, 'cantidadvariables', 'cantidadVariables') ?? 0,
     ),
-    fechaCreacion: pick(row, 'fechacreacion', 'fechaCreacion') as
-      | Date
-      | string,
+    fechaCreacion: pick(row, 'fechacreacion', 'fechaCreacion') as Date | string,
     fechaModificacion: pick(row, 'fechamodificacion', 'fechaModificacion') as
       | Date
       | string,
-    idUsuarioCreacion: pick<number>(row, 'idusuariocreacion', 'idUsuarioCreacion') ?? null,
-    nombreUsuarioCreacion:
-      (pick<string>(row, 'nombreusuariocreacion', 'nombreUsuarioCreacion') ??
-        null) as string | null,
+    idUsuarioCreacion:
+      pick<number>(row, 'idusuariocreacion', 'idUsuarioCreacion') ?? null,
+    nombreUsuarioCreacion: (pick<string>(
+      row,
+      'nombreusuariocreacion',
+      'nombreUsuarioCreacion',
+    ) ?? null) as string | null,
     idUsuarioModificacion:
       pick<number>(row, 'idusuariomodificacion', 'idUsuarioModificacion') ??
       null,
-    nombreUsuarioModificacion:
-      (pick<string>(
-        row,
-        'nombreusuariomodificacion',
-        'nombreUsuarioModificacion',
-      ) ?? null) as string | null,
+    nombreUsuarioModificacion: (pick<string>(
+      row,
+      'nombreusuariomodificacion',
+      'nombreUsuarioModificacion',
+    ) ?? null) as string | null,
   };
 }
 
@@ -163,12 +166,11 @@ export function mapMailPlantillaHistorialRow(
     idUsuarioModificacion:
       pick<number>(row, 'idusuariomodificacion', 'idUsuarioModificacion') ??
       null,
-    nombreUsuarioModificacion:
-      (pick<string>(
-        row,
-        'nombreusuariomodificacion',
-        'nombreUsuarioModificacion',
-      ) ?? null) as string | null,
+    nombreUsuarioModificacion: (pick<string>(
+      row,
+      'nombreusuariomodificacion',
+      'nombreUsuarioModificacion',
+    ) ?? null) as string | null,
     fechaCreacion: pick(row, 'fechacreacion', 'fechaCreacion') as Date | string,
   };
 }

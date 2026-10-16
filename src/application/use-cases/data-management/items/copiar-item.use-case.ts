@@ -1,27 +1,19 @@
 import {
-  Injectable,
-  Inject,
-  ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
-import { CopiarItemDto } from '../../../dtos/data-management/items/copiar-item.dto';
+  ForbiddenError,
+  InvalidInputError,
+} from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
 
-@Injectable()
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { CopiarItemDto } from '../../../inputs/data-management/items/copiar-item.dto';
+
 export class CopiarItemUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 
@@ -34,7 +26,7 @@ export class CopiarItemUseCase {
     userRole?: string,
   ): Promise<any> {
     if (!projectId) {
-      throw new BadRequestException('El ID del proyecto es requerido');
+      throw new InvalidInputError('El ID del proyecto es requerido');
     }
     if (
       !dto.sourceItemId ||
@@ -42,7 +34,7 @@ export class CopiarItemUseCase {
       !dto.targetFolderId ||
       !dto.fileName
     ) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'sourceItemId, sourceVersionId, targetFolderId y fileName son requeridos',
       );
     }
@@ -50,12 +42,12 @@ export class CopiarItemUseCase {
     const token =
       await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
     if (!token) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'No se encontró token de acceso. Autoriza la aplicación de Autodesk primero.',
       );
     }
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'El token de Autodesk ha expirado. Refresca tu token.',
       );
     }
@@ -111,12 +103,12 @@ export class CopiarItemUseCase {
       return resultado;
     } catch (error: any) {
       if (
-        error instanceof BadRequestException ||
-        error instanceof ForbiddenException
+        error instanceof InvalidInputError ||
+        error instanceof ForbiddenError
       ) {
         throw error;
       }
-      throw new BadRequestException(
+      throw new InvalidInputError(
         `Error al copiar archivo: ${error?.message || 'No se pudo copiar el archivo'}`,
       );
     }

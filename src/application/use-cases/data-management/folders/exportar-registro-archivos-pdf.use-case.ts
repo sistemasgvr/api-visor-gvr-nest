@@ -1,11 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { ExportacionRegistroArchivosPdfService } from '../../../../infrastructure/services/exportacion-registro-archivos-pdf.service';
-import type { ExportarRegistroArchivosPdfDto } from '../../../dtos/data-management/folders/exportar-registro-archivos-pdf.dto';
+import type { ExportarRegistroArchivosPdfDto } from '../../../inputs/data-management/folders/exportar-registro-archivos-pdf.dto';
+import { ExportacionRegistroArchivosPdfPort } from '../../../ports/exportacion-registro-archivos-pdf.port';
 
-@Injectable()
 export class ExportarRegistroArchivosPdfUseCase {
   constructor(
-    private readonly exportacionRegistroArchivosPdfService: ExportacionRegistroArchivosPdfService,
+    private readonly exportacionRegistroArchivosPdfService: ExportacionRegistroArchivosPdfPort,
   ) {}
 
   async execute(

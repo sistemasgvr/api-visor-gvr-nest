@@ -24,11 +24,11 @@ import { CronRefrescarTokensAccUseCase } from '../../application/use-cases/acc/c
 import { RevocarTokenUseCase } from '../../application/use-cases/acc/revocar-token.use-case';
 import { CallbackAutorizacionUseCase } from '../../application/use-cases/acc/callback-autorizacion.use-case';
 import { ValidarExpiracionUseCase } from '../../application/use-cases/acc/validar-expiracion.use-case';
-import { ObtenerToken2LeggedDto } from '../../application/dtos/acc/obtener-token-2legged.dto';
-import { GenerarUrlAutorizacionDto } from '../../application/dtos/acc/generar-url-autorizacion.dto';
-import { CallbackAutorizacionDto } from '../../application/dtos/acc/callback-autorizacion.dto';
-import { ValidarExpiracionDto } from '../../application/dtos/acc/validar-expiracion.dto';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ObtenerToken2LeggedDto } from '../dtos/acc/obtener-token-2legged.dto';
+import { GenerarUrlAutorizacionDto } from '../dtos/acc/generar-url-autorizacion.dto';
+import { CallbackAutorizacionDto } from '../dtos/acc/callback-autorizacion.dto';
+import { ValidarExpiracionDto } from '../dtos/acc/validar-expiracion.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import {
   ACC_REPOSITORY,
@@ -122,8 +122,7 @@ export class AccController {
    */
   @ApiOperation({
     summary: 'Cron: refrescar tokens ACC caducados',
-    description:
-      'Protegido con query key=CRON_SECRET; no usa JWT.',
+    description: 'Protegido con query key=CRON_SECRET; no usa JWT.',
     security: [],
   })
   @Get('cron/refresh-tokens')

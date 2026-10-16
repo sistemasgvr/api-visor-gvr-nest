@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
 export interface ComentarioArchivo {
   id: number;
@@ -10,22 +9,21 @@ export interface ComentarioArchivo {
   fechaCreacion: string;
 }
 
-@Injectable()
 export class GetComentariosArchivoUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     reviewId: number,
     fileId: number,
   ): Promise<ComentarioArchivo[]> {
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.getComentariosArchivoRevision<{
       id: number;
       contenido: string;
       idusuarioautor: number;
       nombreautor: string;
       correoautor: string;
       fechacreacion: string;
-    }>('acc_GetComentariosArchivoRevision', [reviewId, fileId]);
+    }>([reviewId, fileId]);
 
     return (rows ?? []).map((r) => ({
       id: r.id,

@@ -1,14 +1,8 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { GetProyectosDto } from '../../../dtos/acc/projects/get-proyectos.dto';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
-import {
-  ACC_RESOURCES_REPOSITORY,
-  type IAccResourcesRepository,
-} from '../../../../domain/repositories/acc-resources.repository.interface';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
+
+import { type IAccResourcesRepository } from '../../../../domain/repositories/acc-resources.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { GetProyectosDto } from '../../../inputs/acc/projects/get-proyectos.dto';
 
 /** Fila de permiso devuelta por el repositorio al listar accesos a recursos ACC. */
 interface AccResourcePermissionRow {
@@ -32,13 +26,12 @@ type AccProjectsResponse = {
 /** Cuerpo de listado de proyectos tal como lo devuelve la API de Autodesk (enriquecida opcionalmente). */
 export type GetProyectosListResult = Record<string, unknown>;
 
-@Injectable()
 export class GetProyectosUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(AUDITORIA_REPOSITORY)
+    private readonly autodeskApiService: AutodeskAdminPort,
+
     private readonly auditoriaRepository: IAuditoriaRepository,
-    @Inject(ACC_RESOURCES_REPOSITORY)
+
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 
@@ -253,9 +246,7 @@ export class GetProyectosUseCase {
     return proyectosConAcceso;
   }
 
-  private async enrichProject(
-    proyecto: AccProjectRow,
-  ): Promise<AccProjectRow> {
+  private async enrichProject(proyecto: AccProjectRow): Promise<AccProjectRow> {
     try {
       const registroCreacion =
         await this.auditoriaRepository.obtenerAuditoriaPorMetadatos(

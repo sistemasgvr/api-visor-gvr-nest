@@ -1,26 +1,26 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
+
 import type {
-  IControlOperativoRepository,
-  CrearActividadParams,
   ActividadCreada,
+  CrearActividadParams,
+  IControlOperativoRepository,
 } from '../../../domain/repositories/control-operativo.repository.interface';
-import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
-import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
-import { BroadcastService } from '../../../shared/services/broadcast.service';
+import { BroadcastPort } from '../../ports/broadcast.port';
 import { emitirEntregableCulminado } from '../proyecto/entregable-notificaciones.helper';
 
-@Injectable()
 export class CrearActividadUseCase {
-  private readonly logger = new Logger(CrearActividadUseCase.name);
+  private readonly logger: ApplicationLogger;
 
   constructor(
-    @Inject(CONTROL_OPERATIVO_REPOSITORY)
     private readonly controlOperativoRepository: IControlOperativoRepository,
-    @Inject(PROYECTO_REPOSITORY)
+
     private readonly proyectoRepository: IProyectoRepository,
-    private readonly broadcastService: BroadcastService,
-  ) {}
+    private readonly broadcastService: BroadcastPort,
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(CrearActividadUseCase.name);
+  }
 
   async execute(params: CrearActividadParams): Promise<ActividadCreada | null> {
     const idCoordinador =
@@ -133,6 +133,7 @@ export class CrearActividadUseCase {
         );
       if (idUsuarioActor != null) {
         await emitirEntregableCulminado({
+          logger: this.loggerFactory.create('EntregableNotificaciones'),
           broadcast: this.broadcastService,
           proyectoRepository: this.proyectoRepository,
           idEntregable: Number(data.identregable),

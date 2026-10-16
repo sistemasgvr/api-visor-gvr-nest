@@ -1,10 +1,8 @@
-import { Injectable, Inject } from '@nestjs/common';
-import type { IMenuRepository } from '../../../domain/repositories/menu.repository.interface';
-import { MENU_REPOSITORY } from '../../../domain/repositories/menu.repository.interface';
 import {
   ID_LISTA_PUESTO_TRABAJO,
   ID_LISTAS_CATALOGOS_TRABAJADOR_BASE,
 } from '../../../domain/constants/gen-listado.constants';
+import type { IMenuRepository } from '../../../domain/repositories/menu.repository.interface';
 
 const CLAVES_CATALOGOS_TRABAJADOR_BASE = [
   'gradoInstruccion',
@@ -32,12 +30,8 @@ export interface CatalogosTrabajador {
   puestoTrabajo: any[];
 }
 
-@Injectable()
 export class ObtenerCatalogosTrabajadorUseCase {
-  constructor(
-    @Inject(MENU_REPOSITORY)
-    private readonly menuRepository: IMenuRepository,
-  ) {}
+  constructor(private readonly menuRepository: IMenuRepository) {}
 
   /**
    * Catálogos del formulario trabajador. La octava lista es siempre puesto de trabajo.

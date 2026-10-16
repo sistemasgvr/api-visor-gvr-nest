@@ -1,24 +1,23 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
+import { InvalidInputError } from '../../../errors/application.error';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
-@Injectable()
 export class DelegarPasoRevisionUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     userId: number,
     projectId: string,
     reviewId: number,
   ): Promise<{ id: number; message: string }> {
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.delegarPasoRevision<{
       success: boolean;
       message: string;
       id_result: number;
-    }>('acc_DelegarPasoRevision', [reviewId, projectId, userId]);
+    }>([reviewId, projectId, userId]);
 
     const row = rows?.[0];
     if (!row?.success) {
-      throw new BadRequestException(row?.message ?? 'Error al delegar el paso');
+      throw new InvalidInputError(row?.message ?? 'Error al delegar el paso');
     }
     return { id: row.id_result, message: row.message };
   }

@@ -1,15 +1,7 @@
-import { Injectable, Inject } from '@nestjs/common';
-import {
-  USUARIOS_REPOSITORY,
-  type IUsuariosRepository,
-} from '../../../../domain/repositories/usuarios.repository.interface';
+import { type IUsuariosRepository } from '../../../../domain/repositories/usuarios.repository.interface';
 
-@Injectable()
 export class ObtenerUsuariosDisponiblesUseCase {
-  constructor(
-    @Inject(USUARIOS_REPOSITORY)
-    private readonly usuariosRepository: IUsuariosRepository,
-  ) {}
+  constructor(private readonly usuariosRepository: IUsuariosRepository) {}
 
   async execute(
     busqueda?: string,

@@ -131,15 +131,37 @@ export interface ContarVisorMarcasRevisionResult {
 }
 
 export interface IAccVisorMarcaRevisionRepository {
-  crear(params: CrearVisorMarcaRevisionParams): Promise<CrearVisorMarcaRevisionResult>;
-  actualizar(params: ActualizarVisorMarcaRevisionParams): Promise<OperacionVisorMarcaRevisionResult>;
-  duplicar(params: DuplicarVisorMarcaRevisionParams): Promise<DuplicarVisorMarcaRevisionResult>;
-  publicar(id: number, idUsuario: number): Promise<OperacionVisorMarcaRevisionResult>;
-  anularPublicacion(id: number, idUsuario: number): Promise<OperacionVisorMarcaRevisionResult>;
-  suprimir(id: number, idUsuario: number): Promise<OperacionVisorMarcaRevisionResult>;
-  listar(params: ListarVisorMarcasRevisionParams): Promise<VisorMarcaRevisionItem[]>;
-  contar(params: ContarVisorMarcasRevisionParams): Promise<ContarVisorMarcasRevisionResult>;
-  obtenerPorId(id: number, idUsuario?: number | null): Promise<VisorMarcaRevisionDetalle | null>;
+  crear(
+    params: CrearVisorMarcaRevisionParams,
+  ): Promise<CrearVisorMarcaRevisionResult>;
+  actualizar(
+    params: ActualizarVisorMarcaRevisionParams,
+  ): Promise<OperacionVisorMarcaRevisionResult>;
+  duplicar(
+    params: DuplicarVisorMarcaRevisionParams,
+  ): Promise<DuplicarVisorMarcaRevisionResult>;
+  publicar(
+    id: number,
+    idUsuario: number,
+  ): Promise<OperacionVisorMarcaRevisionResult>;
+  anularPublicacion(
+    id: number,
+    idUsuario: number,
+  ): Promise<OperacionVisorMarcaRevisionResult>;
+  suprimir(
+    id: number,
+    idUsuario: number,
+  ): Promise<OperacionVisorMarcaRevisionResult>;
+  listar(
+    params: ListarVisorMarcasRevisionParams,
+  ): Promise<VisorMarcaRevisionItem[]>;
+  contar(
+    params: ContarVisorMarcasRevisionParams,
+  ): Promise<ContarVisorMarcasRevisionResult>;
+  obtenerPorId(
+    id: number,
+    idUsuario?: number | null,
+  ): Promise<VisorMarcaRevisionDetalle | null>;
   sincronizarMarkupIdAps(
     id: number,
     idUsuario: number,

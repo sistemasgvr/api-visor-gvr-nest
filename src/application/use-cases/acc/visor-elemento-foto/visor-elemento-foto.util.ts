@@ -1,6 +1,4 @@
-import type {
-  VisorElementoFotoArchivoEntrada,
-} from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
+import type { VisorElementoFotoArchivoEntrada } from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
 
 export function normalizarArchivosVisorElementoFoto(
   archivos: VisorElementoFotoArchivoEntrada[] | undefined,

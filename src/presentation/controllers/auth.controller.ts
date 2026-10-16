@@ -26,14 +26,14 @@ import { LogoutUseCase } from '../../application/use-cases/auth/logout.use-case'
 import { ObtenerPerfilUseCase } from '../../application/use-cases/auth/obtener-perfil.use-case';
 import { SubirFotoPerfilUseCase } from '../../application/use-cases/auth/subir-foto-perfil.use-case';
 import { CambiarContrasenaPerfilUseCase } from '../../application/use-cases/auth/cambiar-contrasena-perfil.use-case';
-import { ChangePasswordDto } from '../../application/dtos/auth/change-password.dto';
+import { ChangePasswordDto } from '../dtos/auth/change-password.dto';
 import { ValidarSesionUseCase } from '../../application/use-cases/auth/validar-sesion.use-case';
 import { CerrarTodasSesionesUseCase } from '../../application/use-cases/auth/cerrar-todas-sesiones.use-case';
 import { ObtenerEstadisticasUsuariosUseCase } from '../../application/use-cases/auth/obtener-estadisticas-usuarios.use-case';
-import { RegisterDto } from '../../application/dtos/register.dto';
-import { LoginDto } from '../../application/dtos/login.dto';
+import { RegisterDto } from '../dtos/register.dto';
+import { LoginDto } from '../dtos/login.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 
 @ApiTags('auth')
@@ -225,7 +225,10 @@ export class AuthController {
       throw new UnauthorizedException('Token no proporcionado');
     }
 
-    const result = await this.cambiarContrasenaPerfilUseCase.execute(token, dto);
+    const result = await this.cambiarContrasenaPerfilUseCase.execute(
+      token,
+      dto,
+    );
 
     return ApiResponseDto.success(
       result,
@@ -291,7 +294,8 @@ export class AuthController {
    */
   @ApiOperation({
     summary: 'Cerrar todas las sesiones del usuario',
-    description: 'Invalida todas las sesiones activas excepto la opción explícita si existiera.',
+    description:
+      'Invalida todas las sesiones activas excepto la opción explícita si existiera.',
   })
   @Post('/cerrar-todas-sesiones')
   @UseGuards(JwtAuthGuard)

@@ -1,10 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
-import { AddComentarioArchivoDto } from '../../../dtos/acc/reviews/add-comentario-archivo.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { AddComentarioArchivoDto } from '../../../inputs/acc/reviews/add-comentario-archivo.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
-@Injectable()
 export class AddComentarioArchivoUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     userId: number,
@@ -12,20 +11,15 @@ export class AddComentarioArchivoUseCase {
     fileId: number,
     dto: AddComentarioArchivoDto,
   ): Promise<{ id: number; message: string }> {
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.addComentarioArchivoRevision<{
       success: boolean;
       message: string;
       id_result: number;
-    }>('acc_AddComentarioArchivoRevision', [
-      reviewId,
-      fileId,
-      userId,
-      dto.contenido,
-    ]);
+    }>([reviewId, fileId, userId, dto.contenido]);
 
     const row = rows?.[0];
     if (!row?.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         row?.message ?? 'Error al añadir el comentario',
       );
     }

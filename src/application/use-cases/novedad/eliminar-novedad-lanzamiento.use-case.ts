@@ -1,13 +1,8 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { INovedadRepository } from '../../../domain/repositories/novedad.repository.interface';
-import { NOVEDAD_REPOSITORY } from '../../../domain/repositories/novedad.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
 
-@Injectable()
 export class EliminarNovedadLanzamientoUseCase {
-  constructor(
-    @Inject(NOVEDAD_REPOSITORY)
-    private readonly novedadRepository: INovedadRepository,
-  ) {}
+  constructor(private readonly novedadRepository: INovedadRepository) {}
 
   async execute(id: number, idUsuarioModificacion: number) {
     const resultado = await this.novedadRepository.eliminarLanzamiento(
@@ -16,7 +11,7 @@ export class EliminarNovedadLanzamientoUseCase {
     );
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al eliminar el lanzamiento',
       );
     }

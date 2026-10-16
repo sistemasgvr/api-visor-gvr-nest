@@ -20,10 +20,10 @@ import { ObtenerEmpresaUseCase } from '../../application/use-cases/empresa/obten
 import { CrearEmpresaUseCase } from '../../application/use-cases/empresa/crear-empresa.use-case';
 import { EditarEmpresaUseCase } from '../../application/use-cases/empresa/editar-empresa.use-case';
 import { EliminarEmpresaUseCase } from '../../application/use-cases/empresa/eliminar-empresa.use-case';
-import { CreateEmpresaDto } from '../../application/dtos/empresa/create-empresa.dto';
-import { UpdateEmpresaDto } from '../../application/dtos/empresa/update-empresa.dto';
+import { CreateEmpresaDto } from '../dtos/empresa/create-empresa.dto';
+import { UpdateEmpresaDto } from '../dtos/empresa/update-empresa.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 

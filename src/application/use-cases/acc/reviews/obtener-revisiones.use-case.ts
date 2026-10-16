@@ -1,13 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { ObtenerRevisionesDto } from '../../../dtos/acc/reviews/obtener-revisiones.dto';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
-import { MinioStorageService } from '../../../../infrastructure/storage/minio-storage.service';
+import { ObtenerRevisionesDto } from '../../../inputs/acc/reviews/obtener-revisiones.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
+import { MinioStoragePort } from '../../../ports/minio-storage.port';
 
-@Injectable()
 export class ObtenerRevisionesUseCase {
   constructor(
-    private readonly dbFunctionService: DatabaseFunctionService,
-    private readonly minioStorage: MinioStorageService,
+    private readonly reviewsRepository: InternalReviewsRepository,
+    private readonly minioStorage: MinioStoragePort,
   ) {}
 
   async execute(
@@ -17,7 +15,7 @@ export class ObtenerRevisionesUseCase {
   ): Promise<any> {
     void userId;
 
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.listarRevisionesInternasGvr<{
       id_revision: number;
       review_id: string | null;
       workflow_id: string;
@@ -41,7 +39,7 @@ export class ObtenerRevisionesUseCase {
       files_rejected: number;
       progress_percent: string | number;
       total_count: number;
-    }>('acc_ListarRevisionesInternasGvr', [
+    }>([
       projectId,
       dto.limit ?? 10,
       dto.offset ?? 0,
@@ -59,15 +57,16 @@ export class ObtenerRevisionesUseCase {
       ),
     );
     for (const flowId of distinctFlowIds) {
-      const candidates = await this.dbFunctionService.callFunction<{
-        idusuario: number;
-        nombreusuario: string;
-        correousuario: string;
-        tipopaso: string;
-        nombrepaso: string;
-        ordenpaso: number;
-        esopcional: boolean;
-      }>('acc_ListarCandidatosFlujoTrabajoGvr', [parseInt(flowId, 10)]);
+      const candidates =
+        await this.reviewsRepository.listarCandidatosFlujoTrabajoGvr<{
+          idusuario: number;
+          nombreusuario: string;
+          correousuario: string;
+          tipopaso: string;
+          nombrepaso: string;
+          ordenpaso: number;
+          esopcional: boolean;
+        }>([parseInt(flowId, 10)]);
       for (const c of candidates) {
         if (String(c.tipopaso).toUpperCase() === 'INITIATOR') continue;
         const key = `${flowId}:${c.ordenpaso}`;
@@ -96,91 +95,96 @@ export class ObtenerRevisionesUseCase {
 
     let mapped = await Promise.all(
       rows.map(async (r) => {
-        const fotoPerfilStored = r.foto_perfil_usuario_iniciador?.trim() || null;
+        const fotoPerfilStored =
+          r.foto_perfil_usuario_iniciador?.trim() || null;
         const fotoPerfilViewUrl = fotoPerfilStored
           ? await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
               fotoPerfilStored,
             )
           : null;
 
-      const reviewId =
-        r.review_id && String(r.review_id).trim().length > 0
-          ? String(r.review_id)
-          : `GVR-${r.id_revision}`;
-      const workflowId = String(r.workflow_id ?? '');
-      const currentStep = r.current_step_number ?? 0;
-      const gvrNextActionBy =
-        candidatesByFlowStep.get(`${workflowId}:${currentStep}`)?.map((c) => ({
-          idUsuario: c.idusuario,
-          nombre: c.nombreusuario,
-          correo: c.correousuario,
-          tipoPaso: c.tipopaso,
-          nombrePaso: c.nombrepaso,
-          ordenPaso: c.ordenpaso,
-          esOpcional: c.esopcional,
-        })) ?? [];
+        const reviewId =
+          r.review_id && String(r.review_id).trim().length > 0
+            ? String(r.review_id)
+            : `GVR-${r.id_revision}`;
+        const workflowId = String(r.workflow_id ?? '');
+        const currentStep = r.current_step_number ?? 0;
+        const gvrNextActionBy =
+          candidatesByFlowStep
+            .get(`${workflowId}:${currentStep}`)
+            ?.map((c) => ({
+              idUsuario: c.idusuario,
+              nombre: c.nombreusuario,
+              correo: c.correousuario,
+              tipoPaso: c.tipopaso,
+              nombrePaso: c.nombrepaso,
+              ordenPaso: c.ordenpaso,
+              esOpcional: c.esopcional,
+            })) ?? [];
 
-      return {
-        id: reviewId,
-        sequenceId: r.id_revision,
-        round: r.round_number ?? 1,
-        name: r.name,
-        status: normalizeStatus(r.status_name),
-        currentStepId:
-          r.current_step_number != null ? String(r.current_step_number) : null,
-        currentStepDueDate: r.current_step_due_date
-          ? r.current_step_due_date instanceof Date
-            ? r.current_step_due_date.toISOString()
-            : String(r.current_step_due_date)
-          : null,
-        workflowId,
-        workflowName: r.workflow_name ?? '',
-        initiatedByWorkflow: r.initiated_by_workflow ?? '',
-        nextActionByWorkflow: r.next_action_by_workflow ?? '',
-        createdBy: {
-          autodeskId: String(r.id_usuario_iniciador),
-          name: r.nombre_usuario_iniciador ?? 'Usuario',
-        },
-        createdAt:
-          r.created_at instanceof Date
-            ? r.created_at.toISOString()
-            : String(r.created_at),
-        updatedAt:
-          r.updated_at instanceof Date
-            ? r.updated_at.toISOString()
-            : String(r.updated_at),
-        finishedAt: r.finished_at
-          ? r.finished_at instanceof Date
-            ? r.finished_at.toISOString()
-            : String(r.finished_at)
-          : null,
-        archived: false,
-        archivedBy: null,
-        archivedAt: null,
-        filesCount: r.files_total ?? 0,
-        approvedCount: r.files_approved ?? 0,
-        rejectedCount: r.files_rejected ?? 0,
-        progressPercent: Number(r.progress_percent ?? 0),
-        nextActionBy: {
-          claimedBy: [],
-          candidates: {
-            roles: [],
-            users: gvrNextActionBy.map((c) => ({
-              autodeskId: String(c.idUsuario),
-              name: c.nombre,
-            })),
-            companies: [],
+        return {
+          id: reviewId,
+          sequenceId: r.id_revision,
+          round: r.round_number ?? 1,
+          name: r.name,
+          status: normalizeStatus(r.status_name),
+          currentStepId:
+            r.current_step_number != null
+              ? String(r.current_step_number)
+              : null,
+          currentStepDueDate: r.current_step_due_date
+            ? r.current_step_due_date instanceof Date
+              ? r.current_step_due_date.toISOString()
+              : String(r.current_step_due_date)
+            : null,
+          workflowId,
+          workflowName: r.workflow_name ?? '',
+          initiatedByWorkflow: r.initiated_by_workflow ?? '',
+          nextActionByWorkflow: r.next_action_by_workflow ?? '',
+          createdBy: {
+            autodeskId: String(r.id_usuario_iniciador),
+            name: r.nombre_usuario_iniciador ?? 'Usuario',
           },
-        },
-        gvrCreadoPor: {
-          idUsuario: r.id_usuario_iniciador,
-          nombre: r.nombre_usuario_iniciador ?? 'Usuario',
-          correo: r.correo_usuario_iniciador ?? '',
-          fotoPerfil: fotoPerfilViewUrl ?? fotoPerfilStored,
-          fotoPerfilViewUrl,
-        },
-        gvrNextActionBy,
-      };
+          createdAt:
+            r.created_at instanceof Date
+              ? r.created_at.toISOString()
+              : String(r.created_at),
+          updatedAt:
+            r.updated_at instanceof Date
+              ? r.updated_at.toISOString()
+              : String(r.updated_at),
+          finishedAt: r.finished_at
+            ? r.finished_at instanceof Date
+              ? r.finished_at.toISOString()
+              : String(r.finished_at)
+            : null,
+          archived: false,
+          archivedBy: null,
+          archivedAt: null,
+          filesCount: r.files_total ?? 0,
+          approvedCount: r.files_approved ?? 0,
+          rejectedCount: r.files_rejected ?? 0,
+          progressPercent: Number(r.progress_percent ?? 0),
+          nextActionBy: {
+            claimedBy: [],
+            candidates: {
+              roles: [],
+              users: gvrNextActionBy.map((c) => ({
+                autodeskId: String(c.idUsuario),
+                name: c.nombre,
+              })),
+              companies: [],
+            },
+          },
+          gvrCreadoPor: {
+            idUsuario: r.id_usuario_iniciador,
+            nombre: r.nombre_usuario_iniciador ?? 'Usuario',
+            correo: r.correo_usuario_iniciador ?? '',
+            fotoPerfil: fotoPerfilViewUrl ?? fotoPerfilStored,
+            fotoPerfilViewUrl,
+          },
+          gvrNextActionBy,
+        };
       }),
     );
 

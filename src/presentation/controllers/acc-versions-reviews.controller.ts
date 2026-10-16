@@ -11,13 +11,13 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 
 // Use Cases
 import { ObtenerApprovalStatusesVersionUseCase } from '../../application/use-cases/acc/reviews/obtener-approval-statuses-version.use-case';
 
 // DTOs
-import { ObtenerApprovalStatusesDto } from '../../application/dtos/acc/reviews/obtener-approval-statuses.dto';
+import { ObtenerApprovalStatusesDto } from '../dtos/acc/reviews/obtener-approval-statuses.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('acc')

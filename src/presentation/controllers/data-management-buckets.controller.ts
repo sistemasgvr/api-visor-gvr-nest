@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   ObtenerBucketsUseCase,
   ObtenerDetallesBucketUseCase,
@@ -24,7 +24,7 @@ import {
 import {
   ObtenerBucketsDto,
   CrearBucketDto,
-} from '../../application/dtos/data-management/buckets';
+} from '../dtos/data-management/buckets';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 

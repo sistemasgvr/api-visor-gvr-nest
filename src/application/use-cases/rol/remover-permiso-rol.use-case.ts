@@ -1,13 +1,8 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IRolRepository } from '../../../domain/repositories/rol.repository.interface';
-import { ROL_REPOSITORY } from '../../../domain/repositories/rol.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
 
-@Injectable()
 export class RemoverPermisoRolUseCase {
-  constructor(
-    @Inject(ROL_REPOSITORY)
-    private readonly rolRepository: IRolRepository,
-  ) {}
+  constructor(private readonly rolRepository: IRolRepository) {}
 
   async execute(
     idRol: number,
@@ -21,7 +16,7 @@ export class RemoverPermisoRolUseCase {
     );
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al remover el permiso',
       );
     }

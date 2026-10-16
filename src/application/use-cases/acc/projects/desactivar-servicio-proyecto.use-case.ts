@@ -1,14 +1,10 @@
 import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
+  ForbiddenError,
+  InvalidInputError,
+} from '../../../errors/application.error';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
+
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
 import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
 
 export interface DesactivarServicioProyectoDto {
@@ -17,12 +13,11 @@ export interface DesactivarServicioProyectoDto {
   region?: string;
 }
 
-@Injectable()
 export class DesactivarServicioProyectoUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskAdminPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 
@@ -63,7 +58,7 @@ export class DesactivarServicioProyectoUseCase {
         ]);
         accessToken = token2Legged.access_token;
       } catch (error) {
-        throw new ForbiddenException(
+        throw new ForbiddenError(
           'No se pudo obtener un token de acceso válido',
         );
       }
@@ -86,7 +81,7 @@ export class DesactivarServicioProyectoUseCase {
       );
 
       if (!usuarioExistente?.id) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           `El usuario con email ${dto.email} no es miembro de este proyecto`,
         );
       }
@@ -182,10 +177,10 @@ export class DesactivarServicioProyectoUseCase {
         data: resultadoUpdate.data,
       };
     } catch (error: any) {
-      if (error instanceof BadRequestException) {
+      if (error instanceof InvalidInputError) {
         throw error;
       }
-      throw new BadRequestException(
+      throw new InvalidInputError(
         `Error al desactivar servicio ${dto.service}: ${error.message}`,
       );
     }

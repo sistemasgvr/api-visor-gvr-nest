@@ -29,13 +29,13 @@ import { RemoverPermisoRolUseCase } from '../../application/use-cases/rol/remove
 import { SincronizarPermisosRolUseCase } from '../../application/use-cases/rol/sincronizar-permisos-rol.use-case';
 import { ObtenerDetalleRolUseCase } from '../../application/use-cases/rol/obtener-detalle-rol.use-case';
 import { GestionarRolesUsuarioUseCase } from '../../application/use-cases/rol/gestionar-roles-usuario.use-case';
-import { CreateRolDto } from '../../application/dtos/rol/create-rol.dto';
-import { UpdateRolDto } from '../../application/dtos/rol/update-rol.dto';
-import { AsignarPermisoDto } from '../../application/dtos/rol/asignar-permiso.dto';
-import { AsignarPermisosDto } from '../../application/dtos/rol/asignar-permisos.dto';
-import { GestionarRolesUsuarioDto } from '../../application/dtos/rol/gestionar-roles-usuario.dto';
+import { CreateRolDto } from '../dtos/rol/create-rol.dto';
+import { UpdateRolDto } from '../dtos/rol/update-rol.dto';
+import { AsignarPermisoDto } from '../dtos/rol/asignar-permiso.dto';
+import { AsignarPermisosDto } from '../dtos/rol/asignar-permisos.dto';
+import { GestionarRolesUsuarioDto } from '../dtos/rol/gestionar-roles-usuario.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 
@@ -100,7 +100,10 @@ export class RolController {
     );
   }
 
-  @ApiOperation({ summary: 'Listar roles', description: 'Paginación y búsqueda.' })
+  @ApiOperation({
+    summary: 'Listar roles',
+    description: 'Paginación y búsqueda.',
+  })
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarRoles(

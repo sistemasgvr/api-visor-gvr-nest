@@ -1,16 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
 import type { IMailPlantillaCorreoRepository } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import { PreviewMailPlantillaDto } from '../../dtos/mail-plantilla/preview-mail-plantilla.dto';
-import { MailPlantillaRenderService } from '../../../infrastructure/mail/mail-plantilla-render.service';
+import { PreviewMailPlantillaDto } from '../../inputs/mail-plantilla/preview-mail-plantilla.dto';
+import { MailPlantillaRenderPort } from '../../ports/mail-plantilla-render.port';
 import { resolveMailPlantillaPreviewInput } from './mail-plantilla-preview.helper';
 
-@Injectable()
 export class PreviewMailPlantillaUseCase {
   constructor(
-    @Inject(MAIL_PLANTILLA_CORREO_REPOSITORY)
     private readonly repository: IMailPlantillaCorreoRepository,
-    private readonly renderService: MailPlantillaRenderService,
+    private readonly renderService: MailPlantillaRenderPort,
   ) {}
 
   async execute(dto: PreviewMailPlantillaDto) {

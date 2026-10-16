@@ -1,13 +1,8 @@
-import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
+import { ForbiddenError } from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
+
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
 
 /** Ventana para fusionar eventos duplicados (auditoría GVR + versiones ACC). */
 const VENTANA_DEDUP_MS = 2 * 60 * 1000;
@@ -24,13 +19,12 @@ export type CategoriaActividadArchivo =
   | 'incidencia'
   | 'otro';
 
-@Injectable()
 export class ObtenerActividadesArchivoUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 
@@ -51,13 +45,13 @@ export class ObtenerActividadesArchivoUseCase {
         await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
       if (!token) {
-        throw new ForbiddenException(
+        throw new ForbiddenError(
           'No se encontró token de acceso. Por favor, autoriza la aplicación de Autodesk primero.',
         );
       }
 
       if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-        throw new ForbiddenException(
+        throw new ForbiddenError(
           'El token de Autodesk ha expirado. Por favor, refresca tu token.',
         );
       }
@@ -134,7 +128,7 @@ export class ObtenerActividadesArchivoUseCase {
         total: todasLasActividades.length,
       };
     } catch (error: any) {
-      if (error instanceof ForbiddenException) {
+      if (error instanceof ForbiddenError) {
         throw error;
       }
       throw new Error(
@@ -162,9 +156,13 @@ export class ObtenerActividadesArchivoUseCase {
     const mensaje = partial.mensaje.trim();
     const destacado =
       partial.destacado ??
-      ['subida', 'sobreescritura', 'edicion', 'eliminacion', 'restauracion'].includes(
-        partial.categoria,
-      );
+      [
+        'subida',
+        'sobreescritura',
+        'edicion',
+        'eliminacion',
+        'restauracion',
+      ].includes(partial.categoria);
 
     return {
       ...partial,
@@ -237,9 +235,7 @@ export class ObtenerActividadesArchivoUseCase {
       }
 
       const esEdicionReal =
-        lastModifiedTime &&
-        diffMs > UMBRAL_EDICION_MS &&
-        lastModifiedUserName;
+        lastModifiedTime && diffMs > UMBRAL_EDICION_MS && lastModifiedUserName;
 
       if (esEdicionReal) {
         actividades.push(
@@ -273,8 +269,7 @@ export class ObtenerActividadesArchivoUseCase {
       const accion = auditoria.accion;
       const descripcion = auditoria.descripcion || '';
       const metadatos = this.parseMetadatos(auditoria.metadatos);
-      const source =
-        metadatos.source ?? metadatos.Source ?? '';
+      const source = metadatos.source ?? metadatos.Source ?? '';
 
       let actividad: Record<string, unknown> | null = null;
 

@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
-import { ObtenerCategoriasRaizDto } from '../../dtos/issues-bim360/obtener-categorias-raiz.dto';
+import type { AutodeskBim360Port } from '../../ports/autodesk/bim360.port';
+
+import { ObtenerCategoriasRaizDto } from '../../inputs/issues-bim360/obtener-categorias-raiz.dto';
 import ObtenerTokenValidoHelper from '../acc/issues/obtener-token-valido.helper';
 
-@Injectable()
 export class ObtenerCategoriasRaizBim360UseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskBim360Port,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
   ) {}
 

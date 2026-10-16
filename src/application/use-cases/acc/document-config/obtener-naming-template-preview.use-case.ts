@@ -1,14 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { InvalidInputError } from '../../../errors/application.error';
 
 type TemplateCode = 'iso19650';
 
-@Injectable()
 export class ObtenerNamingTemplatePreviewUseCase {
   execute(templateCode: string) {
     const normalized = String(templateCode ?? '').toLowerCase() as TemplateCode;
 
     if (normalized !== 'iso19650') {
-      throw new BadRequestException('Plantilla no soportada');
+      throw new InvalidInputError('Plantilla no soportada');
     }
 
     return {

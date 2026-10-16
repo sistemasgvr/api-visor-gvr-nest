@@ -1,22 +1,15 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ClonarProyectoDto } from '../../../dtos/acc/projects/clonar-proyecto.dto';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
-import {
-  ACC_RESOURCES_REPOSITORY,
-  type IAccResourcesRepository,
-} from '../../../../domain/repositories/acc-resources.repository.interface';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
 
-@Injectable()
+import { type IAccResourcesRepository } from '../../../../domain/repositories/acc-resources.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { ClonarProyectoDto } from '../../../inputs/acc/projects/clonar-proyecto.dto';
+
 export class ClonarProyectoUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(AUDITORIA_REPOSITORY)
+    private readonly autodeskApiService: AutodeskAdminPort,
+
     private readonly auditoriaRepository: IAuditoriaRepository,
-    @Inject(ACC_RESOURCES_REPOSITORY)
+
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 

@@ -1,10 +1,11 @@
+import type { ExportacionIncidenciasPort } from '../../application/ports/exportacion-incidencias.port';
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import archiver = require('archiver');
 import axios from 'axios';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { ExportarIncidenciasDto } from '../../application/dtos/acc/issues/exportar-incidencias.dto';
+import { ExportarIncidenciasDto } from '../../application/inputs/acc/issues/exportar-incidencias.dto';
 import { ObtenerIncidenciasUseCase } from '../../application/use-cases/acc/issues/obtener-incidencias.use-case';
 import { ObtenerIncidenciaPorIdUseCase } from '../../application/use-cases/acc/issues/obtener-incidencia-por-id.use-case';
 import { ObtenerComentariosUseCase } from '../../application/use-cases/acc/issues/obtener-comentarios.use-case';
@@ -30,7 +31,7 @@ import { IssueReportMapper } from '../pdf/mappers/issue-report.mapper';
 import { PdfTextHelper } from './pdf/helpers/pdf-text.helper';
 
 @Injectable()
-export class ExportacionIncidenciasService {
+export class ExportacionIncidenciasService implements ExportacionIncidenciasPort {
   private nombreProyecto: string = 'Nombre de proyecto';
   private usuarioCreador: string = '';
   private emailCreador: string = '';

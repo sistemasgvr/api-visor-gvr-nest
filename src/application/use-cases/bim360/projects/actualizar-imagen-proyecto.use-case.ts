@@ -1,10 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ActualizarImagenProyectoBim360Dto } from '../../../dtos/bim360/projects/actualizar-imagen-proyecto.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import type { AutodeskAuthPort } from '../../../ports/autodesk/auth.port';
 
-@Injectable()
+import { ActualizarImagenProyectoBim360Dto } from '../../../inputs/bim360/projects/actualizar-imagen-proyecto.dto';
+
 export class ActualizarImagenProyectoBim360UseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAuthPort) {}
 
   async execute(
     accountId: string,
@@ -16,7 +16,7 @@ export class ActualizarImagenProyectoBim360UseCase {
     ]);
 
     if (this.autodeskApiService.esTokenExpirado(token.expires_at)) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'El token ha expirado. Por favor, genera un nuevo token.',
       );
     }

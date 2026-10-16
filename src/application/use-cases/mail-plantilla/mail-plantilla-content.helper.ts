@@ -1,5 +1,5 @@
-import { BadRequestException } from '@nestjs/common';
-import type { MjmlCompilerService } from '../../../infrastructure/mail/mjml-compiler.service';
+import { InvalidInputError } from '../../errors/application.error';
+import { MjmlCompilerPort } from '../../ports/mjml-compiler.port';
 
 export interface MailPlantillaContentInput {
   cuerpoMjml?: string | null;
@@ -13,7 +13,7 @@ export interface MailPlantillaContentPrepared {
 
 export async function prepareMailPlantillaContent(
   input: MailPlantillaContentInput,
-  mjmlCompiler: MjmlCompilerService,
+  mjmlCompiler: MjmlCompilerPort,
 ): Promise<MailPlantillaContentPrepared> {
   const cuerpoMjml = input.cuerpoMjml?.trim() || null;
   let cuerpoHtml = input.cuerpoHtml?.trim() || null;
@@ -23,7 +23,7 @@ export async function prepareMailPlantillaContent(
   }
 
   if (!cuerpoMjml && !cuerpoHtml) {
-    throw new BadRequestException(
+    throw new InvalidInputError(
       'Debe proporcionar cuerpoMjml o cuerpoHtml para la plantilla',
     );
   }
@@ -33,7 +33,7 @@ export async function prepareMailPlantillaContent(
 
 export async function prepareMailPlantillaContentOptional(
   input: MailPlantillaContentInput,
-  mjmlCompiler: MjmlCompilerService,
+  mjmlCompiler: MjmlCompilerPort,
 ): Promise<MailPlantillaContentPrepared> {
   const cuerpoMjml =
     input.cuerpoMjml !== undefined

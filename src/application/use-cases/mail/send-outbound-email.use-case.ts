@@ -1,33 +1,30 @@
-import {
-  Injectable,
-  Inject,
-  Logger,
-  BadRequestException,
-  HttpException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import type { OutboundMailJobPayload } from '../../../domain/mail/outbound-mail.types';
-import type { IMailRenderer } from '../../../domain/services/mail-renderer.interface';
-import { MAIL_RENDERER } from '../../../domain/services/mail-renderer.interface';
-import type { IMailTransport } from '../../../domain/services/mail-transport.interface';
-import { MAIL_TRANSPORT } from '../../../domain/services/mail-transport.interface';
 import type { IEmailDispatchLogRepository } from '../../../domain/repositories/email-dispatch-log.repository.interface';
-import { EMAIL_DISPATCH_LOG_REPOSITORY } from '../../../domain/repositories/email-dispatch-log.repository.interface';
-import { MailSendFailedException } from '../../../shared/exceptions/mail.exceptions';
-import { resolveMailHtmlInlineDataUris } from '../../../infrastructure/mail/mail-inline-data-uri.resolver';
+import type { IMailRenderer } from '../../../domain/services/mail-renderer.interface';
+import type { IMailTransport } from '../../../domain/services/mail-transport.interface';
+import {
+  ApplicationFailure,
+  InvalidInputError,
+  MailDeliveryError,
+} from '../../errors/application.error';
+import { resolveMailHtmlInlineDataUris } from '../../helpers/mail-inline-data-uri.resolver';
+import {
+  ApplicationLogger,
+  ConfigurationPort,
+  LoggerFactoryPort,
+} from '../../ports/runtime.port';
 
 export interface SendOutboundEmailInput extends OutboundMailJobPayload {
   /** Id de job BullMQ cuando el envío proviene de la cola */
   jobId?: string;
 }
 
-@Injectable()
 export class SendOutboundEmailUseCase {
-  private readonly logger = new Logger(SendOutboundEmailUseCase.name);
+  private readonly logger: ApplicationLogger;
 
   private resolveErrorMessage(err: unknown): string {
-    if (err instanceof HttpException) {
-      const body = err.getResponse();
+    if (err instanceof ApplicationFailure) {
+      const body = err.details;
       if (typeof body === 'string') {
         return body;
       }
@@ -48,14 +45,16 @@ export class SendOutboundEmailUseCase {
   }
 
   constructor(
-    @Inject(MAIL_RENDERER)
     private readonly mailRenderer: IMailRenderer,
-    @Inject(MAIL_TRANSPORT)
+
     private readonly mailTransport: IMailTransport,
-    @Inject(EMAIL_DISPATCH_LOG_REPOSITORY)
+
     private readonly dispatchLogRepository: IEmailDispatchLogRepository,
-    private readonly configService: ConfigService,
-  ) {}
+    private readonly configService: ConfigurationPort,
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(SendOutboundEmailUseCase.name);
+  }
 
   async execute(input: SendOutboundEmailInput): Promise<void> {
     const mailEnabled =
@@ -66,10 +65,10 @@ export class SendOutboundEmailUseCase {
     }));
     const invalid = to.filter((r) => !r.email);
     if (invalid.length) {
-      throw new BadRequestException('Destinatarios inválidos');
+      throw new InvalidInputError('Destinatarios inválidos');
     }
     if (to.length === 0) {
-      throw new BadRequestException('Se requiere al menos un destinatario');
+      throw new InvalidInputError('Se requiere al menos un destinatario');
     }
 
     const recipientEmails = to.map((r) => r.email);
@@ -135,14 +134,14 @@ export class SendOutboundEmailUseCase {
         jobId: input.jobId ?? null,
         correlationId: input.correlationId ?? null,
       });
-      if (err instanceof HttpException) {
+      if (err instanceof ApplicationFailure) {
         throw err;
       }
       const safe =
         message.length > 0 && message.length < 400
           ? message
           : 'Error inesperado al procesar el envío de correo.';
-      throw new MailSendFailedException(safe);
+      throw new MailDeliveryError(safe);
     }
   }
 }

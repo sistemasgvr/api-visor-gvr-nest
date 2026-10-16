@@ -1,25 +1,22 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
-import { ChangePasswordDto } from '../../dtos/auth/change-password.dto';
+  InvalidInputError,
+  UnauthenticatedError,
+} from '../../errors/application.error';
+import { PasswordHasherPort } from '../../ports/runtime.port';
+
 import {
   PASSWORD_POLICY_MESSAGE,
   PASSWORD_POLICY_REGEX,
-} from '../../../shared/validation/password-policy';
+} from '../../../domain/policies/password-policy';
+import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
+import { ChangePasswordDto } from '../../inputs/auth/change-password.dto';
+import { TokenServicePort } from '../../ports/runtime.port';
 
-@Injectable()
 export class CambiarContrasenaPerfilUseCase {
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly authRepository: IAuthRepository,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: TokenServicePort,
+    private readonly passwordHasher: PasswordHasherPort,
   ) {}
 
   async execute(
@@ -30,42 +27,42 @@ export class CambiarContrasenaPerfilUseCase {
     try {
       payload = await this.jwtService.verifyAsync(token);
     } catch {
-      throw new UnauthorizedException('Token inválido o expirado');
+      throw new UnauthenticatedError('Token inválido o expirado');
     }
 
     const userId = payload.sub;
     if (!userId) {
-      throw new UnauthorizedException('Token inválido');
+      throw new UnauthenticatedError('Token inválido');
     }
 
     const contrasenaActual = (dto.contrasenaActual ?? '').trim();
     const nuevaContrasena = (dto.nuevaContrasena ?? '').trim();
 
     if (!contrasenaActual || !nuevaContrasena) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'Debe indicar la contraseña actual y la nueva contraseña',
       );
     }
 
     if (contrasenaActual === nuevaContrasena) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'La nueva contraseña debe ser diferente a la actual',
       );
     }
 
     if (!PASSWORD_POLICY_REGEX.test(nuevaContrasena)) {
-      throw new BadRequestException(PASSWORD_POLICY_MESSAGE);
+      throw new InvalidInputError(PASSWORD_POLICY_MESSAGE);
     }
 
     const perfil = await this.authRepository.obtenerPerfilUsuario(userId);
     const correo = perfil?.correo ?? perfil?.Correo;
     if (!correo || typeof correo !== 'string') {
-      throw new UnauthorizedException('No se pudo verificar el usuario');
+      throw new UnauthenticatedError('No se pudo verificar el usuario');
     }
 
     const user = await this.authRepository.login(correo.trim());
     if (!user?.contrasena) {
-      throw new UnauthorizedException('La contraseña actual no es correcta');
+      throw new UnauthenticatedError('La contraseña actual no es correcta');
     }
 
     let passwordHash = user.contrasena;
@@ -73,12 +70,18 @@ export class CambiarContrasenaPerfilUseCase {
       passwordHash = passwordHash.replace(/^\$2y\$/, '$2a$');
     }
 
-    const isCurrentValid = await bcrypt.compare(contrasenaActual, passwordHash);
+    const isCurrentValid = await this.passwordHasher.compare(
+      contrasenaActual,
+      passwordHash,
+    );
     if (!isCurrentValid) {
-      throw new UnauthorizedException('La contraseña actual no es correcta');
+      throw new UnauthenticatedError('La contraseña actual no es correcta');
     }
 
-    const contrasenaHasheada = await bcrypt.hash(nuevaContrasena, 10);
+    const contrasenaHasheada = await this.passwordHasher.hash(
+      nuevaContrasena,
+      10,
+    );
     const resultado = await this.authRepository.actualizarCredenciales(
       userId,
       null,
@@ -87,7 +90,7 @@ export class CambiarContrasenaPerfilUseCase {
     );
 
     if (!resultado) {
-      throw new BadRequestException('No se pudo actualizar la contraseña');
+      throw new InvalidInputError('No se pudo actualizar la contraseña');
     }
 
     return { contrasenaActualizada: true };

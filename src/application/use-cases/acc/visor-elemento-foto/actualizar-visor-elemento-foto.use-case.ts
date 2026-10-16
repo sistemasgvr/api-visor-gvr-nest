@@ -1,21 +1,12 @@
+import { type IAccVisorElementoFotoRepository } from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import {
-  ACC_VISOR_ELEMENTO_FOTO_REPOSITORY,
-  type IAccVisorElementoFotoRepository,
-} from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
-import type { ActualizarVisorElementoFotoDto } from '../../../dtos/acc/visor-elemento-foto/visor-elemento-foto.dto';
+  InvalidInputError,
+  NotFoundError,
+} from '../../../errors/application.error';
+import type { ActualizarVisorElementoFotoDto } from '../../../inputs/acc/visor-elemento-foto/visor-elemento-foto.dto';
 
-@Injectable()
 export class ActualizarVisorElementoFotoUseCase {
-  constructor(
-    @Inject(ACC_VISOR_ELEMENTO_FOTO_REPOSITORY)
-    private readonly repository: IAccVisorElementoFotoRepository,
-  ) {}
+  constructor(private readonly repository: IAccVisorElementoFotoRepository) {}
 
   async execute(
     id: number,
@@ -24,7 +15,7 @@ export class ActualizarVisorElementoFotoUseCase {
   ) {
     const existing = await this.repository.obtenerPorId(id);
     if (!existing) {
-      throw new NotFoundException('Anclaje de fotos no encontrado');
+      throw new NotFoundError('Anclaje de fotos no encontrado');
     }
     try {
       await this.repository.actualizar({
@@ -38,7 +29,7 @@ export class ActualizarVisorElementoFotoUseCase {
         idUsuario,
       });
     } catch (err) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         err instanceof Error ? err.message : 'No se pudo actualizar',
       );
     }

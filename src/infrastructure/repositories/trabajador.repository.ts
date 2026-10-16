@@ -24,8 +24,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
   private async resolverFotoPerfil(
     fotoAlmacenada: unknown,
   ): Promise<string | null> {
-    const raw =
-      typeof fotoAlmacenada === 'string' ? fotoAlmacenada.trim() : '';
+    const raw = typeof fotoAlmacenada === 'string' ? fotoAlmacenada.trim() : '';
     if (!raw) return null;
     try {
       return await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(raw);
@@ -332,11 +331,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
   ): Promise<any> {
     return await this.databaseFunctionService.callFunctionSingle<any>(
       'tra_EliminarContratoTrabajador',
-      [
-        data.idContrato,
-        data.idTrabajador,
-        data.idUsuarioModificacion,
-      ],
+      [data.idContrato, data.idTrabajador, data.idUsuarioModificacion],
     );
   }
 
@@ -450,11 +445,10 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         String(a.ruta).trim() !== '',
     );
     if (filtered.length === 0) return;
-    await this.databaseFunctionService.callFunctionVoid('tra_InsertarAdjuntos', [
-      idTrabajador,
-      JSON.stringify(filtered),
-      idUsuarioCreacion ?? null,
-    ]);
+    await this.databaseFunctionService.callFunctionVoid(
+      'tra_InsertarAdjuntos',
+      [idTrabajador, JSON.stringify(filtered), idUsuarioCreacion ?? null],
+    );
   }
 
   async eliminarTrabajador(

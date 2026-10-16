@@ -1,10 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ActualizarUsuarioProyectoDto } from '../../../dtos/acc/project-users/actualizar-usuario-proyecto.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
 
-@Injectable()
+import { ActualizarUsuarioProyectoDto } from '../../../inputs/acc/project-users/actualizar-usuario-proyecto.dto';
+
 export class ActualizarUsuarioProyectoUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAdminPort) {}
 
   async execute(
     projectId: string,
@@ -16,7 +16,7 @@ export class ActualizarUsuarioProyectoUseCase {
     ]);
 
     if (this.autodeskApiService.esTokenExpirado(token.expires_at)) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'El token ha expirado. Por favor, genera un nuevo token.',
       );
     }
@@ -27,7 +27,7 @@ export class ActualizarUsuarioProyectoUseCase {
     if (dto.products !== undefined) userData.products = dto.products;
 
     if (Object.keys(userData).length === 0) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'Debe proporcionar al menos un campo para actualizar',
       );
     }

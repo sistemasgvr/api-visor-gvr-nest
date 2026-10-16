@@ -1,24 +1,17 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { CrearProyectoDto } from '../../../dtos/acc/projects/crear-proyecto.dto';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
-import {
-  ACC_RESOURCES_REPOSITORY,
-  type IAccResourcesRepository,
-} from '../../../../domain/repositories/acc-resources.repository.interface';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
+
+import { type IAccResourcesRepository } from '../../../../domain/repositories/acc-resources.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { CrearProyectoDto } from '../../../inputs/acc/projects/crear-proyecto.dto';
 import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
 
-@Injectable()
 export class CrearProyectoUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskAdminPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
-    @Inject(ACC_RESOURCES_REPOSITORY)
+
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 

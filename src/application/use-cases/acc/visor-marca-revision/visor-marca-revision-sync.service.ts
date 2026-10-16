@@ -1,6 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { BroadcastService } from '../../../../shared/services/broadcast.service';
+import {
+  ApplicationLogger,
+  LoggerFactoryPort,
+} from '../../../ports/runtime.port';
+
 import type { VisorMarcaRevisionDetalle } from '../../../../domain/repositories/acc-visor-marca-revision.repository.interface';
+import { BroadcastPort } from '../../../ports/broadcast.port';
 
 export type VisorMarcaRevisionSyncAction =
   | 'created'
@@ -23,11 +27,15 @@ export interface VisorMarcaRevisionSyncPayload {
   markup: VisorMarcaRevisionDetalle | null;
 }
 
-@Injectable()
 export class VisorMarcaRevisionSyncService {
-  private readonly logger = new Logger(VisorMarcaRevisionSyncService.name);
+  private readonly logger: ApplicationLogger;
 
-  constructor(private readonly broadcastService: BroadcastService) {}
+  constructor(
+    private readonly broadcastService: BroadcastPort,
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(VisorMarcaRevisionSyncService.name);
+  }
 
   static channelForProject(idProyectoAcc: string): string {
     return `acc.projects.${idProyectoAcc}.visor-marcas-revision`;
@@ -66,10 +74,7 @@ export class VisorMarcaRevisionSyncService {
     }
   }
 
-  emitDeleted(
-    snapshot: VisorMarcaRevisionDetalle,
-    actorUserId: number,
-  ): void {
+  emitDeleted(snapshot: VisorMarcaRevisionDetalle, actorUserId: number): void {
     try {
       const payload: VisorMarcaRevisionSyncPayload = {
         action: 'deleted',

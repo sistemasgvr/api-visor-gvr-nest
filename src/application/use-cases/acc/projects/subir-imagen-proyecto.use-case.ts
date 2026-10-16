@@ -1,33 +1,28 @@
 import {
-  Injectable,
-  BadRequestException,
-  Inject,
-  PayloadTooLargeException,
-} from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { SharpAccProjectImagePreparerService } from '../../../../infrastructure/images/sharp-acc-project-image-preparer.service';
-import {
-  getAccProjectImageMaxBytes,
-  getAccProjectImageMaxLabel,
-} from '../../../../shared/constants/acc-project-image.constants';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
+  InvalidInputError,
+  TooLargeError,
+} from '../../../errors/application.error';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
+import { ApplicationSettingsPort } from '../../../ports/runtime.port';
+import type { UploadedFile } from '../../../ports/uploaded-file';
 
-@Injectable()
+import { SharpAccProjectImagePreparerPort } from '../../../ports/sharp-acc-project-image-preparer.port';
+
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+
 export class SubirImagenProyectoUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    private readonly accProjectImagePreparer: SharpAccProjectImagePreparerService,
-    @Inject(AUDITORIA_REPOSITORY)
+    private readonly autodeskApiService: AutodeskAdminPort,
+    private readonly accProjectImagePreparer: SharpAccProjectImagePreparerPort,
+
     private readonly auditoriaRepository: IAuditoriaRepository,
+    private readonly settings: ApplicationSettingsPort,
   ) {}
 
   async execute(
     accountId: string,
     projectId: string,
-    file: Express.Multer.File,
+    file: UploadedFile,
     token?: string,
     userId?: string | number,
     ipAddress?: string,
@@ -35,7 +30,7 @@ export class SubirImagenProyectoUseCase {
     userRole?: string,
   ): Promise<any> {
     if (!file) {
-      throw new BadRequestException('El archivo de imagen es requerido');
+      throw new InvalidInputError('El archivo de imagen es requerido');
     }
 
     const allowedMimeTypes = [
@@ -46,24 +41,24 @@ export class SubirImagenProyectoUseCase {
       'image/gif',
     ];
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'Tipo de archivo no soportado. Use: PNG, JPEG, JPG, BMP o GIF',
       );
     }
 
-    const maxBytes = getAccProjectImageMaxBytes();
+    const maxBytes = this.settings.getAccProjectImageMaxBytes();
     const prepared = await this.accProjectImagePreparer.prepareForAcc(
       file,
       maxBytes,
     );
 
     if (prepared.size > maxBytes) {
-      throw new PayloadTooLargeException(
-        `Tras optimizar la imagen aún supera ${getAccProjectImageMaxLabel()} (límite del servicio de Autodesk). Pruebe con otra imagen o menor resolución.`,
+      throw new TooLargeError(
+        `Tras optimizar la imagen aún supera ${this.settings.getAccProjectImageMaxLabel()} (límite del servicio de Autodesk). Pruebe con otra imagen o menor resolución.`,
       );
     }
 
-    const fileForAcc: Express.Multer.File = {
+    const fileForAcc: UploadedFile = {
       ...file,
       buffer: prepared.buffer,
       size: prepared.size,

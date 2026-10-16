@@ -1,21 +1,20 @@
-import { Injectable, Inject, ConflictException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import type { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
-import { AuthUser } from '../../domain/entities/auth-user.entity';
-import { RegisterDto } from '../dtos/register.dto';
+import { ConflictError } from '../errors/application.error';
+import { PasswordHasherPort } from '../ports/runtime.port';
 
-@Injectable()
+import { AuthUser } from '../../domain/entities/auth-user.entity';
+import type { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
+import { RegisterDto } from '../inputs/register.dto';
+
 export class RegisterUseCase {
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly authRepository: IAuthRepository,
+    private readonly passwordHasher: PasswordHasherPort,
   ) {}
 
   async execute(registerDto: RegisterDto): Promise<AuthUser> {
     // Hash the password before storing
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(
+    const hashedPassword = await this.passwordHasher.hash(
       registerDto.contrasena,
       saltRounds,
     );
@@ -37,7 +36,7 @@ export class RegisterUseCase {
         error.message?.includes('duplicate') ||
         error.message?.includes('already exists')
       ) {
-        throw new ConflictException('El correo ya está registrado');
+        throw new ConflictError('El correo ya está registrado');
       }
       throw error;
     }

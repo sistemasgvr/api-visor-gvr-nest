@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
+import type { AutodeskReviewsPort } from '../../../ports/autodesk/reviews.port';
+
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
 
 type GvrWorkflowRow = {
   id: string;
@@ -72,12 +72,11 @@ function mapGvrRowToWorkflow(row: GvrWorkflowRow): any {
   };
 }
 
-@Injectable()
 export class ObtenerWorkflowPorIdUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskReviewsPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    private readonly dbFunctionService: DatabaseFunctionService,
+    private readonly reviewsRepository: InternalReviewsRepository,
   ) {}
 
   async execute(
@@ -88,10 +87,10 @@ export class ObtenerWorkflowPorIdUseCase {
     const trimmed = workflowId?.trim() ?? '';
     if (/^\d+$/.test(trimmed)) {
       const flowId = parseInt(trimmed, 10);
-      const rows = await this.dbFunctionService.callFunction<GvrWorkflowRow>(
-        'acc_ObtenerFlujoTrabajoAprobacionGvrPorId',
-        [projectId, flowId],
-      );
+      const rows =
+        await this.reviewsRepository.obtenerFlujoTrabajoAprobacionGvrPorId<GvrWorkflowRow>(
+          [projectId, flowId],
+        );
       const row = rows?.[0];
       if (row) {
         return mapGvrRowToWorkflow(row);

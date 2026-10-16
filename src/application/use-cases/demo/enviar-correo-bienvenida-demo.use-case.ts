@@ -1,11 +1,8 @@
-import {
-  Injectable,
-  Inject,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
 import type { ITrabajadorRepository } from '../../../domain/repositories/trabajador.repository.interface';
-import { TRABAJADOR_REPOSITORY } from '../../../domain/repositories/trabajador.repository.interface';
+import {
+  InvalidInputError,
+  NotFoundError,
+} from '../../errors/application.error';
 import { EnviarCorreoBienvenidaUseCase } from '../mail/enviar-correo-bienvenida.use-case';
 
 export interface EnviarCorreoBienvenidaDemoResult {
@@ -18,10 +15,9 @@ export interface EnviarCorreoBienvenidaDemoResult {
 /**
  * Solo para pruebas (ruta demo): busca trabajador por id y encola/envía plantilla welcome.
  */
-@Injectable()
+
 export class EnviarCorreoBienvenidaDemoUseCase {
   constructor(
-    @Inject(TRABAJADOR_REPOSITORY)
     private readonly trabajadorRepository: ITrabajadorRepository,
     private readonly enviarCorreoBienvenidaUseCase: EnviarCorreoBienvenidaUseCase,
   ) {}
@@ -30,23 +26,23 @@ export class EnviarCorreoBienvenidaDemoUseCase {
     idTrabajador: number,
   ): Promise<EnviarCorreoBienvenidaDemoResult> {
     if (idTrabajador == null || idTrabajador < 1) {
-      throw new BadRequestException('idTrabajador inválido');
+      throw new InvalidInputError('idTrabajador inválido');
     }
 
     const row =
       await this.trabajadorRepository.obtenerTrabajadorPorId(idTrabajador);
     if (!row) {
-      throw new NotFoundException('Trabajador no encontrado');
+      throw new NotFoundError('Trabajador no encontrado');
     }
 
     const estado = row.estado ?? row.Estado;
     if (estado !== 1) {
-      throw new BadRequestException('Trabajador inactivo');
+      throw new InvalidInputError('Trabajador inactivo');
     }
 
     const correo = String(row.correo ?? row.Correo ?? '').trim();
     if (!correo) {
-      throw new BadRequestException('El trabajador no tiene correo registrado');
+      throw new InvalidInputError('El trabajador no tiene correo registrado');
     }
 
     const nombreCompleto = String(
@@ -66,7 +62,7 @@ export class EnviarCorreoBienvenidaDemoUseCase {
       });
 
     if (!sent) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         skippedReason || 'No se pudo encolar el correo de bienvenida',
       );
     }

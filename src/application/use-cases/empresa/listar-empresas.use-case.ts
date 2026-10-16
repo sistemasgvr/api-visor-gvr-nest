@@ -1,17 +1,13 @@
-import { Injectable, Inject } from '@nestjs/common';
 import type {
   IEmpresaRepository,
   ListarEmpresasParams,
 } from '../../../domain/repositories/empresa.repository.interface';
-import { EMPRESA_REPOSITORY } from '../../../domain/repositories/empresa.repository.interface';
-import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
+import { MinioStoragePort } from '../../ports/minio-storage.port';
 
-@Injectable()
 export class ListarEmpresasUseCase {
   constructor(
-    @Inject(EMPRESA_REPOSITORY)
     private readonly empresaRepository: IEmpresaRepository,
-    private readonly minioStorage: MinioStorageService,
+    private readonly minioStorage: MinioStoragePort,
   ) {}
 
   async execute(params: ListarEmpresasParams) {
@@ -22,8 +18,7 @@ export class ListarEmpresasUseCase {
     }
     const data = await Promise.all(
       rows.map(async (row: Record<string, unknown>) => {
-        const raw =
-          row['urllogo'] != null ? String(row['urllogo']).trim() : '';
+        const raw = row['urllogo'] != null ? String(row['urllogo']).trim() : '';
         if (!raw) {
           return { ...row, urllogoviewurl: null };
         }

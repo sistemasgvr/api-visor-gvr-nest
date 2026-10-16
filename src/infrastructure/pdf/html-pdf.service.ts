@@ -12,7 +12,7 @@ import puppeteer, { Browser } from 'puppeteer';
 import type {
   IHtmlPdfGenerator,
   PdfRenderOptions,
-} from 'src/domain/services/html-pdf-generator.interface';
+} from '../../domain/services/html-pdf-generator.interface';
 
 /**
  * Genera PDFs desde plantillas HTML con Handlebars.

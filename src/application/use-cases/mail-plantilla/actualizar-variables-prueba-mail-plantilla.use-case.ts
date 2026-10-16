@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IMailPlantillaCorreoRepository } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import { UpdateVariablesPruebaMailPlantillaDto } from '../../dtos/mail-plantilla/update-variables-prueba-mail-plantilla.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { UpdateVariablesPruebaMailPlantillaDto } from '../../inputs/mail-plantilla/update-variables-prueba-mail-plantilla.dto';
 
-@Injectable()
 export class ActualizarVariablesPruebaMailPlantillaUseCase {
-  constructor(
-    @Inject(MAIL_PLANTILLA_CORREO_REPOSITORY)
-    private readonly repository: IMailPlantillaCorreoRepository,
-  ) {}
+  constructor(private readonly repository: IMailPlantillaCorreoRepository) {}
 
   async execute(
     id: number,
@@ -22,7 +17,7 @@ export class ActualizarVariablesPruebaMailPlantillaUseCase {
     );
 
     if (!resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado.message || 'Error al actualizar variables de prueba',
       );
     }

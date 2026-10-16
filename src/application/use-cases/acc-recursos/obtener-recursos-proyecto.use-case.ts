@@ -1,16 +1,8 @@
-import { Injectable, Inject } from '@nestjs/common';
-import {
-  ACC_RECURSOS_REPOSITORY,
-  type IAccRecursosRepository,
-} from '../../../domain/repositories/acc-recursos.repository.interface';
-import { ObtenerRecursosProyectoDto } from '../../dtos/acc-recursos/obtener-recursos-proyecto.dto';
+import { type IAccRecursosRepository } from '../../../domain/repositories/acc-recursos.repository.interface';
+import { ObtenerRecursosProyectoDto } from '../../inputs/acc-recursos/obtener-recursos-proyecto.dto';
 
-@Injectable()
 export class ObtenerRecursosProyectoUseCase {
-  constructor(
-    @Inject(ACC_RECURSOS_REPOSITORY)
-    private readonly accRecursosRepository: IAccRecursosRepository,
-  ) {}
+  constructor(private readonly accRecursosRepository: IAccRecursosRepository) {}
 
   async execute(
     projectId: string,

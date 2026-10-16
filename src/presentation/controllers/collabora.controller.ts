@@ -18,7 +18,7 @@ import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { CollaboraService } from '../../infrastructure/services/collabora.service';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { DocumentTokenService } from '../../infrastructure/services/document-token.service';
-import { BroadcastService } from '../../shared/services/broadcast.service';
+import { BroadcastService } from '../../infrastructure/events/broadcast.service';
 import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interface';
 import type { IAccRepository } from '../../domain/repositories/acc.repository.interface';
 import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
@@ -262,11 +262,15 @@ export class CollaboraController {
     if (!session || session.userId !== userId) {
       return {
         status: 403,
-        message: 'Sesión de edición inválida o expirada. Vuelva a abrir el documento.',
+        message:
+          'Sesión de edición inválida o expirada. Vuelva a abrir el documento.',
       };
     }
 
-    const accAccessToken = await this.resolveAccAccessToken(userId, sessionToken);
+    const accAccessToken = await this.resolveAccAccessToken(
+      userId,
+      sessionToken,
+    );
     if (!accAccessToken) {
       return {
         status: 401,

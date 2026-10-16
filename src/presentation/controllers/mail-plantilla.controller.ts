@@ -19,13 +19,9 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { ListarMailPlantillasUseCase } from '../../application/use-cases/mail-plantilla/listar-mail-plantillas.use-case';
 import { ObtenerMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/obtener-mail-plantilla.use-case';
 import { CrearMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/crear-mail-plantilla.use-case';
@@ -37,15 +33,15 @@ import { EliminarHistorialMailPlantillaUseCase } from '../../application/use-cas
 import { PreviewMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/preview-mail-plantilla.use-case';
 import { TestSendMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/test-send-mail-plantilla.use-case';
 import { SembrarMailPlantillasSistemaUseCase } from '../../application/use-cases/mail-plantilla/sembrar-mail-plantillas-sistema.use-case';
-import { ListMailPlantillaQueryDto } from '../../application/dtos/mail-plantilla/list-mail-plantilla-query.dto';
-import { CreateMailPlantillaDto } from '../../application/dtos/mail-plantilla/create-mail-plantilla.dto';
-import { UpdateMailPlantillaDto } from '../../application/dtos/mail-plantilla/update-mail-plantilla.dto';
-import { UpdateVariablesPruebaMailPlantillaDto } from '../../application/dtos/mail-plantilla/update-variables-prueba-mail-plantilla.dto';
+import { ListMailPlantillaQueryDto } from '../dtos/mail-plantilla/list-mail-plantilla-query.dto';
+import { CreateMailPlantillaDto } from '../dtos/mail-plantilla/create-mail-plantilla.dto';
+import { UpdateMailPlantillaDto } from '../dtos/mail-plantilla/update-mail-plantilla.dto';
+import { UpdateVariablesPruebaMailPlantillaDto } from '../dtos/mail-plantilla/update-variables-prueba-mail-plantilla.dto';
 import { ActualizarVariablesPruebaMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/actualizar-variables-prueba-mail-plantilla.use-case';
 import {
   PreviewMailPlantillaDto,
   TestSendMailPlantillaDto,
-} from '../../application/dtos/mail-plantilla/preview-mail-plantilla.dto';
+} from '../dtos/mail-plantilla/preview-mail-plantilla.dto';
 
 @ApiTags('mail-plantillas')
 @ApiBearerAuth('access-token')
@@ -120,7 +116,10 @@ export class MailPlantillaController {
     @Req() request: Request,
   ) {
     const userId = await this.getUserIdFromRequest(request);
-    const data = await this.eliminarHistorialUseCase.execute(idHistorial, userId);
+    const data = await this.eliminarHistorialUseCase.execute(
+      idHistorial,
+      userId,
+    );
     return ApiResponseDto.success(data, data.message);
   }
 
@@ -170,7 +169,9 @@ export class MailPlantillaController {
     return ApiResponseDto.success(data, data.message);
   }
 
-  @ApiOperation({ summary: 'Actualizar variables de prueba (sin nueva versión)' })
+  @ApiOperation({
+    summary: 'Actualizar variables de prueba (sin nueva versión)',
+  })
   @Patch(':id/variables-prueba')
   @HttpCode(HttpStatus.OK)
   async actualizarVariablesPrueba(

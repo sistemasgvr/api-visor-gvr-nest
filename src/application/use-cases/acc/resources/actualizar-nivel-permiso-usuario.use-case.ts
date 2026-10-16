@@ -1,12 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IAccResourcesRepository } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ActualizarNivelPermisoUsuarioDto } from '../../../dtos/acc/resources/actualizar-nivel-permiso-usuario.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { ActualizarNivelPermisoUsuarioDto } from '../../../inputs/acc/resources/actualizar-nivel-permiso-usuario.dto';
 
-@Injectable()
 export class ActualizarNivelPermisoUsuarioUseCase {
   constructor(
-    @Inject(ACC_RESOURCES_REPOSITORY)
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 
@@ -23,7 +20,7 @@ export class ActualizarNivelPermisoUsuarioUseCase {
       });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al actualizar el nivel de permiso',
       );
     }

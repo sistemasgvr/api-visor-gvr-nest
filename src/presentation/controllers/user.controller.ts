@@ -14,9 +14,9 @@ import {
 import type { Request } from 'express';
 import { ActualizarCredencialesUseCase } from '../../application/use-cases/auth/actualizar-credenciales.use-case';
 import { ObtenerPerfilUsuarioUseCase } from '../../application/use-cases/auth/obtener-perfil-usuario.use-case';
-import { UpdateCredentialsDto } from '../../application/dtos/auth/update-credentials.dto';
+import { UpdateCredentialsDto } from '../dtos/auth/update-credentials.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 

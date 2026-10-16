@@ -1,18 +1,13 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import type { ISesionRepository } from '../../../domain/repositories/sesion.repository.interface';
-import { SESION_REPOSITORY } from '../../../domain/repositories/sesion.repository.interface';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
+import type { ISesionRepository } from '../../../domain/repositories/sesion.repository.interface';
+import { TokenServicePort } from '../../ports/runtime.port';
 
-@Injectable()
 export class LogoutUseCase {
   constructor(
-    @Inject(SESION_REPOSITORY)
     private readonly sesionRepository: ISesionRepository,
-    @Inject(AUTH_REPOSITORY)
+
     private readonly authRepository: IAuthRepository,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: TokenServicePort,
   ) {}
 
   async execute(token: string): Promise<void> {

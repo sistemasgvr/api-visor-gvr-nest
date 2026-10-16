@@ -1,23 +1,18 @@
 import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { ActivarServicioProyectoDto } from '../../../dtos/acc/projects/activar-servicio-proyecto.dto';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
+  ForbiddenError,
+  InvalidInputError,
+} from '../../../errors/application.error';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
+
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { ActivarServicioProyectoDto } from '../../../inputs/acc/projects/activar-servicio-proyecto.dto';
 import ObtenerTokenValidoHelper from '../issues/obtener-token-valido.helper';
 
-@Injectable()
 export class ActivarServicioProyectoUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskAdminPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 
@@ -58,7 +53,7 @@ export class ActivarServicioProyectoUseCase {
         ]);
         accessToken = token2Legged.access_token;
       } catch (error) {
-        throw new ForbiddenException(
+        throw new ForbiddenError(
           'No se pudo obtener un token de acceso válido para activar el servicio',
         );
       }
@@ -180,13 +175,13 @@ export class ActivarServicioProyectoUseCase {
             };
           }
         } catch (updateError: any) {
-          throw new BadRequestException(
+          throw new InvalidInputError(
             `Error al actualizar servicio del usuario: ${updateError.message}`,
           );
         }
       }
 
-      throw new BadRequestException(
+      throw new InvalidInputError(
         `Error al activar servicio ${dto.service}: ${error.message}`,
       );
     }

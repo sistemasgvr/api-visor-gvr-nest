@@ -1,13 +1,8 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IEmpresaRepository } from '../../../domain/repositories/empresa.repository.interface';
-import { EMPRESA_REPOSITORY } from '../../../domain/repositories/empresa.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
 
-@Injectable()
 export class EliminarEmpresaUseCase {
-  constructor(
-    @Inject(EMPRESA_REPOSITORY)
-    private readonly empresaRepository: IEmpresaRepository,
-  ) {}
+  constructor(private readonly empresaRepository: IEmpresaRepository) {}
 
   async execute(idEmpresa: number, idUsuarioModificacion: number) {
     const resultado = await this.empresaRepository.eliminarEmpresa(
@@ -16,7 +11,7 @@ export class EliminarEmpresaUseCase {
     );
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al eliminar la empresa',
       );
     }

@@ -14,14 +14,20 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   ActualizarVisorElementoFotoDto,
   AgregarArchivosVisorElementoFotoDto,
   CrearVisorElementoFotoDto,
-} from '../../application/dtos/acc/visor-elemento-foto/visor-elemento-foto.dto';
+} from '../dtos/acc/visor-elemento-foto/visor-elemento-foto.dto';
 import { CrearVisorElementoFotoUseCase } from '../../application/use-cases/acc/visor-elemento-foto/crear-visor-elemento-foto.use-case';
 import { ActualizarVisorElementoFotoUseCase } from '../../application/use-cases/acc/visor-elemento-foto/actualizar-visor-elemento-foto.use-case';
 import { AgregarArchivosVisorElementoFotoUseCase } from '../../application/use-cases/acc/visor-elemento-foto/agregar-archivos-visor-elemento-foto.use-case';
@@ -49,17 +55,15 @@ export class AccVisorElementoFotoController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Crear anclaje de fotos de avance de obra en un elemento' })
+  @ApiOperation({
+    summary: 'Crear anclaje de fotos de avance de obra en un elemento',
+  })
   async crear(
     @Param('projectId') projectId: string,
     @Body() dto: CrearVisorElementoFotoDto,
     @Req() req: Request,
   ) {
-    const data = await this.crearUseCase.execute(
-      projectId,
-      dto,
-      req.user!.id,
-    );
+    const data = await this.crearUseCase.execute(projectId, dto, req.user!.id);
     return ApiResponseDto.success(
       data,
       'Fotos de avance registradas exitosamente',
@@ -68,7 +72,9 @@ export class AccVisorElementoFotoController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Listar anclajes de fotos por documento (pushpins del visor)' })
+  @ApiOperation({
+    summary: 'Listar anclajes de fotos por documento (pushpins del visor)',
+  })
   @ApiQuery({ name: 'documentUrn', required: true })
   @ApiQuery({ name: 'viewableGuid', required: false })
   async listar(
@@ -86,7 +92,9 @@ export class AccVisorElementoFotoController {
 
   @Get('por-elemento')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Obtener anclaje único por elemento en documento/vista' })
+  @ApiOperation({
+    summary: 'Obtener anclaje único por elemento en documento/vista',
+  })
   @ApiQuery({ name: 'documentUrn', required: true })
   @ApiQuery({ name: 'objectId', required: true, type: Number })
   @ApiQuery({ name: 'viewableGuid', required: false })
@@ -164,10 +172,7 @@ export class AccVisorElementoFotoController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Eliminar anclaje completo y sus imágenes' })
-  async eliminar(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request,
-  ) {
+  async eliminar(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     await this.eliminarUseCase.execute(id, req.user!.id);
     return ApiResponseDto.success(null, 'Anclaje eliminado exitosamente');
   }

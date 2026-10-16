@@ -8,9 +8,9 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { GenerarPdfDemoUseCase } from 'src/application/use-cases/pdf/generar-pdf-demo.use-case';
-import { EnviarCorreoBienvenidaDemoUseCase } from 'src/application/use-cases/demo/enviar-correo-bienvenida-demo.use-case';
-import { ApiResponseDto } from 'src/shared/dtos/api-response.dto';
+import { GenerarPdfDemoUseCase } from '../../application/use-cases/pdf/generar-pdf-demo.use-case';
+import { EnviarCorreoBienvenidaDemoUseCase } from '../../application/use-cases/demo/enviar-correo-bienvenida-demo.use-case';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 
 /** Rutas de prueba / sandbox (sin auth). Ampliar aquí otros demos si hace falta. */
 @ApiTags('demo')

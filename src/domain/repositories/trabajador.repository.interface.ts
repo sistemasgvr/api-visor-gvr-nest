@@ -161,9 +161,15 @@ export interface ITrabajadorRepository {
   crearTrabajador(data: CrearTrabajadorData): Promise<any>;
   editarTrabajador(data: EditarTrabajadorData): Promise<any>;
 
-  actualizarContratoTrabajador(data: ActualizarContratoTrabajadorData): Promise<any>;
-  insertarContratoTrabajador(data: InsertarContratoTrabajadorData): Promise<any>;
-  eliminarContratoTrabajador(data: EliminarContratoTrabajadorData): Promise<any>;
+  actualizarContratoTrabajador(
+    data: ActualizarContratoTrabajadorData,
+  ): Promise<any>;
+  insertarContratoTrabajador(
+    data: InsertarContratoTrabajadorData,
+  ): Promise<any>;
+  eliminarContratoTrabajador(
+    data: EliminarContratoTrabajadorData,
+  ): Promise<any>;
   eliminarTrabajador(
     idTrabajador: number,
     idUsuarioModificacion: number,

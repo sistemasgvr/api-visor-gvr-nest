@@ -1,18 +1,16 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { CrearAdjuntoDto } from '../../../dtos/acc/issues/crear-adjunto.dto';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
+import { InvalidInputError } from '../../../errors/application.error';
+import type { AutodeskIssuesPort } from '../../../ports/autodesk/issues.port';
+import type { UploadedFile } from '../../../ports/uploaded-file';
+
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { CrearAdjuntoDto } from '../../../inputs/acc/issues/crear-adjunto.dto';
 import ObtenerTokenValidoHelper from './obtener-token-valido.helper';
 
-@Injectable()
 export class CrearAdjuntoUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskIssuesPort,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 
@@ -20,7 +18,7 @@ export class CrearAdjuntoUseCase {
     userId: number,
     projectId: string,
     dto: CrearAdjuntoDto,
-    file?: Express.Multer.File,
+    file?: UploadedFile,
     ipAddress?: string,
     userAgent?: string,
     userRole?: string,
@@ -45,7 +43,7 @@ export class CrearAdjuntoUseCase {
       );
 
       if (!uploadResult.success || !uploadResult.urn) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           `Error al subir el archivo: ${uploadResult.error || 'Error desconocido'}`,
         );
       }
@@ -54,7 +52,7 @@ export class CrearAdjuntoUseCase {
     }
 
     if (!storageUrn) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'El URN es requerido. Por favor, suba el archivo o proporcione un URN.',
       );
     }

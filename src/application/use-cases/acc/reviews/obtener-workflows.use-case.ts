@@ -1,34 +1,34 @@
-import { Injectable } from '@nestjs/common';
-import { ObtenerWorkflowsDto } from '../../../dtos/acc/reviews/obtener-workflows.dto';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
+import { ObtenerWorkflowsDto } from '../../../inputs/acc/reviews/obtener-workflows.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
 /**
  * Lista flujos de trabajo de aprobación **solo desde la BD GVR**
  * (`acc_FlujoTrabajoAprobacion` vía `acc_ListarFlujosTrabajoAprobacionGvr`).
  * No consulta la API de Autodesk: la pantalla muestra únicamente lo persistido internamente.
  */
-@Injectable()
+
 export class ObtenerWorkflowsUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     _userId: number,
     projectId: string,
     dto: ObtenerWorkflowsDto,
   ): Promise<any> {
-    const gvrFlows = await this.dbFunctionService.callFunction<{
-      id: string;
-      name: string;
-      description: string | null;
-      notes: string | null;
-      status: string;
-      steps_json: unknown;
-      copy_files_enabled: boolean;
-      copy_files_options_json: unknown;
-      gvr_candidatos_json: unknown;
-      created_at: string | Date;
-      updated_at: string | Date;
-    }>('acc_ListarFlujosTrabajoAprobacionGvr', [projectId]);
+    const gvrFlows =
+      await this.reviewsRepository.listarFlujosTrabajoAprobacionGvr<{
+        id: string;
+        name: string;
+        description: string | null;
+        notes: string | null;
+        status: string;
+        steps_json: unknown;
+        copy_files_enabled: boolean;
+        copy_files_options_json: unknown;
+        gvr_candidatos_json: unknown;
+        created_at: string | Date;
+        updated_at: string | Date;
+      }>([projectId]);
 
     const workflows: any[] = [];
     for (const row of gvrFlows ?? []) {

@@ -10,7 +10,7 @@ import type { EmailRecipient } from '../../domain/mail/outbound-mail.types';
 import {
   MailNotConfiguredException,
   MailSendFailedException,
-} from '../../shared/exceptions/mail.exceptions';
+} from './mail.exceptions';
 
 @Injectable()
 export class NodemailerMailTransportService implements IMailTransport {

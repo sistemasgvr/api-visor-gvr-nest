@@ -1,7 +1,7 @@
-import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
+import { MinioStoragePort } from '../../ports/minio-storage.port';
 
 async function resolveArchivoUrl(
-  minio: MinioStorageService,
+  minio: MinioStoragePort,
   url: string | null | undefined,
 ): Promise<string | null | undefined> {
   const raw = url?.trim();
@@ -15,7 +15,7 @@ async function resolveArchivoUrl(
 
 export async function enrichNovedadTarjetasMediaUrls(
   data: { tarjetas?: Array<{ archivo?: { url?: string } | null }> } | null,
-  minio: MinioStorageService,
+  minio: MinioStoragePort,
 ): Promise<void> {
   if (!data?.tarjetas?.length) return;
   for (const tarjeta of data.tarjetas) {
@@ -28,8 +28,10 @@ export async function enrichNovedadTarjetasMediaUrls(
 }
 
 export async function enrichNovedadLanzamientosListMediaUrls(
-  lanzamientos: Array<{ tarjetas?: Array<{ archivo?: { url?: string } | null }> }>,
-  minio: MinioStorageService,
+  lanzamientos: Array<{
+    tarjetas?: Array<{ archivo?: { url?: string } | null }>;
+  }>,
+  minio: MinioStoragePort,
 ): Promise<void> {
   for (const l of lanzamientos) {
     await enrichNovedadTarjetasMediaUrls(l, minio);

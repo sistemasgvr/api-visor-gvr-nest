@@ -12,13 +12,15 @@ import type {
   UpsertDocumentMetadataData,
 } from '../../domain/repositories/acc-document-config.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
-import { normalizeExternalId } from '../../shared/utils/normalize-external-id.util';
+import { normalizeExternalId } from '../../domain/utils/normalize-external-id.util';
 
 function pickJsonbFromFunctionRow(
   row: Record<string, unknown> | null | undefined,
 ): unknown {
   if (!row || typeof row !== 'object') return null;
-  const values = Object.values(row).filter((v) => v !== undefined && v !== null);
+  const values = Object.values(row).filter(
+    (v) => v !== undefined && v !== null,
+  );
   if (values.length === 1) return values[0];
   return (
     values.find(
@@ -150,9 +152,7 @@ export class AccDocumentConfigRepository implements IAccDocumentConfigRepository
     return parseJsonbResult(result);
   }
 
-  async upsertFolderNamingRule(
-    data: UpsertFolderNamingRuleData,
-  ): Promise<any> {
+  async upsertFolderNamingRule(data: UpsertFolderNamingRuleData): Promise<any> {
     return this.databaseFunctionService.callFunctionSingle<any>(
       'acc_UpsertFolderNamingRule',
       [
@@ -194,9 +194,7 @@ export class AccDocumentConfigRepository implements IAccDocumentConfigRepository
     );
   }
 
-  async generarNombreDocumento(
-    data: GenerarNombreDocumentoData,
-  ): Promise<any> {
+  async generarNombreDocumento(data: GenerarNombreDocumentoData): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
       'acc_GenerarNombreDocumento',
       [

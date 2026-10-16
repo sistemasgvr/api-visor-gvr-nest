@@ -18,7 +18,10 @@ function pickBool(row: Record<string, unknown> | null, key: string): boolean {
   return v === true || v === 't' || v === 1 || v === '1';
 }
 
-function pickInt(row: Record<string, unknown> | null, key: string): number | null {
+function pickInt(
+  row: Record<string, unknown> | null,
+  key: string,
+): number | null {
   if (!row) return null;
   const v = row[key] ?? row[key.toLowerCase()];
   if (v == null) return null;
@@ -26,7 +29,10 @@ function pickInt(row: Record<string, unknown> | null, key: string): number | nul
   return Number.isFinite(n) ? Math.trunc(n) : null;
 }
 
-function pickStr(row: Record<string, unknown> | null, key: string): string | null {
+function pickStr(
+  row: Record<string, unknown> | null,
+  key: string,
+): string | null {
   if (!row) return null;
   const v = row[key] ?? row[key.toLowerCase()];
   if (v == null) return null;
@@ -34,7 +40,10 @@ function pickStr(row: Record<string, unknown> | null, key: string): string | nul
   return s.length > 0 ? s : null;
 }
 
-function pickDateStr(row: Record<string, unknown> | null, key: string): string | null {
+function pickDateStr(
+  row: Record<string, unknown> | null,
+  key: string,
+): string | null {
   if (!row) return null;
   const v = row[key] ?? row[key.toLowerCase()];
   if (v == null) return null;
@@ -70,7 +79,9 @@ export class AccVisorElementoFotoRepository implements IAccVisorElementoFotoRepo
     private readonly minioStorage: MinioStorageService,
   ) {}
 
-  async crear(params: CrearVisorElementoFotoParams): Promise<CrearVisorElementoFotoResult> {
+  async crear(
+    params: CrearVisorElementoFotoParams,
+  ): Promise<CrearVisorElementoFotoResult> {
     const row = await this.databaseFunctionService.callFunctionSingle<
       Record<string, unknown>
     >('acc_CrearVisorElementoFoto', [
@@ -117,7 +128,9 @@ export class AccVisorElementoFotoRepository implements IAccVisorElementoFotoRepo
       params.idUsuario,
     ]);
     if (!pickBool(row, 'success')) {
-      throw new Error(pickStr(row, 'message') ?? 'No se pudo actualizar el anclaje');
+      throw new Error(
+        pickStr(row, 'message') ?? 'No se pudo actualizar el anclaje',
+      );
     }
   }
 
@@ -133,7 +146,9 @@ export class AccVisorElementoFotoRepository implements IAccVisorElementoFotoRepo
     ]);
     const insertados = pickInt(row, 'insertados') ?? 0;
     if (insertados < 1) {
-      throw new Error(pickStr(row, 'message') ?? 'No se pudieron agregar archivos');
+      throw new Error(
+        pickStr(row, 'message') ?? 'No se pudieron agregar archivos',
+      );
     }
     return insertados;
   }
@@ -205,7 +220,9 @@ export class AccVisorElementoFotoRepository implements IAccVisorElementoFotoRepo
       Record<string, unknown>
     >('acc_EliminarVisorElementoFoto', [id, idUsuario]);
     if (!pickBool(row, 'success')) {
-      throw new Error(pickStr(row, 'message') ?? 'No se pudo eliminar el anclaje');
+      throw new Error(
+        pickStr(row, 'message') ?? 'No se pudo eliminar el anclaje',
+      );
     }
   }
 
@@ -270,7 +287,8 @@ export class AccVisorElementoFotoRepository implements IAccVisorElementoFotoRepo
               tipoMime: pickStr(r, 'tipomime'),
               tamanoBytes: pickInt(r, 'tamanobytes'),
               ordenArchivo: pickInt(r, 'ordenarchivo') ?? 0,
-              fechaAvance: pickDateStr(r, 'fechaavance') ?? pickDateStr(r, 'fechaAvance'),
+              fechaAvance:
+                pickDateStr(r, 'fechaavance') ?? pickDateStr(r, 'fechaAvance'),
             };
           }),
       )

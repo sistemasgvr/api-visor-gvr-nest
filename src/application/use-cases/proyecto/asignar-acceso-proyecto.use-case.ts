@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
-import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
-import { AsignarAccesoProyectoDto } from '../../dtos/proyecto/asignar-acceso-proyecto.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { AsignarAccesoProyectoDto } from '../../inputs/proyecto/asignar-acceso-proyecto.dto';
 
-@Injectable()
 export class AsignarAccesoProyectoUseCase {
-  constructor(
-    @Inject(PROYECTO_REPOSITORY)
-    private readonly proyectoRepository: IProyectoRepository,
-  ) {}
+  constructor(private readonly proyectoRepository: IProyectoRepository) {}
 
   async execute(
     idProyecto: number,
@@ -23,7 +18,7 @@ export class AsignarAccesoProyectoUseCase {
     );
 
     if (!resultado?.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message ?? 'Error al asignar acceso',
       );
     }

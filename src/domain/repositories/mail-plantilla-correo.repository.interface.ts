@@ -7,7 +7,8 @@ import type {
   MailTemplateVariableSchemaItem,
 } from '../entities/mail-plantilla-correo.entity';
 
-export const MAIL_PLANTILLA_CORREO_REPOSITORY = 'MAIL_PLANTILLA_CORREO_REPOSITORY';
+export const MAIL_PLANTILLA_CORREO_REPOSITORY =
+  'MAIL_PLANTILLA_CORREO_REPOSITORY';
 
 export interface ListarMailPlantillasParams {
   busqueda?: string;
@@ -71,7 +72,9 @@ export interface SembrarPlantillaResult {
 }
 
 export interface IMailPlantillaCorreoRepository {
-  listar(params: ListarMailPlantillasParams): Promise<ListarMailPlantillasResponse>;
+  listar(
+    params: ListarMailPlantillasParams,
+  ): Promise<ListarMailPlantillasResponse>;
   obtenerPorId(id: number): Promise<MailPlantillaCorreoDetalle | null>;
   obtenerPorSlug(
     slug: string,

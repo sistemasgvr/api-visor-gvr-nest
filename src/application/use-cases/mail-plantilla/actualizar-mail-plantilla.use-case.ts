@@ -1,16 +1,13 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IMailPlantillaCorreoRepository } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import { UpdateMailPlantillaDto } from '../../dtos/mail-plantilla/update-mail-plantilla.dto';
-import { MjmlCompilerService } from '../../../infrastructure/mail/mjml-compiler.service';
+import { InvalidInputError } from '../../errors/application.error';
+import { UpdateMailPlantillaDto } from '../../inputs/mail-plantilla/update-mail-plantilla.dto';
+import { MjmlCompilerPort } from '../../ports/mjml-compiler.port';
 import { prepareMailPlantillaContent } from './mail-plantilla-content.helper';
 
-@Injectable()
 export class ActualizarMailPlantillaUseCase {
   constructor(
-    @Inject(MAIL_PLANTILLA_CORREO_REPOSITORY)
     private readonly repository: IMailPlantillaCorreoRepository,
-    private readonly mjmlCompiler: MjmlCompilerService,
+    private readonly mjmlCompiler: MjmlCompilerPort,
   ) {}
 
   async execute(id: number, dto: UpdateMailPlantillaDto, idUsuario: number) {
@@ -47,7 +44,7 @@ export class ActualizarMailPlantillaUseCase {
     });
 
     if (!resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado.message || 'Error al actualizar la plantilla',
       );
     }

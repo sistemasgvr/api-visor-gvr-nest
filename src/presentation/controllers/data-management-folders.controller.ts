@@ -16,8 +16,8 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
-import { RequestInfoHelper } from '../../shared/helpers/request-info.helper';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { RequestInfoHelper } from '../http/request-info.helper';
 
 // Use cases - Group 1
 import { ObtenerCarpetaPorIdUseCase } from '../../application/use-cases/data-management/folders/obtener-carpeta-por-id.use-case';
@@ -42,25 +42,25 @@ import { RestaurarCarpetaUseCase } from '../../application/use-cases/data-manage
 import { SincronizarCarpetasProyectoUseCase } from '../../application/use-cases/data-management/folders/sincronizar-carpetas-proyecto.use-case';
 import { ExportarRegistroArchivosPdfUseCase } from '../../application/use-cases/data-management/folders/exportar-registro-archivos-pdf.use-case';
 import { ExportarPermisosCarpetaPdfUseCase } from '../../application/use-cases/data-management/folders/exportar-permisos-carpeta-pdf.use-case';
-import { ExportarRegistroArchivosPdfDto } from '../../application/dtos/data-management/folders/exportar-registro-archivos-pdf.dto';
-import { ExportarPermisosCarpetaPdfDto } from '../../application/dtos/data-management/folders/exportar-permisos-carpeta-pdf.dto';
+import { ExportarRegistroArchivosPdfDto } from '../dtos/data-management/folders/exportar-registro-archivos-pdf.dto';
+import { ExportarPermisosCarpetaPdfDto } from '../dtos/data-management/folders/exportar-permisos-carpeta-pdf.dto';
 
 // DTOs - Group 1
-import { ObtenerCarpetaPorIdDto } from '../../application/dtos/data-management/folders/obtener-carpeta-por-id.dto';
-import { BuscarEnContenidoCarpetaDto } from '../../application/dtos/data-management/folders/buscar-en-contenido-carpeta.dto';
-import { ObtenerCarpetaPadreDto } from '../../application/dtos/data-management/folders/obtener-carpeta-padre.dto';
-import { ObtenerReferenciasDto } from '../../application/dtos/data-management/folders/obtener-referencias.dto';
+import { ObtenerCarpetaPorIdDto } from '../dtos/data-management/folders/obtener-carpeta-por-id.dto';
+import { BuscarEnContenidoCarpetaDto } from '../dtos/data-management/folders/buscar-en-contenido-carpeta.dto';
+import { ObtenerCarpetaPadreDto } from '../dtos/data-management/folders/obtener-carpeta-padre.dto';
+import { ObtenerReferenciasDto } from '../dtos/data-management/folders/obtener-referencias.dto';
 
 // DTOs - Group 2
-import { ObtenerRelacionesLinksDto } from '../../application/dtos/data-management/folders/obtener-relaciones-links.dto';
-import { ObtenerRelacionesRefsDto } from '../../application/dtos/data-management/folders/obtener-relaciones-refs.dto';
-import { BuscarEnCarpetaDto } from '../../application/dtos/data-management/folders/buscar-en-carpeta.dto';
+import { ObtenerRelacionesLinksDto } from '../dtos/data-management/folders/obtener-relaciones-links.dto';
+import { ObtenerRelacionesRefsDto } from '../dtos/data-management/folders/obtener-relaciones-refs.dto';
+import { BuscarEnCarpetaDto } from '../dtos/data-management/folders/buscar-en-carpeta.dto';
 
 // DTOs - Group 3
-import { CrearCarpetaDto } from '../../application/dtos/data-management/folders/crear-carpeta.dto';
-import { CrearSubcarpetaDto } from '../../application/dtos/data-management/folders/crear-subcarpeta.dto';
-import { CrearReferenciaDto } from '../../application/dtos/data-management/folders/crear-referencia.dto';
-import { ActualizarCarpetaDto } from '../../application/dtos/data-management/folders/actualizar-carpeta.dto';
+import { CrearCarpetaDto } from '../dtos/data-management/folders/crear-carpeta.dto';
+import { CrearSubcarpetaDto } from '../dtos/data-management/folders/crear-subcarpeta.dto';
+import { CrearReferenciaDto } from '../dtos/data-management/folders/crear-referencia.dto';
+import { ActualizarCarpetaDto } from '../dtos/data-management/folders/actualizar-carpeta.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('acc-data')
@@ -184,7 +184,10 @@ export class DataManagementFoldersController {
    * GET - Obtener una carpeta específica por ID
    * GET /data-management/folders/:projectId/:folderId
    */
-  @ApiOperation({ summary: 'Obtener carpeta por ID', description: 'Incluye filtros tipados ACC.' })
+  @ApiOperation({
+    summary: 'Obtener carpeta por ID',
+    description: 'Incluye filtros tipados ACC.',
+  })
   @Get(':projectId/:folderId')
   @HttpCode(HttpStatus.OK)
   async obtenerCarpetaPorId(
@@ -364,7 +367,9 @@ export class DataManagementFoldersController {
    * GET - Buscar en el contenido de una carpeta por nombre u otros criterios
    * GET /data-management/folders/:projectId/:folderId/search-content
    */
-  @ApiOperation({ summary: 'Buscar dentro del listado contenido sin salir del ámbito' })
+  @ApiOperation({
+    summary: 'Buscar dentro del listado contenido sin salir del ámbito',
+  })
   @Get(':projectId/:folderId/search-content')
   @HttpCode(HttpStatus.OK)
   async buscarEnContenidoCarpeta(

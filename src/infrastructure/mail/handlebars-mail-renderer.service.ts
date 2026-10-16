@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as handlebars from 'handlebars';
@@ -9,7 +15,7 @@ import type {
 import type { IMailPlantillaCorreoRepository } from '../../domain/repositories/mail-plantilla-correo.repository.interface';
 import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../../domain/repositories/mail-plantilla-correo.repository.interface';
 import { MAIL_TEMPLATE_REGISTRY } from './template-registry';
-import { MailTemplateRenderException } from '../../shared/exceptions/mail.exceptions';
+import { MailTemplateRenderException } from './mail.exceptions';
 import { MailPlantillaRenderService } from './mail-plantilla-render.service';
 
 @Injectable()

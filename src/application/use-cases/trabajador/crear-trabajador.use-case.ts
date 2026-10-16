@@ -1,13 +1,10 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { ITrabajadorRepository } from '../../../domain/repositories/trabajador.repository.interface';
-import { TRABAJADOR_REPOSITORY } from '../../../domain/repositories/trabajador.repository.interface';
-import { CreateTrabajadorDto } from '../../dtos/trabajador/create-trabajador.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { CreateTrabajadorDto } from '../../inputs/trabajador/create-trabajador.dto';
 import { EnviarCorreoBienvenidaUseCase } from '../mail/enviar-correo-bienvenida.use-case';
 
-@Injectable()
 export class CrearTrabajadorUseCase {
   constructor(
-    @Inject(TRABAJADOR_REPOSITORY)
     private readonly trabajadorRepository: ITrabajadorRepository,
     private readonly enviarCorreoBienvenidaUseCase: EnviarCorreoBienvenidaUseCase,
   ) {}
@@ -22,7 +19,7 @@ export class CrearTrabajadorUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al crear el trabajador',
       );
     }

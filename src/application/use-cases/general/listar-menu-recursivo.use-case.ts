@@ -1,14 +1,10 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import type { IMenuRepository } from '../../../domain/repositories/menu.repository.interface';
-import { MENU_REPOSITORY } from '../../../domain/repositories/menu.repository.interface';
+import { TokenServicePort } from '../../ports/runtime.port';
 
-@Injectable()
 export class ListarMenuRecursivoUseCase {
   constructor(
-    @Inject(MENU_REPOSITORY)
     private readonly menuRepository: IMenuRepository,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: TokenServicePort,
   ) {}
 
   async execute(token: string): Promise<any> {

@@ -1,27 +1,23 @@
-import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  InternalServerErrorException,
-} from '@nestjs/common';
 import type { INovedadRepository } from '../../../domain/repositories/novedad.repository.interface';
-import { NOVEDAD_REPOSITORY } from '../../../domain/repositories/novedad.repository.interface';
-import { CreateNovedadTarjetaDto } from '../../dtos/novedad/create-novedad-tarjeta.dto';
-import { NovedadTarjetaMediaStorageService } from '../../../infrastructure/services/novedad-tarjeta-media-storage.service';
+import {
+  InternalError,
+  InvalidInputError,
+} from '../../errors/application.error';
+import { CreateNovedadTarjetaDto } from '../../inputs/novedad/create-novedad-tarjeta.dto';
+import { NovedadTarjetaMediaStoragePort } from '../../ports/novedad-tarjeta-media-storage.port';
+import type { UploadedFile } from '../../ports/uploaded-file';
 
-@Injectable()
 export class CrearNovedadTarjetaUseCase {
   constructor(
-    @Inject(NOVEDAD_REPOSITORY)
     private readonly novedadRepository: INovedadRepository,
-    private readonly novedadTarjetaMediaStorage: NovedadTarjetaMediaStorageService,
+    private readonly novedadTarjetaMediaStorage: NovedadTarjetaMediaStoragePort,
   ) {}
 
   async execute(
     idNovedadLanzamiento: number,
     dto: CreateNovedadTarjetaDto,
     idUsuarioCreacion: number,
-    file?: Express.Multer.File,
+    file?: UploadedFile,
   ) {
     const sinMultimedia = dto.sinMultimedia === true;
 
@@ -38,7 +34,7 @@ export class CrearNovedadTarjetaUseCase {
       });
 
       if (!resultado || !resultado.success) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           resultado?.message || 'Error al crear la tarjeta',
         );
       }
@@ -61,7 +57,7 @@ export class CrearNovedadTarjetaUseCase {
 
     if (tipo === 'imagen') {
       if (!file) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           'Debe subir un archivo de imagen para la tarjeta',
         );
       }
@@ -82,7 +78,7 @@ export class CrearNovedadTarjetaUseCase {
           idUsuarioCreacion,
         );
       } else if (!urlMultimedia && !idArchivo) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           'Para video debe subir un archivo o indicar una URL externa',
         );
       }
@@ -100,7 +96,7 @@ export class CrearNovedadTarjetaUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al crear la tarjeta',
       );
     }
@@ -117,7 +113,7 @@ export class CrearNovedadTarjetaUseCase {
   private async persistUploadedFile(
     idLanzamiento: number,
     tipo: 'imagen' | 'video',
-    file: Express.Multer.File,
+    file: UploadedFile,
     idUsuario: number,
   ): Promise<number> {
     const saved = await this.novedadTarjetaMediaStorage.save(
@@ -136,7 +132,7 @@ export class CrearNovedadTarjetaUseCase {
       });
 
       if (!registro?.success) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           registro?.message || 'No se pudo registrar el archivo',
         );
       }
@@ -144,20 +140,18 @@ export class CrearNovedadTarjetaUseCase {
       const idArchivo =
         registro.id_archivo ?? registro.idArchivo ?? registro.id;
       if (!idArchivo) {
-        throw new InternalServerErrorException(
-          'No se obtuvo el ID del archivo registrado',
-        );
+        throw new InternalError('No se obtuvo el ID del archivo registrado');
       }
       return Number(idArchivo);
     } catch (error) {
       await this.novedadTarjetaMediaStorage.deleteByStoredUrl(saved.url);
       if (
-        error instanceof BadRequestException ||
-        error instanceof InternalServerErrorException
+        error instanceof InvalidInputError ||
+        error instanceof InternalError
       ) {
         throw error;
       }
-      throw new InternalServerErrorException(
+      throw new InternalError(
         'No se pudo registrar el archivo en la base de datos',
       );
     }

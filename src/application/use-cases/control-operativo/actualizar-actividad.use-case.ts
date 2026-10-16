@@ -1,26 +1,26 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
+
 import type {
-  IControlOperativoRepository,
-  ActualizarActividadParams,
   ActividadCreada,
+  ActualizarActividadParams,
+  IControlOperativoRepository,
 } from '../../../domain/repositories/control-operativo.repository.interface';
-import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
-import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
-import { BroadcastService } from '../../../shared/services/broadcast.service';
+import { BroadcastPort } from '../../ports/broadcast.port';
 import { emitirEntregableCulminado } from '../proyecto/entregable-notificaciones.helper';
 
-@Injectable()
 export class ActualizarActividadUseCase {
-  private readonly logger = new Logger(ActualizarActividadUseCase.name);
+  private readonly logger: ApplicationLogger;
 
   constructor(
-    @Inject(CONTROL_OPERATIVO_REPOSITORY)
     private readonly controlOperativoRepository: IControlOperativoRepository,
-    @Inject(PROYECTO_REPOSITORY)
+
     private readonly proyectoRepository: IProyectoRepository,
-    private readonly broadcastService: BroadcastService,
-  ) {}
+    private readonly broadcastService: BroadcastPort,
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(ActualizarActividadUseCase.name);
+  }
 
   async execute(
     params: ActualizarActividadParams,
@@ -114,6 +114,7 @@ export class ActualizarActividadUseCase {
         );
       if (idUsuarioActor != null) {
         await emitirEntregableCulminado({
+          logger: this.loggerFactory.create('EntregableNotificaciones'),
           broadcast: this.broadcastService,
           proyectoRepository: this.proyectoRepository,
           idEntregable: Number(data.identregable),

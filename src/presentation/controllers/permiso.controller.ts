@@ -20,10 +20,10 @@ import { ObtenerPermisoUseCase } from '../../application/use-cases/permiso/obten
 import { CrearPermisoUseCase } from '../../application/use-cases/permiso/crear-permiso.use-case';
 import { EditarPermisoUseCase } from '../../application/use-cases/permiso/editar-permiso.use-case';
 import { EliminarPermisoUseCase } from '../../application/use-cases/permiso/eliminar-permiso.use-case';
-import { CreatePermisoDto } from '../../application/dtos/permiso/create-permiso.dto';
-import { UpdatePermisoDto } from '../../application/dtos/permiso/update-permiso.dto';
+import { CreatePermisoDto } from '../dtos/permiso/create-permiso.dto';
+import { UpdatePermisoDto } from '../dtos/permiso/update-permiso.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 
@@ -41,7 +41,10 @@ export class PermisoController {
     private readonly jwtService: JwtService,
   ) {}
 
-  @ApiOperation({ summary: 'Listar permisos', description: 'Catálogo paginable para asignación a roles.' })
+  @ApiOperation({
+    summary: 'Listar permisos',
+    description: 'Catálogo paginable para asignación a roles.',
+  })
   @Get()
   @HttpCode(HttpStatus.OK)
   async listarPermisos(

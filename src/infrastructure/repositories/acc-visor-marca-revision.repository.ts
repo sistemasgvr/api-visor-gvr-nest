@@ -21,7 +21,10 @@ function pickBool(row: Record<string, unknown> | null, key: string): boolean {
   return v === true || v === 't' || v === 1 || v === '1';
 }
 
-function pickInt(row: Record<string, unknown> | null, key: string): number | null {
+function pickInt(
+  row: Record<string, unknown> | null,
+  key: string,
+): number | null {
   if (!row) return null;
   const v = row[key] ?? row[key.toLowerCase()];
   if (v == null) return null;
@@ -29,7 +32,10 @@ function pickInt(row: Record<string, unknown> | null, key: string): number | nul
   return Number.isFinite(n) ? Math.trunc(n) : null;
 }
 
-function pickStr(row: Record<string, unknown> | null, key: string): string | null {
+function pickStr(
+  row: Record<string, unknown> | null,
+  key: string,
+): string | null {
   if (!row) return null;
   const v = row[key] ?? row[key.toLowerCase()];
   if (v == null) return null;
@@ -60,7 +66,9 @@ function pickJsonObject(
   return null;
 }
 
-function mapOperacion(row: Record<string, unknown> | null): OperacionVisorMarcaRevisionResult {
+function mapOperacion(
+  row: Record<string, unknown> | null,
+): OperacionVisorMarcaRevisionResult {
   return {
     success: pickBool(row, 'success'),
     message: pickStr(row, 'message') ?? 'Operación no completada',
@@ -69,9 +77,13 @@ function mapOperacion(row: Record<string, unknown> | null): OperacionVisorMarcaR
 
 @Injectable()
 export class AccVisorMarcaRevisionRepository implements IAccVisorMarcaRevisionRepository {
-  constructor(private readonly databaseFunctionService: DatabaseFunctionService) {}
+  constructor(
+    private readonly databaseFunctionService: DatabaseFunctionService,
+  ) {}
 
-  async crear(params: CrearVisorMarcaRevisionParams): Promise<CrearVisorMarcaRevisionResult> {
+  async crear(
+    params: CrearVisorMarcaRevisionParams,
+  ): Promise<CrearVisorMarcaRevisionResult> {
     const row = await this.databaseFunctionService.callFunctionSingle<
       Record<string, unknown>
     >('acc_CrearVisorMarcaRevision', [
@@ -145,7 +157,10 @@ export class AccVisorMarcaRevisionRepository implements IAccVisorMarcaRevisionRe
     };
   }
 
-  async publicar(id: number, idUsuario: number): Promise<OperacionVisorMarcaRevisionResult> {
+  async publicar(
+    id: number,
+    idUsuario: number,
+  ): Promise<OperacionVisorMarcaRevisionResult> {
     const row = await this.databaseFunctionService.callFunctionSingle<
       Record<string, unknown>
     >('acc_PublicarVisorMarcaRevision', [id, idUsuario]);
@@ -162,14 +177,19 @@ export class AccVisorMarcaRevisionRepository implements IAccVisorMarcaRevisionRe
     return mapOperacion(row);
   }
 
-  async suprimir(id: number, idUsuario: number): Promise<OperacionVisorMarcaRevisionResult> {
+  async suprimir(
+    id: number,
+    idUsuario: number,
+  ): Promise<OperacionVisorMarcaRevisionResult> {
     const row = await this.databaseFunctionService.callFunctionSingle<
       Record<string, unknown>
     >('acc_SuprimirVisorMarcaRevision', [id, idUsuario]);
     return mapOperacion(row);
   }
 
-  async listar(params: ListarVisorMarcasRevisionParams): Promise<VisorMarcaRevisionItem[]> {
+  async listar(
+    params: ListarVisorMarcasRevisionParams,
+  ): Promise<VisorMarcaRevisionItem[]> {
     const rows = await this.databaseFunctionService.callFunction<
       Record<string, unknown>
     >('acc_ListarVisorMarcasRevision', [
@@ -201,7 +221,9 @@ export class AccVisorMarcaRevisionRepository implements IAccVisorMarcaRevisionRe
     ]);
     return {
       totalVisibles: Number(row?.totalvisibles ?? row?.totalVisibles ?? 0),
-      totalPublicadas: Number(row?.totalpublicadas ?? row?.totalPublicadas ?? 0),
+      totalPublicadas: Number(
+        row?.totalpublicadas ?? row?.totalPublicadas ?? 0,
+      ),
       totalPropias: Number(row?.totalpropias ?? row?.totalPropias ?? 0),
       totalPropiasPrivadas: Number(
         row?.totalpropiasprivadas ?? row?.totalPropiasPrivadas ?? 0,
@@ -227,7 +249,11 @@ export class AccVisorMarcaRevisionRepository implements IAccVisorMarcaRevisionRe
   ): Promise<OperacionVisorMarcaRevisionResult> {
     const row = await this.databaseFunctionService.callFunctionSingle<
       Record<string, unknown>
-    >('acc_SincronizarMarkupIdApsVisorMarcaRevision', [id, idUsuario, markupIdAps]);
+    >('acc_SincronizarMarkupIdApsVisorMarcaRevision', [
+      id,
+      idUsuario,
+      markupIdAps,
+    ]);
     return mapOperacion(row);
   }
 

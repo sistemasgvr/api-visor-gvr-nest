@@ -1,8 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  ACC_VISOR_MARCA_REVISION_REPOSITORY,
-  type IAccVisorMarcaRevisionRepository,
-} from '../../../../domain/repositories/acc-visor-marca-revision.repository.interface';
+import { type IAccVisorMarcaRevisionRepository } from '../../../../domain/repositories/acc-visor-marca-revision.repository.interface';
 
 export interface ListarVisorMarcasRevisionQuery {
   documentUrn: string;
@@ -14,12 +10,8 @@ export interface ListarVisorMarcasRevisionQuery {
   soloPropias?: boolean;
 }
 
-@Injectable()
 export class ListarVisorMarcasRevisionUseCase {
-  constructor(
-    @Inject(ACC_VISOR_MARCA_REVISION_REPOSITORY)
-    private readonly repository: IAccVisorMarcaRevisionRepository,
-  ) {}
+  constructor(private readonly repository: IAccVisorMarcaRevisionRepository) {}
 
   execute(
     idProyectoAcc: string,

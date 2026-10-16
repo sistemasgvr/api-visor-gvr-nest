@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IPermisoRepository } from '../../../domain/repositories/permiso.repository.interface';
-import { PERMISO_REPOSITORY } from '../../../domain/repositories/permiso.repository.interface';
-import { UpdatePermisoDto } from '../../dtos/permiso/update-permiso.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { UpdatePermisoDto } from '../../inputs/permiso/update-permiso.dto';
 
-@Injectable()
 export class EditarPermisoUseCase {
-  constructor(
-    @Inject(PERMISO_REPOSITORY)
-    private readonly permisoRepository: IPermisoRepository,
-  ) {}
+  constructor(private readonly permisoRepository: IPermisoRepository) {}
 
   async execute(
     idPermiso: number,
@@ -22,7 +17,7 @@ export class EditarPermisoUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al editar el permiso',
       );
     }

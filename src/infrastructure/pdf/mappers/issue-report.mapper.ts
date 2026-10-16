@@ -1,5 +1,5 @@
-import { PdfRenderOptions } from 'src/domain/services/html-pdf-generator.interface';
-import { ExportarIncidenciasDto } from 'src/application/dtos/acc/issues/exportar-incidencias.dto';
+import { PdfRenderOptions } from '../../../domain/services/html-pdf-generator.interface';
+import { ExportarIncidenciasDto } from '../../../application/inputs/acc/issues/exportar-incidencias.dto';
 
 // ────────────────────────────────────────────────────────────────
 // Tipos del modelo de datos del template

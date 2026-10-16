@@ -1,40 +1,36 @@
-import {
-  Injectable,
-  Inject,
-  UnauthorizedException,
-  BadRequestException,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import type { ITrabajadorRepository } from '../../../domain/repositories/trabajador.repository.interface';
-import { TRABAJADOR_REPOSITORY } from '../../../domain/repositories/trabajador.repository.interface';
-import { WorkerSignatureStorageService } from '../../../infrastructure/services/worker-signature-storage.service';
-import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
+import {
+  InternalError,
+  InvalidInputError,
+  UnauthenticatedError,
+} from '../../errors/application.error';
+import { MinioStoragePort } from '../../ports/minio-storage.port';
+import { TokenServicePort } from '../../ports/runtime.port';
+import type { UploadedFile } from '../../ports/uploaded-file';
+import { WorkerSignatureStoragePort } from '../../ports/worker-signature-storage.port';
 
-@Injectable()
 export class SubirFirmaTrabajadorUseCase {
   constructor(
-    @Inject(TRABAJADOR_REPOSITORY)
     private readonly trabajadorRepository: ITrabajadorRepository,
-    private readonly jwtService: JwtService,
-    private readonly workerSignatureStorageService: WorkerSignatureStorageService,
-    private readonly minioStorage: MinioStorageService,
+    private readonly jwtService: TokenServicePort,
+    private readonly workerSignatureStorageService: WorkerSignatureStoragePort,
+    private readonly minioStorage: MinioStoragePort,
   ) {}
 
   async execute(
     token: string,
-    file: Express.Multer.File,
+    file: UploadedFile,
   ): Promise<{ urlFirma: string }> {
     let payload: { sub?: number; nombre?: string };
     try {
       payload = await this.jwtService.verifyAsync(token);
     } catch {
-      throw new UnauthorizedException('Token inválido o expirado');
+      throw new UnauthenticatedError('Token inválido o expirado');
     }
 
     const userId = payload.sub;
     if (!userId) {
-      throw new UnauthorizedException('Token inválido');
+      throw new UnauthenticatedError('Token inválido');
     }
 
     const idTrabajador =
@@ -42,12 +38,13 @@ export class SubirFirmaTrabajadorUseCase {
         userId,
       );
     if (!idTrabajador) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'No tiene un trabajador activo vinculado a su cuenta. Contacte a administración.',
       );
     }
 
-    const workerDisplayName = payload.nombre?.trim() || `trabajador-${idTrabajador}`;
+    const workerDisplayName =
+      payload.nombre?.trim() || `trabajador-${idTrabajador}`;
 
     const saved = await this.workerSignatureStorageService.save(
       idTrabajador,
@@ -56,24 +53,24 @@ export class SubirFirmaTrabajadorUseCase {
     );
 
     try {
-      const { urlFirma } = await this.trabajadorRepository.actualizarFirmaTrabajador(
-        idTrabajador,
-        saved.url,
-        userId,
-        saved.nombreOriginal,
-        saved.tipoMime,
-        saved.tamanoBytes,
-      );
+      const { urlFirma } =
+        await this.trabajadorRepository.actualizarFirmaTrabajador(
+          idTrabajador,
+          saved.url,
+          userId,
+          saved.nombreOriginal,
+          saved.tipoMime,
+          saved.tamanoBytes,
+        );
       let view = urlFirma;
       if (urlFirma?.trim()) {
-        view = await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
-          urlFirma,
-        );
+        view =
+          await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(urlFirma);
       }
       return { urlFirma: view };
     } catch (error) {
       await this.workerSignatureStorageService.delete(saved.url);
-      throw new InternalServerErrorException(
+      throw new InternalError(
         'No se pudo actualizar la firma en la base de datos',
       );
     }

@@ -1,9 +1,10 @@
+import type { MailPlantillaRenderPort } from '../../application/ports/mail-plantilla-render.port';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as handlebars from 'handlebars';
 import type { RenderedMail } from '../../domain/services/mail-renderer.interface';
-import { MailTemplateRenderException } from '../../shared/exceptions/mail.exceptions';
+import { MailTemplateRenderException } from './mail.exceptions';
 import { MjmlCompilerService } from './mjml-compiler.service';
 
 export interface MailPlantillaRenderInput {
@@ -19,13 +20,15 @@ export interface MailPlantillaRenderedResult extends RenderedMail {
 }
 
 @Injectable()
-export class MailPlantillaRenderService {
+export class MailPlantillaRenderService implements MailPlantillaRenderPort {
   private readonly templatesRoot = path.join(__dirname, 'templates');
   private readonly layoutCache = new Map<string, handlebars.TemplateDelegate>();
 
   constructor(private readonly mjmlCompiler: MjmlCompilerService) {}
 
-  async render(input: MailPlantillaRenderInput): Promise<MailPlantillaRenderedResult> {
+  async render(
+    input: MailPlantillaRenderInput,
+  ): Promise<MailPlantillaRenderedResult> {
     const variables = input.variables ?? {};
     const claveLayout = (input.claveLayout ?? 'base').trim() || 'base';
     const asuntoPlantilla = (input.asuntoPlantilla ?? '').trim();
@@ -74,7 +77,10 @@ export class MailPlantillaRenderService {
 
     const mjml = cuerpoMjml?.trim();
     if (mjml) {
-      if (this.mjmlCompiler.looksLikeHtml(mjml) && !this.mjmlCompiler.looksLikeMjml(mjml)) {
+      if (
+        this.mjmlCompiler.looksLikeHtml(mjml) &&
+        !this.mjmlCompiler.looksLikeMjml(mjml)
+      ) {
         return { html: mjml, mjmlWarnings: [] };
       }
       const compiled = await this.mjmlCompiler.compile(mjml);

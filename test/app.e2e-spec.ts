@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import type { Server } from 'http';
 import request from 'supertest';
-import { HealthModule } from '../src/presentation/modules/health.module';
+import { HealthModule } from '../src/composition/modules/health.module';
 
 describe('API (e2e)', () => {
   let app: INestApplication;

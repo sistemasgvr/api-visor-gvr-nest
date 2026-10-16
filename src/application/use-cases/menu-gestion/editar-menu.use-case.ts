@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IMenuGestionRepository } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { MENU_GESTION_REPOSITORY } from '../../../domain/repositories/menu-gestion.repository.interface';
-import { UpdateMenuDto } from '../../dtos/menu-gestion/update-menu.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { UpdateMenuDto } from '../../inputs/menu-gestion/update-menu.dto';
 
-@Injectable()
 export class EditarMenuUseCase {
-  constructor(
-    @Inject(MENU_GESTION_REPOSITORY)
-    private readonly menuRepository: IMenuGestionRepository,
-  ) {}
+  constructor(private readonly menuRepository: IMenuGestionRepository) {}
 
   async execute(
     idMenu: number,
@@ -22,7 +17,7 @@ export class EditarMenuUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al editar el menú',
       );
     }

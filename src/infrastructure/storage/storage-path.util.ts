@@ -2,10 +2,7 @@
  * Segmentos seguros para rutas tipo S3/MinIO (solo ASCII, sin traversal).
  * @see https://min.io/docs/minio/linux/developers/javascript/minio-javascript.html
  */
-export function slugifyPathSegment(
-  input: string,
-  maxLength = 80,
-): string {
+export function slugifyPathSegment(input: string, maxLength = 80): string {
   const base = (input ?? '')
     .normalize('NFD')
     .replace(/\p{M}/gu, '')
@@ -43,9 +40,7 @@ export function buildEvidenciaObjectKey(params: {
 }): string {
   const userSeg = `${params.userId}-${slugifyPathSegment(params.userDisplayName, 60)}`;
   const dateSeg = yyyymmddToCarpetaFecha(params.diaActividad);
-  const name = params.objectName
-    .replace(/[/\\]/g, '')
-    .replace(/\.\.+/g, '.');
+  const name = params.objectName.replace(/[/\\]/g, '').replace(/\.\.+/g, '.');
   return `evidencias-actividades-gvr/${userSeg}/${dateSeg}/${name}`;
 }
 
@@ -60,9 +55,7 @@ export function buildEvidenciaArchivoObjectName(
   indice1Based: number,
   extSinPunto: string,
 ): string {
-  const t = (extSinPunto || 'bin')
-    .replace(/^\./, '')
-    .toLowerCase();
+  const t = (extSinPunto || 'bin').replace(/^\./, '').toLowerCase();
   const ext = /^[a-z0-9]{1,12}$/.test(t) ? t : 'bin';
   return `${actividadId}-${EVIDENCIA_ARCHIVO_ETIQUETA} (${indice1Based}).${ext}`;
 }
@@ -173,9 +166,7 @@ export function buildVisorElementoFotoObjectKey(params: {
     .slice(0, 48);
   const itemSeg = slugifyPathSegment(itemRaw || 'documento', 60);
   const dateSeg = yyyymmddToCarpetaFecha(params.dia);
-  const name = params.objectName
-    .replace(/[/\\]/g, '')
-    .replace(/\.\.+/g, '.');
+  const name = params.objectName.replace(/[/\\]/g, '').replace(/\.\.+/g, '.');
   return `visor-elemento-fotos-gvr/${projectSeg}/${itemSeg}/${dateSeg}/${name}`;
 }
 
@@ -185,9 +176,7 @@ export function buildVisorElementoFotoArchivoObjectName(
   indice1Based: number,
   extSinPunto: string,
 ): string {
-  const t = (extSinPunto || 'bin')
-    .replace(/^\./, '')
-    .toLowerCase();
+  const t = (extSinPunto || 'bin').replace(/^\./, '').toLowerCase();
   const ext = /^[a-z0-9]{1,12}$/.test(t) ? t : 'bin';
   const idx = Math.min(10, Math.max(1, Math.trunc(indice1Based)));
   return `${identificador}-${VISOR_ELEMENTO_FOTO_ETIQUETA} (${idx}).${ext}`;

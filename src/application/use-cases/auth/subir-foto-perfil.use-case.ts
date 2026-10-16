@@ -1,39 +1,35 @@
-import {
-  Injectable,
-  Inject,
-  UnauthorizedException,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../../domain/repositories/auth.repository.interface';
-import { ProfilePhotoStorageService } from '../../../infrastructure/services/profile-photo-storage.service';
-import { MinioStorageService } from '../../../infrastructure/storage/minio-storage.service';
+import {
+  InternalError,
+  UnauthenticatedError,
+} from '../../errors/application.error';
+import { MinioStoragePort } from '../../ports/minio-storage.port';
+import { ProfilePhotoStoragePort } from '../../ports/profile-photo-storage.port';
+import { TokenServicePort } from '../../ports/runtime.port';
+import type { UploadedFile } from '../../ports/uploaded-file';
 
-@Injectable()
 export class SubirFotoPerfilUseCase {
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly authRepository: IAuthRepository,
-    private readonly jwtService: JwtService,
-    private readonly profilePhotoStorageService: ProfilePhotoStorageService,
-    private readonly minioStorage: MinioStorageService,
+    private readonly jwtService: TokenServicePort,
+    private readonly profilePhotoStorageService: ProfilePhotoStoragePort,
+    private readonly minioStorage: MinioStoragePort,
   ) {}
 
   async execute(
     token: string,
-    file: Express.Multer.File,
+    file: UploadedFile,
   ): Promise<{ fotoPerfil: string }> {
     let payload: { sub?: number; nombre?: string };
     try {
       payload = await this.jwtService.verifyAsync(token);
     } catch {
-      throw new UnauthorizedException('Token inválido o expirado');
+      throw new UnauthenticatedError('Token inválido o expirado');
     }
 
     const userId = payload.sub;
     if (!userId) {
-      throw new UnauthorizedException('Token inválido');
+      throw new UnauthenticatedError('Token inválido');
     }
     const userDisplayName = payload.nombre?.trim() || `usuario-${userId}`;
 
@@ -55,15 +51,16 @@ export class SubirFotoPerfilUseCase {
       );
       let view = fotoPerfil;
       if (fotoPerfil?.trim()) {
-        view = await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
-          fotoPerfil,
-        );
+        view =
+          await this.minioStorage.resolveViewUrlForEvidenciaStoredUrl(
+            fotoPerfil,
+          );
       }
       return { fotoPerfil: view };
     } catch (error) {
       // Rollback: eliminar archivo si la BD falla
       await this.profilePhotoStorageService.delete(saved.url);
-      throw new InternalServerErrorException(
+      throw new InternalError(
         'No se pudo actualizar la foto de perfil en la base de datos',
       );
     }

@@ -33,15 +33,15 @@ import { EliminarDocumentoProyectoUseCase } from '../../application/use-cases/pr
 import { ListarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/listar-coordinadores-proyecto.use-case';
 import { GuardarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/guardar-coordinadores-proyecto.use-case';
 import { ListarEstadisticasProyectosPorEstadoUseCase } from '../../application/use-cases/proyecto/listar-estadisticas-proyectos-por-estado.use-case';
-import { CreateProyectoDto } from '../../application/dtos/proyecto/create-proyecto.dto';
-import { UpdateProyectoDto } from '../../application/dtos/proyecto/update-proyecto.dto';
-import { AsignarAccesoProyectoDto } from '../../application/dtos/proyecto/asignar-acceso-proyecto.dto';
-import { ActualizarNivelAccesoProyectoDto } from '../../application/dtos/proyecto/actualizar-nivel-acceso-proyecto.dto';
-import { CreateDocumentoProyectoDto } from '../../application/dtos/proyecto/create-documento-proyecto.dto';
-import { UpdateDocumentoProyectoDto } from '../../application/dtos/proyecto/update-documento-proyecto.dto';
-import { GuardarCoordinadoresProyectoDto } from '../../application/dtos/proyecto/guardar-coordinadores-proyecto.dto';
+import { CreateProyectoDto } from '../dtos/proyecto/create-proyecto.dto';
+import { UpdateProyectoDto } from '../dtos/proyecto/update-proyecto.dto';
+import { AsignarAccesoProyectoDto } from '../dtos/proyecto/asignar-acceso-proyecto.dto';
+import { ActualizarNivelAccesoProyectoDto } from '../dtos/proyecto/actualizar-nivel-acceso-proyecto.dto';
+import { CreateDocumentoProyectoDto } from '../dtos/proyecto/create-documento-proyecto.dto';
+import { UpdateDocumentoProyectoDto } from '../dtos/proyecto/update-documento-proyecto.dto';
+import { GuardarCoordinadoresProyectoDto } from '../dtos/proyecto/guardar-coordinadores-proyecto.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 
@@ -173,7 +173,9 @@ export class ProyectoController {
     return ApiResponseDto.created(data, 'Acceso asignado exitosamente');
   }
 
-  @ApiOperation({ summary: 'Cambiar nivel de acceso del usuario en el proyecto' })
+  @ApiOperation({
+    summary: 'Cambiar nivel de acceso del usuario en el proyecto',
+  })
   @Patch(':id/usuarios/:idAcceso')
   @HttpCode(HttpStatus.OK)
   async actualizarNivelAccesoProyecto(

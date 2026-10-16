@@ -53,7 +53,7 @@ import type {
   DatosReporteActividadesRow,
   ActividadInformeServicioLinea,
 } from '../../domain/repositories/control-operativo.repository.interface';
-import { normalizeStoredValueToYmd } from '../../shared/utils/date.util';
+import { normalizeStoredValueToYmd } from '../../domain/utils/date.util';
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
 function getScalarInt(row: any): number {
@@ -76,7 +76,13 @@ function getScalarBool(row: unknown): boolean {
   const keys = Object.keys(record);
   if (keys.length === 0) return false;
   const value = record[keys[0]];
-  if (value === true || value === 't' || value === 'true' || value === 1 || value === '1') {
+  if (
+    value === true ||
+    value === 't' ||
+    value === 'true' ||
+    value === 1 ||
+    value === '1'
+  ) {
     return true;
   }
   return false;
@@ -118,8 +124,7 @@ function parseActividadEvidencias(raw: unknown): ActividadEvidenciaItem[] {
             : o['tipomime'] != null
               ? String(o['tipomime'])
               : null,
-        tamanoBytes:
-          tam != null && Number.isFinite(tam) ? tam : null,
+        tamanoBytes: tam != null && Number.isFinite(tam) ? tam : null,
       });
     }
     return out;
@@ -595,12 +600,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     };
     const result = await this.databaseFunctionService.callFunction<Row>(
       'con_ListarActividadesObservadasSubsanar',
-      [
-        idTrabajadorSesion,
-        idProyectoFiltro ?? null,
-        limit,
-        offset,
-      ],
+      [idTrabajadorSesion, idProyectoFiltro ?? null, limit, offset],
     );
     if (!result?.length) {
       return { data: [], totalCount: 0, totalHoras: 0 };
@@ -1013,7 +1013,8 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         })();
       const diajornadaNorm = this.formatFechaYYYYMMDD(rawDia);
       const diajornada = diajornadaNorm !== '' ? diajornadaNorm : null;
-      const evidenciasImagenes = evidenciasPorActividad.get(Number(rest.id)) ?? [];
+      const evidenciasImagenes =
+        evidenciasPorActividad.get(Number(rest.id)) ?? [];
       return {
         ...rest,
         diajornada,
@@ -1091,9 +1092,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
       const r = row as Record<string, unknown>;
       const num = (k: string) => Number(r[k] ?? 0);
       const str = (k: string): string | null =>
-        r[k] != null && String(r[k]).trim() !== ''
-          ? String(r[k]).trim()
-          : null;
+        r[k] != null && String(r[k]).trim() !== '' ? String(r[k]).trim() : null;
       return {
         idtrabajador: num('idtrabajador'),
         nombretrabajador: str('nombretrabajador'),
@@ -1108,7 +1107,9 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         diasCalendarioRango: Number(
           r['dias_calendario_rango'] ?? r['diasCalendarioRango'] ?? 0,
         ),
-        diasEquivalente: Number(r['dias_equivalente'] ?? r['diasEquivalente'] ?? 0),
+        diasEquivalente: Number(
+          r['dias_equivalente'] ?? r['diasEquivalente'] ?? 0,
+        ),
         textoResumen:
           r['texto_resumen'] != null
             ? String(r['texto_resumen'])
@@ -1128,8 +1129,13 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   async listarReporteHorasDedicadasRangoPorTrabajadorYProyecto(
     params: ReporteHorasTrabajadorRangoDetalleProyectoParams,
   ): Promise<ReporteHorasRangoTrabajadorProyectoDetalleResult> {
-    const { fechaInicio, fechaFin, idTrabajadores, idProyectos, idEstadosActividad } =
-      params;
+    const {
+      fechaInicio,
+      fechaFin,
+      idTrabajadores,
+      idProyectos,
+      idEstadosActividad,
+    } = params;
     const dIni = queryDateOrNull(fechaInicio);
     const dFin = queryDateOrNull(fechaFin);
     if (dIni == null || dFin == null) {
@@ -1229,10 +1235,9 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     idTrabajador: number,
     anioInforme: number,
   ): Promise<DatosReporteActividadesRow | null> {
-    const raw =
-      await this.databaseFunctionService.callFunctionSingle<
-        Record<string, unknown>
-      >('con_DatosReporteActividades', [idTrabajador, anioInforme]);
+    const raw = await this.databaseFunctionService.callFunctionSingle<
+      Record<string, unknown>
+    >('con_DatosReporteActividades', [idTrabajador, anioInforme]);
     if (!raw) return null;
 
     const pick = (...keys: string[]): string | null => {
@@ -1259,10 +1264,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
       eslogan_anio: pick('eslogan_anio', 'esloganAnio') ?? '',
       ciudad_documento: pick('ciudad_documento', 'ciudadDocumento') ?? '',
       linea_destinatario: pick('linea_destinatario', 'lineaDestinatario'),
-      url_firma_trabajador: pick(
-        'url_firma_trabajador',
-        'urlFirmaTrabajador',
-      ),
+      url_firma_trabajador: pick('url_firma_trabajador', 'urlFirmaTrabajador'),
       direccion_pie_empresa: pick(
         'direccion_pie_empresa',
         'direccionPieEmpresa',
@@ -1288,7 +1290,9 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         const diaRaw = r['diajornada'];
         const diajornada = normalizeStoredValueToYmd(diaRaw);
         const nombreactividad =
-          r['nombreactividad'] != null ? String(r['nombreactividad']).trim() : '';
+          r['nombreactividad'] != null
+            ? String(r['nombreactividad']).trim()
+            : '';
         const nombretipoactividad =
           r['nombretipoactividad'] != null &&
           String(r['nombretipoactividad']).trim() !== ''
@@ -1304,8 +1308,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
           horasRaw != null && String(horasRaw).trim() !== ''
             ? Number(horasRaw)
             : null;
-        const horasdedicadas =
-          hn != null && Number.isFinite(hn) ? hn : null;
+        const horasdedicadas = hn != null && Number.isFinite(hn) ? hn : null;
         const linkevidencia =
           r['linkevidencia'] != null && String(r['linkevidencia']).trim() !== ''
             ? String(r['linkevidencia']).trim()

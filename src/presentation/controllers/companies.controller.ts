@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   CrearCompanyUseCase,
   ImportarCompaniesUseCase,
@@ -33,7 +33,7 @@ import {
   BuscarCompaniesDto,
   ActualizarCompanyDto,
   ObtenerCompaniesProyectoDto,
-} from '../../application/dtos/acc/companies';
+} from '../dtos/acc/companies';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('companies')

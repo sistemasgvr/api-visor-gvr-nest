@@ -77,10 +77,7 @@ export interface INovedadRepository {
   obtenerLanzamiento(id: number): Promise<any>;
   crearLanzamiento(data: CrearNovedadLanzamientoData): Promise<any>;
   editarLanzamiento(data: EditarNovedadLanzamientoData): Promise<any>;
-  eliminarLanzamiento(
-    id: number,
-    idUsuarioModificacion: number,
-  ): Promise<any>;
+  eliminarLanzamiento(id: number, idUsuarioModificacion: number): Promise<any>;
   sincronizarRoles(data: SincronizarRolesNovedadData): Promise<any>;
   registrarArchivo(data: RegistrarArchivoData): Promise<any>;
   obtenerIdLanzamientoPorTarjeta(idTarjeta: number): Promise<number | null>;

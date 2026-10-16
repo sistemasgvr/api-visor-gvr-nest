@@ -11,7 +11,9 @@ export function mapMailEnvioCoberturaRow(
     idTrabajador: Number(row.id_trabajador),
     nombreCompleto: String(row.nombre_completo ?? ''),
     correo: row.correo != null ? String(row.correo) : null,
-    estadoEnvio: String(row.estado_envio ?? 'no_enviado') as MailEnvioCoberturaItem['estadoEnvio'],
+    estadoEnvio: String(
+      row.estado_envio ?? 'no_enviado',
+    ) as MailEnvioCoberturaItem['estadoEnvio'],
     fechaUltimoEnvio: row.fecha_ultimo_envio
       ? new Date(String(row.fecha_ultimo_envio)).toISOString()
       : null,

@@ -1,41 +1,43 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
 import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import { ObtenerUrlsSubidaChunkedDto } from '../../../dtos/data-management/items/obtener-urls-subida-chunked.dto';
-import { DOCS_CHUNK_SIGNED_URL_BATCH } from '../../../../config/upload.constants';
+  ForbiddenError,
+  InvalidInputError,
+} from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
+import { ApplicationSettingsPort } from '../../../ports/runtime.port';
 
-@Injectable()
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { ObtenerUrlsSubidaChunkedDto } from '../../../inputs/data-management/items/obtener-urls-subida-chunked.dto';
+
 export class ObtenerUrlsSubidaChunkedUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
+    private readonly settings: ApplicationSettingsPort,
   ) {}
 
   async execute(userId: number, dto: ObtenerUrlsSubidaChunkedDto) {
     if (!dto.bucketKey || !dto.objectKey || !dto.uploadKey) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'bucketKey, objectKey y uploadKey son requeridos',
       );
     }
     if (!Number.isFinite(dto.firstPart) || dto.firstPart < 1) {
-      throw new BadRequestException('firstPart inválido');
+      throw new InvalidInputError('firstPart inválido');
     }
 
-    const token = await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
+    const token =
+      await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
     if (!token) {
-      throw new ForbiddenException('No se encontró token de Autodesk');
+      throw new ForbiddenError('No se encontró token de Autodesk');
     }
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new ForbiddenException('El token de Autodesk ha expirado.');
+      throw new ForbiddenError('El token de Autodesk ha expirado.');
     }
 
     const parts = Math.min(
-      DOCS_CHUNK_SIGNED_URL_BATCH,
-      Math.max(1, dto.parts ?? DOCS_CHUNK_SIGNED_URL_BATCH),
+      this.settings.docsChunkSignedUrlBatch,
+      Math.max(1, dto.parts ?? this.settings.docsChunkSignedUrlBatch),
     );
 
     const signedResult = await this.autodeskApiService.obtenerUrlFirmadaS3(
@@ -50,7 +52,7 @@ export class ObtenerUrlsSubidaChunkedUseCase {
       },
     );
     if (!signedResult?.urls?.length || !signedResult?.uploadKey) {
-      throw new BadRequestException('No se pudieron generar URLs de subida');
+      throw new InvalidInputError('No se pudieron generar URLs de subida');
     }
 
     return {

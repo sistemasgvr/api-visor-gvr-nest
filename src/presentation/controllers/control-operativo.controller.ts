@@ -51,16 +51,16 @@ import { ListarReporteHorasMesProyectoTrabajadorUseCase } from '../../applicatio
 import { ListarReporteHorasRangoDetalleProyectoUseCase } from '../../application/use-cases/control-operativo/listar-reporte-horas-rango-detalle-proyecto.use-case';
 import { ExportarActividadesJornadasWordUseCase } from '../../application/use-cases/control-operativo/exportar-actividades-jornadas-word.use-case';
 import { ExportarActividadesJornadasWordMasivoUseCase } from '../../application/use-cases/control-operativo/exportar-actividades-jornadas-word-masivo.use-case';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
-import { getFechaHoy } from '../../shared/utils/date.util';
-import type { AuthenticatedUser } from '../../shared/types/authenticated-user';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { getFechaHoy } from '../../domain/utils/date.util';
+import type { AuthenticatedUser } from '../../domain/types/authenticated-user';
 import {
   usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades,
   usuarioPuedeExportacionMasivaWordActividades,
-} from '../../shared/constants/reporte-actividades-word.constants';
+} from '../../infrastructure/word/constants/reporte-actividades-word.constants';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { AgregarEvidenciasActividadDto } from '../../application/dtos/control-operativo/agregar-evidencias-actividad.dto';
-import { ExportarActividadesWordMasivoDto } from '../../application/dtos/control-operativo/exportar-actividades-word-masivo.dto';
+import { AgregarEvidenciasActividadDto } from '../dtos/control-operativo/agregar-evidencias-actividad.dto';
+import { ExportarActividadesWordMasivoDto } from '../dtos/control-operativo/exportar-actividades-word-masivo.dto';
 import type { ActividadEvidenciaEntrada } from '../../domain/repositories/control-operativo.repository.interface';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ROLES_ADMIN_CONTROL_OPERATIVO } from '../../domain/constants/auth-role.constants';
@@ -148,7 +148,8 @@ export class ControlOperativoController {
    */
   @ApiOperation({
     summary: 'Cron: alerta actividades sin validar (>7 días en Por aprobar)',
-    description: 'Requiere `key=CRON_SECRET`. Notifica a roles administrativos.',
+    description:
+      'Requiere `key=CRON_SECRET`. Notifica a roles administrativos.',
     security: [],
   })
   @Get('cron/alerta-actividades-sin-validar')
@@ -624,7 +625,8 @@ export class ControlOperativoController {
    */
   @ApiOperation({
     summary: 'Eliminar evidencia de una actividad',
-    description: 'Solo el trabajador dueño; borra registro y objeto en MinIO si aplica.',
+    description:
+      'Solo el trabajador dueño; borra registro y objeto en MinIO si aplica.',
   })
   @Delete('actividades/:id/evidencias/:idEvidencia')
   @HttpCode(HttpStatus.OK)
@@ -652,7 +654,8 @@ export class ControlOperativoController {
    */
   @ApiOperation({
     summary: 'Listar actividades con filtros',
-    description: 'Por jornada, trabajador, proyecto y estado; paginación opcional.',
+    description:
+      'Por jornada, trabajador, proyecto y estado; paginación opcional.',
   })
   @Get('actividades')
   @UseGuards(JwtAuthGuard)
@@ -748,16 +751,17 @@ export class ControlOperativoController {
     if (userId == null) {
       throw new UnauthorizedException('Usuario no identificado');
     }
-    const result = await this.listarActividadesObservadasSubsanarUseCase.execute({
-      idUsuario: Number(userId),
-      idProyectoFiltro:
-        idProyecto != null && idProyecto !== ''
-          ? parseInt(idProyecto, 10)
-          : undefined,
-      limit: limit != null && limit !== '' ? parseInt(limit, 10) : undefined,
-      offset:
-        offset != null && offset !== '' ? parseInt(offset, 10) : undefined,
-    });
+    const result =
+      await this.listarActividadesObservadasSubsanarUseCase.execute({
+        idUsuario: Number(userId),
+        idProyectoFiltro:
+          idProyecto != null && idProyecto !== ''
+            ? parseInt(idProyecto, 10)
+            : undefined,
+        limit: limit != null && limit !== '' ? parseInt(limit, 10) : undefined,
+        offset:
+          offset != null && offset !== '' ? parseInt(offset, 10) : undefined,
+      });
     return ApiResponseDto.success(
       result,
       'Actividades observadas listadas exitosamente',
@@ -821,7 +825,8 @@ export class ControlOperativoController {
    */
   @ApiOperation({
     summary: 'Evaluación de desempeño (rechazos, observaciones, horas)',
-    description: 'Módulo administrativo; filtros por proyecto, fechas y trabajador opcional.',
+    description:
+      'Módulo administrativo; filtros por proyecto, fechas y trabajador opcional.',
   })
   @Get('desempeno')
   @UseGuards(JwtAuthGuard)
@@ -1099,8 +1104,7 @@ export class ControlOperativoController {
       horasMetaDia != null && horasMetaDia.trim() !== ''
         ? parseFloat(horasMetaDia.trim().replace(',', '.'))
         : 8;
-    const horasMeta =
-      Number.isFinite(metaRaw) && metaRaw > 0 ? metaRaw : 8;
+    const horasMeta = Number.isFinite(metaRaw) && metaRaw > 0 ? metaRaw : 8;
     const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
     const result =
       await this.listarReporteHorasMesProyectoTrabajadorUseCase.execute({

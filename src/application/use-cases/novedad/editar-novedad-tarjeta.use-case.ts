@@ -1,27 +1,23 @@
-import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  InternalServerErrorException,
-} from '@nestjs/common';
 import type { INovedadRepository } from '../../../domain/repositories/novedad.repository.interface';
-import { NOVEDAD_REPOSITORY } from '../../../domain/repositories/novedad.repository.interface';
-import { UpdateNovedadTarjetaDto } from '../../dtos/novedad/update-novedad-tarjeta.dto';
-import { NovedadTarjetaMediaStorageService } from '../../../infrastructure/services/novedad-tarjeta-media-storage.service';
+import {
+  InternalError,
+  InvalidInputError,
+} from '../../errors/application.error';
+import { UpdateNovedadTarjetaDto } from '../../inputs/novedad/update-novedad-tarjeta.dto';
+import { NovedadTarjetaMediaStoragePort } from '../../ports/novedad-tarjeta-media-storage.port';
+import type { UploadedFile } from '../../ports/uploaded-file';
 
-@Injectable()
 export class EditarNovedadTarjetaUseCase {
   constructor(
-    @Inject(NOVEDAD_REPOSITORY)
     private readonly novedadRepository: INovedadRepository,
-    private readonly novedadTarjetaMediaStorage: NovedadTarjetaMediaStorageService,
+    private readonly novedadTarjetaMediaStorage: NovedadTarjetaMediaStoragePort,
   ) {}
 
   async execute(
     id: number,
     dto: UpdateNovedadTarjetaDto,
     idUsuarioModificacion: number,
-    file?: Express.Multer.File,
+    file?: UploadedFile,
   ) {
     const tipo = dto.tipoMultimedia?.toLowerCase() as
       | 'imagen'
@@ -47,14 +43,14 @@ export class EditarNovedadTarjetaUseCase {
 
     if (file) {
       if (!tipo || (tipo !== 'imagen' && tipo !== 'video')) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           'Indique tipoMultimedia imagen o video al subir un archivo',
         );
       }
       const idLanzamiento =
         await this.novedadRepository.obtenerIdLanzamientoPorTarjeta(id);
       if (!idLanzamiento) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           'La tarjeta no existe o no se pudo determinar su lanzamiento',
         );
       }
@@ -89,13 +85,15 @@ export class EditarNovedadTarjetaUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al actualizar la tarjeta',
       );
     }
 
     if (debeBorrarArchivoStorage && urlArchivoAnterior) {
-      await this.novedadTarjetaMediaStorage.deleteByStoredUrl(urlArchivoAnterior);
+      await this.novedadTarjetaMediaStorage.deleteByStoredUrl(
+        urlArchivoAnterior,
+      );
     }
 
     return { message: resultado.message };
@@ -104,7 +102,7 @@ export class EditarNovedadTarjetaUseCase {
   private async persistUploadedFile(
     idLanzamiento: number,
     tipo: 'imagen' | 'video',
-    file: Express.Multer.File,
+    file: UploadedFile,
     idUsuario: number,
   ): Promise<number> {
     const saved = await this.novedadTarjetaMediaStorage.save(
@@ -123,7 +121,7 @@ export class EditarNovedadTarjetaUseCase {
       });
 
       if (!registro?.success) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           registro?.message || 'No se pudo registrar el archivo',
         );
       }
@@ -131,20 +129,18 @@ export class EditarNovedadTarjetaUseCase {
       const idArchivoNuevo =
         registro.id_archivo ?? registro.idArchivo ?? registro.id;
       if (!idArchivoNuevo) {
-        throw new InternalServerErrorException(
-          'No se obtuvo el ID del archivo registrado',
-        );
+        throw new InternalError('No se obtuvo el ID del archivo registrado');
       }
       return Number(idArchivoNuevo);
     } catch (error) {
       await this.novedadTarjetaMediaStorage.deleteByStoredUrl(saved.url);
       if (
-        error instanceof BadRequestException ||
-        error instanceof InternalServerErrorException
+        error instanceof InvalidInputError ||
+        error instanceof InternalError
       ) {
         throw error;
       }
-      throw new InternalServerErrorException(
+      throw new InternalError(
         'No se pudo registrar el archivo en la base de datos',
       );
     }

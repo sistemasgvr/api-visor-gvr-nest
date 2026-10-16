@@ -1,13 +1,8 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import type { IAccRepository } from '../../../domain/repositories/acc.repository.interface';
-import { ACC_REPOSITORY } from '../../../domain/repositories/acc.repository.interface';
+import { NotFoundError } from '../../errors/application.error';
 
-@Injectable()
 export class RevocarTokenUseCase {
-  constructor(
-    @Inject(ACC_REPOSITORY)
-    private readonly accRepository: IAccRepository,
-  ) {}
+  constructor(private readonly accRepository: IAccRepository) {}
 
   async execute(idUsuario: number): Promise<void> {
     // Get user's current token
@@ -15,9 +10,7 @@ export class RevocarTokenUseCase {
       await this.accRepository.obtenerToken3LeggedPorUsuario(idUsuario);
 
     if (!token) {
-      throw new NotFoundException(
-        'No se encontró token activo para este usuario',
-      );
+      throw new NotFoundError('No se encontró token activo para este usuario');
     }
 
     // Revoke the token

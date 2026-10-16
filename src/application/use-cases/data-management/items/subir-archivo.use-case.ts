@@ -1,33 +1,22 @@
 import {
-  Injectable,
-  Inject,
-  ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../../domain/repositories/auditoria.repository.interface';
-import {
-  AUTH_REPOSITORY,
-  type IAuthRepository,
-} from '../../../../domain/repositories/auth.repository.interface';
-import type { Express } from 'express';
+  ForbiddenError,
+  InvalidInputError,
+} from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
+import type { UploadedFile } from '../../../ports/uploaded-file';
 
-@Injectable()
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { type IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
+import { type IAuthRepository } from '../../../../domain/repositories/auth.repository.interface';
+
 export class SubirArchivoUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
-    @Inject(AUDITORIA_REPOSITORY)
+
     private readonly auditoriaRepository: IAuditoriaRepository,
-    @Inject(AUTH_REPOSITORY)
+
     private readonly authRepository: IAuthRepository,
   ) {}
 
@@ -35,24 +24,24 @@ export class SubirArchivoUseCase {
     userId: number,
     projectId: string,
     folderId: string,
-    file: Express.Multer.File,
+    file: UploadedFile,
     ipAddress?: string,
     userAgent?: string,
     userRole?: string,
   ): Promise<any> {
     // Validaciones
     if (!projectId) {
-      throw new BadRequestException('El ID del proyecto es requerido');
+      throw new InvalidInputError('El ID del proyecto es requerido');
     }
 
     if (!folderId) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'El ID de la carpeta (folderId) es requerido',
       );
     }
 
     if (!file) {
-      throw new BadRequestException('El archivo es requerido');
+      throw new InvalidInputError('El archivo es requerido');
     }
 
     // Obtener token del usuario
@@ -60,13 +49,13 @@ export class SubirArchivoUseCase {
       await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
     if (!token) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'No se encontró token de acceso. Por favor, autoriza la aplicación de Autodesk primero.',
       );
     }
 
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new ForbiddenException(
+      throw new ForbiddenError(
         'El token de Autodesk ha expirado. Por favor, refresca tu token.',
       );
     }
@@ -106,7 +95,7 @@ export class SubirArchivoUseCase {
     );
 
     if (!storageResult.data?.id) {
-      throw new BadRequestException('No se pudo obtener el storage ID');
+      throw new InvalidInputError('No se pudo obtener el storage ID');
     }
 
     const storageId = storageResult.data.id;
@@ -118,7 +107,7 @@ export class SubirArchivoUseCase {
     );
 
     if (!storageIdMatch || storageIdMatch.length !== 3) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         `Formato de storage ID inválido: ${storageId}`,
       );
     }
@@ -135,7 +124,7 @@ export class SubirArchivoUseCase {
     );
 
     if (!signedResult.urls || !signedResult.urls[0]) {
-      throw new BadRequestException('No se pudo obtener la URL firmada de S3');
+      throw new InvalidInputError('No se pudo obtener la URL firmada de S3');
     }
 
     const signedUrl = signedResult.urls[0];

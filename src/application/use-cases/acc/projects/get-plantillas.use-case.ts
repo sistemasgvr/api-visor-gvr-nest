@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import { GetPlantillasDto } from '../../../dtos/acc/projects/get-plantillas.dto';
+import type { AutodeskAdminPort } from '../../../ports/autodesk/admin.port';
 
-@Injectable()
+import { GetPlantillasDto } from '../../../inputs/acc/projects/get-plantillas.dto';
+
 export class GetPlantillasUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAdminPort) {}
 
   async execute(accountId: string, dto: GetPlantillasDto): Promise<any> {
     const options: Record<string, any> = {};

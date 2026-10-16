@@ -1,40 +1,35 @@
 import {
-  Injectable,
-  Inject,
-  UnauthorizedException,
-  BadRequestException,
-} from '@nestjs/common';
-import { AutodeskApiService } from '../../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../../domain/repositories/acc.repository.interface';
-import { CrearBucketDto } from '../../../dtos/data-management/buckets/crear-bucket.dto';
+  InvalidInputError,
+  UnauthenticatedError,
+} from '../../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../../ports/autodesk/data-management.port';
 
-@Injectable()
+import { type IAccRepository } from '../../../../domain/repositories/acc.repository.interface';
+import { CrearBucketDto } from '../../../inputs/data-management/buckets/crear-bucket.dto';
+
 export class CrearBucketUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
   ) {}
 
   async execute(userId: number, dto: CrearBucketDto): Promise<any> {
     if (!dto.bucketKey) {
-      throw new BadRequestException('El bucket key es requerido');
+      throw new InvalidInputError('El bucket key es requerido');
     }
 
     const token =
       await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
     if (!token) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'No se encontró token de acceso. Por favor, autoriza la aplicación primero.',
       );
     }
 
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'El token ha expirado. Por favor, refresca tu token.',
       );
     }

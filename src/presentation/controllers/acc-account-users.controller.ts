@@ -12,7 +12,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   CrearUsuarioUseCase,
   ImportarUsuariosUseCase,
@@ -31,7 +31,7 @@ import {
   BuscarUsuariosDto,
   ActualizarUsuarioDto,
   ObtenerProyectosUsuarioDto,
-} from '../../application/dtos/acc/account-users';
+} from '../dtos/acc/account-users';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('acc')
@@ -206,7 +206,9 @@ export class AccAccountUsersController {
    * GET - Obtener los productos de un usuario
    * GET /acc/account-users/:accountId/:userId/products
    */
-  @ApiOperation({ summary: 'Listar productos/licencias del usuario en la cuenta' })
+  @ApiOperation({
+    summary: 'Listar productos/licencias del usuario en la cuenta',
+  })
   @Get(':accountId/:userId/products')
   @HttpCode(HttpStatus.OK)
   async obtenerProductosUsuario(

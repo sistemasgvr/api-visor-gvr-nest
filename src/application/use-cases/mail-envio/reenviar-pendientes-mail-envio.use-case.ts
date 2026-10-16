@@ -1,23 +1,20 @@
-import { BadRequestException, Injectable, Inject } from '@nestjs/common';
-import type { IEmailDispatchLogRepository } from '../../../domain/repositories/email-dispatch-log.repository.interface';
-import { EMAIL_DISPATCH_LOG_REPOSITORY } from '../../../domain/repositories/email-dispatch-log.repository.interface';
 import { EMAIL_TEMPLATE_IDS } from '../../../domain/mail/email-template-id';
-import { ReenviarPendientesMailEnvioDto } from '../../dtos/mail-envio/reenviar-mail-envio.dto';
+import type { IEmailDispatchLogRepository } from '../../../domain/repositories/email-dispatch-log.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
+import { ReenviarPendientesMailEnvioDto } from '../../inputs/mail-envio/reenviar-mail-envio.dto';
 import { ReenviarMailEnvioUseCase } from './reenviar-mail-envio.use-case';
 
 const MAX_BULK_RESEND = 50;
 
-@Injectable()
 export class ReenviarPendientesMailEnvioUseCase {
   constructor(
-    @Inject(EMAIL_DISPATCH_LOG_REPOSITORY)
     private readonly dispatchLogRepository: IEmailDispatchLogRepository,
     private readonly reenviarMailEnvioUseCase: ReenviarMailEnvioUseCase,
   ) {}
 
   async execute(dto: ReenviarPendientesMailEnvioDto) {
     if (dto.templateId !== EMAIL_TEMPLATE_IDS.WELCOME) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         `Envío masivo no disponible para la plantilla "${dto.templateId}"`,
       );
     }
@@ -61,7 +58,7 @@ export class ReenviarPendientesMailEnvioUseCase {
     }
 
     if (ids.length > MAX_BULK_RESEND) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         `Máximo ${MAX_BULK_RESEND} reenvíos por solicitud`,
       );
     }

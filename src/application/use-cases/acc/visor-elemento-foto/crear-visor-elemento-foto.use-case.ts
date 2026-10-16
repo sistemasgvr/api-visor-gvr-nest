@@ -1,23 +1,16 @@
 import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
-import {
-  ACC_VISOR_ELEMENTO_FOTO_REPOSITORY,
   type CrearVisorElementoFotoParams,
   type IAccVisorElementoFotoRepository,
 } from '../../../../domain/repositories/acc-visor-elemento-foto.repository.interface';
-import type { CrearVisorElementoFotoDto } from '../../../dtos/acc/visor-elemento-foto/visor-elemento-foto.dto';
+import {
+  ConflictError,
+  InvalidInputError,
+} from '../../../errors/application.error';
+import type { CrearVisorElementoFotoDto } from '../../../inputs/acc/visor-elemento-foto/visor-elemento-foto.dto';
 import { normalizarArchivosVisorElementoFoto } from './visor-elemento-foto.util';
 
-@Injectable()
 export class CrearVisorElementoFotoUseCase {
-  constructor(
-    @Inject(ACC_VISOR_ELEMENTO_FOTO_REPOSITORY)
-    private readonly repository: IAccVisorElementoFotoRepository,
-  ) {}
+  constructor(private readonly repository: IAccVisorElementoFotoRepository) {}
 
   async execute(
     idProyectoAcc: string,
@@ -26,7 +19,7 @@ export class CrearVisorElementoFotoUseCase {
   ) {
     const archivos = normalizarArchivosVisorElementoFoto(dto.archivos);
     if (archivos.length === 0) {
-      throw new BadRequestException('Debe registrar al menos una imagen');
+      throw new InvalidInputError('Debe registrar al menos una imagen');
     }
 
     const params: CrearVisorElementoFotoParams = {
@@ -55,12 +48,12 @@ export class CrearVisorElementoFotoUseCase {
     const result = await this.repository.crear(params);
     if (!result.success) {
       if (result.message.toLowerCase().includes('ya existe')) {
-        throw new ConflictException(result.message);
+        throw new ConflictError(result.message);
       }
-      throw new BadRequestException(result.message);
+      throw new InvalidInputError(result.message);
     }
     if (result.id == null) {
-      throw new BadRequestException('No se pudo crear el anclaje de fotos');
+      throw new InvalidInputError('No se pudo crear el anclaje de fotos');
     }
     return this.repository.obtenerPorId(result.id);
   }

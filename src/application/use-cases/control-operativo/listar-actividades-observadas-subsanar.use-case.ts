@@ -1,9 +1,8 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import type {
   IControlOperativoRepository,
   ListarActividadesObservadasSubsanarResult,
 } from '../../../domain/repositories/control-operativo.repository.interface';
-import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
+import { UnauthenticatedError } from '../../errors/application.error';
 
 export interface ListarActividadesObservadasSubsanarInput {
   idUsuario: number;
@@ -12,10 +11,8 @@ export interface ListarActividadesObservadasSubsanarInput {
   offset?: number;
 }
 
-@Injectable()
 export class ListarActividadesObservadasSubsanarUseCase {
   constructor(
-    @Inject(CONTROL_OPERATIVO_REPOSITORY)
     private readonly controlOperativoRepository: IControlOperativoRepository,
   ) {}
 
@@ -27,7 +24,7 @@ export class ListarActividadesObservadasSubsanarUseCase {
         input.idUsuario,
       );
     if (idTrabajadorSesion == null) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'No se encontró trabajador asociado al usuario',
       );
     }

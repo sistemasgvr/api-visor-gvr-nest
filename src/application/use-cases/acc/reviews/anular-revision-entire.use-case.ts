@@ -1,10 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
-import { AnularRevisionDto } from '../../../dtos/acc/reviews/anular-revision.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { AnularRevisionDto } from '../../../inputs/acc/reviews/anular-revision.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
-@Injectable()
 export class AnularRevisionEntireUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     userId: number,
@@ -12,20 +11,15 @@ export class AnularRevisionEntireUseCase {
     reviewId: number,
     dto: AnularRevisionDto,
   ): Promise<{ id: number; message: string }> {
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.voidEntireReview<{
       success: boolean;
       message: string;
       id_result: number;
-    }>('acc_VoidEntireReview', [
-      reviewId,
-      projectId,
-      userId,
-      dto?.notas ?? null,
-    ]);
+    }>([reviewId, projectId, userId, dto?.notas ?? null]);
 
     const row = rows?.[0];
     if (!row?.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         row?.message ?? 'Error al anular la revisión',
       );
     }

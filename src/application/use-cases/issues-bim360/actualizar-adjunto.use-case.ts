@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
-import { ActualizarAdjuntoDto } from '../../dtos/issues-bim360/actualizar-adjunto.dto';
+import type { AutodeskBim360Port } from '../../ports/autodesk/bim360.port';
+
+import { ActualizarAdjuntoDto } from '../../inputs/issues-bim360/actualizar-adjunto.dto';
 import ObtenerTokenValidoHelper from '../acc/issues/obtener-token-valido.helper';
 
-@Injectable()
 export class ActualizarAdjuntoBim360UseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
+    private readonly autodeskApiService: AutodeskBim360Port,
     private readonly obtenerTokenValidoHelper: ObtenerTokenValidoHelper,
   ) {}
 

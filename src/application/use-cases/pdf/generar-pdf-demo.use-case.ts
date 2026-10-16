@@ -1,18 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { HTML_PDF_GENERATOR } from 'src/domain/services/html-pdf-generator.interface';
-import type { IHtmlPdfGenerator } from 'src/domain/services/html-pdf-generator.interface';
+import type { IHtmlPdfGenerator } from '../../../domain/services/html-pdf-generator.interface';
 
 export interface GenerarPdfDemoInput {
   titulo?: string;
   items?: { concepto: string; valor: string }[];
 }
 
-@Injectable()
 export class GenerarPdfDemoUseCase {
-  constructor(
-    @Inject(HTML_PDF_GENERATOR)
-    private readonly htmlPdfGenerator: IHtmlPdfGenerator,
-  ) {}
+  constructor(private readonly htmlPdfGenerator: IHtmlPdfGenerator) {}
 
   async execute(input?: GenerarPdfDemoInput): Promise<Buffer> {
     const titulo = input?.titulo?.trim() || 'Informe de prueba (Visor GVR)';

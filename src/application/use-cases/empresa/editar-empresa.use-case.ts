@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IEmpresaRepository } from '../../../domain/repositories/empresa.repository.interface';
-import { EMPRESA_REPOSITORY } from '../../../domain/repositories/empresa.repository.interface';
-import { UpdateEmpresaDto } from '../../dtos/empresa/update-empresa.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { UpdateEmpresaDto } from '../../inputs/empresa/update-empresa.dto';
 
-@Injectable()
 export class EditarEmpresaUseCase {
-  constructor(
-    @Inject(EMPRESA_REPOSITORY)
-    private readonly empresaRepository: IEmpresaRepository,
-  ) {}
+  constructor(private readonly empresaRepository: IEmpresaRepository) {}
 
   async execute(
     idEmpresa: number,
@@ -22,7 +17,7 @@ export class EditarEmpresaUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al editar la empresa',
       );
     }

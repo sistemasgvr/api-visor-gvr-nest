@@ -1,4 +1,10 @@
-import { Injectable, BadRequestException, Logger, Inject } from '@nestjs/common';
+import type { ProfilePhotoStoragePort } from '../../application/ports/profile-photo-storage.port';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  Inject,
+} from '@nestjs/common';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -23,7 +29,7 @@ export interface SavedProfilePhotoMeta {
 }
 
 @Injectable()
-export class ProfilePhotoStorageService {
+export class ProfilePhotoStorageService implements ProfilePhotoStoragePort {
   private readonly logger = new Logger(ProfilePhotoStorageService.name);
 
   constructor(
@@ -56,13 +62,18 @@ export class ProfilePhotoStorageService {
     const optimized = await this.imageOptimizer.optimizeForStorage({
       buffer: file.buffer,
       mimetype: file.mimetype,
-      originalname: file.originalname || `perfil-${userId}.${this.getExtensionWithoutDot(mime)}`,
+      originalname:
+        file.originalname ||
+        `perfil-${userId}.${this.getExtensionWithoutDot(mime)}`,
     });
     const ext = extensionDesdeArchivoEvidencia(
       optimized.originalname,
       optimized.mimetype,
     );
-    const safeName = slugifyPathSegment(userDisplayName || `usuario-${userId}`, 80);
+    const safeName = slugifyPathSegment(
+      userDisplayName || `usuario-${userId}`,
+      80,
+    );
     const filename = `${userId}-Foto Perfil(1).${ext}`;
     const key = `archivos-generales/perfil/${userId}-${safeName}/${filename}`;
 

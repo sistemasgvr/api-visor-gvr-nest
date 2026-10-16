@@ -1,16 +1,8 @@
-import { Injectable, Inject } from '@nestjs/common';
-import {
-  AUDITORIA_REPOSITORY,
-  type IAuditoriaRepository,
-} from '../../../domain/repositories/auditoria.repository.interface';
-import { ObtenerHistorialUsuarioDto } from '../../dtos/auditoria/obtener-historial-usuario.dto';
+import { type IAuditoriaRepository } from '../../../domain/repositories/auditoria.repository.interface';
+import { ObtenerHistorialUsuarioDto } from '../../inputs/auditoria/obtener-historial-usuario.dto';
 
-@Injectable()
 export class ObtenerHistorialUsuarioUseCase {
-  constructor(
-    @Inject(AUDITORIA_REPOSITORY)
-    private readonly auditoriaRepository: IAuditoriaRepository,
-  ) {}
+  constructor(private readonly auditoriaRepository: IAuditoriaRepository) {}
 
   async execute(
     idUsuario: number,

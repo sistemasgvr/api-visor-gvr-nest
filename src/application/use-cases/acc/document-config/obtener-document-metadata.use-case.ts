@@ -1,13 +1,8 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import type { IAccDocumentConfigRepository } from '../../../../domain/repositories/acc-document-config.repository.interface';
-import { ACC_DOCUMENT_CONFIG_REPOSITORY } from '../../../../domain/repositories/acc-document-config.repository.interface';
+import { NotFoundError } from '../../../errors/application.error';
 
-@Injectable()
 export class ObtenerDocumentMetadataUseCase {
-  constructor(
-    @Inject(ACC_DOCUMENT_CONFIG_REPOSITORY)
-    private readonly repository: IAccDocumentConfigRepository,
-  ) {}
+  constructor(private readonly repository: IAccDocumentConfigRepository) {}
 
   async execute(projectExternalId: string, itemExternalId: string) {
     const result = await this.repository.obtenerMetadata(
@@ -16,9 +11,7 @@ export class ObtenerDocumentMetadataUseCase {
     );
 
     if (!result || result.success === false) {
-      throw new NotFoundException(
-        result?.message ?? 'Metadatos no encontrados',
-      );
+      throw new NotFoundError(result?.message ?? 'Metadatos no encontrados');
     }
 
     return result.data ?? null;

@@ -1,16 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
-import { GenerarUrlAutorizacionDto } from '../../dtos/acc/generar-url-autorizacion.dto';
+import type { AutodeskAuthPort } from '../../ports/autodesk/auth.port';
+
 import * as crypto from 'crypto';
+import { GenerarUrlAutorizacionDto } from '../../inputs/acc/generar-url-autorizacion.dto';
 
 export interface GenerarUrlAutorizacionResponse {
   authorization_url: string;
   state: string;
 }
 
-@Injectable()
 export class GenerarUrlAutorizacionUseCase {
-  constructor(private readonly autodeskApiService: AutodeskApiService) {}
+  constructor(private readonly autodeskApiService: AutodeskAuthPort) {}
 
   async execute(
     dto: GenerarUrlAutorizacionDto,

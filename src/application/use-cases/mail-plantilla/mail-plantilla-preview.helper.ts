@@ -1,7 +1,10 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import type { IMailPlantillaCorreoRepository } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import type { PreviewMailPlantillaDto } from '../../dtos/mail-plantilla/preview-mail-plantilla.dto';
-import type { MailPlantillaRenderInput } from '../../../infrastructure/mail/mail-plantilla-render.service';
+import {
+  InvalidInputError,
+  NotFoundError,
+} from '../../errors/application.error';
+import type { PreviewMailPlantillaDto } from '../../inputs/mail-plantilla/preview-mail-plantilla.dto';
+import { MailPlantillaRenderInput } from '../../ports/mail-plantilla-render.port';
 
 function pickNonEmpty(
   ...values: Array<string | null | undefined>
@@ -24,7 +27,7 @@ export async function resolveMailPlantillaPreviewInput(
   if (dto.id != null) {
     const plantilla = await repository.obtenerPorId(dto.id);
     if (!plantilla) {
-      throw new NotFoundException('Plantilla de correo no encontrada');
+      throw new NotFoundError('Plantilla de correo no encontrada');
     }
     return {
       templateId: plantilla.slug,
@@ -60,7 +63,7 @@ export async function resolveMailPlantillaPreviewInput(
 
   const asuntoPlantilla = dto.asuntoPlantilla?.trim();
   if (!asuntoPlantilla) {
-    throw new BadRequestException(
+    throw new InvalidInputError(
       'Indique id, slug o asuntoPlantilla con cuerpo para la vista previa',
     );
   }

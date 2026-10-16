@@ -1,3 +1,4 @@
+import type { ExportacionRegistroArchivosPdfPort } from '../../application/ports/exportacion-registro-archivos-pdf.port';
 import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import {
   ACC_REPOSITORY,
@@ -8,7 +9,7 @@ import {
   HTML_PDF_GENERATOR,
   type IHtmlPdfGenerator,
 } from '../../domain/services/html-pdf-generator.interface';
-import type { ExportarRegistroArchivosPdfDto } from '../../application/dtos/data-management/folders/exportar-registro-archivos-pdf.dto';
+import type { ExportarRegistroArchivosPdfDto } from '../../application/inputs/data-management/folders/exportar-registro-archivos-pdf.dto';
 
 const MAX_FILES = 4000;
 const MAX_CARPETAS = 500;
@@ -40,7 +41,7 @@ function fmtFecha(iso: string | null | undefined): string {
 }
 
 @Injectable()
-export class ExportacionRegistroArchivosPdfService {
+export class ExportacionRegistroArchivosPdfService implements ExportacionRegistroArchivosPdfPort {
   constructor(
     @Inject(ACC_REPOSITORY)
     private readonly accRepository: IAccRepository,

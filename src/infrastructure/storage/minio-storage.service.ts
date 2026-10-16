@@ -1,3 +1,4 @@
+import type { MinioStoragePort } from '../../application/ports/minio-storage.port';
 import {
   Injectable,
   Logger,
@@ -41,7 +42,7 @@ export interface UploadedObjectMeta {
 }
 
 @Injectable()
-export class MinioStorageService {
+export class MinioStorageService implements MinioStoragePort {
   private readonly logger = new Logger(MinioStorageService.name);
   private client: S3Client | null = null;
   private bucket: string | null = null;
@@ -70,12 +71,11 @@ export class MinioStorageService {
     const region =
       this.config.get<string>('MINIO_REGION')?.trim() || 'us-east-1';
     const forcePathStyle =
-      (this.config.get<string>('MINIO_FORCE_PATH_STYLE') ?? 'true')
-        .toLowerCase() !== 'false';
+      (
+        this.config.get<string>('MINIO_FORCE_PATH_STYLE') ?? 'true'
+      ).toLowerCase() !== 'false';
 
-    const publicBase = this.config
-      .get<string>('MINIO_PUBLIC_BASE_URL')
-      ?.trim();
+    const publicBase = this.config.get<string>('MINIO_PUBLIC_BASE_URL')?.trim();
 
     if (!endpoint || !accessKey || !secretKey || !bucket) {
       this.client = null;
@@ -89,7 +89,9 @@ export class MinioStorageService {
       const u = new URL(endpoint);
       origin = u.origin;
     } catch {
-      this.logger.warn(`MINIO_ENDPOINT / MINIO_SERVER_URL inválido: ${endpoint}`);
+      this.logger.warn(
+        `MINIO_ENDPOINT / MINIO_SERVER_URL inválido: ${endpoint}`,
+      );
       this.client = null;
       this.bucket = null;
       this.publicBase = publicBase ?? null;
@@ -281,10 +283,7 @@ export class MinioStorageService {
     if (!opt.buffer?.length) {
       throw new BadRequestException('Archivo vacío o no recibido');
     }
-    const ext = extensionDesdeArchivoEvidencia(
-      opt.originalname,
-      opt.mimetype,
-    );
+    const ext = extensionDesdeArchivoEvidencia(opt.originalname, opt.mimetype);
     let objectName: string;
     if (
       params.indiceEvidencia != null &&
@@ -338,10 +337,7 @@ export class MinioStorageService {
     if (!opt.buffer?.length) {
       throw new BadRequestException('Archivo vacío o no recibido');
     }
-    const ext = extensionDesdeArchivoEvidencia(
-      opt.originalname,
-      opt.mimetype,
-    );
+    const ext = extensionDesdeArchivoEvidencia(opt.originalname, opt.mimetype);
     const idx =
       params.indiceFoto != null &&
       Number.isFinite(params.indiceFoto) &&

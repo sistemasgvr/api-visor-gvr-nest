@@ -14,15 +14,21 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import {
   ActualizarVisorMarcaRevisionDto,
   CrearVisorMarcaRevisionDto,
   DuplicarVisorMarcaRevisionDto,
   SincronizarMarkupIdApsDto,
-} from '../../application/dtos/acc/visor-marca-revision/visor-marca-revision.dto';
+} from '../dtos/acc/visor-marca-revision/visor-marca-revision.dto';
 import { CrearVisorMarcaRevisionUseCase } from '../../application/use-cases/acc/visor-marca-revision/crear-visor-marca-revision.use-case';
 import { ActualizarVisorMarcaRevisionUseCase } from '../../application/use-cases/acc/visor-marca-revision/actualizar-visor-marca-revision.use-case';
 import { DuplicarVisorMarcaRevisionUseCase } from '../../application/use-cases/acc/visor-marca-revision/duplicar-visor-marca-revision.use-case';
@@ -62,7 +68,10 @@ export class AccVisorMarcaRevisionController {
     @Req() req: Request,
   ) {
     const data = await this.crearUseCase.execute(projectId, dto, req.user!.id);
-    return ApiResponseDto.success(data, 'Marca de revisión creada exitosamente');
+    return ApiResponseDto.success(
+      data,
+      'Marca de revisión creada exitosamente',
+    );
   }
 
   @Get()
@@ -91,11 +100,16 @@ export class AccVisorMarcaRevisionController {
       viewableGuid,
       paginaNumero: paginaNumero ? Number(paginaNumero) : undefined,
       versionId,
-      idRevisionArchivo: idRevisionArchivo ? Number(idRevisionArchivo) : undefined,
+      idRevisionArchivo: idRevisionArchivo
+        ? Number(idRevisionArchivo)
+        : undefined,
       soloPublicadas: parseQueryBoolean(soloPublicadas),
       soloPropias: parseQueryBoolean(soloPropias),
     });
-    return ApiResponseDto.success(data, 'Marcas de revisión obtenidas exitosamente');
+    return ApiResponseDto.success(
+      data,
+      'Marcas de revisión obtenidas exitosamente',
+    );
   }
 
   @Get('contador')
@@ -126,10 +140,7 @@ export class AccVisorMarcaRevisionController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Obtener detalle de marca (respeta visibilidad)' })
   @ApiParam({ name: 'id', type: Number })
-  async obtener(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request,
-  ) {
+  async obtener(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     const data = await this.obtenerUseCase.execute(id, req.user!.id);
     return ApiResponseDto.success(data, 'Marca obtenida exitosamente');
   }
@@ -161,17 +172,16 @@ export class AccVisorMarcaRevisionController {
   @Post(':id/publicar')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Publicar marca (visible para todos)' })
-  async publicar(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request,
-  ) {
+  async publicar(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     const data = await this.publicarUseCase.execute(id, req.user!.id);
     return ApiResponseDto.success(data, 'Marca publicada exitosamente');
   }
 
   @Post(':id/anular-publicacion')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Anular publicación (solo visible para el creador)' })
+  @ApiOperation({
+    summary: 'Anular publicación (solo visible para el creador)',
+  })
   async anularPublicacion(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
@@ -182,7 +192,9 @@ export class AccVisorMarcaRevisionController {
 
   @Patch(':id/sincronizar-markup-id-aps')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Sincronizar markupIdAps tras cargar en MarkupsCore' })
+  @ApiOperation({
+    summary: 'Sincronizar markupIdAps tras cargar en MarkupsCore',
+  })
   async sincronizarMarkupIdAps(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: SincronizarMarkupIdApsDto,
@@ -193,16 +205,16 @@ export class AccVisorMarcaRevisionController {
       dto,
       req.user!.id,
     );
-    return ApiResponseDto.success(data, 'markupIdAps sincronizado exitosamente');
+    return ApiResponseDto.success(
+      data,
+      'markupIdAps sincronizado exitosamente',
+    );
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Suprimir marca (soft delete, solo creador)' })
-  async suprimir(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request,
-  ) {
+  async suprimir(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     await this.suprimirUseCase.execute(id, req.user!.id);
     return ApiResponseDto.success(null, 'Marca suprimida exitosamente');
   }

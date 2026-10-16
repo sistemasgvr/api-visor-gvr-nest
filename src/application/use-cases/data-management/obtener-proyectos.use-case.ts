@@ -1,16 +1,13 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { AutodeskApiService } from '../../../infrastructure/services/autodesk-api.service';
-import {
-  ACC_REPOSITORY,
-  type IAccRepository,
-} from '../../../domain/repositories/acc.repository.interface';
-import { ObtenerProyectosDto } from '../../dtos/data-management/obtener-proyectos.dto';
+import { UnauthenticatedError } from '../../errors/application.error';
+import type { AutodeskDataManagementPort } from '../../ports/autodesk/data-management.port';
 
-@Injectable()
+import { type IAccRepository } from '../../../domain/repositories/acc.repository.interface';
+import { ObtenerProyectosDto } from '../../inputs/data-management/obtener-proyectos.dto';
+
 export class ObtenerProyectosUseCase {
   constructor(
-    private readonly autodeskApiService: AutodeskApiService,
-    @Inject(ACC_REPOSITORY)
+    private readonly autodeskApiService: AutodeskDataManagementPort,
+
     private readonly accRepository: IAccRepository,
   ) {}
 
@@ -28,14 +25,14 @@ export class ObtenerProyectosUseCase {
       await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
 
     if (!token) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'No se encontró token de acceso. Por favor, autoriza la aplicación primero.',
       );
     }
 
     // Validar que el token no esté expirado
     if (this.autodeskApiService.esTokenExpirado(token.expiraEn)) {
-      throw new UnauthorizedException(
+      throw new UnauthenticatedError(
         'El token ha expirado. Por favor, refresca tu token.',
       );
     }

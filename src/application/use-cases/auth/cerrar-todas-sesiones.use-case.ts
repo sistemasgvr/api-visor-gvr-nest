@@ -1,14 +1,11 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import type { ISesionRepository } from '../../../domain/repositories/sesion.repository.interface';
-import { SESION_REPOSITORY } from '../../../domain/repositories/sesion.repository.interface';
+import { UnauthenticatedError } from '../../errors/application.error';
+import { TokenServicePort } from '../../ports/runtime.port';
 
-@Injectable()
 export class CerrarTodasSesionesUseCase {
   constructor(
-    @Inject(SESION_REPOSITORY)
     private readonly sesionRepository: ISesionRepository,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: TokenServicePort,
   ) {}
 
   async execute(token: string): Promise<void> {
@@ -17,7 +14,7 @@ export class CerrarTodasSesionesUseCase {
     try {
       payload = this.jwtService.verify(token);
     } catch (error) {
-      throw new UnauthorizedException('Token inválido o expirado');
+      throw new UnauthenticatedError('Token inválido o expirado');
     }
 
     const usuarioId = payload.sub;

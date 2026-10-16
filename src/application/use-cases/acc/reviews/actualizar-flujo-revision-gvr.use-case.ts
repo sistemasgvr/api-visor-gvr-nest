@@ -1,6 +1,6 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
-import { CrearWorkflowDto } from '../../../dtos/acc/reviews/crear-workflow.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { CrearWorkflowDto } from '../../../inputs/acc/reviews/crear-workflow.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 import { buildFlujoRevisionPayload } from './build-flujo-revision-payload';
 
 export interface ActualizarFlujoRevisionGvrResult {
@@ -10,9 +10,8 @@ export interface ActualizarFlujoRevisionGvrResult {
   mensaje: string;
 }
 
-@Injectable()
 export class ActualizarFlujoRevisionGvrUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     userId: number,
@@ -22,27 +21,26 @@ export class ActualizarFlujoRevisionGvrUseCase {
   ): Promise<ActualizarFlujoRevisionGvrResult> {
     const flowId = parseInt(workflowId, 10);
     if (Number.isNaN(flowId)) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'Solo se pueden actualizar flujos internos GVR (id numérico).',
       );
     }
 
     const steps = dto.steps ?? [];
     if (steps.length === 0) {
-      throw new BadRequestException(
-        'Debe incluir al menos un paso (iniciador).',
-      );
+      throw new InvalidInputError('Debe incluir al menos un paso (iniciador).');
     }
 
     let estadoNombre: 'Activo' | 'Borrador';
     if (dto.workflowStatus === 'ACTIVE') estadoNombre = 'Activo';
     else if (dto.workflowStatus === 'INACTIVE') estadoNombre = 'Borrador';
     else {
-      const current = await this.dbFunctionService.callFunctionSingle<{
-        status: string;
-      }>('acc_ObtenerFlujoTrabajoAprobacionGvrPorId', [projectId, flowId]);
+      const current =
+        await this.reviewsRepository.obtenerFlujoTrabajoAprobacionGvrPorIdUnico<{
+          status: string;
+        }>([projectId, flowId]);
       if (!current) {
-        throw new BadRequestException('Flujo no encontrado.');
+        throw new InvalidInputError('Flujo no encontrado.');
       }
       estadoNombre = current.status === 'INACTIVE' ? 'Borrador' : 'Activo';
     }
@@ -56,20 +54,15 @@ export class ActualizarFlujoRevisionGvrUseCase {
       mensaje: string;
     }[];
     try {
-      result = await this.dbFunctionService.callFunction<{
+      result = await this.reviewsRepository.actualizarFlujoRevision<{
         id: number;
         nombre: string;
         idProyectoAcc: string;
         mensaje: string;
-      }>('acc_ActualizarFlujoRevision', [
-        projectId,
-        userId,
-        flowId,
-        JSON.stringify(payload),
-      ]);
+      }>([projectId, userId, flowId, JSON.stringify(payload)]);
     } catch (e: any) {
       const msg = e?.message ?? String(e);
-      throw new BadRequestException(
+      throw new InvalidInputError(
         msg.includes('listado') ||
           msg.includes('violates') ||
           msg.includes('no encontrado')
@@ -80,7 +73,7 @@ export class ActualizarFlujoRevisionGvrUseCase {
 
     const row = result?.[0];
     if (!row?.id) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         row?.mensaje ?? 'No se pudo actualizar el flujo de trabajo.',
       );
     }

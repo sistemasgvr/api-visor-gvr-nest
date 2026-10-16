@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 
 // Use Cases
 import { ObtenerPerfilUsuarioBim360UseCase } from '../../application/use-cases/issues-bim360/obtener-perfil-usuario.use-case';
@@ -34,19 +34,19 @@ import { CrearAdjuntoBim360UseCase } from '../../application/use-cases/issues-bi
 import { ActualizarAdjuntoBim360UseCase } from '../../application/use-cases/issues-bim360/actualizar-adjunto.use-case';
 
 // DTOs
-import { ObtenerTiposIncidenciasDto } from '../../application/dtos/issues-bim360/obtener-tipos-incidencias.dto';
-import { ObtenerDefinicionesAtributosDto } from '../../application/dtos/issues-bim360/obtener-definiciones-atributos.dto';
-import { ObtenerMapeosAtributosDto } from '../../application/dtos/issues-bim360/obtener-mapeos-atributos.dto';
-import { ObtenerCategoriasRaizDto } from '../../application/dtos/issues-bim360/obtener-categorias-raiz.dto';
-import { ObtenerIncidenciasPorDocumentoDto } from '../../application/dtos/issues-bim360/obtener-incidencias-por-documento.dto';
-import { ObtenerIncidenciasDto } from '../../application/dtos/issues-bim360/obtener-incidencias.dto';
-import { CrearIncidenciaDto } from '../../application/dtos/issues-bim360/crear-incidencia.dto';
-import { ActualizarIncidenciaDto } from '../../application/dtos/issues-bim360/actualizar-incidencia.dto';
-import { ObtenerComentariosDto } from '../../application/dtos/issues-bim360/obtener-comentarios.dto';
-import { CrearComentarioDto } from '../../application/dtos/issues-bim360/crear-comentario.dto';
-import { CrearAdjuntoDto } from '../../application/dtos/issues-bim360/crear-adjunto.dto';
-import { ObtenerAdjuntosDto } from '../../application/dtos/issues-bim360/obtener-adjuntos.dto';
-import { ActualizarAdjuntoDto } from '../../application/dtos/issues-bim360/actualizar-adjunto.dto';
+import { ObtenerTiposIncidenciasDto } from '../dtos/issues-bim360/obtener-tipos-incidencias.dto';
+import { ObtenerDefinicionesAtributosDto } from '../dtos/issues-bim360/obtener-definiciones-atributos.dto';
+import { ObtenerMapeosAtributosDto } from '../dtos/issues-bim360/obtener-mapeos-atributos.dto';
+import { ObtenerCategoriasRaizDto } from '../dtos/issues-bim360/obtener-categorias-raiz.dto';
+import { ObtenerIncidenciasPorDocumentoDto } from '../dtos/issues-bim360/obtener-incidencias-por-documento.dto';
+import { ObtenerIncidenciasDto } from '../dtos/issues-bim360/obtener-incidencias.dto';
+import { CrearIncidenciaDto } from '../dtos/issues-bim360/crear-incidencia.dto';
+import { ActualizarIncidenciaDto } from '../dtos/issues-bim360/actualizar-incidencia.dto';
+import { ObtenerComentariosDto } from '../dtos/issues-bim360/obtener-comentarios.dto';
+import { CrearComentarioDto } from '../dtos/issues-bim360/crear-comentario.dto';
+import { CrearAdjuntoDto } from '../dtos/issues-bim360/crear-adjunto.dto';
+import { ObtenerAdjuntosDto } from '../dtos/issues-bim360/obtener-adjuntos.dto';
+import { ActualizarAdjuntoDto } from '../dtos/issues-bim360/actualizar-adjunto.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('bim360')
@@ -75,7 +75,9 @@ export class IssuesBim360Controller {
    * GET - Obtener perfil de usuario
    * GET /issues/projects/:projectId/users/me
    */
-  @ApiOperation({ summary: 'Perfil APS del usuario en contexto proyecto BIM 360' })
+  @ApiOperation({
+    summary: 'Perfil APS del usuario en contexto proyecto BIM 360',
+  })
   @Get('users/me')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

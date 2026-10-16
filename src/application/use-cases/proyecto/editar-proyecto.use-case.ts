@@ -1,14 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
-import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
-import { UpdateProyectoDto } from '../../dtos/proyecto/update-proyecto.dto';
+import { InvalidInputError } from '../../errors/application.error';
+import { UpdateProyectoDto } from '../../inputs/proyecto/update-proyecto.dto';
 
-@Injectable()
 export class EditarProyectoUseCase {
-  constructor(
-    @Inject(PROYECTO_REPOSITORY)
-    private readonly proyectoRepository: IProyectoRepository,
-  ) {}
+  constructor(private readonly proyectoRepository: IProyectoRepository) {}
 
   async execute(
     idProyecto: number,
@@ -23,7 +18,7 @@ export class EditarProyectoUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al editar el proyecto',
       );
     }

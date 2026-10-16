@@ -1,15 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { BadRequestException } from '@nestjs/common';
-import { CrearRevisionDto } from '../../../dtos/acc/reviews/crear-revision.dto';
 import type { IAuditoriaRepository } from '../../../../domain/repositories/auditoria.repository.interface';
-import { AUDITORIA_REPOSITORY } from '../../../../domain/repositories/auditoria.repository.interface';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
+import { InvalidInputError } from '../../../errors/application.error';
+import { CrearRevisionDto } from '../../../inputs/acc/reviews/crear-revision.dto';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
-@Injectable()
 export class CrearRevisionUseCase {
   constructor(
-    private readonly dbFunctionService: DatabaseFunctionService,
-    @Inject(AUDITORIA_REPOSITORY)
+    private readonly reviewsRepository: InternalReviewsRepository,
+
     private readonly auditoriaRepository: IAuditoriaRepository,
   ) {}
 
@@ -22,7 +19,7 @@ export class CrearRevisionUseCase {
   ): Promise<any> {
     const flowId = parseInt(String(dto.workflowId ?? '').trim(), 10);
     if (Number.isNaN(flowId) || flowId < 1) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         'workflowId inválido. Debe ser un ID numérico de flujo interno GVR.',
       );
     }
@@ -40,7 +37,7 @@ export class CrearRevisionUseCase {
       })
       .filter((x): x is { versionUrn: string; itemUrn?: string } => x != null);
 
-    const rows = await this.dbFunctionService.callFunction<{
+    const rows = await this.reviewsRepository.crearRevisionInterna<{
       id_revision: number;
       review_id: string;
       workflow_id: string;
@@ -50,7 +47,7 @@ export class CrearRevisionUseCase {
       message: string;
       created_at: string | Date;
       linked_documents_count: number;
-    }>('acc_CrearRevisionInterna', [
+    }>([
       projectId,
       userId,
       flowId,
@@ -61,7 +58,7 @@ export class CrearRevisionUseCase {
 
     const row = rows?.[0];
     if (!row?.review_id) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         row?.message ?? 'No se pudo crear la revisión interna.',
       );
     }

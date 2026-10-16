@@ -1,10 +1,10 @@
+import { UnprocessableError } from '../../errors/application.error';
 import {
-  Injectable,
-  UnprocessableEntityException,
-  Logger,
-} from '@nestjs/common';
-import { finished } from 'node:stream/promises';
-import archiver = require('archiver');
+  ApplicationLogger,
+  LoggerFactoryPort,
+  ZipArchivePort,
+} from '../../ports/runtime.port';
+
 import {
   ExportarActividadesJornadasWordUseCase,
   compactoYmdDesdeTexto,
@@ -18,15 +18,18 @@ export type ExportarActividadesJornadasWordMasivoInput = {
   incluirHorasDedicadasEnWord: boolean;
 };
 
-@Injectable()
 export class ExportarActividadesJornadasWordMasivoUseCase {
-  private readonly logger = new Logger(
-    ExportarActividadesJornadasWordMasivoUseCase.name,
-  );
+  private readonly logger: ApplicationLogger;
 
   constructor(
     private readonly exportarActividadesJornadasWordUseCase: ExportarActividadesJornadasWordUseCase,
-  ) {}
+    private readonly loggerFactory: LoggerFactoryPort,
+    private readonly zipArchive: ZipArchivePort,
+  ) {
+    this.logger = this.loggerFactory.create(
+      ExportarActividadesJornadasWordMasivoUseCase.name,
+    );
+  }
 
   /**
    * Genera un ZIP con un .docx por colaborador. Si alguno falla, el ZIP incluye
@@ -40,7 +43,7 @@ export class ExportarActividadesJornadasWordMasivoUseCase {
     const ff = input.fechaFin.trim();
     const ids = [...new Set(input.idsTrabajador.filter((n) => n >= 1))];
     if (ids.length === 0) {
-      throw new UnprocessableEntityException(
+      throw new UnprocessableError(
         'No hay ids de colaborador válidos para exportar.',
       );
     }
@@ -75,17 +78,15 @@ export class ExportarActividadesJornadasWordMasivoUseCase {
 
     if (ok.length === 0) {
       const detalle = errores.join('\n');
-      throw new UnprocessableEntityException(
+      throw new UnprocessableError(
         `No se pudo generar ningún documento. Detalle:\n${detalle}`,
       );
     }
 
-    const archive = archiver('zip', { zlib: { level: 6 } });
-    const chunks: Buffer[] = [];
-    archive.on('data', (chunk: Buffer) => chunks.push(chunk));
+    const archiveFiles: Array<{ name: string; buffer: Buffer }> = [];
 
     for (const item of ok) {
-      archive.append(item.buffer, { name: item.name });
+      archiveFiles.push({ buffer: item.buffer, name: item.name });
     }
 
     if (errores.length > 0) {
@@ -95,15 +96,13 @@ export class ExportarActividadesJornadasWordMasivoUseCase {
         `Generados: ${ok.length} de ${ids.length}\n\n` +
         errores.map((l) => `- ${l}`).join('\n') +
         '\n';
-      archive.append(Buffer.from(texto, 'utf8'), {
+      archiveFiles.push({
+        buffer: Buffer.from(texto, 'utf8'),
         name: 'exportacion_errores.txt',
       });
     }
 
-    const endPromise = finished(archive);
-    await archive.finalize();
-    await endPromise;
-    const buffer = Buffer.concat(chunks);
+    const buffer = await this.zipArchive.create(archiveFiles);
 
     const base = `Actividades_masivo_${compactoYmdDesdeTexto(fi)}-${compactoYmdDesdeTexto(ff)}`;
     const fileName = `${base}.zip`;

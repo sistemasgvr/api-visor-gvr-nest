@@ -1,17 +1,15 @@
-import {
-  Injectable,
-  Inject,
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
-import type {
-  IProyectoRepository,
-  ActualizarEntregableProyectoData,
-} from '../../../domain/repositories/proyecto.repository.interface';
-import { PROYECTO_REPOSITORY } from '../../../domain/repositories/proyecto.repository.interface';
 import { ID_ESTADO_ENTREGABLE_CULMINADO } from '../../../domain/constants/estado-entregable.constants';
-import { BroadcastService } from '../../../shared/services/broadcast.service';
+import type {
+  ActualizarEntregableProyectoData,
+  IProyectoRepository,
+} from '../../../domain/repositories/proyecto.repository.interface';
+import {
+  ForbiddenError,
+  InvalidInputError,
+  NotFoundError,
+} from '../../errors/application.error';
+import { BroadcastPort } from '../../ports/broadcast.port';
+import { LoggerFactoryPort } from '../../ports/runtime.port';
 import {
   puedeGestionarEntregable,
   responsablePerteneceAlProyecto,
@@ -23,12 +21,11 @@ import {
   resolverIdsResponsablesEntrada,
 } from './entregable-responsables.helper';
 
-@Injectable()
 export class ActualizarEntregableProyectoUseCase {
   constructor(
-    @Inject(PROYECTO_REPOSITORY)
     private readonly proyectoRepository: IProyectoRepository,
-    private readonly broadcastService: BroadcastService,
+    private readonly broadcastService: BroadcastPort,
+    private readonly loggerFactory: LoggerFactoryPort,
   ) {}
 
   async execute(
@@ -40,7 +37,7 @@ export class ActualizarEntregableProyectoUseCase {
     const actual =
       await this.proyectoRepository.obtenerEntregablePorId(idEntregable);
     if (!actual) {
-      throw new NotFoundException('El entregable no existe o está inactivo');
+      throw new NotFoundError('El entregable no existe o está inactivo');
     }
 
     const puede = await puedeGestionarEntregable(this.proyectoRepository, {
@@ -49,16 +46,14 @@ export class ActualizarEntregableProyectoUseCase {
       rolesIds,
     });
     if (!puede) {
-      throw new ForbiddenException(
-        'No tienes permiso para editar este entregable',
-      );
+      throw new ForbiddenError('No tienes permiso para editar este entregable');
     }
 
     if (data.idEstado === ID_ESTADO_ENTREGABLE_CULMINADO) {
       const yaCulminado =
         Number(actual.idestado) === ID_ESTADO_ENTREGABLE_CULMINADO;
       if (!yaCulminado) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           'No se puede marcar CULMINADO desde entregables. Úsalo al registrar/editar una actividad.',
         );
       }
@@ -73,7 +68,7 @@ export class ActualizarEntregableProyectoUseCase {
 
     if (resuelto.tocar) {
       if (resuelto.ids.length === 0) {
-        throw new BadRequestException(
+        throw new InvalidInputError(
           'Debe indicar al menos un trabajador responsable del entregable',
         );
       }
@@ -85,7 +80,7 @@ export class ActualizarEntregableProyectoUseCase {
           idResponsable,
         );
         if (!ok) {
-          throw new BadRequestException(
+          throw new InvalidInputError(
             `El responsable (id ${idResponsable}) debe pertenecer al proyecto (acceso o equipo configurado)`,
           );
         }
@@ -105,14 +100,15 @@ export class ActualizarEntregableProyectoUseCase {
           }),
     };
 
-    const resultado = await this.proyectoRepository.actualizarEntregableProyecto(
-      idEntregable,
-      payloadRepo,
-      idUsuarioModificacion,
-    );
+    const resultado =
+      await this.proyectoRepository.actualizarEntregableProyecto(
+        idEntregable,
+        payloadRepo,
+        idUsuarioModificacion,
+      );
 
     if (!resultado?.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al actualizar el entregable',
       );
     }
@@ -126,6 +122,7 @@ export class ActualizarEntregableProyectoUseCase {
           `Entregable #${idEntregable}`;
         for (const idResponsable of nuevos) {
           await emitirEntregableAsignado({
+            logger: this.loggerFactory.create('EntregableNotificaciones'),
             broadcast: this.broadcastService,
             proyectoRepository: this.proyectoRepository,
             idEntregable,

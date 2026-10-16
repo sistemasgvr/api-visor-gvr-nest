@@ -1,13 +1,8 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { INovedadRepository } from '../../../domain/repositories/novedad.repository.interface';
-import { NOVEDAD_REPOSITORY } from '../../../domain/repositories/novedad.repository.interface';
+import { InvalidInputError } from '../../errors/application.error';
 
-@Injectable()
 export class MarcarNovedadVistaUseCase {
-  constructor(
-    @Inject(NOVEDAD_REPOSITORY)
-    private readonly novedadRepository: INovedadRepository,
-  ) {}
+  constructor(private readonly novedadRepository: INovedadRepository) {}
 
   async execute(
     idUsuario: number,
@@ -21,7 +16,7 @@ export class MarcarNovedadVistaUseCase {
     );
 
     if (!resultado || resultado.success === false) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al marcar la novedad como vista',
       );
     }

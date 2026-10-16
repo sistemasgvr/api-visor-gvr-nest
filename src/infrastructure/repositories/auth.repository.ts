@@ -159,7 +159,13 @@ export class AuthRepository implements IAuthRepository {
   ): Promise<{ fotoPerfil: string }> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
       'auth_ActualizarFotoPerfilUsuario',
-      [idUsuario, fotoPerfil, nombreOriginal ?? null, tipoMime ?? null, tamanoBytes ?? null],
+      [
+        idUsuario,
+        fotoPerfil,
+        nombreOriginal ?? null,
+        tipoMime ?? null,
+        tamanoBytes ?? null,
+      ],
     );
 
     if (!result) {

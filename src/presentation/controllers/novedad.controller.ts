@@ -29,7 +29,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { ListarNovedadLanzamientosUseCase } from '../../application/use-cases/novedad/listar-novedad-lanzamientos.use-case';
 import { ObtenerNovedadLanzamientoUseCase } from '../../application/use-cases/novedad/obtener-novedad-lanzamiento.use-case';
 import { CrearNovedadLanzamientoUseCase } from '../../application/use-cases/novedad/crear-novedad-lanzamiento.use-case';
@@ -41,13 +41,13 @@ import { EditarNovedadTarjetaUseCase } from '../../application/use-cases/novedad
 import { EliminarNovedadTarjetaUseCase } from '../../application/use-cases/novedad/eliminar-novedad-tarjeta.use-case';
 import { ObtenerNovedadPendientesUsuarioUseCase } from '../../application/use-cases/novedad/obtener-novedad-pendientes-usuario.use-case';
 import { MarcarNovedadVistaUseCase } from '../../application/use-cases/novedad/marcar-novedad-vista.use-case';
-import { ListarNovedadLanzamientosQueryDto } from '../../application/dtos/novedad/listar-novedad-lanzamientos-query.dto';
-import { CreateNovedadLanzamientoDto } from '../../application/dtos/novedad/create-novedad-lanzamiento.dto';
-import { UpdateNovedadLanzamientoDto } from '../../application/dtos/novedad/update-novedad-lanzamiento.dto';
-import { SincronizarRolesNovedadDto } from '../../application/dtos/novedad/sincronizar-roles-novedad.dto';
-import { CreateNovedadTarjetaDto } from '../../application/dtos/novedad/create-novedad-tarjeta.dto';
-import { UpdateNovedadTarjetaDto } from '../../application/dtos/novedad/update-novedad-tarjeta.dto';
-import { MarcarNovedadVistaDto } from '../../application/dtos/novedad/marcar-novedad-vista.dto';
+import { ListarNovedadLanzamientosQueryDto } from '../dtos/novedad/listar-novedad-lanzamientos-query.dto';
+import { CreateNovedadLanzamientoDto } from '../dtos/novedad/create-novedad-lanzamiento.dto';
+import { UpdateNovedadLanzamientoDto } from '../dtos/novedad/update-novedad-lanzamiento.dto';
+import { SincronizarRolesNovedadDto } from '../dtos/novedad/sincronizar-roles-novedad.dto';
+import { CreateNovedadTarjetaDto } from '../dtos/novedad/create-novedad-tarjeta.dto';
+import { UpdateNovedadTarjetaDto } from '../dtos/novedad/update-novedad-tarjeta.dto';
+import { MarcarNovedadVistaDto } from '../dtos/novedad/marcar-novedad-vista.dto';
 
 @ApiTags('novedades')
 @ApiBearerAuth('access-token')

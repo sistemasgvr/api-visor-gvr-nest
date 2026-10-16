@@ -1,23 +1,24 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
+
 import type {
-  IControlOperativoRepository,
   CronAlertaActividadesSinValidarResult,
   GrupoCoordinadorSinValidar,
+  IControlOperativoRepository,
 } from '../../../domain/repositories/control-operativo.repository.interface';
-import { CONTROL_OPERATIVO_REPOSITORY } from '../../../domain/repositories/control-operativo.repository.interface';
-import { BroadcastService } from '../../../shared/services/broadcast.service';
+import { BroadcastPort } from '../../ports/broadcast.port';
 
-@Injectable()
 export class CronAlertaActividadesSinValidarUseCase {
-  private readonly logger = new Logger(
-    CronAlertaActividadesSinValidarUseCase.name,
-  );
+  private readonly logger: ApplicationLogger;
 
   constructor(
-    @Inject(CONTROL_OPERATIVO_REPOSITORY)
     private readonly controlOperativoRepository: IControlOperativoRepository,
-    private readonly broadcastService: BroadcastService,
-  ) {}
+    private readonly broadcastService: BroadcastPort,
+    private readonly loggerFactory: LoggerFactoryPort,
+  ) {
+    this.logger = this.loggerFactory.create(
+      CronAlertaActividadesSinValidarUseCase.name,
+    );
+  }
 
   /**
    * Detecta actividades "Por Aprobar" con más de 7 días desde su registro,

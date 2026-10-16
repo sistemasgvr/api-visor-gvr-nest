@@ -34,12 +34,12 @@ import { EliminarContratoTrabajadorUseCase } from '../../application/use-cases/t
 import { EliminarTrabajadorUseCase } from '../../application/use-cases/trabajador/eliminar-trabajador.use-case';
 import { ActivarTrabajadorUseCase } from '../../application/use-cases/trabajador/activar-trabajador.use-case';
 import { ResetearContrasenaUseCase } from '../../application/use-cases/trabajador/resetear-contrasena.use-case';
-import { CreateTrabajadorDto } from '../../application/dtos/trabajador/create-trabajador.dto';
-import { UpdateTrabajadorDto } from '../../application/dtos/trabajador/update-trabajador.dto';
-import { UpdateContratoTrabajadorDto } from '../../application/dtos/trabajador/update-contrato-trabajador.dto';
-import { CreateContratoTrabajadorDto } from '../../application/dtos/trabajador/create-contrato-trabajador.dto';
+import { CreateTrabajadorDto } from '../dtos/trabajador/create-trabajador.dto';
+import { UpdateTrabajadorDto } from '../dtos/trabajador/update-trabajador.dto';
+import { UpdateContratoTrabajadorDto } from '../dtos/trabajador/update-contrato-trabajador.dto';
+import { CreateContratoTrabajadorDto } from '../dtos/trabajador/create-contrato-trabajador.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 
@@ -154,10 +154,7 @@ export class TrabajadorController {
       );
     }
     const result = await this.subirFirmaTrabajadorUseCase.execute(token, file);
-    return ApiResponseDto.success(
-      result,
-      'Firma actualizada exitosamente',
-    );
+    return ApiResponseDto.success(result, 'Firma actualizada exitosamente');
   }
 
   /**
@@ -206,7 +203,8 @@ export class TrabajadorController {
    */
   @ApiOperation({
     summary: 'Obtener trabajador por id',
-    description: 'Ficha completa del trabajador (datos personales, empresa, roles, adjuntos).',
+    description:
+      'Ficha completa del trabajador (datos personales, empresa, roles, adjuntos).',
   })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
@@ -254,7 +252,8 @@ export class TrabajadorController {
    */
   @ApiOperation({
     summary: 'Crear contrato del trabajador',
-    description: 'Inserta un contrato en traContrato (empresa tomada del trabajador).',
+    description:
+      'Inserta un contrato en traContrato (empresa tomada del trabajador).',
   })
   @Post(':id/contratos')
   @HttpCode(HttpStatus.CREATED)
@@ -401,7 +400,8 @@ export class TrabajadorController {
    */
   @ApiOperation({
     summary: 'Activar trabajador inactivo',
-    description: 'Reactiva el trabajador (estado=1) y su usuario en authUsuarios.',
+    description:
+      'Reactiva el trabajador (estado=1) y su usuario en authUsuarios.',
   })
   @Post(':id/activar')
   @HttpCode(HttpStatus.OK)
@@ -431,7 +431,8 @@ export class TrabajadorController {
    */
   @ApiOperation({
     summary: 'Resetear contraseña del trabajador',
-    description: 'Restablece la contraseña al valor por defecto (p. ej. número de documento).',
+    description:
+      'Restablece la contraseña al valor por defecto (p. ej. número de documento).',
   })
   @Post(':id/resetear-contrasena')
   @HttpCode(HttpStatus.OK)

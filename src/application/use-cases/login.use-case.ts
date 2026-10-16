@@ -1,19 +1,17 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import type { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
-import { AUTH_REPOSITORY } from '../../domain/repositories/auth.repository.interface';
-import type { ISesionRepository } from '../../domain/repositories/sesion.repository.interface';
-import { SESION_REPOSITORY } from '../../domain/repositories/sesion.repository.interface';
-import { AuthUser } from '../../domain/entities/auth-user.entity';
-import { MinioStorageService } from '../../infrastructure/storage/minio-storage.service';
+import { UnauthenticatedError } from '../errors/application.error';
+import { PasswordHasherPort } from '../ports/runtime.port';
+
 import type {
   Menu,
   Permission,
   Role,
   TrabajadorEnUsuario,
 } from '../../domain/entities/auth-user.entity';
-import { LoginDto } from '../dtos/login.dto';
+import type { IAuthRepository } from '../../domain/repositories/auth.repository.interface';
+import type { ISesionRepository } from '../../domain/repositories/sesion.repository.interface';
+import { LoginDto } from '../inputs/login.dto';
+import { MinioStoragePort } from '../ports/minio-storage.port';
+import { TokenServicePort } from '../ports/runtime.port';
 
 export interface LoginResponse {
   access_token: string;
@@ -31,15 +29,14 @@ export interface LoginResponse {
   };
 }
 
-@Injectable()
 export class LoginUseCase {
   constructor(
-    @Inject(AUTH_REPOSITORY)
     private readonly authRepository: IAuthRepository,
-    @Inject(SESION_REPOSITORY)
+
     private readonly sesionRepository: ISesionRepository,
-    private readonly jwtService: JwtService,
-    private readonly minioStorage: MinioStorageService,
+    private readonly jwtService: TokenServicePort,
+    private readonly minioStorage: MinioStoragePort,
+    private readonly passwordHasher: PasswordHasherPort,
   ) {}
 
   async execute(
@@ -51,13 +48,13 @@ export class LoginUseCase {
     const correo = (loginDto.correo ?? '').trim();
     const contrasena = (loginDto.contrasena ?? '').trim();
     if (!correo || !contrasena) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthenticatedError('Credenciales inválidas');
     }
     // Get user from database
     const user = await this.authRepository.login(correo);
 
     if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthenticatedError('Credenciales inválidas');
     }
 
     // Fix: PHP bcrypt uses $2y$, Node.js bcrypt uses $2a$ or $2b$
@@ -68,10 +65,13 @@ export class LoginUseCase {
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(contrasena, passwordHash);
+    const isPasswordValid = await this.passwordHasher.compare(
+      contrasena,
+      passwordHash,
+    );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthenticatedError('Credenciales inválidas');
     }
 
     // Generate JWT token

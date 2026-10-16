@@ -80,7 +80,9 @@ export const envs = {
   dbLogging: envsVars.DB_LOGGING,
   databaseUrl: envsVars.DATABASE_URL,
   frontendUrls: buildCorsAllowedOrigins(
-    envsVars.FRONTEND_URLS.split(',').map((u) => u.trim()).filter(Boolean),
+    envsVars.FRONTEND_URLS.split(',')
+      .map((u) => u.trim())
+      .filter(Boolean),
   ),
   collaboraUrl: envsVars.COLLABORA_URL?.trim() || '',
   jwtSecret: envsVars.JWT_SECRET,

@@ -1,13 +1,10 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IAccResourcesRepository } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { CrearRecursoDto } from '../../../dtos/acc/resources/crear-recurso.dto';
-import { normalizeExternalId } from '../../../../shared/utils/normalize-external-id.util';
+import { normalizeExternalId } from '../../../../domain/utils/normalize-external-id.util';
+import { InvalidInputError } from '../../../errors/application.error';
+import { CrearRecursoDto } from '../../../inputs/acc/resources/crear-recurso.dto';
 
-@Injectable()
 export class CrearRecursoUseCase {
   constructor(
-    @Inject(ACC_RESOURCES_REPOSITORY)
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 
@@ -16,7 +13,7 @@ export class CrearRecursoUseCase {
     const normalizedExternalId = normalizeExternalId(dto.external_id);
 
     if (!normalizedExternalId) {
-      throw new BadRequestException('El external_id es obligatorio');
+      throw new InvalidInputError('El external_id es obligatorio');
     }
 
     const resultado = await this.accResourcesRepository.crearRecurso({
@@ -29,7 +26,7 @@ export class CrearRecursoUseCase {
     });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al crear el recurso',
       );
     }

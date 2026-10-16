@@ -19,8 +19,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { getUploadMaxFileSizeBytes } from '../../config/upload.constants';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiResponseDto } from '../../shared/dtos/api-response.dto';
-import { RequestInfoHelper } from '../../shared/helpers/request-info.helper';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { RequestInfoHelper } from '../http/request-info.helper';
 
 // Use cases - Grupo 1
 import { ObtenerItemPorIdUseCase } from '../../application/use-cases/data-management/items/obtener-item-por-id.use-case';
@@ -48,16 +48,16 @@ import { ObtenerUrlsSubidaChunkedUseCase } from '../../application/use-cases/dat
 import { CompletarSubidaChunkedUseCase } from '../../application/use-cases/data-management/items/completar-subida-chunked.use-case';
 
 // DTOs
-import { SubirArchivoDto } from '../../application/dtos/data-management/items/subir-archivo.dto';
-import { CrearItemDto } from '../../application/dtos/data-management/items/crear-item.dto';
-import { CrearReferenciaItemDto } from '../../application/dtos/data-management/items/crear-referencia-item.dto';
-import { ActualizarItemDto } from '../../application/dtos/data-management/items/actualizar-item.dto';
-import { DesplazarItemDto } from '../../application/dtos/data-management/items/desplazar-item.dto';
-import { CopiarItemDto } from '../../application/dtos/data-management/items/copiar-item.dto';
+import { SubirArchivoDto } from '../dtos/data-management/items/subir-archivo.dto';
+import { CrearItemDto } from '../dtos/data-management/items/crear-item.dto';
+import { CrearReferenciaItemDto } from '../dtos/data-management/items/crear-referencia-item.dto';
+import { ActualizarItemDto } from '../dtos/data-management/items/actualizar-item.dto';
+import { DesplazarItemDto } from '../dtos/data-management/items/desplazar-item.dto';
+import { CopiarItemDto } from '../dtos/data-management/items/copiar-item.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { IniciarSubidaChunkedDto } from '../../application/dtos/data-management/items/iniciar-subida-chunked.dto';
-import { ObtenerUrlsSubidaChunkedDto } from '../../application/dtos/data-management/items/obtener-urls-subida-chunked.dto';
-import { CompletarSubidaChunkedDto } from '../../application/dtos/data-management/items/completar-subida-chunked.dto';
+import { IniciarSubidaChunkedDto } from '../dtos/data-management/items/iniciar-subida-chunked.dto';
+import { ObtenerUrlsSubidaChunkedDto } from '../dtos/data-management/items/obtener-urls-subida-chunked.dto';
+import { CompletarSubidaChunkedDto } from '../dtos/data-management/items/completar-subida-chunked.dto';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
@@ -142,7 +142,8 @@ export class DataManagementItemsController {
 
   @ApiOperation({
     summary: 'Iniciar subida por partes (Direct-to-S3)',
-    description: 'Crea storage y devuelve uploadKey + URLs firmadas del primer lote.',
+    description:
+      'Crea storage y devuelve uploadKey + URLs firmadas del primer lote.',
   })
   @Post(':projectId/upload/chunked/init')
   @HttpCode(HttpStatus.OK)
@@ -253,7 +254,10 @@ export class DataManagementItemsController {
    * GET - Obtener un item específico por ID
    * GET /data-management/items/:projectId/:itemId
    */
-  @ApiOperation({ summary: 'Obtener metadata del item desde ACC', description: 'Acepta includes vía query.' })
+  @ApiOperation({
+    summary: 'Obtener metadata del item desde ACC',
+    description: 'Acepta includes vía query.',
+  })
   @Get(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
   async obtenerItemPorId(
@@ -627,7 +631,9 @@ export class DataManagementItemsController {
    * PATCH - Actualizar un item
    * PATCH /data-management/items/:projectId/:itemId
    */
-  @ApiOperation({ summary: 'Actualizar nombre o incluso cambiar estado lógico' })
+  @ApiOperation({
+    summary: 'Actualizar nombre o incluso cambiar estado lógico',
+  })
   @Patch(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
   async actualizarItem(

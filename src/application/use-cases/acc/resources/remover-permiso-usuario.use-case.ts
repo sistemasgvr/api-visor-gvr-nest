@@ -1,11 +1,8 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IAccResourcesRepository } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-resources.repository.interface';
+import { InvalidInputError } from '../../../errors/application.error';
 
-@Injectable()
 export class RemoverPermisoUsuarioUseCase {
   constructor(
-    @Inject(ACC_RESOURCES_REPOSITORY)
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 
@@ -16,7 +13,7 @@ export class RemoverPermisoUsuarioUseCase {
     );
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al remover el permiso',
       );
     }

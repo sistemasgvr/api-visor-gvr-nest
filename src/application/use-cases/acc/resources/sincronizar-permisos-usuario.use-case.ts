@@ -1,12 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IAccResourcesRepository } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { ACC_RESOURCES_REPOSITORY } from '../../../../domain/repositories/acc-resources.repository.interface';
-import { SincronizarPermisosUsuarioDto } from '../../../dtos/acc/resources/sincronizar-permisos-usuario.dto';
+import { InvalidInputError } from '../../../errors/application.error';
+import { SincronizarPermisosUsuarioDto } from '../../../inputs/acc/resources/sincronizar-permisos-usuario.dto';
 
-@Injectable()
 export class SincronizarPermisosUsuarioUseCase {
   constructor(
-    @Inject(ACC_RESOURCES_REPOSITORY)
     private readonly accResourcesRepository: IAccResourcesRepository,
   ) {}
 
@@ -22,7 +19,7 @@ export class SincronizarPermisosUsuarioUseCase {
       });
 
     if (!resultado || !resultado.success) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
         resultado?.message || 'Error al sincronizar los permisos',
       );
     }

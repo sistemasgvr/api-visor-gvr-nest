@@ -1,8 +1,5 @@
-import {
-  Injectable,
-  Logger,
-  BadRequestException,
-} from '@nestjs/common';
+import type { SharpAccProjectImagePreparerPort } from '../../application/ports/sharp-acc-project-image-preparer.port';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import sharp from 'sharp';
 
@@ -16,15 +13,18 @@ export interface PreparedAccProjectImage {
 }
 
 @Injectable()
-export class SharpAccProjectImagePreparerService {
-  private readonly logger = new Logger(SharpAccProjectImagePreparerService.name);
+export class SharpAccProjectImagePreparerService implements SharpAccProjectImagePreparerPort {
+  private readonly logger = new Logger(
+    SharpAccProjectImagePreparerService.name,
+  );
   private readonly enabled: boolean;
   private readonly maxEdgeStart: number;
 
   constructor(private readonly config: ConfigService) {
     this.enabled =
-      (this.config.get<string>('ACC_PROJECT_IMAGE_OPTIMIZE') ?? 'true')
-        .toLowerCase() !== 'false';
+      (
+        this.config.get<string>('ACC_PROJECT_IMAGE_OPTIMIZE') ?? 'true'
+      ).toLowerCase() !== 'false';
     const edge = parseInt(
       this.config.get<string>('ACC_PROJECT_IMAGE_MAX_EDGE_PX') ?? '',
       10,
@@ -59,7 +59,9 @@ export class SharpAccProjectImagePreparerService {
 
     let meta: sharp.Metadata;
     try {
-      meta = await sharp(buffer, { limitInputPixels: MAX_INPUT_PIXELS }).metadata();
+      meta = await sharp(buffer, {
+        limitInputPixels: MAX_INPUT_PIXELS,
+      }).metadata();
     } catch {
       throw new BadRequestException(
         'No se pudo leer la imagen. Verifique que el archivo no esté dañado.',
@@ -71,7 +73,9 @@ export class SharpAccProjectImagePreparerService {
       throw new BadRequestException('Formato de imagen no reconocido');
     }
     if (format === 'svg') {
-      throw new BadRequestException('SVG no está soportado para la imagen de proyecto');
+      throw new BadRequestException(
+        'SVG no está soportado para la imagen de proyecto',
+      );
     }
 
     /** Siempre re-encode: el gateway de ACC suele ser <~1 MB; un JPEG “pequeño” en disco aún puede superarlo sin recomponer. */
@@ -195,7 +199,12 @@ export class SharpAccProjectImagePreparerService {
       ...(gifFirstFrameOnly ? { pages: 1 } : {}),
     })
       .rotate()
-      .resize({ width: 400, height: 400, fit: 'inside', withoutEnlargement: true });
+      .resize({
+        width: 400,
+        height: 400,
+        fit: 'inside',
+        withoutEnlargement: true,
+      });
     if (hasAlpha) {
       last = last.flatten({ background: { r: 255, g: 255, b: 255 } });
     }
@@ -205,7 +214,12 @@ export class SharpAccProjectImagePreparerService {
 
     if (buf.length > targetMaxBytes) {
       buf = await sharp(buf)
-        .resize({ width: 320, height: 320, fit: 'inside', withoutEnlargement: true })
+        .resize({
+          width: 320,
+          height: 320,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
         .jpeg({ quality: 22, mozjpeg: true, chromaSubsampling: '4:2:0' })
         .toBuffer();
     }

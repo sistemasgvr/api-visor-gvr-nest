@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { DatabaseFunctionService } from '../../../../infrastructure/database/database-function.service';
+import { InternalReviewsRepository } from '../../../ports/internal-reviews.repository';
 
 export interface WorkflowCandidatoRow {
   id: number;
@@ -13,9 +12,8 @@ export interface WorkflowCandidatoRow {
   esOpcional: boolean;
 }
 
-@Injectable()
 export class ObtenerWorkflowCandidatosUseCase {
-  constructor(private readonly dbFunctionService: DatabaseFunctionService) {}
+  constructor(private readonly reviewsRepository: InternalReviewsRepository) {}
 
   async execute(
     accWorkflowId: string,
@@ -23,13 +21,11 @@ export class ObtenerWorkflowCandidatosUseCase {
   ): Promise<WorkflowCandidatoRow[]> {
     const isGvrNumericId = /^\d+$/.test(String(accWorkflowId).trim());
     if (isGvrNumericId) {
-      return this.dbFunctionService.callFunction<WorkflowCandidatoRow>(
-        'acc_ListarCandidatosFlujoTrabajoGvr',
+      return this.reviewsRepository.listarCandidatosFlujoTrabajoGvr<WorkflowCandidatoRow>(
         [parseInt(String(accWorkflowId).trim(), 10)],
       );
     }
-    return this.dbFunctionService.callFunction<WorkflowCandidatoRow>(
-      'acc_ListarWorkflowCandidatos',
+    return this.reviewsRepository.listarWorkflowCandidatos<WorkflowCandidatoRow>(
       [accWorkflowId, idProyectoAcc ?? null],
     );
   }
