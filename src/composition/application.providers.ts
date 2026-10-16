@@ -1,3 +1,16 @@
+import { CALENDARIOS_REPOSITORY } from '../domain/repositories/calendarios.repository.interface';
+import { ListarCalendariosUseCase } from '../application/use-cases/planificacion/calendarios/listar-calendarios.use-case';
+import { ObtenerCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/obtener-calendario.use-case';
+import { CrearCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/crear-calendario.use-case';
+import { ActualizarCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/actualizar-calendario.use-case';
+import { DuplicarCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/duplicar-calendario.use-case';
+import { CrearVersionCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/crear-version-calendario.use-case';
+import { GuardarSemanaCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/guardar-semana-calendario.use-case';
+import { GuardarExcepcionCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/guardar-excepcion-calendario.use-case';
+import { EliminarExcepcionCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/eliminar-excepcion-calendario.use-case';
+import { PublicarVersionCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/publicar-version-calendario.use-case';
+import { CambiarEstadoCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/cambiar-estado-calendario.use-case';
+import { ObtenerDisponibilidadCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/obtener-disponibilidad-calendario.use-case';
 import type { FactoryProvider, InjectionToken, Type } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -488,6 +501,18 @@ import { ActivityDocumentsAdapter } from '../infrastructure/word/activity-docume
 
 /** Ensamblaje de dependencias fuera de aplicación; los casos de uso son clases TypeScript puras. */
 const dependencies = new Map<Type<any>, InjectionToken[]>([
+  [ListarCalendariosUseCase, [CALENDARIOS_REPOSITORY]],
+  [ObtenerCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
+  [CrearCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
+  [ActualizarCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
+  [DuplicarCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
+  [CrearVersionCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
+  [GuardarSemanaCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
+  [GuardarExcepcionCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
+  [EliminarExcepcionCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
+  [PublicarVersionCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
+  [CambiarEstadoCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
+  [ObtenerDisponibilidadCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
   [ListarPaisesUseCase, [UBICACION_REPOSITORY]],
   [ListarDepartamentosUseCase, [UBICACION_REPOSITORY]],
   [ListarProvinciasUseCase, [UBICACION_REPOSITORY]],

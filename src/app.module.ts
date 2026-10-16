@@ -1,3 +1,4 @@
+import { CalendariosModule } from './composition/modules/calendarios.module';
 import { Module } from '@nestjs/common';
 import { ApplicationRuntimeModule } from './composition/modules/platform/application-runtime.module';
 import { ConfigModule } from '@nestjs/config';
@@ -72,6 +73,7 @@ import { StorageModule } from './composition/modules/platform/storage.module';
     BroadcastModule,
     // Módulo de health check
     HealthModule,
+    CalendariosModule,
     // Módulos de funcionalidad
     AuthModule,
     AccModule,

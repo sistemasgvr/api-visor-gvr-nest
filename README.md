@@ -11,6 +11,8 @@ Backend NestJS con dominio y aplicación independientes del framework.
 
 La organización y las reglas de dependencias están documentadas en [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
+La configuración de calendarios, sus endpoints y ejemplos están en [docs/CALENDARIOS.md](docs/CALENDARIOS.md).
+
 ## Desarrollo
 
 ```powershell

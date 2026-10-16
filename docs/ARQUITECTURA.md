@@ -2,7 +2,7 @@
 
 Actualización: 15 de octubre de 2026.
 
-El backend conserva sus funcionalidades y contratos HTTP. La reorganización separa las reglas y operaciones de aplicación de NestJS, PostgreSQL, Autodesk, almacenamiento y otros proveedores. No incorpora funcionalidades de planificación de proyectos ni modifica SQL o una base de datos remota.
+El backend conserva sus funcionalidades y contratos HTTP anteriores. La reorganización separa las reglas y operaciones de aplicación de NestJS, PostgreSQL, Autodesk, almacenamiento y otros proveedores. La configuración de calendarios añadida posteriormente sigue estas mismas reglas y se documenta en [CALENDARIOS.md](CALENDARIOS.md); no modifica SQL remoto ni integra control operativo.
 
 ## Organización y dependencias permitidas
 
@@ -47,6 +47,8 @@ La generación de PDF se concentra en `infrastructure/pdf`: `html` contiene el g
 La traducción de errores de Autodesk está junto a sus clientes en `infrastructure/autodesk`. Los archivos únicos de dashboard están directamente en las carpetas de controladores, módulos y repositorios. Sus casos de uso conservan una carpeta propia porque agrupa varias operaciones.
 
 No se mantienen carpetas vacías ni una clase base de persistencia sin consumidores. Las carpetas se crean cuando agrupan una responsabilidad útil; Clean Architecture no exige una carpeta por cada concepto.
+
+La configuración de calendarios incorporada posteriormente mantiene este esquema: doce casos de uso puros, un contrato y repositorio específico, DTO/controlador HTTP y `CalendariosModule` en composición. Utiliza `DatabaseFunctionService` y las funciones `pla_*` existentes, con sus dos auxiliares reservados a PostgreSQL. No tiene dependencias de control operativo. Sus contratos se documentan en [CALENDARIOS.md](CALENDARIOS.md).
 
 Los controladores de protocolos como WOPI/Office y los endpoints técnicos de archivos permanecen en el borde de presentación, donde se manejan solicitudes, respuestas y streams del protocolo.
 
