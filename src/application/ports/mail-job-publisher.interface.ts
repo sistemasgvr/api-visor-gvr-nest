@@ -1,4 +1,4 @@
-import type { OutboundMailJobPayload } from '../mail/outbound-mail.types';
+import type { OutboundMailJobPayload } from '../../domain/mail/outbound-mail.types';
 
 export interface IMailJobPublisher {
   /**

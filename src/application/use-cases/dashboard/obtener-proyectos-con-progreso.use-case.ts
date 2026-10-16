@@ -1,7 +1,7 @@
 import type {
   DashboardProyectosConProgreso,
   IDashboardRepository,
-} from '../../../domain/repositories/dashboard/dashboard.repository.interface';
+} from '../../../domain/repositories/dashboard.repository.interface';
 
 export class ObtenerProyectosConProgresoUseCase {
   constructor(private readonly dashboardRepository: IDashboardRepository) {}

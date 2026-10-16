@@ -1,7 +1,7 @@
 import type {
   DashboardCantidadProyectosVigentes,
   IDashboardRepository,
-} from '../../../domain/repositories/dashboard/dashboard.repository.interface';
+} from '../../../domain/repositories/dashboard.repository.interface';
 
 export class ObtenerCantidadProyectosVigentesUseCase {
   constructor(private readonly dashboardRepository: IDashboardRepository) {}

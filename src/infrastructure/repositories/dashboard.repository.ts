@@ -12,8 +12,8 @@ import {
   DashboardCantidadTrabajadoresConectadoSemana,
   DashboardHorasEsperadasVsRegistradasMes,
   DashboardProyectosConProgreso,
-} from '../../../domain/repositories/dashboard/dashboard.repository.interface';
-import { DatabaseFunctionService } from '../../database/database-function.service';
+} from '../../domain/repositories/dashboard.repository.interface';
+import { DatabaseFunctionService } from '../database/database-function.service';
 
 @Injectable()
 export class DashboardRepository implements IDashboardRepository {

@@ -1,7 +1,7 @@
 import type {
   DashboardCantidadActividadesRechazadas,
   IDashboardRepository,
-} from '../../../domain/repositories/dashboard/dashboard.repository.interface';
+} from '../../../domain/repositories/dashboard.repository.interface';
 
 export class ObtenerCantidadActividadesRechazadasUseCase {
   constructor(private readonly dashboardRepository: IDashboardRepository) {}

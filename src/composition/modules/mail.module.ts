@@ -1,7 +1,7 @@
 import { BullModule } from '@nestjs/bullmq';
 import { DynamicModule, Module, Provider, Type } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MailService } from '../../application/services/mail.service';
+import { MailService } from '../../application/use-cases/mail/mail.service';
 import { EnqueueOutboundEmailUseCase } from '../../application/use-cases/mail/enqueue-outbound-email.use-case';
 import { EnviarCorreoBienvenidaUseCase } from '../../application/use-cases/mail/enviar-correo-bienvenida.use-case';
 import { SendOutboundEmailUseCase } from '../../application/use-cases/mail/send-outbound-email.use-case';
@@ -10,9 +10,9 @@ import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../../domain/repositories/mail
 import {
   MAIL_JOB_PUBLISHER,
   MAIL_QUEUE_NAME,
-} from '../../domain/services/mail-job-publisher.interface';
-import { MAIL_RENDERER } from '../../domain/services/mail-renderer.interface';
-import { MAIL_TRANSPORT } from '../../domain/services/mail-transport.interface';
+} from '../../application/ports/mail-job-publisher.interface';
+import { MAIL_RENDERER } from '../../application/ports/mail-renderer.interface';
+import { MAIL_TRANSPORT } from '../../application/ports/mail-transport.interface';
 import { BullMailJobPublisher } from '../../infrastructure/mail/bull-mail-job-publisher.service';
 import { HandlebarsMailRendererService } from '../../infrastructure/mail/handlebars-mail-renderer.service';
 import { InlineMailJobPublisher } from '../../infrastructure/mail/inline-mail-job-publisher.service';

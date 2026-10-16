@@ -18,7 +18,7 @@ import { AutodeskApiService } from './autodesk-api.service';
 import {
   HTML_PDF_GENERATOR,
   type IHtmlPdfGenerator,
-} from '../../domain/services/html-pdf-generator.interface';
+} from '../../application/ports/html-pdf-generator.interface';
 import type { ExportarPermisosCarpetaPdfDto } from '../../application/inputs/data-management/folders/exportar-permisos-carpeta-pdf.dto';
 
 const MAX_CARPETAS = 2000;

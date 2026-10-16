@@ -1,7 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import type { Job } from 'bullmq';
-import { MAIL_QUEUE_NAME } from '../../domain/services/mail-job-publisher.interface';
+import { MAIL_QUEUE_NAME } from '../../application/ports/mail-job-publisher.interface';
 import type { OutboundMailJobPayload } from '../../domain/mail/outbound-mail.types';
 import { SendOutboundEmailUseCase } from '../../application/use-cases/mail/send-outbound-email.use-case';
 

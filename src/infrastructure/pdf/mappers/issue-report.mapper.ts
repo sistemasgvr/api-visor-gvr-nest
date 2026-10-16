@@ -1,4 +1,4 @@
-import { PdfRenderOptions } from '../../../domain/services/html-pdf-generator.interface';
+import { PdfRenderOptions } from '../../../application/ports/html-pdf-generator.interface';
 import { ExportarIncidenciasDto } from '../../../application/inputs/acc/issues/exportar-incidencias.dto';
 
 // ────────────────────────────────────────────────────────────────

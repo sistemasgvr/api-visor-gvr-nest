@@ -2,8 +2,8 @@ import type { NovedadTarjetaMediaStoragePort } from '../../application/ports/nov
 import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { MinioStorageService } from '../storage/minio-storage.service';
-import type { IEvidenciaImageOptimizer } from '../../domain/services/evidencia-image-optimizer.interface';
-import { EVIDENCIA_IMAGE_OPTIMIZER } from '../../domain/services/evidencia-image-optimizer.interface';
+import type { IEvidenciaImageOptimizer } from '../../application/ports/evidencia-image-optimizer.interface';
+import { EVIDENCIA_IMAGE_OPTIMIZER } from '../../application/ports/evidencia-image-optimizer.interface';
 import {
   extensionDesdeArchivoEvidencia,
   objectKeyFromStoredFileUrl,

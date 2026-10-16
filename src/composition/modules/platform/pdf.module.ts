@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-import { HTML_PDF_GENERATOR } from '../../../domain/services/html-pdf-generator.interface';
-import { HtmlPdfService } from '../../../infrastructure/pdf/html-pdf.service';
+import { HTML_PDF_GENERATOR } from '../../../application/ports/html-pdf-generator.interface';
+import { HtmlPdfService } from '../../../infrastructure/pdf/html/html-pdf.service';
 
 /**
  * Módulo global de generación de PDF via Puppeteer + Handlebars.

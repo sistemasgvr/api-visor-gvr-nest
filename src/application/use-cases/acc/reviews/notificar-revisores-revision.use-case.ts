@@ -4,7 +4,7 @@ import {
   ApplicationSettingsPort,
   LoggerFactoryPort,
 } from '../../../ports/runtime.port';
-import { MailService } from '../../../services/mail.service';
+import { MailService } from '../../mail/mail.service';
 import { ObtenerRevisionPorIdUseCase } from './obtener-revision-por-id.use-case';
 
 import { EMAIL_TEMPLATE_IDS } from '../../../../domain/mail/email-template-id';

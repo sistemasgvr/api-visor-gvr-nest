@@ -1,7 +1,7 @@
 import type {
   DashboardTopTrabajadoresHorasMes,
   IDashboardRepository,
-} from '../../../domain/repositories/dashboard/dashboard.repository.interface';
+} from '../../../domain/repositories/dashboard.repository.interface';
 
 export class ObtenerTopTrabajadoresHorasMesUseCase {
   constructor(private readonly dashboardRepository: IDashboardRepository) {}

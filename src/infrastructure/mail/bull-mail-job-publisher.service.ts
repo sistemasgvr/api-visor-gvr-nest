@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import type { Queue } from 'bullmq';
-import type { IMailJobPublisher } from '../../domain/services/mail-job-publisher.interface';
-import { MAIL_QUEUE_NAME } from '../../domain/services/mail-job-publisher.interface';
+import type { IMailJobPublisher } from '../../application/ports/mail-job-publisher.interface';
+import { MAIL_QUEUE_NAME } from '../../application/ports/mail-job-publisher.interface';
 import type { OutboundMailJobPayload } from '../../domain/mail/outbound-mail.types';
 
 @Injectable()

@@ -6,7 +6,7 @@
     "deleteOutDir": true,
     "assets": [
       {
-        "include": "infrastructure/pdf/templates/**/*.html",
+        "include": "infrastructure/pdf/html/templates/**/*.html",
         "watchAssets": true
       },
       {

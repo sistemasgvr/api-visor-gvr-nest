@@ -1,7 +1,7 @@
 import type {
   DashboardCantidadTrabajadoresConectadoSemana,
   IDashboardRepository,
-} from '../../../domain/repositories/dashboard/dashboard.repository.interface';
+} from '../../../domain/repositories/dashboard.repository.interface';
 
 export class ObtenerCantidadTrabajadoresConectadoSemanaUseCase {
   constructor(private readonly dashboardRepository: IDashboardRepository) {}

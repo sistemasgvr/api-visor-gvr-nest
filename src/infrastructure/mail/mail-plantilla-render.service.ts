@@ -3,7 +3,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as handlebars from 'handlebars';
-import type { RenderedMail } from '../../domain/services/mail-renderer.interface';
+import type { RenderedMail } from '../../application/ports/mail-renderer.interface';
 import { MailTemplateRenderException } from './mail.exceptions';
 import { MjmlCompilerService } from './mjml-compiler.service';
 

@@ -1,4 +1,4 @@
-import type { IHtmlPdfGenerator } from '../../../domain/services/html-pdf-generator.interface';
+import type { IHtmlPdfGenerator } from '../../ports/html-pdf-generator.interface';
 
 export interface GenerarPdfDemoInput {
   titulo?: string;

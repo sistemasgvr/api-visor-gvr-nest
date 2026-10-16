@@ -26,9 +26,9 @@ import {
 import {
   HTML_PDF_GENERATOR,
   type IHtmlPdfGenerator,
-} from '../../domain/services/html-pdf-generator.interface';
+} from '../../application/ports/html-pdf-generator.interface';
 import { IssueReportMapper } from '../pdf/mappers/issue-report.mapper';
-import { PdfTextHelper } from './pdf/helpers/pdf-text.helper';
+import { PdfTextHelper } from '../pdf/pdfkit/helpers/pdf-text.helper';
 
 @Injectable()
 export class ExportacionIncidenciasService implements ExportacionIncidenciasPort {

@@ -5,7 +5,7 @@ import type { Transporter } from 'nodemailer';
 import type {
   IMailTransport,
   MailTransportMessage,
-} from '../../domain/services/mail-transport.interface';
+} from '../../application/ports/mail-transport.interface';
 import type { EmailRecipient } from '../../domain/mail/outbound-mail.types';
 import {
   MailNotConfiguredException,

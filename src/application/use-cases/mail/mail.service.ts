@@ -1,6 +1,6 @@
-import type { OutboundMailJobPayload } from '../../domain/mail/outbound-mail.types';
-import type { EnqueueOutboundEmailDto } from '../inputs/mail/enqueue-outbound-email.dto';
-import { EnqueueOutboundEmailUseCase } from '../use-cases/mail/enqueue-outbound-email.use-case';
+import type { OutboundMailJobPayload } from '../../../domain/mail/outbound-mail.types';
+import type { EnqueueOutboundEmailDto } from '../../inputs/mail/enqueue-outbound-email.dto';
+import { EnqueueOutboundEmailUseCase } from './enqueue-outbound-email.use-case';
 
 /**
  * Fachada única para el resto de módulos: no enviar correos desde controladores;

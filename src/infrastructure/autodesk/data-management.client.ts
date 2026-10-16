@@ -1,5 +1,5 @@
 import { UPLOAD_S3_HTTP_TIMEOUT_MS } from '../../config/upload.constants';
-import { translateAutodeskApiEnglishFragment } from '../utils/autodesk-error-i18n';
+import { translateAutodeskApiEnglishFragment } from './autodesk-error-i18n';
 import { AutodeskClientBase } from './autodesk-client.base';
 
 export class AutodeskDataManagementClient extends AutodeskClientBase {

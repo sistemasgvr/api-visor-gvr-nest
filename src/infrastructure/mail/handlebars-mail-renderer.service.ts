@@ -11,7 +11,7 @@ import * as handlebars from 'handlebars';
 import type {
   IMailRenderer,
   RenderedMail,
-} from '../../domain/services/mail-renderer.interface';
+} from '../../application/ports/mail-renderer.interface';
 import type { IMailPlantillaCorreoRepository } from '../../domain/repositories/mail-plantilla-correo.repository.interface';
 import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../../domain/repositories/mail-plantilla-correo.repository.interface';
 import { MAIL_TEMPLATE_REGISTRY } from './template-registry';

@@ -1,7 +1,7 @@
 import type { OutboundMailJobPayload } from '../../../domain/mail/outbound-mail.types';
 import type { IEmailDispatchLogRepository } from '../../../domain/repositories/email-dispatch-log.repository.interface';
-import type { IMailRenderer } from '../../../domain/services/mail-renderer.interface';
-import type { IMailTransport } from '../../../domain/services/mail-transport.interface';
+import type { IMailRenderer } from '../../ports/mail-renderer.interface';
+import type { IMailTransport } from '../../ports/mail-transport.interface';
 import {
   ApplicationFailure,
   InvalidInputError,

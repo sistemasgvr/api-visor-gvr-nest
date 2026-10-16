@@ -1,4 +1,4 @@
-import type { RenderedMail } from '../../domain/services/mail-renderer.interface';
+import type { RenderedMail } from './mail-renderer.interface';
 
 /** Contrato de aplicación; la implementación y su configuración pertenecen a infraestructura. */
 export interface MailPlantillaRenderInput {

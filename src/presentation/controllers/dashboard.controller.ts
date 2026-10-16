@@ -6,20 +6,20 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiResponseDto } from '../../dtos/common/api-response.dto';
-import { JwtAuthGuard } from '../../../infrastructure/auth/jwt-auth.guard';
+import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 
-import { ObtenerCantidadProyectosVigentesUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-proyectos-vigentes.use-case';
-import { ObtenerCantidadTrabajadoresActivosUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-trabajadores-activos.use-case';
-import { ObtenerCantidadActividadesPendientesUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-actividades-pendientes.use-case';
-import { ObtenerCantidadActividadesObservadasUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-actividades-observadas.use-case';
-import { ObtenerCantidadActividadesRechazadasUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-actividades-rechazadas.use-case';
-import { ObtenerCantidadTrabajadoresPorProyectoUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-trabajadores-por-proyecto.use-case';
-import { ObtenerCantidadJornadasCompletasSemanaUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-jornadas-completas-semana.use-case';
-import { ObtenerTopTrabajadoresHorasMesUseCase } from '../../../application/use-cases/dashboard/obtener-top-trabajadores-horas-mes.use-case';
-import { ObtenerCantidadTrabajadoresConectadoSemanaUseCase } from '../../../application/use-cases/dashboard/obtener-cantidad-trabajadores-conectado-semana.use-case';
-import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from '../../../application/use-cases/dashboard/obtener-horas-esperadas-vs-registradas-mes.use-case';
-import { ObtenerProyectosConProgresoUseCase } from '../../../application/use-cases/dashboard/obtener-proyectos-con-progreso.use-case';
+import { ObtenerCantidadProyectosVigentesUseCase } from '../../application/use-cases/dashboard/obtener-cantidad-proyectos-vigentes.use-case';
+import { ObtenerCantidadTrabajadoresActivosUseCase } from '../../application/use-cases/dashboard/obtener-cantidad-trabajadores-activos.use-case';
+import { ObtenerCantidadActividadesPendientesUseCase } from '../../application/use-cases/dashboard/obtener-cantidad-actividades-pendientes.use-case';
+import { ObtenerCantidadActividadesObservadasUseCase } from '../../application/use-cases/dashboard/obtener-cantidad-actividades-observadas.use-case';
+import { ObtenerCantidadActividadesRechazadasUseCase } from '../../application/use-cases/dashboard/obtener-cantidad-actividades-rechazadas.use-case';
+import { ObtenerCantidadTrabajadoresPorProyectoUseCase } from '../../application/use-cases/dashboard/obtener-cantidad-trabajadores-por-proyecto.use-case';
+import { ObtenerCantidadJornadasCompletasSemanaUseCase } from '../../application/use-cases/dashboard/obtener-cantidad-jornadas-completas-semana.use-case';
+import { ObtenerTopTrabajadoresHorasMesUseCase } from '../../application/use-cases/dashboard/obtener-top-trabajadores-horas-mes.use-case';
+import { ObtenerCantidadTrabajadoresConectadoSemanaUseCase } from '../../application/use-cases/dashboard/obtener-cantidad-trabajadores-conectado-semana.use-case';
+import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from '../../application/use-cases/dashboard/obtener-horas-esperadas-vs-registradas-mes.use-case';
+import { ObtenerProyectosConProgresoUseCase } from '../../application/use-cases/dashboard/obtener-proyectos-con-progreso.use-case';
 
 @ApiTags('dashboard')
 @ApiBearerAuth('access-token')

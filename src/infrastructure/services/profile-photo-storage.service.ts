@@ -9,8 +9,8 @@ import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { MinioStorageService } from '../storage/minio-storage.service';
-import type { IEvidenciaImageOptimizer } from '../../domain/services/evidencia-image-optimizer.interface';
-import { EVIDENCIA_IMAGE_OPTIMIZER } from '../../domain/services/evidencia-image-optimizer.interface';
+import type { IEvidenciaImageOptimizer } from '../../application/ports/evidencia-image-optimizer.interface';
+import { EVIDENCIA_IMAGE_OPTIMIZER } from '../../application/ports/evidencia-image-optimizer.interface';
 import {
   extensionDesdeArchivoEvidencia,
   objectKeyFromStoredFileUrl,

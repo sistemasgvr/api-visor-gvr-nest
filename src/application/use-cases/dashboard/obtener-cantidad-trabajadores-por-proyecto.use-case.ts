@@ -1,7 +1,7 @@
 import type {
   DashboardCantidadTrabajadoresPorProyecto,
   IDashboardRepository,
-} from '../../../domain/repositories/dashboard/dashboard.repository.interface';
+} from '../../../domain/repositories/dashboard.repository.interface';
 
 export class ObtenerCantidadTrabajadoresPorProyectoUseCase {
   constructor(private readonly dashboardRepository: IDashboardRepository) {}

@@ -2,7 +2,7 @@ import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
 
 import { EMAIL_TEMPLATE_IDS } from '../../../domain/mail/email-template-id';
 import { ConfigurationPort } from '../../ports/runtime.port';
-import { MailService } from '../../services/mail.service';
+import { MailService } from './mail.service';
 
 export interface EnviarCorreoBienvenidaInput {
   idTrabajador: number;

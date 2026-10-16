@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   HTML_PDF_GENERATOR,
   type IHtmlPdfGenerator,
-} from '../../domain/services/html-pdf-generator.interface';
+} from '../../application/ports/html-pdf-generator.interface';
 import { ObtenerRevisionesUseCase } from '../../application/use-cases/acc/reviews/obtener-revisiones.use-case';
 import type { ExportarRevisionesPdfQueryDto } from '../../application/inputs/acc/reviews/exportar-revisiones-pdf-query.dto';
 import type { ObtenerRevisionesDto } from '../../application/inputs/acc/reviews/obtener-revisiones.dto';

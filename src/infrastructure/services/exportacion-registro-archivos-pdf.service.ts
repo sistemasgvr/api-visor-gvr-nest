@@ -8,7 +8,7 @@ import { AutodeskApiService } from './autodesk-api.service';
 import {
   HTML_PDF_GENERATOR,
   type IHtmlPdfGenerator,
-} from '../../domain/services/html-pdf-generator.interface';
+} from '../../application/ports/html-pdf-generator.interface';
 import type { ExportarRegistroArchivosPdfDto } from '../../application/inputs/data-management/folders/exportar-registro-archivos-pdf.dto';
 
 const MAX_FILES = 4000;

@@ -1,4 +1,4 @@
-import type { EmailRecipient } from '../mail/outbound-mail.types';
+import type { EmailRecipient } from '../../domain/mail/outbound-mail.types';
 
 export interface MailTransportAttachment {
   filename: string;

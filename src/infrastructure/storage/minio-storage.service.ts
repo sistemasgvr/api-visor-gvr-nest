@@ -29,8 +29,8 @@ import {
   sanitizeFilename,
   slugifyPathSegment,
 } from './storage-path.util';
-import type { IEvidenciaImageOptimizer } from '../../domain/services/evidencia-image-optimizer.interface';
-import { EVIDENCIA_IMAGE_OPTIMIZER } from '../../domain/services/evidencia-image-optimizer.interface';
+import type { IEvidenciaImageOptimizer } from '../../application/ports/evidencia-image-optimizer.interface';
+import { EVIDENCIA_IMAGE_OPTIMIZER } from '../../application/ports/evidencia-image-optimizer.interface';
 
 export interface UploadedObjectMeta {
   bucket: string;

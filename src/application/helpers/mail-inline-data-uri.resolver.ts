@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import type { MailTransportAttachment } from '../../domain/services/mail-transport.interface';
+import type { MailTransportAttachment } from '../ports/mail-transport.interface';
 
 export interface ResolvedMailHtmlWithAttachments {
   html: string;

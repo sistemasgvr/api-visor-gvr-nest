@@ -1,7 +1,7 @@
 import type { FactoryProvider, InjectionToken, Type } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { MailService } from '../application/services/mail.service';
+import { MailService } from '../application/use-cases/mail/mail.service';
 import { ActualizarRecursoUseCase } from '../application/use-cases/acc-recursos/actualizar-recurso.use-case';
 import { GuardarRecursoUseCase } from '../application/use-cases/acc-recursos/guardar-recurso.use-case';
 import { ObtenerRecursoUseCase } from '../application/use-cases/acc-recursos/obtener-recurso.use-case';
@@ -443,7 +443,7 @@ import { ACC_REPOSITORY } from '../domain/repositories/acc.repository.interface'
 import { AUDITORIA_REPOSITORY } from '../domain/repositories/auditoria.repository.interface';
 import { AUTH_REPOSITORY } from '../domain/repositories/auth.repository.interface';
 import { CONTROL_OPERATIVO_REPOSITORY } from '../domain/repositories/control-operativo.repository.interface';
-import { DASHBOARD_REPOSITORY } from '../domain/repositories/dashboard/dashboard.repository.interface';
+import { DASHBOARD_REPOSITORY } from '../domain/repositories/dashboard.repository.interface';
 import { EMAIL_DISPATCH_LOG_REPOSITORY } from '../domain/repositories/email-dispatch-log.repository.interface';
 import { EMPRESA_REPOSITORY } from '../domain/repositories/empresa.repository.interface';
 import { MAIL_PLANTILLA_CORREO_REPOSITORY } from '../domain/repositories/mail-plantilla-correo.repository.interface';
@@ -458,10 +458,10 @@ import { SESION_REPOSITORY } from '../domain/repositories/sesion.repository.inte
 import { TRABAJADOR_REPOSITORY } from '../domain/repositories/trabajador.repository.interface';
 import { UBICACION_REPOSITORY } from '../domain/repositories/ubicacion.repository.interface';
 import { USUARIOS_REPOSITORY } from '../domain/repositories/usuarios.repository.interface';
-import { HTML_PDF_GENERATOR } from '../domain/services/html-pdf-generator.interface';
-import { MAIL_JOB_PUBLISHER } from '../domain/services/mail-job-publisher.interface';
-import { MAIL_RENDERER } from '../domain/services/mail-renderer.interface';
-import { MAIL_TRANSPORT } from '../domain/services/mail-transport.interface';
+import { HTML_PDF_GENERATOR } from '../application/ports/html-pdf-generator.interface';
+import { MAIL_JOB_PUBLISHER } from '../application/ports/mail-job-publisher.interface';
+import { MAIL_RENDERER } from '../application/ports/mail-renderer.interface';
+import { MAIL_TRANSPORT } from '../application/ports/mail-transport.interface';
 import { BroadcastService } from '../infrastructure/events/broadcast.service';
 import { SharpAccProjectImagePreparerService } from '../infrastructure/images/sharp-acc-project-image-preparer.service';
 import { MailPlantillaRenderService } from '../infrastructure/mail/mail-plantilla-render.service';

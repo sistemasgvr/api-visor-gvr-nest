@@ -45,7 +45,7 @@ import { CollaboraModule } from './composition/modules/collabora.module';
 import { ControlOperativoModule } from './composition/modules/control-operativo.module';
 
 // MODULO - DASHBOARD
-import { DashboardModule } from './composition/modules/dashboard/dashboard.module';
+import { DashboardModule } from './composition/modules/dashboard.module';
 import { DemoModule } from './composition/modules/demo.module';
 import { MailModule } from './composition/modules/mail.module';
 import { MailPlantillaModule } from './composition/modules/mail-plantilla.module';

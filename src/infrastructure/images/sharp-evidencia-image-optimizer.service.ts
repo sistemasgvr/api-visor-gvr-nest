@@ -5,7 +5,7 @@ import type {
   IEvidenciaImageOptimizer,
   EvidenciaImageOptimizerInput,
   EvidenciaImageOptimizerResult,
-} from '../../domain/services/evidencia-image-optimizer.interface';
+} from '../../application/ports/evidencia-image-optimizer.interface';
 
 const DEFAULT_MAX_EDGE = 2560;
 const DEFAULT_WEBP_QUALITY = 82;

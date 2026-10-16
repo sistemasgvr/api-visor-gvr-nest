@@ -1,7 +1,7 @@
 import type {
   DashboardHorasEsperadasVsRegistradasMes,
   IDashboardRepository,
-} from '../../../domain/repositories/dashboard/dashboard.repository.interface';
+} from '../../../domain/repositories/dashboard.repository.interface';
 
 export class ObtenerHorasEsperadasVsRegistradasMesUseCase {
   constructor(private readonly dashboardRepository: IDashboardRepository) {}

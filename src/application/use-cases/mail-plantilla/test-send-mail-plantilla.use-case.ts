@@ -1,6 +1,6 @@
 import type { IEmailDispatchLogRepository } from '../../../domain/repositories/email-dispatch-log.repository.interface';
 import type { IMailPlantillaCorreoRepository } from '../../../domain/repositories/mail-plantilla-correo.repository.interface';
-import type { IMailTransport } from '../../../domain/services/mail-transport.interface';
+import type { IMailTransport } from '../../ports/mail-transport.interface';
 import { InvalidInputError } from '../../errors/application.error';
 import { resolveMailHtmlInlineDataUris } from '../../helpers/mail-inline-data-uri.resolver';
 import { TestSendMailPlantillaDto } from '../../inputs/mail-plantilla/preview-mail-plantilla.dto';

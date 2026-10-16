@@ -134,7 +134,7 @@
   "src/presentation/dtos/trabajador/create-trabajador.dto.ts": "7eb9d26b03a050dd28c8d93c873d64d361c25d08bdd26fbb0d31cd63ac78179c",
   "src/presentation/dtos/trabajador/update-contrato-trabajador.dto.ts": "f2518ed9c23fb813120d83cd4ebdc4fb2704b902b05d65464df16fcfa5283cdb",
   "src/presentation/dtos/trabajador/update-trabajador.dto.ts": "7a85c3b407e45516088958731215d487e1e5b7037fd9caf2bc7ed6cfb2a48744",
-  "src/presentation/controllers/dashboard/dashboard.controller.ts": "09df4428e9bbc00bccb416829f80b340e2b87d6b7a61ef74e73e6f7b955e1dc7",
+  "src/presentation/controllers/dashboard.controller.ts": "09df4428e9bbc00bccb416829f80b340e2b87d6b7a61ef74e73e6f7b955e1dc7",
   "src/presentation/dtos/acc/account-users/actualizar-usuario.dto.ts": "b695c17b6e35bd33b905a7dcb3c305513f9d05f7baba3f95cce91c09a557c36b",
   "src/presentation/dtos/acc/account-users/buscar-usuarios.dto.ts": "22b3becd11f88571c79d5a8d7eba25e702959022df823dcd5ff502f73af9fd06",
   "src/presentation/dtos/acc/account-users/crear-usuario.dto.ts": "ce4bbc35fe0847daabcc674c39a767b3b9e0376da5cf41f82dd392b605e5c3ac",

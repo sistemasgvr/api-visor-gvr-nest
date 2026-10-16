@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { IMailJobPublisher } from '../../domain/services/mail-job-publisher.interface';
+import type { IMailJobPublisher } from '../../application/ports/mail-job-publisher.interface';
 import type { OutboundMailJobPayload } from '../../domain/mail/outbound-mail.types';
 import { SendOutboundEmailUseCase } from '../../application/use-cases/mail/send-outbound-email.use-case';
 

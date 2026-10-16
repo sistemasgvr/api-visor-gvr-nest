@@ -1,5 +1,5 @@
 import type { OutboundMailJobPayload } from '../../../domain/mail/outbound-mail.types';
-import type { IMailJobPublisher } from '../../../domain/services/mail-job-publisher.interface';
+import type { IMailJobPublisher } from '../../ports/mail-job-publisher.interface';
 import type { EnqueueOutboundEmailDto } from '../../inputs/mail/enqueue-outbound-email.dto';
 
 export class EnqueueOutboundEmailUseCase {

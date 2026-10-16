@@ -40,6 +40,14 @@ Las operaciones de revisiones internas se implementan en `PostgresInternalReview
 
 Word, descarga y conversión de imágenes, compresión ZIP, hashing y logging se ejecutan mediante adaptadores. La aplicación coordina los datos y decisiones, y no importa esas implementaciones.
 
+Los contratos técnicos de correo, PDF y optimización de imágenes están en `application/ports`. No se consideran servicios del dominio. `MailService` convive con los casos de uso de correo en `application/use-cases/mail`, como fachada de esas operaciones.
+
+La generación de PDF se concentra en `infrastructure/pdf`: `html` contiene el generador con Chromium y sus plantillas HTML; `pdfkit` contiene el generador programático y sus componentes; `mappers` adapta los datos de los reportes. Las plantillas HTML se copian al compilar mediante la configuración de assets de Nest.
+
+La traducción de errores de Autodesk está junto a sus clientes en `infrastructure/autodesk`. Los archivos únicos de dashboard están directamente en las carpetas de controladores, módulos y repositorios. Sus casos de uso conservan una carpeta propia porque agrupa varias operaciones.
+
+No se mantienen carpetas vacías ni una clase base de persistencia sin consumidores. Las carpetas se crean cuando agrupan una responsabilidad útil; Clean Architecture no exige una carpeta por cada concepto.
+
 Los controladores de protocolos como WOPI/Office y los endpoints técnicos de archivos permanecen en el borde de presentación, donde se manejan solicitudes, respuestas y streams del protocolo.
 
 ## Validación y errores
