@@ -199,6 +199,8 @@ import { ObtenerProyectosLegacyUseCase } from '../application/use-cases/bim360/p
 import { ObtenerProyectosNewUseCase } from '../application/use-cases/bim360/projects/obtener-proyectos-new.use-case';
 import { ActualizarActividadUseCase } from '../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
+import { HabilitarJornadasUsuariosUseCase } from '../application/use-cases/control-operativo/habilitar-jornadas-usuarios.use-case';
+import { CerrarHabilitacionesVencidasUseCase } from '../application/use-cases/control-operativo/cerrar-habilitaciones-vencidas.use-case';
 import { AgregarEvidenciasActividadUseCase } from '../application/use-cases/control-operativo/agregar-evidencias-actividad.use-case';
 import { CrearActividadUseCase } from '../application/use-cases/control-operativo/crear-actividad.use-case';
 import { CrearJornadaUseCase } from '../application/use-cases/control-operativo/crear-jornada.use-case';
@@ -594,6 +596,8 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
     ],
   ],
   [ActualizarEstadoJornadaUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
+  [HabilitarJornadasUsuariosUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
+  [CerrarHabilitacionesVencidasUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [AgregarEvidenciasActividadUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [
     CrearActividadUseCase,

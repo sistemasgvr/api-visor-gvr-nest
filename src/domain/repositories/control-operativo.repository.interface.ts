@@ -29,6 +29,31 @@ export interface JornadaListItem {
   estadojornada: string;
   /** Conteo de actividades por estado: { "Por aprobar": 2, "Aprobado": 1 }. Null si no hay jornada o no hay actividades. */
   actividades_por_estado?: Record<string, number> | null;
+  /** Instantes ISO 8601; NULL cuando no hay habilitación temporal. */
+  habilitaciondesde?: string | null;
+  habilitacionhasta?: string | null;
+}
+
+export interface HabilitarJornadasUsuariosParams {
+  /** IDs de tratrabajador de la pantalla Usuarios. */
+  idTrabajadores: number[];
+  fechaInicio: string;
+  fechaFin: string;
+  duracionMinutos: number;
+  /** Siempre obtenido de la sesión autenticada. */
+  idUsuarioHabilita: number;
+}
+
+export interface HabilitacionJornadasUsuario {
+  idtrabajador: number;
+  jornadas_habilitadas: number;
+  habilitaciondesde: string;
+  habilitacionhasta: string;
+}
+
+export interface CerrarHabilitacionesVencidasResult {
+  pasados_culminado: number;
+  pasados_incompleto: number;
 }
 
 export interface CrearJornadaParams {
@@ -594,6 +619,10 @@ export interface DatosReporteActividadesRow {
 }
 
 export interface IControlOperativoRepository {
+  habilitarJornadasUsuarios(
+    params: HabilitarJornadasUsuariosParams,
+  ): Promise<HabilitacionJornadasUsuario[]>;
+  cerrarHabilitacionesVencidas(): Promise<CerrarHabilitacionesVencidasResult>;
   listarJornadasTrabajador(
     params: ListarJornadasTrabajadorParams,
   ): Promise<ListarJornadasTrabajadorResult>;
@@ -683,7 +712,8 @@ export interface IControlOperativoRepository {
   actualizarEstadoJornada(
     idJornada: number,
     idEstadoJornada: number,
-    idUsuarioModificacion?: number,
+    idUsuarioModificacion: number,
+    duracionMinutos?: number,
   ): Promise<boolean>;
   listarReporteGeneral(
     params: ReporteGeneralParams,

@@ -28,6 +28,10 @@ import { ListarActividadesUseCase } from '../../application/use-cases/control-op
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
 import { CronAlertaActividadesSinValidarUseCase } from '../../application/use-cases/control-operativo/cron-alerta-actividades-sin-validar.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
+import { HabilitarJornadasUsuariosUseCase } from '../../application/use-cases/control-operativo/habilitar-jornadas-usuarios.use-case';
+import { CerrarHabilitacionesVencidasUseCase } from '../../application/use-cases/control-operativo/cerrar-habilitaciones-vencidas.use-case';
+import { HabilitarJornadasUsuariosDto } from '../dtos/control-operativo/habilitar-jornadas-usuarios.dto';
+import { ActualizarEstadoJornadaDto } from '../dtos/control-operativo/actualizar-estado-jornada.dto';
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
 import { ListarProyectosParaValidacionUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-para-validacion.use-case';
 import { ListarTrabajadoresSinJornadaHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-jornada-hoy.use-case';
@@ -75,6 +79,8 @@ export class ControlOperativoController {
     private readonly listarActividadesUseCase: ListarActividadesUseCase,
     private readonly cronCierreJornadasUseCase: CronCierreJornadasUseCase,
     private readonly actualizarEstadoJornadaUseCase: ActualizarEstadoJornadaUseCase,
+    private readonly habilitarJornadasUsuariosUseCase: HabilitarJornadasUsuariosUseCase,
+    private readonly cerrarHabilitacionesVencidasUseCase: CerrarHabilitacionesVencidasUseCase,
     private readonly listarProyectosAccesoTrabajadorUseCase: ListarProyectosAccesoTrabajadorUseCase,
     private readonly listarProyectosParaValidacionUseCase: ListarProyectosParaValidacionUseCase,
     private readonly listarTrabajadoresSinJornadaHoyUseCase: ListarTrabajadoresSinJornadaHoyUseCase,
@@ -136,6 +142,25 @@ export class ControlOperativoController {
         pasados_incompleto: result.pasados_incompleto,
       },
       'Cierre de jornadas ejecutado',
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Cron: cerrar habilitaciones temporales vencidas',
+    description:
+      'Requiere CRON_SECRET configurado y query key. Se puede invocar cada minuto.',
+    security: [],
+  })
+  @Get('cron/cierre-habilitaciones-vencidas')
+  async cronCierreHabilitacionesVencidas(@Query('key') key?: string) {
+    const secret = this.configService.get<string>('CRON_SECRET');
+    if (!secret || key !== secret) {
+      throw new UnauthorizedException('Cron no autorizado');
+    }
+    const result = await this.cerrarHabilitacionesVencidasUseCase.execute();
+    return ApiResponseDto.success(
+      result,
+      'Cierre de habilitaciones vencidas ejecutado',
     );
   }
 
@@ -479,7 +504,8 @@ export class ControlOperativoController {
   /**
    * Actualizar estado de una jornada (admin / rol con permiso). Ej: Incompleto → Abierta.
    * PATCH /control-operativo/jornadas/:idJornada/estado
-   * Body: { "idEstadoJornada": number }
+   * Body: { "idEstadoJornada": number, "duracionMinutos"?: number }
+   * La duración es obligatoria al abrir; el actor procede de la sesión.
    */
   @ApiOperation({
     summary: 'Cambiar estado de una jornada',
@@ -488,18 +514,17 @@ export class ControlOperativoController {
   @Patch('jornadas/:idJornada/estado')
   @UseGuards(JwtAuthGuard)
   async actualizarEstadoJornada(
+    @Req() req: Request & { user?: AuthenticatedUser },
     @Param('idJornada', ParseIntPipe) idJornada: number,
-    @Body('idEstadoJornada') idEstadoJornada: number,
+    @Body() body: ActualizarEstadoJornadaDto,
   ) {
-    const id = idEstadoJornada != null ? Number(idEstadoJornada) : NaN;
-    if (Number.isNaN(id) || id < 1) {
-      return ApiResponseDto.badRequest(
-        'idEstadoJornada es obligatorio y debe ser un número válido',
-      );
-    }
+    const idUsuario = this.exigirAdministradorJornadas(req.user);
+    const id = body.idEstadoJornada;
     const ok = await this.actualizarEstadoJornadaUseCase.execute({
       idJornada,
       idEstadoJornada: id,
+      idUsuarioModificacion: idUsuario,
+      duracionMinutos: body.duracionMinutos,
     });
     if (!ok) {
       throw new BadRequestException(
@@ -510,6 +535,44 @@ export class ControlOperativoController {
       { idJornada, idEstadoJornada: id },
       'Estado de jornada actualizado',
     );
+  }
+
+  @ApiOperation({
+    summary: 'Habilitar jornadas de usuarios por rango y duración',
+    description:
+      'Solo administradores y gerencia. idTrabajadores son IDs de tratrabajador; duración en minutos desde la llamada.',
+  })
+  @Post('jornadas/habilitar-usuarios')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async habilitarJornadasUsuarios(
+    @Req() req: Request & { user?: AuthenticatedUser },
+    @Body() body: HabilitarJornadasUsuariosDto,
+  ) {
+    const idUsuario = this.exigirAdministradorJornadas(req.user);
+    const result = await this.habilitarJornadasUsuariosUseCase.execute({
+      idTrabajadores: body.idTrabajadores,
+      fechaInicio: body.fechaInicio,
+      fechaFin: body.fechaFin,
+      duracionMinutos: body.duracionMinutos,
+      idUsuarioHabilita: idUsuario,
+    });
+    return ApiResponseDto.success(result, 'Habilitación de jornadas procesada');
+  }
+
+  private exigirAdministradorJornadas(user?: AuthenticatedUser): number {
+    const id = user?.sub ?? user?.id;
+    if (!Number.isInteger(id) || Number(id) < 1) {
+      throw new UnauthorizedException('Usuario no identificado');
+    }
+    if (
+      !user?.roles?.some((rol) =>
+        ROLES_ADMIN_CONTROL_OPERATIVO.some((permitido) => permitido === rol.id),
+      )
+    ) {
+      throw new ForbiddenException('No tiene permiso para habilitar jornadas');
+    }
+    return Number(id);
   }
 
   /**
