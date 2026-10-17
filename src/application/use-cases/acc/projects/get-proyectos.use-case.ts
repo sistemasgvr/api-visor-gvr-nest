@@ -39,10 +39,11 @@ export class GetProyectosUseCase {
     accountId: string,
     dto: GetProyectosDto,
     userId?: number,
-    userRole?: string,
+    verTodos = false,
   ): Promise<GetProyectosListResult | null | undefined> {
     const options = this.buildAccOptions(dto);
-    const esAdministrador = this.isAdministrador(userRole);
+    // Alcance «todos» de gestion_bim.proyectos.ver (o acceso total): sin filtrar.
+    const esAdministrador = verTodos;
 
     const targetLimit = dto.limit || 20;
     const targetOffset = dto.offset || 0;
@@ -191,17 +192,6 @@ export class GetProyectosUseCase {
     options.offset = dto.offset || 0;
 
     return options;
-  }
-
-  private isAdministrador(userRole?: string): boolean {
-    if (!userRole) return false;
-    const role = userRole.toLowerCase();
-    return (
-      role.includes('admin') ||
-      role.includes('administrador') ||
-      role === 'admin' ||
-      role === 'administrador'
-    );
   }
 
   private async loadProyectosConAcceso(

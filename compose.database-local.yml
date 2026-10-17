@@ -1,0 +1,37 @@
+name: gvr-local
+
+services:
+  database:
+    image: supabase/postgres:17.6.1.136
+    container_name: gvr-postgres-local
+    restart: unless-stopped
+    env_file:
+      - .env.database-local
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - database-data:/var/lib/postgresql/data
+      - database-config:/etc/postgresql-custom
+    networks:
+      - database-isolated
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+      - -c
+      - cron.launch_active_jobs=off
+      - -c
+      - timezone=America/Lima
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+networks:
+  database-isolated:
+    driver: bridge
+
+volumes:
+  database-data:
+  database-config:

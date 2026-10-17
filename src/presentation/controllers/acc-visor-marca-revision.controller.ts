@@ -12,7 +12,9 @@ import {
   Query,
   Req,
   UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import type { Request } from 'express';
 import {
   ApiBearerAuth,
@@ -46,7 +48,15 @@ import { parseQueryBoolean } from '../../application/use-cases/acc/visor-marca-r
 @Controller('acc/projects/:projectId/visor-marcas-revision')
 @UseGuards(JwtAuthGuard)
 export class AccVisorMarcaRevisionController {
+  private documentActor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly crearUseCase: CrearVisorMarcaRevisionUseCase,
     private readonly actualizarUseCase: ActualizarVisorMarcaRevisionUseCase,
     private readonly duplicarUseCase: DuplicarVisorMarcaRevisionUseCase,
@@ -67,6 +77,12 @@ export class AccVisorMarcaRevisionController {
     @Body() dto: CrearVisorMarcaRevisionDto,
     @Req() req: Request,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(req),
+      projectId,
+      dto?.itemId || dto?.documentUrn,
+      'view',
+    );
     const data = await this.crearUseCase.execute(projectId, dto, req.user!.id);
     return ApiResponseDto.success(
       data,
@@ -95,6 +111,12 @@ export class AccVisorMarcaRevisionController {
     @Query('soloPublicadas') soloPublicadas?: string,
     @Query('soloPropias') soloPropias?: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(req),
+      projectId,
+      documentUrn,
+      'view',
+    );
     const data = await this.listarUseCase.execute(projectId, req.user!.id, {
       documentUrn,
       viewableGuid,
@@ -127,6 +149,12 @@ export class AccVisorMarcaRevisionController {
     @Query('paginaNumero') paginaNumero?: string,
     @Query('versionId') versionId?: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(req),
+      projectId,
+      documentUrn,
+      'view',
+    );
     const data = await this.contarUseCase.execute(projectId, req.user!.id, {
       documentUrn,
       viewableGuid,
@@ -141,6 +169,13 @@ export class AccVisorMarcaRevisionController {
   @ApiOperation({ summary: 'Obtener detalle de marca (respeta visibilidad)' })
   @ApiParam({ name: 'id', type: Number })
   async obtener(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'marca',
+      id,
+      'view',
+    );
     const data = await this.obtenerUseCase.execute(id, req.user!.id);
     return ApiResponseDto.success(data, 'Marca obtenida exitosamente');
   }
@@ -153,6 +188,13 @@ export class AccVisorMarcaRevisionController {
     @Body() dto: ActualizarVisorMarcaRevisionDto,
     @Req() req: Request,
   ) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'marca',
+      id,
+      'view',
+    );
     const data = await this.actualizarUseCase.execute(id, dto, req.user!.id);
     return ApiResponseDto.success(data, 'Marca actualizada exitosamente');
   }
@@ -165,6 +207,13 @@ export class AccVisorMarcaRevisionController {
     @Body() dto: DuplicarVisorMarcaRevisionDto,
     @Req() req: Request,
   ) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'marca',
+      id,
+      'view',
+    );
     const data = await this.duplicarUseCase.execute(id, dto, req.user!.id);
     return ApiResponseDto.success(data, 'Marca duplicada exitosamente');
   }
@@ -173,6 +222,13 @@ export class AccVisorMarcaRevisionController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Publicar marca (visible para todos)' })
   async publicar(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'marca',
+      id,
+      'publish_markup',
+    );
     const data = await this.publicarUseCase.execute(id, req.user!.id);
     return ApiResponseDto.success(data, 'Marca publicada exitosamente');
   }
@@ -186,6 +242,13 @@ export class AccVisorMarcaRevisionController {
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
   ) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'marca',
+      id,
+      'publish_markup',
+    );
     const data = await this.anularPublicacionUseCase.execute(id, req.user!.id);
     return ApiResponseDto.success(data, 'Publicación anulada exitosamente');
   }
@@ -200,6 +263,13 @@ export class AccVisorMarcaRevisionController {
     @Body() dto: SincronizarMarkupIdApsDto,
     @Req() req: Request,
   ) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'marca',
+      id,
+      'publish_markup',
+    );
     const data = await this.sincronizarMarkupIdApsUseCase.execute(
       id,
       dto,
@@ -215,6 +285,13 @@ export class AccVisorMarcaRevisionController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Suprimir marca (soft delete, solo creador)' })
   async suprimir(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'marca',
+      id,
+      'view',
+    );
     await this.suprimirUseCase.execute(id, req.user!.id);
     return ApiResponseDto.success(null, 'Marca suprimida exitosamente');
   }

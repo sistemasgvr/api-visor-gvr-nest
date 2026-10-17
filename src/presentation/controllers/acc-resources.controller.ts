@@ -13,10 +13,12 @@ import {
   UseGuards,
   Req,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import {
   ListarRecursosUseCase,
   ObtenerRecursoPorIdUseCase,
@@ -58,7 +60,15 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 @Controller('acc/resources')
 @UseGuards(JwtAuthGuard)
 export class AccResourcesController {
+  private actor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly listarRecursosUseCase: ListarRecursosUseCase,
     private readonly obtenerRecursoPorIdUseCase: ObtenerRecursoPorIdUseCase,
     private readonly crearRecursoUseCase: CrearRecursoUseCase,
@@ -138,9 +148,12 @@ export class AccResourcesController {
   @Get('roles/:roleId/permissions')
   @HttpCode(HttpStatus.OK)
   async listRolePermissions(
+    @Req() request: Request,
     @Param('roleId') roleId: string,
     @Query() dto: ListarPermisosRolDto,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertFullAccess(this.actor(request));
     const roleIdNum = parseInt(roleId, 10);
     if (isNaN(roleIdNum)) {
       throw new BadRequestException('El ID del rol debe ser un número válido');
@@ -176,7 +189,12 @@ export class AccResourcesController {
   @ApiOperation({ summary: 'Roles con acceso efectivo a un recurso' })
   @Get(':resourceId/roles')
   @HttpCode(HttpStatus.OK)
-  async listResourceRoles(@Param('resourceId') resourceId: string) {
+  async listResourceRoles(
+    @Req() request: Request,
+    @Param('resourceId') resourceId: string,
+  ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertFullAccess(this.actor(request));
     const resourceIdNum = parseInt(resourceId, 10);
     if (isNaN(resourceIdNum)) {
       throw new BadRequestException(
@@ -224,6 +242,12 @@ export class AccResourcesController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async store(@Body() dto: CrearRecursoDto, @Req() request: Request) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertRegistration(this.actor(request), {
+      externalId: String(dto.external_id ?? ''),
+      type: String(dto.resource_type ?? ''),
+      parentId: (dto as { parent_id?: number }).parent_id,
+    });
     const user = request.user!;
     const userId = user?.sub || user?.id || 1;
 
@@ -246,6 +270,12 @@ export class AccResourcesController {
     @Body() dto: ActualizarRecursoDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { resourceId: Number(id) },
+      'manage_permissions',
+    );
     const resourceId = parseInt(id, 10);
     if (isNaN(resourceId)) {
       throw new BadRequestException(
@@ -275,6 +305,12 @@ export class AccResourcesController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async destroy(@Param('id') id: string, @Req() request: Request) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { resourceId: Number(id) },
+      'manage_permissions',
+    );
     const resourceId = parseInt(id, 10);
     if (isNaN(resourceId)) {
       throw new BadRequestException(
@@ -306,6 +342,8 @@ export class AccResourcesController {
     @Body() dto: AsignarPermisoDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertFullAccess(this.actor(request));
     const user = request.user!;
     const userId = user?.sub || user?.id || 1;
 
@@ -324,6 +362,8 @@ export class AccResourcesController {
   @Delete('permissions/:id')
   @HttpCode(HttpStatus.OK)
   async removePermission(@Param('id') id: string, @Req() request: Request) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertFullAccess(this.actor(request));
     const permissionId = parseInt(id, 10);
     if (isNaN(permissionId)) {
       throw new BadRequestException(
@@ -358,6 +398,8 @@ export class AccResourcesController {
     @Body() dto: SincronizarPermisosRolDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertFullAccess(this.actor(request));
     const roleIdNum = parseInt(roleId, 10);
     if (isNaN(roleIdNum)) {
       throw new BadRequestException('El ID del rol debe ser un número válido');
@@ -392,9 +434,13 @@ export class AccResourcesController {
   @Get('users/:userId/permissions')
   @HttpCode(HttpStatus.OK)
   async listUserPermissions(
+    @Req() request: Request,
     @Param('userId') userId: string,
     @Query() dto: ListarPermisosUsuarioDto,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    if (Number(userId) !== this.actor(request))
+      await this.documentAccess.assertFullAccess(this.actor(request));
     const userIdNum = parseInt(userId, 10);
     if (isNaN(userIdNum)) {
       throw new BadRequestException(
@@ -436,9 +482,16 @@ export class AccResourcesController {
   @Get(':resourceId/users/available')
   @HttpCode(HttpStatus.OK)
   async listAvailableUsersForResource(
+    @Req() request: Request,
     @Param('resourceId') resourceId: string,
     @Query() dto: ListarUsuariosDisponiblesRecursoDto,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { resourceId: Number(resourceId) },
+      'manage_permissions',
+    );
     const resourceIdNum = parseInt(resourceId, 10);
     if (isNaN(resourceIdNum)) {
       throw new BadRequestException(
@@ -477,7 +530,16 @@ export class AccResourcesController {
   @ApiOperation({ summary: 'Usuarios con permiso directo sobre el recurso' })
   @Get(':resourceId/users')
   @HttpCode(HttpStatus.OK)
-  async listResourceUsers(@Param('resourceId') resourceId: string) {
+  async listResourceUsers(
+    @Req() request: Request,
+    @Param('resourceId') resourceId: string,
+  ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { resourceId: Number(resourceId) },
+      'view',
+    );
     const resourceIdNum = parseInt(resourceId, 10);
     if (isNaN(resourceIdNum)) {
       throw new BadRequestException(
@@ -506,6 +568,12 @@ export class AccResourcesController {
     @Body() dto: AsignarPermisoUsuarioDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { resourceId: Number(dto.resource_id) },
+      'manage_permissions',
+    );
     const user = request.user!;
     const userId = user?.sub || user?.id || 1;
 
@@ -533,6 +601,12 @@ export class AccResourcesController {
     @Body() dto: ActualizarNivelPermisoUsuarioDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { assignmentId: Number(id) },
+      'manage_permissions',
+    );
     const permissionId = parseInt(id, 10);
     if (isNaN(permissionId)) {
       throw new BadRequestException(
@@ -562,6 +636,12 @@ export class AccResourcesController {
   @Delete('users/permissions/:id')
   @HttpCode(HttpStatus.OK)
   async removeUserPermission(@Param('id') id: string, @Req() request: Request) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { assignmentId: Number(id) },
+      'manage_permissions',
+    );
     const permissionId = parseInt(id, 10);
     if (isNaN(permissionId)) {
       throw new BadRequestException(
@@ -597,6 +677,8 @@ export class AccResourcesController {
     @Body() dto: SincronizarPermisosUsuarioDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertFullAccess(this.actor(request));
     const userIdNum = parseInt(userId, 10);
     if (isNaN(userIdNum)) {
       throw new BadRequestException(

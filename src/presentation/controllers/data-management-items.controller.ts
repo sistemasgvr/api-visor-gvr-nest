@@ -14,12 +14,15 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
+  BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { getUploadMaxFileSizeBytes } from '../../config/upload.constants';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import { RequestInfoHelper } from '../http/request-info.helper';
 
 // Use cases - Grupo 1
@@ -64,7 +67,21 @@ import { CompletarSubidaChunkedDto } from '../dtos/data-management/items/complet
 @Controller('data-management/items')
 @UseGuards(JwtAuthGuard)
 export class DataManagementItemsController {
+  private actor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
+  private requiredFolder(folderId: unknown): string {
+    if (typeof folderId !== 'string' || !folderId.trim())
+      throw new BadRequestException('Se requiere la carpeta de destino');
+    return folderId.trim();
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     // Grupo 1
     private readonly obtenerItemPorIdUseCase: ObtenerItemPorIdUseCase,
     private readonly descargarItemUseCase: DescargarItemUseCase,
@@ -114,6 +131,13 @@ export class DataManagementItemsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: SubirArchivoDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      dto.folderId,
+      'upload',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -152,6 +176,13 @@ export class DataManagementItemsController {
     @Param('projectId') projectId: string,
     @Body() dto: IniciarSubidaChunkedDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      dto.folderId,
+      'upload',
+    );
     const user = request.user!;
     const data = await this.iniciarSubidaChunkedUseCase.execute(
       user.sub,
@@ -192,6 +223,13 @@ export class DataManagementItemsController {
     @Param('projectId') projectId: string,
     @Body() dto: CompletarSubidaChunkedDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      dto.folderId,
+      'upload',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -234,6 +272,13 @@ export class DataManagementItemsController {
     @Param('projectId') projectId: string,
     @Body() dto: CrearItemDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      this.requiredFolder(dto?.data?.relationships?.parent?.data?.id),
+      'upload',
+    );
     const user = request.user!;
     const resultado = await this.crearItemUseCase.execute(
       user.sub,
@@ -266,6 +311,13 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerItemPorIdUseCase.execute(
       user.sub,
@@ -297,6 +349,13 @@ export class DataManagementItemsController {
     @Query() queryParams: any,
     @Res() res: Response,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'download',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -345,6 +404,13 @@ export class DataManagementItemsController {
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerStorageUrlItemUseCase.execute(
       user.sub,
@@ -371,6 +437,13 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerItemPadreUseCase.execute(
       user.sub,
@@ -398,6 +471,13 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerReferenciasItemUseCase.execute(
       user.sub,
@@ -425,6 +505,13 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerRelacionesLinksItemUseCase.execute(
       user.sub,
@@ -452,6 +539,13 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerRelacionesRefsItemUseCase.execute(
       user.sub,
@@ -482,6 +576,13 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerTipVersionUseCase.execute(
       user.sub,
@@ -509,6 +610,13 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerVersionesUseCase.execute(
       user.sub,
@@ -537,6 +645,13 @@ export class DataManagementItemsController {
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerActividadesArchivoUseCase.execute(
       user.sub,
@@ -563,6 +678,13 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Body() dto: CrearReferenciaItemDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'edit',
+    );
     const user = request.user!;
     const resultado = await this.crearReferenciaItemUseCase.execute(
       user.sub,
@@ -594,6 +716,21 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Body() body?: { parentFolderId?: string },
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    if (body?.parentFolderId)
+      await this.documentAccess.assertFolder(
+        this.actor(request),
+        projectId,
+        body.parentFolderId,
+        'edit',
+      );
+    else
+      await this.documentAccess.assertItem(
+        this.actor(request),
+        projectId,
+        itemId,
+        'edit',
+      );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -642,6 +779,13 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Body() dto: ActualizarItemDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'edit',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -679,6 +823,13 @@ export class DataManagementItemsController {
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'delete',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -723,6 +874,19 @@ export class DataManagementItemsController {
     @Param('itemId') itemId: string,
     @Body() dto: DesplazarItemDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'edit',
+    );
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      this.requiredFolder(dto.targetFolderId),
+      'upload',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -759,6 +923,19 @@ export class DataManagementItemsController {
     @Param('projectId') projectId: string,
     @Body() dto: CopiarItemDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      dto.sourceItemId,
+      'download',
+    );
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      this.requiredFolder(dto.targetFolderId),
+      'upload',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =

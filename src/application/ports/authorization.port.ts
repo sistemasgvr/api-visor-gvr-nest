@@ -1,4 +1,5 @@
 export type AuthorizationScope = 'global' | 'propios' | 'asignados' | 'todos';
+export const AUTHORIZATION_POLICIES = Symbol('AUTHORIZATION_POLICIES');
 
 export interface EffectiveGrant {
   code: string;

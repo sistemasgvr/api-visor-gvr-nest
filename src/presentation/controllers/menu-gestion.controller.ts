@@ -1,3 +1,4 @@
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 import {
   Controller,
   Get,
@@ -81,6 +82,7 @@ export class MenuGestionController {
   })
   @Get('tree')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.ver')
   async listarMenusTree() {
     const data = await this.listarMenusTreeUseCase.execute();
     return ApiResponseDto.success(
@@ -92,6 +94,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Listar menús candidatos como padre' })
   @Get('padres-disponibles')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.ver')
   async listarMenuPadresDisponibles(
     @Query('idMenuActual') idMenuActualRaw?: string,
   ) {
@@ -117,6 +120,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Listar menús con búsqueda y paginación' })
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.ver')
   async listarMenus(
     @Query('busqueda') busqueda?: string,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
@@ -133,6 +137,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Detalle amplio del menú (roles, rutas, etc.)' })
   @Get(':id/detalle')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.ver')
   async obtenerDetalleMenu(@Param('id', ParseIntPipe) id: number) {
     const data = await this.obtenerDetalleMenuUseCase.execute(id);
     return ApiResponseDto.success(
@@ -144,6 +149,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Roles ya asignados al menú' })
   @Get(':id/roles')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.ver')
   async listarRolesMenu(@Param('id', ParseIntPipe) id: number) {
     const data = await this.listarRolesMenuUseCase.execute(id);
     return ApiResponseDto.success(
@@ -157,6 +163,7 @@ export class MenuGestionController {
   })
   @Get(':id/roles-disponibles')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.ver')
   async listarRolesDisponibles(@Param('id', ParseIntPipe) id: number) {
     const data = await this.listarRolesDisponiblesMenuUseCase.execute(id);
     return ApiResponseDto.success(
@@ -168,6 +175,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Obtener menú por ID' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.ver')
   async obtenerMenu(@Param('id', ParseIntPipe) id: number) {
     const data = await this.obtenerMenuUseCase.execute(id);
     return ApiResponseDto.success(data, 'Menú obtenido exitosamente');
@@ -176,6 +184,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Crear nuevo menú' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('seguridad.menus.crear')
   async crearMenu(@Body() createDto: CreateMenuDto, @Req() request: Request) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
@@ -195,6 +204,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Clonar menú existente' })
   @Post(':id/clonar')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('seguridad.menus.clonar')
   async clonarMenu(
     @Param('id', ParseIntPipe) id: number,
     @Body() cloneDto: ClonarMenuDto,
@@ -216,6 +226,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Asignar un rol al menú' })
   @Post(':id/roles')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('seguridad.menus.asignar_roles')
   async asignarRolMenu(
     @Param('id', ParseIntPipe) id: number,
     @Body() asignarDto: AsignarRolMenuDto,
@@ -237,6 +248,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Asignar varios roles al menú en un solo alta' })
   @Post(':id/roles-multiples')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('seguridad.menus.asignar_roles')
   async asignarRolesMenu(
     @Param('id', ParseIntPipe) id: number,
     @Body() asignarDto: AsignarRolesMenuDto,
@@ -258,6 +270,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Actualizar datos del menú' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.editar')
   async editarMenu(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateMenuDto,
@@ -285,6 +298,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Mover menú bajo otro padre / posición' })
   @Put(':id/mover')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.mover')
   async moverMenu(
     @Param('id', ParseIntPipe) id: number,
     @Body() moverDto: MoverMenuDto,
@@ -302,6 +316,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Reordenar hermanos bajo el mismo padre' })
   @Put(':id/reordenar')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.reordenar')
   async reordenarMenu(
     @Param('id', ParseIntPipe) id: number,
     @Body() reordenarDto: ReordenarMenuDto,
@@ -323,6 +338,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Sincronizar roles del menú con la lista enviada' })
   @Put(':id/roles/sincronizar')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.asignar_roles')
   async sincronizarRolesMenu(
     @Param('id', ParseIntPipe) id: number,
     @Body() sincronizarDto: AsignarRolesMenuDto,
@@ -344,6 +360,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Quitar un rol del menú' })
   @Delete(':id/roles/:idRol')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.asignar_roles')
   async removerRolMenu(
     @Param('id', ParseIntPipe) id: number,
     @Param('idRol', ParseIntPipe) idRol: number,
@@ -365,6 +382,7 @@ export class MenuGestionController {
   @ApiOperation({ summary: 'Eliminar menú' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.menus.eliminar')
   async eliminarMenu(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,

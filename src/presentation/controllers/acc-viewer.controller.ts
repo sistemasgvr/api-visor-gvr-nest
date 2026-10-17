@@ -6,8 +6,10 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 
 // Use cases
@@ -21,7 +23,10 @@ import { GenerarTokenViewerDto } from '../dtos/acc/viewer/generar-token-viewer.d
 import { ObtenerTokenPublicoDto } from '../dtos/acc/viewer/obtener-token-publico.dto';
 
 @ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc/viewer')
+// Los tokens de aplicación dan lectura de modelos: sólo para sesiones válidas.
+@UseGuards(JwtAuthGuard)
 export class AccViewerController {
   constructor(
     private readonly generarTokenViewerUseCase: GenerarTokenViewerUseCase,
@@ -38,7 +43,6 @@ export class AccViewerController {
     summary: 'Generar token para el viewer Autodesk (2-legged)',
     description:
       'Obtiene un token de aplicación con ámbito viewables:read para cargar modelos.',
-    security: [],
   })
   @Post('token')
   @HttpCode(HttpStatus.OK)
@@ -55,7 +59,6 @@ export class AccViewerController {
   @ApiOperation({
     summary: 'Token público para el viewer',
     description: 'Genera token con validaciones adicionales de seguridad.',
-    security: [],
   })
   @Post('token/public')
   @HttpCode(HttpStatus.OK)
@@ -75,7 +78,6 @@ export class AccViewerController {
   @ApiOperation({
     summary: 'Obtener manifiesto de traducción',
     description: 'Devuelve el manifiesto de un URN ya traducido en APS.',
-    security: [],
   })
   @Get('manifest/:urn')
   @HttpCode(HttpStatus.OK)
@@ -94,7 +96,6 @@ export class AccViewerController {
    */
   @ApiOperation({
     summary: 'Obtener metadatos del modelo',
-    security: [],
   })
   @Get('metadata/:urn')
   @HttpCode(HttpStatus.OK)

@@ -1,4 +1,6 @@
 import { CalendariosModule } from './composition/modules/calendarios.module';
+import { AuthorizationModule } from './composition/modules/platform/authorization.module';
+import { DocumentAccessModule } from './composition/modules/platform/document-access.module';
 import { Module } from '@nestjs/common';
 import { ApplicationRuntimeModule } from './composition/modules/platform/application-runtime.module';
 import { ConfigModule } from '@nestjs/config';
@@ -67,6 +69,8 @@ import { StorageModule } from './composition/modules/platform/storage.module';
     // Módulo de base de datos
     DatabaseModule,
     ApplicationRuntimeModule,
+    AuthorizationModule,
+    DocumentAccessModule,
     PdfModule,
     StorageModule,
     // Módulo de broadcasting

@@ -8,7 +8,9 @@ import {
   UseGuards,
   Req,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
@@ -24,7 +26,15 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 @ApiBearerAuth('access-token')
 @Controller('acc/projects/:projectId/versions')
 export class AccVersionsReviewsController {
+  private documentActor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly obtenerApprovalStatusesVersionUseCase: ObtenerApprovalStatusesVersionUseCase,
   ) {}
 
@@ -45,6 +55,12 @@ export class AccVersionsReviewsController {
     @Query() dto: ObtenerApprovalStatusesDto,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      versionId,
+      'view',
+    );
     if (!projectId)
       throw new BadRequestException('El ID del proyecto es requerido');
     if (!versionId)

@@ -9,7 +9,10 @@ import {
   HttpStatus,
   Req,
   UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { RequireDocumentProject } from '../../infrastructure/auth/document-access.guard';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
@@ -40,7 +43,15 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 @Controller('data-management/projects')
 @UseGuards(JwtAuthGuard)
 export class DataManagementProjectsController {
+  private documentActor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly obtenerProyectosHubUseCase: ObtenerProyectosHubUseCase,
     private readonly obtenerProyectoHubPorIdUseCase: ObtenerProyectoHubPorIdUseCase,
     private readonly obtenerHubDeProyectoUseCase: ObtenerHubDeProyectoUseCase,
@@ -137,6 +148,7 @@ export class DataManagementProjectsController {
   @ApiOperation({
     summary: 'Carpetas de nivel superior (Project Files/BIM 360, etc.)',
   })
+  @RequireDocumentProject('member')
   @Get('hubs/:hubId/projects/:projectId/topFolders')
   @HttpCode(HttpStatus.OK)
   async obtenerCarpetasPrincipales(
@@ -178,6 +190,12 @@ export class DataManagementProjectsController {
     @Param('projectId') projectId: string,
     @Body() dto: CrearStorageDto,
   ) {
+    await this.documentAccess.assertFolder(
+      this.documentActor(request),
+      projectId,
+      String(dto?.data?.relationships?.target?.data?.id ?? ''),
+      'upload',
+    );
     const user = request.user!;
     const resultado = await this.crearStorageUseCase.execute(
       user.sub,
@@ -203,6 +221,7 @@ export class DataManagementProjectsController {
     @Param('projectId') projectId: string,
     @Body() dto: CrearDescargaDto,
   ) {
+    await this.documentAccess.assertFullAccess(this.documentActor(request));
     const user = request.user!;
     const resultado = await this.crearDescargaUseCase.execute(
       user.sub,
@@ -221,6 +240,7 @@ export class DataManagementProjectsController {
    * GET /data-management/projects/:projectId/downloads/:downloadId
    */
   @ApiOperation({ summary: 'Consultar estado de descarga batch' })
+  @RequireDocumentProject('member')
   @Get(':projectId/downloads/:downloadId')
   @HttpCode(HttpStatus.OK)
   async obtenerEstadoDescarga(
@@ -250,6 +270,7 @@ export class DataManagementProjectsController {
   @ApiOperation({
     summary: 'Consultar estado de job asíncrono (traducciones, procesos APS)',
   })
+  @RequireDocumentProject('member')
   @Get(':projectId/jobs/:jobId')
   @HttpCode(HttpStatus.OK)
   async obtenerEstadoJob(

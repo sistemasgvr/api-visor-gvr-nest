@@ -12,7 +12,9 @@ import {
   Query,
   Req,
   UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import type { Request } from 'express';
 import {
   ApiBearerAuth,
@@ -42,7 +44,15 @@ import { EliminarVisorElementoFotoUseCase } from '../../application/use-cases/ac
 @Controller('acc/projects/:projectId/visor-elemento-fotos')
 @UseGuards(JwtAuthGuard)
 export class AccVisorElementoFotoController {
+  private documentActor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly crearUseCase: CrearVisorElementoFotoUseCase,
     private readonly actualizarUseCase: ActualizarVisorElementoFotoUseCase,
     private readonly agregarArchivosUseCase: AgregarArchivosVisorElementoFotoUseCase,
@@ -63,6 +73,12 @@ export class AccVisorElementoFotoController {
     @Body() dto: CrearVisorElementoFotoDto,
     @Req() req: Request,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(req),
+      projectId,
+      dto?.itemId || dto?.documentUrn,
+      'publish_markup',
+    );
     const data = await this.crearUseCase.execute(projectId, dto, req.user!.id);
     return ApiResponseDto.success(
       data,
@@ -78,10 +94,17 @@ export class AccVisorElementoFotoController {
   @ApiQuery({ name: 'documentUrn', required: true })
   @ApiQuery({ name: 'viewableGuid', required: false })
   async listar(
+    @Req() request: Request,
     @Param('projectId') projectId: string,
     @Query('documentUrn') documentUrn: string,
     @Query('viewableGuid') viewableGuid?: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      documentUrn,
+      'view',
+    );
     const data = await this.listarUseCase.execute(
       projectId,
       documentUrn,
@@ -99,11 +122,18 @@ export class AccVisorElementoFotoController {
   @ApiQuery({ name: 'objectId', required: true, type: Number })
   @ApiQuery({ name: 'viewableGuid', required: false })
   async obtenerPorElemento(
+    @Req() request: Request,
     @Param('projectId') projectId: string,
     @Query('documentUrn') documentUrn: string,
     @Query('objectId', ParseIntPipe) objectId: number,
     @Query('viewableGuid') viewableGuid?: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      documentUrn,
+      'view',
+    );
     const data = await this.obtenerPorElementoUseCase.execute(
       projectId,
       documentUrn,
@@ -120,7 +150,17 @@ export class AccVisorElementoFotoController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Obtener detalle de anclaje con galería' })
   @ApiParam({ name: 'id', type: Number })
-  async obtener(@Param('id', ParseIntPipe) id: number) {
+  async obtener(
+    @Req() request: Request,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(request),
+      String(request.params.projectId),
+      'foto',
+      id,
+      'view',
+    );
     const data = await this.obtenerUseCase.execute(id);
     return ApiResponseDto.success(data, 'Anclaje obtenido exitosamente');
   }
@@ -133,6 +173,13 @@ export class AccVisorElementoFotoController {
     @Body() dto: ActualizarVisorElementoFotoDto,
     @Req() req: Request,
   ) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'foto',
+      id,
+      'publish_markup',
+    );
     const data = await this.actualizarUseCase.execute(id, dto, req.user!.id);
     return ApiResponseDto.success(data, 'Anclaje actualizado exitosamente');
   }
@@ -145,6 +192,13 @@ export class AccVisorElementoFotoController {
     @Body() dto: AgregarArchivosVisorElementoFotoDto,
     @Req() req: Request,
   ) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'foto',
+      id,
+      'publish_markup',
+    );
     const data = await this.agregarArchivosUseCase.execute(
       id,
       dto,
@@ -161,6 +215,13 @@ export class AccVisorElementoFotoController {
     @Param('idArchivoJunction', ParseIntPipe) idArchivoJunction: number,
     @Req() req: Request,
   ) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'foto',
+      id,
+      'publish_markup',
+    );
     await this.eliminarArchivoUseCase.execute(
       id,
       idArchivoJunction,
@@ -173,6 +234,13 @@ export class AccVisorElementoFotoController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Eliminar anclaje completo y sus imágenes' })
   async eliminar(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    await this.documentAccess.assertAnnotation(
+      this.documentActor(req),
+      String(req.params.projectId),
+      'foto',
+      id,
+      'publish_markup',
+    );
     await this.eliminarUseCase.execute(id, req.user!.id);
     return ApiResponseDto.success(null, 'Anclaje eliminado exitosamente');
   }

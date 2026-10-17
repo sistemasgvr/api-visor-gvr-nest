@@ -1,3 +1,4 @@
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 import {
   Controller,
   Get,
@@ -68,6 +69,7 @@ export class RolController {
   })
   @Get('forList')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.roles.ver')
   async listarRolesForList() {
     const data = await this.listarRolesForListUseCase.execute();
     return ApiResponseDto.success(data, 'Roles obtenidos exitosamente');
@@ -79,6 +81,7 @@ export class RolController {
   })
   @Post('usuarios/:idUsuario')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.roles_usuario.asignar')
   async gestionarRolesUsuario(
     @Param('idUsuario', ParseIntPipe) idUsuario: number,
     @Body() gestionarDto: GestionarRolesUsuarioDto,
@@ -106,6 +109,7 @@ export class RolController {
   })
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.roles.ver')
   async listarRoles(
     @Query('busqueda') busqueda?: string,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
@@ -122,6 +126,7 @@ export class RolController {
   @ApiOperation({ summary: 'Detalle extendido del rol' })
   @Get(':id/detalle')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.roles.ver')
   async obtenerDetalleRol(@Param('id', ParseIntPipe) id: number) {
     const data = await this.obtenerDetalleRolUseCase.execute(id);
     return ApiResponseDto.success(
@@ -133,6 +138,7 @@ export class RolController {
   @ApiOperation({ summary: 'Permisos asignados al rol' })
   @Get(':id/permisos')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.roles.ver')
   async listarPermisosRol(@Param('id', ParseIntPipe) id: number) {
     const data = await this.listarPermisosRolUseCase.execute(id);
     return ApiResponseDto.success(
@@ -147,6 +153,7 @@ export class RolController {
   })
   @Get(':id/permisos-disponibles')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.roles.ver')
   async listarPermisosDisponibles(@Param('id', ParseIntPipe) id: number) {
     const data = await this.listarPermisosDisponiblesUseCase.execute(id);
     return ApiResponseDto.success(
@@ -158,6 +165,7 @@ export class RolController {
   @ApiOperation({ summary: 'Obtener rol por id' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.roles.ver')
   async obtenerRol(@Param('id', ParseIntPipe) id: number) {
     const data = await this.obtenerRolUseCase.execute(id);
     return ApiResponseDto.success(data, 'Rol obtenido exitosamente');
@@ -166,6 +174,7 @@ export class RolController {
   @ApiOperation({ summary: 'Crear rol' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('seguridad.roles.crear')
   async crearRol(@Body() createDto: CreateRolDto, @Req() request: Request) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
@@ -179,6 +188,7 @@ export class RolController {
   @ApiOperation({ summary: 'Asignar un permiso al rol' })
   @Post(':id/permisos')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('seguridad.roles.asignar_permisos')
   async asignarPermisoRol(
     @Param('id', ParseIntPipe) id: number,
     @Body() asignarDto: AsignarPermisoDto,
@@ -200,6 +210,7 @@ export class RolController {
   @ApiOperation({ summary: 'Asignar varios permisos al rol' })
   @Post(':id/permisos-multiples')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('seguridad.roles.asignar_permisos')
   async asignarPermisosRol(
     @Param('id', ParseIntPipe) id: number,
     @Body() asignarDto: AsignarPermisosDto,
@@ -221,6 +232,7 @@ export class RolController {
   @ApiOperation({ summary: 'Actualizar rol' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.roles.editar')
   async editarRol(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateRolDto,
@@ -245,6 +257,7 @@ export class RolController {
   })
   @Put(':id/permisos/sincronizar')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.roles.asignar_permisos')
   async sincronizarPermisosRol(
     @Param('id', ParseIntPipe) id: number,
     @Body() sincronizarDto: AsignarPermisosDto,
@@ -266,6 +279,7 @@ export class RolController {
   @ApiOperation({ summary: 'Eliminar rol' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.roles.eliminar')
   async eliminarRol(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,
@@ -282,6 +296,7 @@ export class RolController {
   @ApiOperation({ summary: 'Quitar un permiso del rol' })
   @Delete(':id/permisos/:idPermiso')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.roles.asignar_permisos')
   async removerPermisoRol(
     @Param('id', ParseIntPipe) id: number,
     @Param('idPermiso', ParseIntPipe) idPermiso: number,
