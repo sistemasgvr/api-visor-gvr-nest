@@ -5,6 +5,9 @@ import { DatabaseFunctionService } from '../database/database-function.service';
 import { MinioStorageService } from '../storage/minio-storage.service';
 import type {
   IControlOperativoRepository,
+  HabilitarJornadasUsuariosParams,
+  HabilitacionJornadasUsuario,
+  CerrarHabilitacionesVencidasResult,
   ListarJornadasTrabajadorParams,
   ListarJornadasTrabajadorResult,
   CrearJornadaParams,
@@ -54,6 +57,26 @@ import type {
   ActividadInformeServicioLinea,
 } from '../../domain/repositories/control-operativo.repository.interface';
 import { normalizeStoredValueToYmd } from '../../domain/utils/date.util';
+import {
+  ForbiddenError,
+  InvalidInputError,
+} from '../../application/errors/application.error';
+
+/** Traduce solo errores de negocio conocidos; preserva fallos de infraestructura. */
+function rethrowHabilitacionError(error: unknown): never {
+  const dbError = error as {
+    code?: string;
+    message?: string;
+    driverError?: { code?: string; message?: string };
+  };
+  const code = dbError?.driverError?.code ?? dbError?.code;
+  const message = dbError?.driverError?.message ?? dbError?.message;
+  if (code === '42501')
+    throw new ForbiddenError('No tiene permiso para habilitar jornadas');
+  if (code === 'P0001')
+    throw new InvalidInputError(message ?? 'No se pudo habilitar la jornada');
+  throw error;
+}
 
 /** PostgreSQL devuelve el entero en una columna con el nombre de la función. */
 function getScalarInt(row: any): number {
@@ -178,7 +201,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     type Row = JornadaListItem & { total_count?: number };
     const result = await this.databaseFunctionService.callFunction<Row>(
-      'con_ListarJornadasTrabajador',
+      'con_ListarJornadasTrabajadorV2',
       [idTrabajador, pFechaInicio, pFechaFin, limit, offset],
     );
 
@@ -320,7 +343,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     } = params;
     const row =
       await this.databaseFunctionService.callFunctionSingle<JornadaCreada>(
-        'con_CrearJornada',
+        'con_CrearJornadaV2',
         [
           idTrabajador,
           fechaJornada,
@@ -376,8 +399,9 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
             estadojornada: string;
           }[]
         >(
-          `SELECT fechajornada::text AS diajornada, horasesperadas, idestadojornada,
-                            (SELECT glo.nombre FROM genlistadoopciones glo WHERE glo.id = j.idestadojornada AND glo.estado = 1 LIMIT 1) AS estadojornada
+          `SELECT fechajornada::text AS diajornada, horasesperadas,
+                            public."con_EstadoJornadaVigenteV2"(j.id) AS idestadojornada,
+                            (SELECT glo.nombre FROM genlistadoopciones glo WHERE glo.id = public."con_EstadoJornadaVigenteV2"(j.id) AND glo.estado = 1 LIMIT 1) AS estadojornada
                      FROM conjornada j WHERE j.id = $1 AND j.estado = 1 LIMIT 1`,
           [idJornada],
         );
@@ -417,11 +441,27 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
       result[0].diajornada != null
         ? String(result[0].diajornada).split('T')[0]
         : null;
+    // El listado de actividades V2 devuelve el estado físico. Para el detalle de
+    // una jornada usamos el estado vigente, aunque aún no haya corrido el cron.
+    const estadoVigente =
+      idJornada != null && idJornada >= 1
+        ? (
+            await this.dataSource.query<
+              { idestadojornada: number; estadojornada: string | null }[]
+            >(
+              `SELECT public."con_EstadoJornadaVigenteV2"(j.id) AS idestadojornada,
+                  (SELECT glo.nombre FROM genlistadoopciones glo
+                   WHERE glo.id = public."con_EstadoJornadaVigenteV2"(j.id) AND glo.estado = 1 LIMIT 1) AS estadojornada
+           FROM conjornada j WHERE j.id = $1 AND j.estado = 1 LIMIT 1`,
+              [idJornada],
+            )
+          )[0]
+        : undefined;
     const idestadojornada =
-      result[0].idestadojornada != null
-        ? Number(result[0].idestadojornada)
+      (estadoVigente ?? result[0]).idestadojornada != null
+        ? Number((estadoVigente ?? result[0]).idestadojornada)
         : null;
-    const estadojornada = result[0].estadojornada ?? null;
+    const estadojornada = (estadoVigente ?? result[0]).estadojornada ?? null;
     const data: ActividadListItem[] = await Promise.all(
       result.map(async (row) => {
         const {
@@ -753,7 +793,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   ): Promise<ActividadCreada | null> {
     const rows =
       await this.databaseFunctionService.callFunction<ActividadCreada>(
-        'con_CrearActividadV2',
+        'con_CrearActividadV3',
         [
           params.idJornada,
           params.idProyecto,
@@ -822,7 +862,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   ): Promise<ActividadCreada | null> {
     const rows =
       await this.databaseFunctionService.callFunction<ActividadCreada>(
-        'con_ActualizarActividadV2',
+        'con_ActualizarActividadV3',
         [
           params.idActividad,
           params.idProyecto,
@@ -865,14 +905,11 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
   async eliminarActividad(idActividad: number): Promise<boolean> {
     if (idActividad == null || idActividad < 1) return false;
-    const result = await this.databaseFunctionService.callFunction<{
-      con_eliminaractividad?: boolean;
-      coneliminaractividad?: boolean;
-    }>('con_EliminarActividad', [idActividad]);
-    const row = result?.[0];
-    return (
-      row?.con_eliminaractividad === true || row?.coneliminaractividad === true
+    const row = await this.databaseFunctionService.callFunctionSingle<unknown>(
+      'con_EliminarActividadV2',
+      [idActividad],
     );
+    return getScalarBool(row);
   }
 
   private getInicioSemanaActual(): string {
@@ -895,7 +932,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     fecha: string,
   ): Promise<CronCierreJornadasResult> {
     const rows = await this.databaseFunctionService.callFunction<any>(
-      'con_CronCierreJornadas',
+      'con_CronCierreJornadasV2',
       [fecha],
     );
     const row = rows?.[0];
@@ -912,13 +949,57 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   async actualizarEstadoJornada(
     idJornada: number,
     idEstadoJornada: number,
-    idUsuarioModificacion?: number,
+    idUsuarioModificacion: number,
+    duracionMinutos?: number,
   ): Promise<boolean> {
-    const row = await this.databaseFunctionService.callFunctionSingle<unknown>(
-      'con_ActualizarEstadoJornada',
-      [idJornada, idEstadoJornada, idUsuarioModificacion ?? null],
-    );
-    return getScalarBool(row);
+    try {
+      const row =
+        await this.databaseFunctionService.callFunctionSingle<unknown>(
+          'con_ActualizarEstadoJornadaV2',
+          [
+            idJornada,
+            idEstadoJornada,
+            idUsuarioModificacion,
+            duracionMinutos ?? null,
+          ],
+        );
+      return getScalarBool(row);
+    } catch (error) {
+      rethrowHabilitacionError(error);
+    }
+  }
+
+  async habilitarJornadasUsuarios(
+    params: HabilitarJornadasUsuariosParams,
+  ): Promise<HabilitacionJornadasUsuario[]> {
+    try {
+      const rows =
+        await this.databaseFunctionService.callFunction<HabilitacionJornadasUsuario>(
+          'con_HabilitarJornadasUsuariosV2',
+          [
+            params.idTrabajadores,
+            params.fechaInicio,
+            params.fechaFin,
+            params.duracionMinutos,
+            params.idUsuarioHabilita,
+          ],
+        );
+      return rows ?? [];
+    } catch (error) {
+      rethrowHabilitacionError(error);
+    }
+  }
+
+  async cerrarHabilitacionesVencidas(): Promise<CerrarHabilitacionesVencidasResult> {
+    const row =
+      await this.databaseFunctionService.callFunctionSingle<CerrarHabilitacionesVencidasResult>(
+        'con_CerrarHabilitacionesVencidasV2',
+        [],
+      );
+    return {
+      pasados_culminado: Number(row?.pasados_culminado ?? 0),
+      pasados_incompleto: Number(row?.pasados_incompleto ?? 0),
+    };
   }
 
   async listarReporteGeneral(

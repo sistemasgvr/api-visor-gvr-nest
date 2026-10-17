@@ -22,7 +22,7 @@
   "src/presentation/controllers/business-units.controller.ts": "15f114bf0ecb4f3f893312ee36ccf0ae314a595018ceb421269b25a1946ea5fb",
   "src/presentation/controllers/collabora.controller.ts": "5d6cb7b4c8ba9948325d0bb8b98306afa7494708365f64a10defd256d50c7490",
   "src/presentation/controllers/companies.controller.ts": "7e045ee4be67ef249d6c6b359ea917ca65b9533d966c7c3550a2546e1fab56de",
-  "src/presentation/controllers/control-operativo.controller.ts": "02e2d409de3eec42777ed52c8e5006687dd9f8887f7de85da73085b04a7b0732",
+  "src/presentation/controllers/control-operativo.controller.ts": "59d9d28fa7f0b02d60c544f1106bde799103563c0e73b6e84c981afdc79db02c",
   "src/presentation/controllers/data-management-buckets.controller.ts": "d60bece728e6a880b837b52e2721e19959e32b6851cb36bdf40eeacd55dbbada",
   "src/presentation/controllers/data-management-folders.controller.ts": "9330f868311e66fc151aba2be1cecf681729ef7b96b16041b547d3d3557076aa",
   "src/presentation/controllers/data-management-items.controller.ts": "13a52c3c90d37919b26120f81c013a67f2e6ef8d669d15e1f4443743bfbc51a3",
@@ -287,6 +287,9 @@
   "src/presentation/dtos/planificacion/calendarios/guardar-excepcion-calendario.dto.ts": "773950ed585c0f7afc81c2275eeb9b7f472c08fa2dcdc338fc8ebf37c4ff0777",
   "src/presentation/dtos/planificacion/calendarios/guardar-semana-calendario.dto.ts": "41cfbb44c8d015d000d9387d7d463e757f7960070fb4c32ad658d53e872ab2c2",
   "src/presentation/dtos/planificacion/calendarios/listar-calendarios.dto.ts": "26bf124de01e7a43e9dd81b3412da8a88ddc3674825708179be9c61110d0565c",
+  "src/presentation/dtos/planificacion/calendarios/revision-calendario.dto.ts": "9b6ffb086d137351d6a6b483d392d0ef7e814ad203894b587aa5b05193de4cd3",
+  "src/presentation/dtos/control-operativo/actualizar-estado-jornada.dto.ts": "ff502d04eace05f7c233046cb26b5c69a9631d49a734640a32f0612490957ba1",
+  "src/presentation/dtos/control-operativo/habilitar-jornadas-usuarios.dto.ts": "422b899b7a91db817e09c863dbe6e4a5435ff618a8e47f7fb21648795ab745bf"
   "src/presentation/dtos/planificacion/calendarios/revision-calendario.dto.ts": "9b6ffb086d137351d6a6b483d392d0ef7e814ad203894b587aa5b05193de4cd3",
   "src/presentation/dtos/planificacion/calendarios/crear-feriado.dto.ts": "8758aa4f91f03a5bc8ab65b8b71c2f6d31e9766157908320928edc12df7033b3",
   "src/presentation/dtos/planificacion/calendarios/actualizar-feriado.dto.ts": "64cc6735836e31b000973644399fb420934f6ecdfad242ae857288d7e803d79a",
