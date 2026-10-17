@@ -11,15 +11,17 @@ import { AuditoriaRepository } from '../../infrastructure/repositories/auditoria
 import { AuditoriaController } from '../../presentation/controllers/auditoria.controller';
 import { DatabaseModule } from './platform/database.module';
 
+import { applicationProvider } from '../application.providers';
+
 @Module({
   imports: [DatabaseModule],
   controllers: [AuditoriaController],
   providers: [
-    ListarAuditoriasUseCase,
-    ObtenerAuditoriaPorIdUseCase,
-    ObtenerHistorialEntidadUseCase,
-    ObtenerHistorialUsuarioUseCase,
-    ObtenerEstadisticasUseCase,
+    applicationProvider(ListarAuditoriasUseCase),
+    applicationProvider(ObtenerAuditoriaPorIdUseCase),
+    applicationProvider(ObtenerHistorialEntidadUseCase),
+    applicationProvider(ObtenerHistorialUsuarioUseCase),
+    applicationProvider(ObtenerEstadisticasUseCase),
     {
       provide: AUDITORIA_REPOSITORY,
       useClass: AuditoriaRepository,

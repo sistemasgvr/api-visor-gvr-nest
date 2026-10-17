@@ -12,14 +12,16 @@ import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.s
 import { DataManagementBucketsController } from '../../presentation/controllers/data-management-buckets.controller';
 import { DatabaseModule } from './platform/database.module';
 
+import { applicationProvider } from '../application.providers';
+
 @Module({
   imports: [DatabaseModule],
   controllers: [DataManagementBucketsController],
   providers: [
-    ObtenerBucketsUseCase,
-    ObtenerDetallesBucketUseCase,
-    CrearBucketUseCase,
-    EliminarBucketUseCase,
+    applicationProvider(ObtenerBucketsUseCase),
+    applicationProvider(ObtenerDetallesBucketUseCase),
+    applicationProvider(CrearBucketUseCase),
+    applicationProvider(EliminarBucketUseCase),
     AutodeskApiService,
     HttpClientService,
     {

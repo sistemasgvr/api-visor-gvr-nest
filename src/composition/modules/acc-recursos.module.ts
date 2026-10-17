@@ -14,16 +14,18 @@ import { AuditoriaRepository } from '../../infrastructure/repositories/auditoria
 import { AccRecursosController } from '../../presentation/controllers/acc-recursos.controller';
 import { DatabaseModule } from './platform/database.module';
 
+import { applicationProvider } from '../application.providers';
+
 @Module({
   imports: [DatabaseModule],
   controllers: [AccRecursosController],
   providers: [
-    GuardarRecursoUseCase,
-    ObtenerRecursoUseCase,
-    ActualizarRecursoUseCase,
-    ObtenerRecursosUsuarioUseCase,
-    ObtenerRecursosProyectoUseCase,
-    ObtenerRecursosHijosUseCase,
+    applicationProvider(GuardarRecursoUseCase),
+    applicationProvider(ObtenerRecursoUseCase),
+    applicationProvider(ActualizarRecursoUseCase),
+    applicationProvider(ObtenerRecursosUsuarioUseCase),
+    applicationProvider(ObtenerRecursosProyectoUseCase),
+    applicationProvider(ObtenerRecursosHijosUseCase),
     {
       provide: ACC_RECURSOS_REPOSITORY,
       useClass: AccRecursosRepository,

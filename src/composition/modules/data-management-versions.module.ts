@@ -18,19 +18,21 @@ import { AccRepository } from '../../infrastructure/repositories/acc.repository'
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { DataManagementVersionsController } from '../../presentation/controllers/data-management-versions.controller';
 
+import { applicationProvider } from '../application.providers';
+
 @Module({
   controllers: [DataManagementVersionsController],
   providers: [
-    ObtenerVersionPorIdUseCase,
-    ObtenerFormatosDescargaUseCase,
-    ObtenerDescargasUseCase,
-    ObtenerItemUseCase,
-    ObtenerReferenciasUseCase,
-    ObtenerRelacionesLinksUseCase,
-    ObtenerRelacionesRefsUseCase,
-    CrearVersionUseCase,
-    CrearReferenciaUseCase,
-    ActualizarVersionUseCase,
+    applicationProvider(ObtenerVersionPorIdUseCase),
+    applicationProvider(ObtenerFormatosDescargaUseCase),
+    applicationProvider(ObtenerDescargasUseCase),
+    applicationProvider(ObtenerItemUseCase),
+    applicationProvider(ObtenerReferenciasUseCase),
+    applicationProvider(ObtenerRelacionesLinksUseCase),
+    applicationProvider(ObtenerRelacionesRefsUseCase),
+    applicationProvider(CrearVersionUseCase),
+    applicationProvider(CrearReferenciaUseCase),
+    applicationProvider(ActualizarVersionUseCase),
     AutodeskApiService,
     HttpClientService,
     {

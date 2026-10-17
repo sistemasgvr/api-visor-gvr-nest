@@ -11,15 +11,17 @@ import { HttpClientService } from '../../infrastructure/http/http-client.service
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { BusinessUnitsController } from '../../presentation/controllers/business-units.controller';
 
+import { applicationProvider } from '../application.providers';
+
 @Module({
   controllers: [BusinessUnitsController],
   providers: [
-    ObtenerBusinessUnitsUseCase,
-    ObtenerBusinessUnitPorIdUseCase,
-    ObtenerBusinessUnitsHijasUseCase,
-    ObtenerArbolBusinessUnitsUseCase,
-    BuscarBusinessUnitsUseCase,
-    CrearOActualizarBusinessUnitsUseCase,
+    applicationProvider(ObtenerBusinessUnitsUseCase),
+    applicationProvider(ObtenerBusinessUnitPorIdUseCase),
+    applicationProvider(ObtenerBusinessUnitsHijasUseCase),
+    applicationProvider(ObtenerArbolBusinessUnitsUseCase),
+    applicationProvider(BuscarBusinessUnitsUseCase),
+    applicationProvider(CrearOActualizarBusinessUnitsUseCase),
     AutodeskApiService,
     HttpClientService,
   ],
