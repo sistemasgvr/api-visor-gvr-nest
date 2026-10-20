@@ -46,7 +46,7 @@ export type ReporteActividadesPrimeraPaginaInput = {
   firmaMime?: 'png' | 'jpg' | null;
   /**
    * Si false (defecto legal), no se muestra «Horas dedicadas» en el detalle por actividad.
-   * Solo true para roles en `REPORTE_ACTIVIDAD_WORD_ROLES_CON_HORAS_DEDICADAS`.
+   * Solo true si quien exporta tiene `control_operativo.jornadas.exportar_word` con alcance «todos».
    */
   incluirHorasDedicadasEnDetalle?: boolean;
 };

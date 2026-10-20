@@ -1,5 +1,14 @@
 import { Global, Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
+import { controlWorkerPolicies } from '../../../infrastructure/auth/control-worker-policies';
+import {
+  catalogGlobalPolicies,
+  gvrProjectPolicies,
+  selfPolicies,
+} from '../../../infrastructure/auth/catalog-policies';
+import { DatabaseFunctionService } from '../../../infrastructure/database/database-function.service';
+import { APP_GUARD, DiscoveryModule } from '@nestjs/core';
+import { AuthorizationReadinessService } from '../../../infrastructure/auth/authorization-readiness.service';
 import { AUTHORIZATION_POLICIES } from '../../../application/ports/authorization.port';
 import { GRANULAR_PERMISSIONS } from '../../../application/ports/granular-permissions.port';
 import { applicationProvider } from '../../application.providers';
@@ -19,6 +28,7 @@ import { GranularPermissionsService } from '../../../application/services/granul
 import { IssueAccessService } from '../../../application/services/issue-access.service';
 import { GranularPermissionsRepository } from '../../../infrastructure/repositories/granular-permissions.repository';
 import { GranularPermissionGuard } from '../../../infrastructure/auth/granular-permission.guard';
+import { ControlOperativoAccess } from '../../../infrastructure/auth/control-operativo-access.service';
 import { JwtAuthGuard } from '../../../infrastructure/auth/jwt-auth.guard';
 import { AuthorizationController } from '../../../presentation/controllers/authorization.controller';
 import { DatabaseModule } from './database.module';
@@ -50,7 +60,7 @@ export function securityPolicies(): AuthorizationPolicyRegistry {
     'usuarios.roles_usuario': ['asignar'],
     'gestion_bim.documentos': ['acceso_total', 'ver_todos'],
     'gestion_bim.proyectos': ['crear', 'clonar'],
-    'gestion_bim.cuentas': ['ver', 'gestionar'],
+    'gestion_bim.cuentas': ['ver'],
   };
   const policies = new Map<string, AuthorizationPolicy>();
   for (const [option, actions] of Object.entries(groups))
@@ -76,7 +86,6 @@ export const PROJECT_ACTIONS = [
   'editar',
   'configurar',
   'editar_imagen',
-  'eliminar',
   'gestionar_servicios',
 ] as const;
 
@@ -125,7 +134,6 @@ export const ISSUE_ACTIONS = [
   'adjuntar',
   'editar_adjuntos',
   'eliminar_adjuntos',
-  'eliminar',
   'exportar',
 ] as const;
 
@@ -179,34 +187,51 @@ export function issuePolicies(
 
 @Global()
 @Module({
-  imports: [DatabaseModule, AuthenticationModule],
+  imports: [
+    DatabaseModule,
+    AuthenticationModule,
+    DiscoveryModule,
+    ConfigModule,
+  ],
   controllers: [AuthorizationController],
   providers: [
     { provide: GRANULAR_PERMISSIONS, useClass: GranularPermissionsRepository },
     { provide: DOCUMENT_ACCESS_READER, useClass: DocumentAccessRepository },
     {
       provide: AUTHORIZATION_POLICIES,
-      inject: [DOCUMENT_ACCESS_READER, GRANULAR_PERMISSIONS],
+      inject: [
+        DOCUMENT_ACCESS_READER,
+        GRANULAR_PERMISSIONS,
+        DatabaseFunctionService,
+      ],
       useFactory: (
         reader: DocumentAccessReader,
         permissions: AuthorizationReader,
+        database: DatabaseFunctionService,
       ) =>
         new Map([
+          ...catalogGlobalPolicies(),
+          ...selfPolicies(),
+          ...gvrProjectPolicies(database),
           ...securityPolicies(),
           ...issuePolicies(reader, permissions),
           ...projectPolicies(reader),
+          ...controlWorkerPolicies(database),
         ]),
     },
+    AuthorizationReadinessService,
     JwtAuthGuard,
     applicationProvider(AuthorizationService),
     applicationProvider(GranularPermissionsService),
     applicationProvider(IssueAccessService),
+    ControlOperativoAccess,
     { provide: APP_GUARD, useClass: GranularPermissionGuard },
   ],
   exports: [
     AuthorizationService,
     GranularPermissionsService,
     IssueAccessService,
+    ControlOperativoAccess,
     DOCUMENT_ACCESS_READER,
   ],
 })

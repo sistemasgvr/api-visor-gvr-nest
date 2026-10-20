@@ -627,15 +627,18 @@ export interface IControlOperativoRepository {
     params: ListarJornadasTrabajadorParams,
   ): Promise<ListarJornadasTrabajadorResult>;
   listarTrabajadoresParaFiltro(
-    idTrabajador: number,
+    idUsuario: number,
+    alcances: readonly string[],
   ): Promise<TrabajadorParaFiltro[]>;
   listarProyectosAccesoTrabajador(
     idTrabajador: number,
     soloVigentes?: boolean,
+    verTodos?: boolean,
   ): Promise<ProyectoAccesoTrabajador[]>;
   /** Proyectos alineados con el alcance de validación (no incluye “todos” para Gerencia). */
   listarProyectosParaValidacion(
     idTrabajador: number,
+    verTodos?: boolean,
   ): Promise<ProyectoAccesoTrabajador[]>;
   puedeValidarActividad(
     idActividad: number,

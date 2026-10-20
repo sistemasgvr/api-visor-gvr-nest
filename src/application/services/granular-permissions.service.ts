@@ -138,6 +138,25 @@ export class GranularPermissionsService {
     return this.repository.synchronizeRole(actor, roleId, grants, revision);
   }
 
+  async cloneRole(
+    actor: number,
+    roleId: number,
+    name: string,
+    description?: string | null,
+  ) {
+    this.id(roleId);
+    const nombre = (name ?? '').trim();
+    if (!nombre || nombre.length > 255)
+      throw new InvalidInputError('El nombre del nuevo rol es obligatorio');
+    await this.require(actor, ['seguridad.roles.clonar']);
+    return this.repository.cloneRole(
+      actor,
+      roleId,
+      nombre,
+      description?.trim() || null,
+    );
+  }
+
   async menu(actor: number, menuId: number) {
     this.id(menuId);
     await this.require(actor, [

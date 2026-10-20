@@ -23,6 +23,7 @@ import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import {
   RequireGranularPermission,
   RequireProjectPermission,
+  RequireScopedPermission,
 } from '../../infrastructure/auth/granular-permission.guard';
 import { DocumentAccessService } from '../../application/services/document-access.service';
 import { AuthorizationService } from '../../application/services/authorization.service';
@@ -101,6 +102,10 @@ export class AccProjectsController {
   @Get(':accountId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission(
+    'gestion_bim.proyectos.ver',
+    'gestion_bim.documentos.acceso_total',
+  )
   async getProyectos(
     @Param('accountId') accountId: string,
     @Query() dto: GetProyectosDto,
@@ -216,6 +221,7 @@ export class AccProjectsController {
   @Post(':accountId/por-tipo')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async getProyectosPorTipo(
     @Req() request: Request,
     @Param('accountId') accountId: string,
@@ -245,6 +251,7 @@ export class AccProjectsController {
   @Get(':accountId/activos')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async getProyectosActivos(
     @Req() request: Request,
     @Param('accountId') accountId: string,

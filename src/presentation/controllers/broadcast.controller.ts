@@ -11,6 +11,7 @@ import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthenticatedAccess } from '../../infrastructure/auth/granular-permission.guard';
 
 interface ChannelAuthRequest {
   socket_id: string;
@@ -37,6 +38,9 @@ export class BroadcastController {
   })
   @Post('auth')
   @UseGuards(JwtAuthGuard)
+  @AuthenticatedAccess(
+    'Autenticación del canal propio de notificaciones en tiempo real',
+  )
   async authenticateChannel(
     @Body() body: ChannelAuthRequest,
     @Req() request: Request,

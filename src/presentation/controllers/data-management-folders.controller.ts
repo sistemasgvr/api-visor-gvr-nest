@@ -64,6 +64,7 @@ import { CrearReferenciaDto } from '../dtos/data-management/folders/crear-refere
 import { ActualizarCarpetaDto } from '../dtos/data-management/folders/actualizar-carpeta.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { DocumentAccessService } from '../../application/services/document-access.service';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
@@ -118,6 +119,7 @@ export class DataManagementFoldersController {
   })
   @Post(':projectId/:folderId/export/file-registry/pdf')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async exportarRegistroArchivosPdf(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -169,6 +171,7 @@ export class DataManagementFoldersController {
   })
   @Post(':projectId/:folderId/export/permissions/pdf')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async exportarPermisosCarpetaPdf(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -220,6 +223,7 @@ export class DataManagementFoldersController {
   })
   @Get(':projectId/:folderId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerCarpetaPorId(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -257,6 +261,7 @@ export class DataManagementFoldersController {
   })
   @Delete(':projectId/:folderId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async eliminarCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -308,6 +313,7 @@ export class DataManagementFoldersController {
   })
   @Get(':projectId/:folderId/deleted-contents')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerElementosEliminados(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -348,6 +354,7 @@ export class DataManagementFoldersController {
   })
   @Post(':projectId/:folderId/restore')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async restaurarCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -396,6 +403,7 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Listar contenido de la carpeta (items y refs)' })
   @Get(':projectId/:folderId/contents')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerContenidoCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -437,6 +445,7 @@ export class DataManagementFoldersController {
   })
   @Get(':projectId/:folderId/search-content')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async buscarEnContenidoCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -471,6 +480,7 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Obtener carpeta padre' })
   @Get(':projectId/:folderId/parent')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerCarpetaPadre(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -505,6 +515,7 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Referencias (refs) de la carpeta' })
   @Get(':projectId/:folderId/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerReferencias(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -539,6 +550,7 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Relaciones links declaradas sobre la carpeta' })
   @Get(':projectId/:folderId/relationships/links')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesLinks(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -573,6 +585,7 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Relaciones refs declaradas sobre la carpeta' })
   @Get(':projectId/:folderId/relationships/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesRefs(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -607,6 +620,7 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Búsqueda global APS dentro de carpeta base' })
   @Get(':projectId/:folderId/search')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async buscarEnCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -641,6 +655,7 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Crear carpeta de nivel alto en proyecto' })
   @Post(':projectId')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -681,6 +696,7 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Crear subcarpeta bajo un folder padre' })
   @Post(':projectId/:parentFolderId/subfolders')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearSubcarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -723,6 +739,7 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Adjuntar ref de otro recurso a la carpeta' })
   @Post(':projectId/:folderId/relationships/refs')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearReferencia(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -757,6 +774,7 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Actualizar nombre o metadatos de carpeta' })
   @Patch(':projectId/:folderId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async actualizarCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -803,6 +821,7 @@ export class DataManagementFoldersController {
   })
   @Post('sync/:hubId/:projectId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async sincronizarCarpetasProyecto(
     @Req() request: Request,
     @Param('hubId') hubId: string,

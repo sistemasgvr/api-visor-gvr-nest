@@ -32,7 +32,7 @@ export class ActualizarEntregableProyectoUseCase {
     idEntregable: number,
     data: ActualizarEntregableProyectoData,
     idUsuarioModificacion: number,
-    rolesIds: number[] = [],
+    accesoTotal = false,
   ) {
     const actual =
       await this.proyectoRepository.obtenerEntregablePorId(idEntregable);
@@ -43,7 +43,7 @@ export class ActualizarEntregableProyectoUseCase {
     const puede = await puedeGestionarEntregable(this.proyectoRepository, {
       entregable: actual,
       idUsuario: idUsuarioModificacion,
-      rolesIds,
+      accesoTotal,
     });
     if (!puede) {
       throw new ForbiddenError('No tienes permiso para editar este entregable');

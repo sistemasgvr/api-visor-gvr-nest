@@ -50,6 +50,13 @@ export interface RoleMember {
   correo: string | null;
   fechaasignacion: string | null;
 }
+export interface ClonedRole {
+  idrol: number;
+  nombre: string;
+  origen: number;
+  totalacciones: number;
+}
+
 export interface GranularPermissionsPort extends AuthorizationReader {
   roleSummaries(actor: number): Promise<RolePermissionSummary[]>;
   roleMembers(actor: number, roleId: number): Promise<RoleMember[]>;
@@ -61,6 +68,13 @@ export interface GranularPermissionsPort extends AuthorizationReader {
     grants: RolePermissionGrant[],
     revision: number,
   ): Promise<PermissionChange>;
+  /** Crea un rol con las mismas acciones y alcances que el original (seguridad.roles.clonar). */
+  cloneRole(
+    actor: number,
+    roleId: number,
+    name: string,
+    description: string | null,
+  ): Promise<ClonedRole>;
   menu(actor: number, menuId: number): Promise<MenuPermissionConfiguration>;
   synchronizeMenu(
     actor: number,

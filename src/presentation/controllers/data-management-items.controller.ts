@@ -61,6 +61,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IniciarSubidaChunkedDto } from '../dtos/data-management/items/iniciar-subida-chunked.dto';
 import { ObtenerUrlsSubidaChunkedDto } from '../dtos/data-management/items/obtener-urls-subida-chunked.dto';
 import { CompletarSubidaChunkedDto } from '../dtos/data-management/items/completar-subida-chunked.dto';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
@@ -125,6 +126,7 @@ export class DataManagementItemsController {
     }),
   )
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async subirArchivo(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -171,6 +173,7 @@ export class DataManagementItemsController {
   })
   @Post(':projectId/upload/chunked/init')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async iniciarSubidaChunked(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -199,6 +202,7 @@ export class DataManagementItemsController {
   })
   @Post(':projectId/upload/chunked/urls')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerUrlsSubidaChunked(
     @Req() request: Request,
     @Param('projectId') _projectId: string,
@@ -218,6 +222,7 @@ export class DataManagementItemsController {
   })
   @Post(':projectId/upload/chunked/complete')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async completarSubidaChunked(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -267,6 +272,7 @@ export class DataManagementItemsController {
   })
   @Post(':projectId')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -305,6 +311,7 @@ export class DataManagementItemsController {
   })
   @Get(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerItemPorId(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -341,6 +348,7 @@ export class DataManagementItemsController {
   })
   @Get(':projectId/:itemId/download')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async descargarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -399,6 +407,7 @@ export class DataManagementItemsController {
   })
   @Get(':projectId/:itemId/storage-url')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerStorageUrl(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -431,6 +440,7 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Carpeta contenedora inmediata del item' })
   @Get(':projectId/:itemId/parent')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerItemPadre(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -465,6 +475,7 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Referencias APS del item (refs)' })
   @Get(':projectId/:itemId/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerReferencias(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -499,6 +510,7 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Relaciones links del item' })
   @Get(':projectId/:itemId/relationships/links')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesLinks(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -533,6 +545,7 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Relaciones refs del item' })
   @Get(':projectId/:itemId/relationships/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesRefs(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -570,6 +583,7 @@ export class DataManagementItemsController {
   })
   @Get(':projectId/:itemId/tip')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerTipVersion(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -604,6 +618,7 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Historial cronológico de versiones APS' })
   @Get(':projectId/:itemId/versions')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerVersiones(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -640,6 +655,7 @@ export class DataManagementItemsController {
   })
   @Get(':projectId/:itemId/activities')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerActividadesArchivo(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -672,6 +688,7 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Crear nueva ref que apunta a otro recurso' })
   @Post(':projectId/:itemId/relationships/refs')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearReferencia(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -710,6 +727,7 @@ export class DataManagementItemsController {
   })
   @Post(':projectId/:itemId/restore')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async restaurarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -773,6 +791,7 @@ export class DataManagementItemsController {
   })
   @Patch(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async actualizarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -818,6 +837,7 @@ export class DataManagementItemsController {
   })
   @Delete(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async eliminarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -868,6 +888,7 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Mover item entre carpetas APS' })
   @Patch(':projectId/:itemId/move')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async desplazarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -918,6 +939,7 @@ export class DataManagementItemsController {
   })
   @Post(':projectId/copy')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async copiarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,

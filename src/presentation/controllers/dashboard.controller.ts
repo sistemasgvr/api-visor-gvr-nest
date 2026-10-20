@@ -20,6 +20,7 @@ import { ObtenerTopTrabajadoresHorasMesUseCase } from '../../application/use-cas
 import { ObtenerCantidadTrabajadoresConectadoSemanaUseCase } from '../../application/use-cases/dashboard/obtener-cantidad-trabajadores-conectado-semana.use-case';
 import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from '../../application/use-cases/dashboard/obtener-horas-esperadas-vs-registradas-mes.use-case';
 import { ObtenerProyectosConProgresoUseCase } from '../../application/use-cases/dashboard/obtener-proyectos-con-progreso.use-case';
+import { RequireScopedPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('dashboard')
 @ApiBearerAuth('access-token')
@@ -43,6 +44,7 @@ export class DashboardController {
   @ApiOperation({ summary: 'Conteo de proyectos vigentes' })
   @Get('cantidad-proyectos-vigentes')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_proyectos_vigentes')
   async obtenerCantidadProyectosVigentes() {
     const data = await this.obtenerCantidadProyectosVigentesUseCase.execute();
     return ApiResponseDto.success(data, 'Cantidad de proyectos vigentes');
@@ -51,6 +53,7 @@ export class DashboardController {
   @ApiOperation({ summary: 'Conteo de trabajadores activos' })
   @Get('cantidad-trabajadores-activos')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_trabajadores_activos')
   async obtenerCantidadTrabajadoresActivos() {
     const data = await this.obtenerCantidadTrabajadoresActivosUseCase.execute();
     return ApiResponseDto.success(data, 'Cantidad de trabajadores activos');
@@ -62,6 +65,7 @@ export class DashboardController {
   })
   @Get('cantidad-actividades-pendientes')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_actividades_pendientes')
   async obtenerCantidadActividadesPendientes() {
     const data =
       await this.obtenerCantidadActividadesPendientesUseCase.execute();
@@ -71,6 +75,7 @@ export class DashboardController {
   @ApiOperation({ summary: 'Actividades en estado observado' })
   @Get('cantidad-actividades-observadas')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_actividades_observadas')
   async obtenerCantidadActividadesObservadas() {
     const data =
       await this.obtenerCantidadActividadesObservadasUseCase.execute();
@@ -80,6 +85,7 @@ export class DashboardController {
   @ApiOperation({ summary: 'Actividades rechazadas' })
   @Get('cantidad-actividades-rechazadas')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_actividades_rechazadas')
   async obtenerCantidadActividadesRechazadas() {
     const data =
       await this.obtenerCantidadActividadesRechazadasUseCase.execute();
@@ -92,6 +98,7 @@ export class DashboardController {
   })
   @Get('cantidad-trabajadores-por-proyecto')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_trabajadores_por_proyecto')
   async obtenerCantidadTrabajadoresPorProyecto() {
     const data =
       await this.obtenerCantidadTrabajadoresPorProyectoUseCase.execute();
@@ -104,6 +111,7 @@ export class DashboardController {
   @ApiOperation({ summary: 'Jornadas completas en la semana actual' })
   @Get('cantidad-jornadas-completas-semana')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_jornadas_completas')
   async obtenerCantidadJornadasCompletasSemana() {
     const data =
       await this.obtenerCantidadJornadasCompletasSemanaUseCase.execute();
@@ -116,6 +124,7 @@ export class DashboardController {
   @ApiOperation({ summary: 'Ranking de horas registradas en el mes' })
   @Get('top-trabajadores-horas-mes')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_ranking_horas')
   async obtenerTopTrabajadoresHorasMes() {
     const data = await this.obtenerTopTrabajadoresHorasMesUseCase.execute();
     return ApiResponseDto.success(data, 'Top trabajadores por horas del mes');
@@ -127,6 +136,7 @@ export class DashboardController {
   })
   @Get('cantidad-trabajadores-conectado-semana')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_usuarios_conectados')
   async obtenerCantidadTrabajadoresConectadoSemana() {
     const data =
       await this.obtenerCantidadTrabajadoresConectadoSemanaUseCase.execute();
@@ -142,6 +152,7 @@ export class DashboardController {
   })
   @Get('horas-esperadas-vs-registradas-mes')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_horas_esperadas_registradas')
   async obtenerHorasEsperadasVsRegistradasMes() {
     const data =
       await this.obtenerHorasEsperadasVsRegistradasMesUseCase.execute();
@@ -157,6 +168,7 @@ export class DashboardController {
   })
   @Get('proyectos-con-progreso')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('inicio.indicadores.ver_progreso_proyectos')
   async obtenerProyectosConProgreso() {
     const data = await this.obtenerProyectosConProgresoUseCase.execute();
     return ApiResponseDto.success(data, 'Proyectos con progreso');

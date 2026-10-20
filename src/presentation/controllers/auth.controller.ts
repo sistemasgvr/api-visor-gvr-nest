@@ -35,6 +35,10 @@ import { LoginDto } from '../dtos/login.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import {
+  RequireGranularPermission,
+  RequireSelfPermission,
+} from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -57,6 +61,7 @@ export class AuthController {
   @Throttle({ default: { limit: 15, ttl: 60_000 } })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Registrar usuario', security: [] })
+  @RequireGranularPermission('usuarios.trabajadores.crear')
   async register(@Body() registerDto: RegisterDto) {
     const user = await this.registerUseCase.execute(registerDto);
 
@@ -179,6 +184,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('foto'))
+  @RequireSelfPermission('inicio.perfil.editar_foto')
   async subirFotoPerfil(
     @Req() request: Request,
     @UploadedFile() file: Express.Multer.File,
@@ -215,6 +221,7 @@ export class AuthController {
   @Patch('perfil/contrasena')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireSelfPermission('inicio.perfil.cambiar_contrasena')
   async cambiarContrasenaPerfil(
     @Req() request: Request,
     @Body() dto: ChangePasswordDto,
@@ -275,6 +282,7 @@ export class AuthController {
   @Get('estadisticas-usuarios')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('inicio.indicadores.ver_estadisticas_usuarios')
   async estadisticasUsuarios(
     @Req() request: Request & { user?: { id?: number; sub?: number } },
   ) {
@@ -282,9 +290,7 @@ export class AuthController {
     if (userId == null) {
       throw new UnauthorizedException('Usuario no identificado');
     }
-    const result = await this.obtenerEstadisticasUsuariosUseCase.execute(
-      Number(userId),
-    );
+    const result = await this.obtenerEstadisticasUsuariosUseCase.execute();
     return ApiResponseDto.success(result, 'Estadísticas de usuarios');
   }
 
@@ -300,6 +306,7 @@ export class AuthController {
   @Post('/cerrar-todas-sesiones')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireSelfPermission('inicio.perfil.cerrar_sesiones')
   async cerrarTodasSesiones(@Req() request: Request) {
     const token = this.extractTokenFromHeader(request);
 

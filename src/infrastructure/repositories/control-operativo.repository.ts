@@ -226,12 +226,16 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   }
 
   async listarTrabajadoresParaFiltro(
-    idTrabajador: number,
+    idUsuario: number,
+    alcances: readonly string[],
   ): Promise<TrabajadorParaFiltro[]> {
+    // Misma regla de equipo que la política (con_EquipoTrabajador) vía la función SQL.
     const result =
-      await this.databaseFunctionService.callFunction<TrabajadorParaFiltro>(
-        'tra_ListarTrabajadoresParaFiltro',
-        [idTrabajador],
+      await this.databaseFunctionService.executeQuery<TrabajadorParaFiltro>(
+        `SELECT f.* FROM public.tratrabajador actor,
+           public."tra_ListarTrabajadoresParaFiltro"(actor.id, $2::text[]) f
+         WHERE actor.idusuario = $1 AND actor.estado = 1`,
+        [idUsuario, [...alcances]],
       );
     return result ?? [];
   }
@@ -239,11 +243,12 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   async listarProyectosAccesoTrabajador(
     idTrabajador: number,
     soloVigentes = false,
+    verTodos = false,
   ): Promise<ProyectoAccesoTrabajador[]> {
     const result =
       await this.databaseFunctionService.callFunction<ProyectoAccesoTrabajador>(
         'pro_ListarProyectosAccesoTrabajador',
-        [idTrabajador, soloVigentes],
+        [idTrabajador, soloVigentes, verTodos],
       );
     if (Array.isArray(result)) return result;
     if (result != null && typeof result === 'object')
@@ -253,11 +258,12 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
   async listarProyectosParaValidacion(
     idTrabajador: number,
+    verTodos = false,
   ): Promise<ProyectoAccesoTrabajador[]> {
     const result =
       await this.databaseFunctionService.callFunction<ProyectoAccesoTrabajador>(
         'pro_ListarProyectosParaValidacion',
-        [idTrabajador],
+        [idTrabajador, verTodos],
       );
     if (Array.isArray(result)) return result;
     if (result != null && typeof result === 'object')

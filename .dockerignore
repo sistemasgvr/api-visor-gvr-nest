@@ -57,7 +57,16 @@ logs
 *.log
 
 # Temporary files
+.tmp
+.temp
 tmp
 temp
 *.tmp
+
+# Local database and environment copies
+.env.*
+*.dump
+*.backup
+compose.database-local.yml
+api-visor-gvr-nest
 

@@ -38,6 +38,7 @@ import { ObtenerVisorElementoFotoPorElementoUseCase } from '../../application/us
 import { ObtenerVisorElementoFotoUseCase } from '../../application/use-cases/acc/visor-elemento-foto/obtener-visor-elemento-foto.use-case';
 import { EliminarArchivoVisorElementoFotoUseCase } from '../../application/use-cases/acc/visor-elemento-foto/eliminar-archivo-visor-elemento-foto.use-case';
 import { EliminarVisorElementoFotoUseCase } from '../../application/use-cases/acc/visor-elemento-foto/eliminar-visor-elemento-foto.use-case';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc')
 @ApiBearerAuth('access-token')
@@ -68,6 +69,7 @@ export class AccVisorElementoFotoController {
   @ApiOperation({
     summary: 'Crear anclaje de fotos de avance de obra en un elemento',
   })
+  @DocumentLevelAccess()
   async crear(
     @Param('projectId') projectId: string,
     @Body() dto: CrearVisorElementoFotoDto,
@@ -93,6 +95,7 @@ export class AccVisorElementoFotoController {
   })
   @ApiQuery({ name: 'documentUrn', required: true })
   @ApiQuery({ name: 'viewableGuid', required: false })
+  @DocumentLevelAccess()
   async listar(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -121,6 +124,7 @@ export class AccVisorElementoFotoController {
   @ApiQuery({ name: 'documentUrn', required: true })
   @ApiQuery({ name: 'objectId', required: true, type: Number })
   @ApiQuery({ name: 'viewableGuid', required: false })
+  @DocumentLevelAccess()
   async obtenerPorElemento(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -150,6 +154,7 @@ export class AccVisorElementoFotoController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Obtener detalle de anclaje con galería' })
   @ApiParam({ name: 'id', type: Number })
+  @DocumentLevelAccess()
   async obtener(
     @Req() request: Request,
     @Param('id', ParseIntPipe) id: number,
@@ -168,6 +173,7 @@ export class AccVisorElementoFotoController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Actualizar metadatos del anclaje' })
+  @DocumentLevelAccess()
   async actualizar(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ActualizarVisorElementoFotoDto,
@@ -187,6 +193,7 @@ export class AccVisorElementoFotoController {
   @Post(':id/archivos')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Agregar imágenes a anclaje existente' })
+  @DocumentLevelAccess()
   async agregarArchivos(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AgregarArchivosVisorElementoFotoDto,
@@ -210,6 +217,7 @@ export class AccVisorElementoFotoController {
   @Delete(':id/archivos/:idArchivoJunction')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Eliminar una imagen del anclaje' })
+  @DocumentLevelAccess()
   async eliminarArchivo(
     @Param('id', ParseIntPipe) id: number,
     @Param('idArchivoJunction', ParseIntPipe) idArchivoJunction: number,
@@ -233,6 +241,7 @@ export class AccVisorElementoFotoController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Eliminar anclaje completo y sus imágenes' })
+  @DocumentLevelAccess()
   async eliminar(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     await this.documentAccess.assertAnnotation(
       this.documentActor(req),

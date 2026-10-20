@@ -12,7 +12,7 @@ export class EliminarEntregableProyectoUseCase {
   async execute(
     idEntregable: number,
     idUsuarioModificacion: number,
-    rolesIds: number[] = [],
+    accesoTotal = false,
   ) {
     const actual =
       await this.proyectoRepository.obtenerEntregablePorId(idEntregable);
@@ -23,7 +23,7 @@ export class EliminarEntregableProyectoUseCase {
     const puede = await puedeGestionarEntregable(this.proyectoRepository, {
       entregable: actual,
       idUsuario: idUsuarioModificacion,
-      rolesIds,
+      accesoTotal,
     });
     if (!puede) {
       throw new ForbiddenError(

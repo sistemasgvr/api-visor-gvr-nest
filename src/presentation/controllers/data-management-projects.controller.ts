@@ -11,7 +11,10 @@ import {
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
-import { RequireDocumentProject } from '../../infrastructure/auth/document-access.guard';
+import {
+  RequireDocumentProject,
+  DocumentLevelAccess,
+} from '../../infrastructure/auth/document-access.guard';
 import { DocumentAccessService } from '../../application/services/document-access.service';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -37,6 +40,7 @@ import { CrearDescargaDto } from '../dtos/data-management/projects/crear-descarg
 import { ObtenerEstadoDescargaDto } from '../dtos/data-management/projects/obtener-estado-descarga.dto';
 import { ObtenerEstadoJobDto } from '../dtos/data-management/projects/obtener-estado-job.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
@@ -69,6 +73,7 @@ export class DataManagementProjectsController {
   @ApiOperation({ summary: 'Proyectos bajo un hub (ruta modular projects)' })
   @Get('hubs/:hubId/projects')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async obtenerProyectos(
     @Req() request: Request,
     @Param('hubId') hubId: string,
@@ -94,6 +99,7 @@ export class DataManagementProjectsController {
   @ApiOperation({ summary: 'Proyecto por ID con includes opcionales' })
   @Get('hubs/:hubId/projects/:projectId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async obtenerProyectoPorId(
     @Req() request: Request,
     @Param('hubId') hubId: string,
@@ -121,6 +127,7 @@ export class DataManagementProjectsController {
   @ApiOperation({ summary: 'Obtener registro hub asociado al proyecto' })
   @Get('hubs/:hubId/projects/:projectId/hub')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async obtenerHubDeProyecto(
     @Req() request: Request,
     @Param('hubId') hubId: string,
@@ -185,6 +192,7 @@ export class DataManagementProjectsController {
   })
   @Post(':projectId/storage')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearStorage(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -216,6 +224,7 @@ export class DataManagementProjectsController {
   @ApiOperation({ summary: 'Iniciar descarga batch ZIP de varios items' })
   @Post(':projectId/downloads')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async crearDescarga(
     @Req() request: Request,
     @Param('projectId') projectId: string,

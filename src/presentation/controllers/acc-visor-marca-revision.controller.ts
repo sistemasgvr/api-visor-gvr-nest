@@ -42,6 +42,7 @@ import { ContarVisorMarcasRevisionUseCase } from '../../application/use-cases/ac
 import { ObtenerVisorMarcaRevisionUseCase } from '../../application/use-cases/acc/visor-marca-revision/obtener-visor-marca-revision.use-case';
 import { SincronizarMarkupIdApsVisorMarcaRevisionUseCase } from '../../application/use-cases/acc/visor-marca-revision/sincronizar-markup-id-aps-visor-marca-revision.use-case';
 import { parseQueryBoolean } from '../../application/use-cases/acc/visor-marca-revision/visor-marca-revision.util';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc')
 @ApiBearerAuth('access-token')
@@ -72,6 +73,7 @@ export class AccVisorMarcaRevisionController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Crear marca de revisión (privada por defecto)' })
+  @DocumentLevelAccess()
   async crear(
     @Param('projectId') projectId: string,
     @Body() dto: CrearVisorMarcaRevisionDto,
@@ -100,6 +102,7 @@ export class AccVisorMarcaRevisionController {
   @ApiQuery({ name: 'idRevisionArchivo', required: false, type: Number })
   @ApiQuery({ name: 'soloPublicadas', required: false, type: Boolean })
   @ApiQuery({ name: 'soloPropias', required: false, type: Boolean })
+  @DocumentLevelAccess()
   async listar(
     @Param('projectId') projectId: string,
     @Query('documentUrn') documentUrn: string,
@@ -141,6 +144,7 @@ export class AccVisorMarcaRevisionController {
   @ApiQuery({ name: 'viewableGuid', required: false })
   @ApiQuery({ name: 'paginaNumero', required: false, type: Number })
   @ApiQuery({ name: 'versionId', required: false })
+  @DocumentLevelAccess()
   async contar(
     @Param('projectId') projectId: string,
     @Query('documentUrn') documentUrn: string,
@@ -168,6 +172,7 @@ export class AccVisorMarcaRevisionController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Obtener detalle de marca (respeta visibilidad)' })
   @ApiParam({ name: 'id', type: Number })
+  @DocumentLevelAccess()
   async obtener(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     await this.documentAccess.assertAnnotation(
       this.documentActor(req),
@@ -183,6 +188,7 @@ export class AccVisorMarcaRevisionController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Editar marca (solo creador)' })
+  @DocumentLevelAccess()
   async actualizar(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ActualizarVisorMarcaRevisionDto,
@@ -202,6 +208,7 @@ export class AccVisorMarcaRevisionController {
   @Post(':id/duplicar')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Duplicar marca (copia privada del usuario)' })
+  @DocumentLevelAccess()
   async duplicar(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: DuplicarVisorMarcaRevisionDto,
@@ -221,6 +228,7 @@ export class AccVisorMarcaRevisionController {
   @Post(':id/publicar')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Publicar marca (visible para todos)' })
+  @DocumentLevelAccess()
   async publicar(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     await this.documentAccess.assertAnnotation(
       this.documentActor(req),
@@ -238,6 +246,7 @@ export class AccVisorMarcaRevisionController {
   @ApiOperation({
     summary: 'Anular publicación (solo visible para el creador)',
   })
+  @DocumentLevelAccess()
   async anularPublicacion(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
@@ -258,6 +267,7 @@ export class AccVisorMarcaRevisionController {
   @ApiOperation({
     summary: 'Sincronizar markupIdAps tras cargar en MarkupsCore',
   })
+  @DocumentLevelAccess()
   async sincronizarMarkupIdAps(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: SincronizarMarkupIdApsDto,
@@ -284,6 +294,7 @@ export class AccVisorMarcaRevisionController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Suprimir marca (soft delete, solo creador)' })
+  @DocumentLevelAccess()
   async suprimir(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     await this.documentAccess.assertAnnotation(
       this.documentActor(req),

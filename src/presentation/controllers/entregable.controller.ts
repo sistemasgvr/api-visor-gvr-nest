@@ -27,10 +27,10 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import type { JwtPayload } from '../../infrastructure/auth/jwt.strategy';
-import {
-  esAdminSistemas,
-  extraerIdsRoles,
-} from '../../domain/utils/admin-sistemas.util';
+import { RequireScopedPermission } from '../../infrastructure/auth/granular-permission.guard';
+import { AuthorizationService } from '../../application/services/authorization.service';
+import { GrantedScope } from '../http/granted-scopes.decorator';
+import type { AuthorizationScope } from '../../application/ports/authorization.port';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { ListarEntregablesProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-proyecto.use-case';
 import { ListarEntregablesSelectProyectoUseCase } from '../../application/use-cases/proyecto/listar-entregables-select-proyecto.use-case';
@@ -66,6 +66,7 @@ export class EntregableController {
     private readonly actualizarEntregableProyectoUseCase: ActualizarEntregableProyectoUseCase,
     private readonly eliminarEntregableProyectoUseCase: EliminarEntregableProyectoUseCase,
     private readonly jwtService: JwtService,
+    private readonly authorization: AuthorizationService,
   ) {}
 
   @ApiOperation({
@@ -124,7 +125,10 @@ export class EntregableController {
   })
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('control_operativo.entregables.ver')
   async listarEntregables(
+    @GrantedScope('control_operativo.entregables.ver')
+    alcance: AuthorizationScope,
     @Req() request: Request,
     @Query('idProyecto', new ParseIntPipe({ optional: true }))
     idProyecto?: number,
@@ -138,9 +142,7 @@ export class EntregableController {
   ) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
-    const payload = (await this.jwtService.verifyAsync(token)) as JwtPayload;
-    const rolesIds = extraerIdsRoles(payload.roles);
-
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
     const data = await this.listarEntregablesProyectoUseCase.execute(
       {
         idProyecto,
@@ -154,7 +156,17 @@ export class EntregableController {
           soloVigentes === '0' || soloVigentes === 'false' ? false : true,
       },
       payload.sub,
-      esAdminSistemas(rolesIds),
+      alcance === 'todos',
+      {
+        editar: await this.authorization.scopesFor(
+          payload.sub,
+          'control_operativo.entregables.editar',
+        ),
+        eliminar: await this.authorization.scopesFor(
+          payload.sub,
+          'control_operativo.entregables.eliminar',
+        ),
+      },
     );
     return ApiResponseDto.success(data, 'Entregables obtenidos exitosamente');
   }
@@ -173,19 +185,28 @@ export class EntregableController {
   @ApiResponse({ status: 200, type: [EntregableSelectOptionDto] })
   @Get('opciones-select')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission(
+    'control_operativo.entregables.ver',
+    'control_operativo.actividades.crear',
+    'control_operativo.actividades.editar',
+  )
   async listarEntregablesSelect(
     @Req() request: Request,
     @Query('idProyecto', ParseIntPipe) idProyecto: number,
   ) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
-    const payload = (await this.jwtService.verifyAsync(token)) as JwtPayload;
-    const rolesIds = extraerIdsRoles(payload.roles);
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+    const scopes = (
+      request as Request & {
+        granularScopes?: Record<string, string[]>;
+      }
+    ).granularScopes;
 
     const data = await this.listarEntregablesSelectProyectoUseCase.execute(
       idProyecto,
       payload.sub,
-      esAdminSistemas(rolesIds),
+      scopes?.['control_operativo.entregables.ver']?.includes('todos') === true,
     );
     return ApiResponseDto.success(
       data,
@@ -198,8 +219,21 @@ export class EntregableController {
   @ApiResponse({ status: 200, type: EntregableItemDto })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  async obtenerEntregable(@Param('id', ParseIntPipe) id: number) {
-    const data = await this.obtenerEntregableProyectoUseCase.execute(id);
+  @RequireScopedPermission('control_operativo.entregables.ver')
+  async obtenerEntregable(
+    @Param('id', ParseIntPipe) id: number,
+    @GrantedScope('control_operativo.entregables.ver')
+    alcance: AuthorizationScope,
+    @Req() request: Request,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+    if (!token) throw new UnauthorizedException('Token no proporcionado');
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+    const data = await this.obtenerEntregableProyectoUseCase.execute(
+      id,
+      payload.sub,
+      alcance === 'todos',
+    );
     return ApiResponseDto.success(data, 'Entregable obtenido exitosamente');
   }
 
@@ -227,18 +261,20 @@ export class EntregableController {
   @ApiResponse({ status: 201, type: EntregableMutationResultDto })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireScopedPermission('control_operativo.entregables.crear')
   async crearEntregable(
     @Body() dto: CreateEntregableProyectoDto,
     @Req() request: Request,
+    @GrantedScope('control_operativo.entregables.crear')
+    alcance: AuthorizationScope,
   ) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
-    const payload = (await this.jwtService.verifyAsync(token)) as JwtPayload;
-    const rolesIds = extraerIdsRoles(payload.roles);
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
     const data = await this.crearEntregableProyectoUseCase.execute(
       dto,
       payload.sub,
-      rolesIds,
+      alcance === 'todos',
     );
     return ApiResponseDto.created(data, 'Entregable creado exitosamente');
   }
@@ -264,20 +300,22 @@ export class EntregableController {
   @ApiResponse({ status: 200, type: EntregableMutationResultDto })
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('control_operativo.entregables.editar')
   async actualizarEntregable(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateEntregableProyectoDto,
     @Req() request: Request,
+    @GrantedScope('control_operativo.entregables.editar')
+    alcance: AuthorizationScope,
   ) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
-    const payload = (await this.jwtService.verifyAsync(token)) as JwtPayload;
-    const rolesIds = extraerIdsRoles(payload.roles);
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
     const data = await this.actualizarEntregableProyectoUseCase.execute(
       id,
       dto,
       payload.sub,
-      rolesIds,
+      alcance === 'todos',
     );
     return ApiResponseDto.success(data, 'Entregable actualizado exitosamente');
   }
@@ -287,18 +325,20 @@ export class EntregableController {
   @ApiResponse({ status: 200, type: EntregableMutationResultDto })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('control_operativo.entregables.eliminar')
   async eliminarEntregable(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,
+    @GrantedScope('control_operativo.entregables.eliminar')
+    alcance: AuthorizationScope,
   ) {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException('Token no proporcionado');
-    const payload = (await this.jwtService.verifyAsync(token)) as JwtPayload;
-    const rolesIds = extraerIdsRoles(payload.roles);
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
     const data = await this.eliminarEntregableProyectoUseCase.execute(
       id,
       payload.sub,
-      rolesIds,
+      alcance === 'todos',
     );
     return ApiResponseDto.success(data, 'Entregable eliminado exitosamente');
   }

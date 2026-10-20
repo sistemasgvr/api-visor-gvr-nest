@@ -27,6 +27,7 @@ import {
   CrearOActualizarBusinessUnitsDto,
 } from '../dtos/acc/business-units';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('business-units')
 @ApiBearerAuth('access-token')
@@ -50,6 +51,7 @@ export class BusinessUnitsController {
   @ApiOperation({ summary: 'Buscar business units por nombre en la cuenta' })
   @Get(':accountId/search')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.unidades_negocio_acc.ver')
   async buscarBusinessUnits(
     @Param('accountId') accountId: string,
     @Query() dto: BuscarBusinessUnitsDto,
@@ -78,6 +80,7 @@ export class BusinessUnitsController {
   })
   @Get(':accountId/children')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.unidades_negocio_acc.ver')
   async obtenerBusinessUnitsHijas(
     @Param('accountId') accountId: string,
     @Query() dto: ObtenerBusinessUnitsHijasDto,
@@ -104,6 +107,7 @@ export class BusinessUnitsController {
   @ApiOperation({ summary: 'Obtener árbol jerárquico de business units' })
   @Get(':accountId/tree')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.unidades_negocio_acc.ver')
   async obtenerArbolBusinessUnits(
     @Param('accountId') accountId: string,
     @Query() dto: ObtenerBusinessUnitsDto,
@@ -129,6 +133,7 @@ export class BusinessUnitsController {
   @ApiOperation({ summary: 'Listar business units de la cuenta' })
   @Get(':accountId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.unidades_negocio_acc.ver')
   async obtenerBusinessUnits(
     @Param('accountId') accountId: string,
     @Query() dto: ObtenerBusinessUnitsDto,
@@ -154,6 +159,7 @@ export class BusinessUnitsController {
   @ApiOperation({ summary: 'Obtener una business unit por ID' })
   @Get(':accountId/:businessUnitId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.unidades_negocio_acc.ver')
   async obtenerBusinessUnitPorId(
     @Param('accountId') accountId: string,
     @Param('businessUnitId') businessUnitId: string,
@@ -187,6 +193,7 @@ export class BusinessUnitsController {
   })
   @Put(':accountId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.unidades_negocio_acc.gestionar')
   async crearOActualizarBusinessUnits(
     @Param('accountId') accountId: string,
     @Body() dto: CrearOActualizarBusinessUnitsDto,

@@ -28,6 +28,12 @@ import type { IAuditoriaRepository } from '../../domain/repositories/auditoria.r
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RefrescarToken3LeggedUseCase } from '../../application/use-cases/acc/refrescar-token-3legged.use-case';
 import { AccToken } from '../../domain/entities/acc-token.entity';
+import { DocumentAccessService } from '../../application/services/document-access.service';
+import {
+  ContextualAuthorization,
+  AuthenticatedAccess,
+} from '../../infrastructure/auth/granular-permission.guard';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('collabora')
 @Controller('collabora')
@@ -35,6 +41,7 @@ export class CollaboraController {
   private readonly logger = new Logger(CollaboraController.name);
 
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly collaboraService: CollaboraService,
     private readonly autodeskApiService: AutodeskApiService,
     private readonly documentTokenService: DocumentTokenService,
@@ -96,6 +103,7 @@ export class CollaboraController {
   })
   @Get('config/:projectId/:itemId')
   @UseGuards(JwtAuthGuard)
+  @DocumentLevelAccess()
   async getCollaboraConfig(
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
@@ -119,6 +127,14 @@ export class CollaboraController {
             'Identificación de usuario no disponible. No se puede abrir el documento.',
         };
       }
+
+      // Abrir en Collabora exige el nivel documental del archivo (editar si se pide edición).
+      await this.documentAccess.assertItem(
+        userId,
+        projectId,
+        itemId,
+        permission === 'edit' ? 'edit' : 'view',
+      );
 
       const accToken =
         await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
@@ -243,6 +259,7 @@ export class CollaboraController {
   })
   @Post('session/keepalive')
   @UseGuards(JwtAuthGuard)
+  @AuthenticatedAccess('Renovación de la propia sesión de edición')
   async keepaliveCollaboraSession(
     @Body() body: { sessionToken?: string },
     @Req() req: express.Request,
@@ -327,6 +344,9 @@ export class CollaboraController {
     security: [],
   })
   @Get('wopi/files/:fileId')
+  @ContextualAuthorization(
+    'Protocolo WOPI con token de sesión emitido tras validar el nivel documental',
+  )
   async wopiCheckFileInfo(
     @Param('fileId') fileId: string,
     @Req() req: express.Request,
@@ -536,6 +556,9 @@ export class CollaboraController {
     security: [],
   })
   @Get('wopi/files/:fileId/contents')
+  @ContextualAuthorization(
+    'Protocolo WOPI con token de sesión emitido tras validar el nivel documental',
+  )
   async wopiGetFile(
     @Param('fileId') fileId: string,
     @Req() req: express.Request,
@@ -672,6 +695,9 @@ export class CollaboraController {
     security: [],
   })
   @Post('wopi/files/:fileId/contents')
+  @ContextualAuthorization(
+    'Protocolo WOPI con token de sesión emitido tras validar el nivel documental',
+  )
   async wopiPutFile(
     @Param('fileId') fileId: string,
     @Req() req: express.Request,
@@ -1135,6 +1161,9 @@ export class CollaboraController {
     security: [],
   })
   @Get('download/:token')
+  @ContextualAuthorization(
+    'Protocolo WOPI con token de sesión emitido tras validar el nivel documental',
+  )
   async downloadFile(
     @Param('token') token: string,
     @Res() res: express.Response,
@@ -1258,6 +1287,7 @@ export class CollaboraController {
     security: [],
   })
   @Get('health')
+  @ContextualAuthorization('Salud del servicio Collabora')
   async checkHealth() {
     const isHealthy = await this.collaboraService.checkCollaboraHealth();
     return {

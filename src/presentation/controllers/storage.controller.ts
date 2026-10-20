@@ -11,6 +11,7 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  ForbiddenException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
@@ -28,7 +29,13 @@ import { MinioStorageService } from '../../infrastructure/storage/minio-storage.
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { UploadEvidenciaDto } from '../dtos/storage/upload-evidencia.dto';
 import { UploadPrefixedDto } from '../dtos/storage/upload-prefixed.dto';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import { UploadVisorElementoFotoDto } from '../dtos/storage/upload-visor-elemento-foto.dto';
+import {
+  RequireGranularPermission,
+  RequireResourcePermission,
+} from '../../infrastructure/auth/granular-permission.guard';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
@@ -37,7 +44,10 @@ const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 @Controller('storage')
 @UseGuards(JwtAuthGuard)
 export class StorageController {
-  constructor(private readonly minioStorage: MinioStorageService) {}
+  constructor(
+    private readonly minioStorage: MinioStorageService,
+    private readonly documentAccess: DocumentAccessService,
+  ) {}
 
   @Get('presign')
   @HttpCode(HttpStatus.OK)
@@ -56,6 +66,7 @@ export class StorageController {
     description:
       'Útil si el bucket es privado: devuelve una URL temporal para descargar el objeto por su clave.',
   })
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async presignGet(
     @Query('key') key: string,
     @Query('expires') expiresRaw?: string,
@@ -107,6 +118,12 @@ export class StorageController {
       },
     },
   })
+  @RequireResourcePermission(
+    'control_operativo.actividades.adjuntar_evidencias',
+    'control_activity',
+    'actividadId',
+    'body',
+  )
   async uploadEvidencia(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadEvidenciaDto,
@@ -158,6 +175,7 @@ export class StorageController {
       },
     },
   })
+  @DocumentLevelAccess()
   async uploadVisorElementoFoto(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadVisorElementoFotoDto,
@@ -167,6 +185,13 @@ export class StorageController {
     if (!idProyectoAcc) {
       throw new BadRequestException('idProyectoAcc es obligatorio');
     }
+    // Las fotos del visor se publican sobre el archivo: mismo nivel que publicar marcas.
+    await this.documentAccess.assertDocument(
+      Number(req.user?.sub),
+      idProyectoAcc,
+      dto.itemId,
+      'publish_markup',
+    );
     const meta = await this.minioStorage.uploadVisorElementoFoto({
       idProyectoAcc,
       itemId: dto.itemId,
@@ -210,10 +235,14 @@ export class StorageController {
       },
     },
   })
+  @RequireGranularPermission('empresas.empresas.subir_logo')
   async uploadPrefixed(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadPrefixedDto,
   ) {
+    // Sólo se usa para logos de empresas; otro prefijo necesitaría su propio permiso.
+    if (!/^empresas\/logos(\/|$)/.test((dto.prefix ?? '').trim()))
+      throw new ForbiddenException('Prefijo de almacenamiento no permitido');
     const meta = await this.minioStorage.uploadUnderPrefix({
       prefix: dto.prefix,
       file,

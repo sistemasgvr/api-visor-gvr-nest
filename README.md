@@ -27,6 +27,7 @@ La configuración se obtiene de `.env`; consultar `.env.example` para los nombre
 ```powershell
 npm run check:architecture
 npm run check:contracts
+npm run check:authorization-coverage
 npm run typecheck
 npm test -- --runInBand
 npm run test:e2e -- --runInBand
@@ -35,3 +36,9 @@ npm run build
 ```
 
 Las pruebas de integración locales simulan la base de datos y no ejecutan operaciones contra Supabase o Autodesk.
+
+## Producción
+
+El contenedor arranca con `NODE_ENV=production`. Proporcionar las variables y credenciales desde el entorno del servidor; `.env`, temporales, volcados y datos QA se excluyen del contexto Docker. El control de cobertura de autorización se mantiene activo en producción.
+
+Aplicar SQL y publicar backend y frontend durante la misma ventana, siguiendo [MIGRACION.md](../api-visor-gvr-sql/docs/permisos/MIGRACION.md).

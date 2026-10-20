@@ -12,6 +12,7 @@ import type { Request } from 'express';
 import { DocumentAccessService } from '../../application/services/document-access.service';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { AuthenticatedAccess } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('gestion-bim')
 @ApiBearerAuth('access-token')
@@ -25,6 +26,9 @@ export class DocumentAccessController {
       'Nivel efectivo de la sesión en un proyecto o carpeta (sólo para presentar acciones; cada operación se valida de nuevo)',
   })
   @Get('acceso')
+  @AuthenticatedAccess(
+    'Nivel documental de la propia persona en un proyecto/carpeta',
+  )
   async current(
     @Req() request: Request,
     @Query('projectId') projectId?: string,

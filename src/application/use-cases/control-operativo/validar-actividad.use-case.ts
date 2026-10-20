@@ -2,25 +2,22 @@ import {
   ID_ESTADO_ACTIVIDAD_APROBADO,
   ID_ESTADO_ACTIVIDAD_RECHAZADO,
 } from '../../../domain/constants/estado-actividad.constants';
-import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import type {
   ActividadCreada,
   IControlOperativoRepository,
   ValidarActividadParams,
 } from '../../../domain/repositories/control-operativo.repository.interface';
-import {
-  ForbiddenError,
-  UnauthenticatedError,
-} from '../../errors/application.error';
+import { ForbiddenError } from '../../errors/application.error';
 import { BroadcastPort } from '../../ports/broadcast.port';
 import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
-import { esAccesoTotalValidacionActividades } from './validacion-acceso.util';
 
 export interface ValidarActividadInput {
   idActividad: number;
   idEstadoActividad: number;
   comentarioValidacion?: string | null;
   idUsuario: number;
+  /** La acción de validación (aprobar/observar/rechazar) con alcance «todos». */
+  accesoTotal: boolean;
 }
 
 export class ValidarActividadUseCase {
@@ -28,8 +25,6 @@ export class ValidarActividadUseCase {
 
   constructor(
     private readonly controlOperativoRepository: IControlOperativoRepository,
-
-    private readonly authRepository: IAuthRepository,
     private readonly broadcastService: BroadcastPort,
     private readonly loggerFactory: LoggerFactoryPort,
   ) {
@@ -37,16 +32,7 @@ export class ValidarActividadUseCase {
   }
 
   async execute(input: ValidarActividadInput): Promise<ActividadCreada | null> {
-    const perfil = await this.authRepository.obtenerPerfilUsuario(
-      input.idUsuario,
-    );
-    if (!perfil?.roles || !Array.isArray(perfil.roles)) {
-      throw new UnauthenticatedError('Usuario no identificado');
-    }
-    const rolesIds = (perfil.roles as { id?: number }[])
-      .map((r) => r?.id)
-      .filter((id): id is number => id != null);
-    const esAdminTotalValidacion = esAccesoTotalValidacionActividades(rolesIds);
+    const esAdminTotalValidacion = input.accesoTotal;
 
     const idCoordinadorRevisor =
       await this.controlOperativoRepository.obtenerIdTrabajadorPorIdUsuario(

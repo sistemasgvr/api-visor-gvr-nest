@@ -4,6 +4,7 @@ import type {
   AuthorizationSnapshot,
 } from '../../application/ports/authorization.port';
 import type {
+  ClonedRole,
   GranularPermissionsPort,
   MenuPermissionConfiguration,
   PermissionCatalogEntry,
@@ -171,6 +172,24 @@ export class GranularPermissionsRepository implements GranularPermissionsPort {
       'auth_SincronizarPermisosRolV2',
       [actor, roleId, JSON.stringify(grants), revision],
       (value) => this.isChange(value, 'idrol', roleId),
+    );
+  }
+
+  cloneRole(
+    actor: number,
+    roleId: number,
+    name: string,
+    description: string | null,
+  ): Promise<ClonedRole> {
+    return this.scalar(
+      'auth_ClonarRolV2',
+      [actor, roleId, name, description],
+      (value) =>
+        isObject(value) &&
+        isId(value.idrol) &&
+        value.origen === roleId &&
+        typeof value.nombre === 'string' &&
+        Number.isSafeInteger(value.totalacciones),
     );
   }
 

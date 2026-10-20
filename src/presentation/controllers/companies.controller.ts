@@ -35,6 +35,7 @@ import {
   ObtenerCompaniesProyectoDto,
 } from '../dtos/acc/companies';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('companies')
 @ApiBearerAuth('access-token')
@@ -59,6 +60,7 @@ export class CompaniesController {
   @ApiOperation({ summary: 'Crear una compañía en la cuenta ACC' })
   @Post(':accountId')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.empresas_acc.crear')
   async crearCompany(
     @Param('accountId') accountId: string,
     @Body() dto: CrearCompanyDto,
@@ -81,6 +83,7 @@ export class CompaniesController {
   @ApiOperation({ summary: 'Importar compañías en bloque' })
   @Post(':accountId/import')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.empresas_acc.importar')
   async importarCompanies(
     @Param('accountId') accountId: string,
     @Body() dto: ImportarCompaniesDto,
@@ -106,6 +109,7 @@ export class CompaniesController {
   @ApiOperation({ summary: 'Listar compañías de la cuenta con paginación' })
   @Get(':accountId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.empresas_acc.ver')
   async obtenerCompanies(
     @Param('accountId') accountId: string,
     @Query() dto: ObtenerCompaniesDto,
@@ -143,6 +147,7 @@ export class CompaniesController {
   @ApiOperation({ summary: 'Buscar compañías en la cuenta' })
   @Get(':accountId/search')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.empresas_acc.ver')
   async buscarCompanies(
     @Param('accountId') accountId: string,
     @Query() dto: BuscarCompaniesDto,
@@ -177,6 +182,7 @@ export class CompaniesController {
   @ApiOperation({ summary: 'Obtener compañía por ID' })
   @Get(':accountId/:companyId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.empresas_acc.ver')
   async obtenerCompanyPorId(
     @Param('accountId') accountId: string,
     @Param('companyId') companyId: string,
@@ -207,6 +213,7 @@ export class CompaniesController {
   @ApiOperation({ summary: 'Actualizar datos de la compañía' })
   @Patch(':accountId/:companyId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.empresas_acc.editar')
   async actualizarCompany(
     @Param('accountId') accountId: string,
     @Param('companyId') companyId: string,
@@ -238,6 +245,7 @@ export class CompaniesController {
   @Patch(':accountId/:companyId/image')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('image'))
+  @RequireGranularPermission('gestion_bim.empresas_acc.editar_imagen')
   async subirImagenCompany(
     @Param('accountId') accountId: string,
     @Param('companyId') companyId: string,
@@ -282,6 +290,7 @@ export class ProjectsCompaniesController {
   })
   @Get(':accountId/:projectId/companies')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.empresas_acc.ver')
   async obtenerCompaniesPorProyecto(
     @Param('accountId') accountId: string,
     @Param('projectId') projectId: string,

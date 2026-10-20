@@ -21,6 +21,7 @@ import { ObtenerApprovalStatusesVersionUseCase } from '../../application/use-cas
 // DTOs
 import { ObtenerApprovalStatusesDto } from '../dtos/acc/reviews/obtener-approval-statuses.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc')
 @ApiBearerAuth('access-token')
@@ -49,6 +50,7 @@ export class AccVersionsReviewsController {
   @Get(':versionId/approval-statuses')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerApprovalStatuses(
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,

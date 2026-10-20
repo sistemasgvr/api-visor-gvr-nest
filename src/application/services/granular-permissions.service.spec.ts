@@ -8,10 +8,37 @@ import { GranularPermissionsService } from './granular-permissions.service';
 
 describe('Administración granular sin SQL', () => {
   it('un administrador de menús consulta el catálogo sin consultar concesiones de roles', async () => {
-    const reader = { readCurrent: jest.fn().mockResolvedValue({ active: true, grants: [{ code: 'seguridad.menus.ver', scopes: ['global'] }] }) };
-    const repository = { ...reader, catalog: jest.fn().mockResolvedValue([]), role: jest.fn() } as unknown as GranularPermissionsPort;
-    const policy = { mode: 'global' as const, allowedScopes: ['global' as const], resolve: () => Promise.resolve({ resource: null, activeBoundary: true, businessRulesAllow: true }) };
-    const authorization = new AuthorizationService(reader, new Map(['seguridad.roles.ver', 'seguridad.roles.asignar_permisos', 'seguridad.menus.ver'].map(code => [code, policy])));
+    const reader = {
+      readCurrent: jest.fn().mockResolvedValue({
+        active: true,
+        grants: [{ code: 'seguridad.menus.ver', scopes: ['global'] }],
+      }),
+    };
+    const repository = {
+      ...reader,
+      catalog: jest.fn().mockResolvedValue([]),
+      role: jest.fn(),
+    } as unknown as GranularPermissionsPort;
+    const policy = {
+      mode: 'global' as const,
+      allowedScopes: ['global' as const],
+      resolve: () =>
+        Promise.resolve({
+          resource: null,
+          activeBoundary: true,
+          businessRulesAllow: true,
+        }),
+    };
+    const authorization = new AuthorizationService(
+      reader,
+      new Map(
+        [
+          'seguridad.roles.ver',
+          'seguridad.roles.asignar_permisos',
+          'seguridad.menus.ver',
+        ].map((code) => [code, policy]),
+      ),
+    );
     const service = new GranularPermissionsService(repository, authorization);
     expect(await service.catalog(7)).toEqual([]);
     await expect(service.role(7, 2)).rejects.toBeInstanceOf(ForbiddenError);
@@ -26,6 +53,7 @@ describe('Administración granular sin SQL', () => {
       catalog: jest.fn(),
       role: jest.fn(),
       synchronizeRole: jest.fn(),
+      cloneRole: jest.fn(),
       menu: jest.fn(),
       synchronizeMenu: jest.fn(),
       canNavigate: jest.fn(),
@@ -56,6 +84,7 @@ describe('Administración granular sin SQL', () => {
           'seguridad.roles.asignar_permisos',
           'seguridad.menus.ver',
           'seguridad.menus.vincular_permisos',
+          'seguridad.roles.clonar',
         ].map((code) => [code, policy]),
       ),
     );
@@ -70,6 +99,27 @@ describe('Administración granular sin SQL', () => {
       ForbiddenError,
     );
     expect(repository.synchronizeRole).toHaveBeenCalledTimes(1);
+  });
+
+  it('clona un rol sólo con seguridad.roles.clonar y un nombre válido', async () => {
+    repository.cloneRole.mockResolvedValue({
+      idrol: 20,
+      nombre: 'COPIA',
+      origen: 2,
+      totalacciones: 4,
+    });
+    await expect(service.cloneRole(7, 2, ' COPIA ', '')).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
+    repository.readCurrent.mockResolvedValue({
+      active: true,
+      grants: [{ code: 'seguridad.roles.clonar', scopes: ['global'] }],
+    });
+    await expect(service.cloneRole(7, 2, '   ')).rejects.toBeInstanceOf(
+      InvalidInputError,
+    );
+    await service.cloneRole(7, 2, ' COPIA ', '');
+    expect(repository.cloneRole.mock.calls).toEqual([[7, 2, 'COPIA', null]]);
   });
 
   it('consulta con permiso de lectura pero no permite escribir', async () => {

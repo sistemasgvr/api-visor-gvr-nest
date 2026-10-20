@@ -1,4 +1,5 @@
 import {
+  applyDecorators,
   CanActivate,
   ExecutionContext,
   Injectable,
@@ -9,6 +10,14 @@ import { Reflector } from '@nestjs/core';
 import { firstValueFrom, isObservable } from 'rxjs';
 import { DocumentAccessService } from '../../application/services/document-access.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { AuthenticatedAccess } from './granular-permission.guard';
+
+const DOCUMENT_LEVEL_REASON =
+  'Nivel documental del proyecto/carpeta ACC (DocumentAccessService); Docs no usa permisos de rol';
+
+/** Handler que valida el nivel documental dentro de su cuerpo (assertFolder, assertItem, ...). */
+export const DocumentLevelAccess = () =>
+  AuthenticatedAccess(DOCUMENT_LEVEL_REASON);
 
 export const DOCUMENT_PROJECT_REQUIREMENT = 'gvr:document-project';
 export interface DocumentProjectRequirement {
@@ -26,10 +35,13 @@ export const RequireDocumentProject = (
   access: DocumentProjectRequirement['access'],
   param = 'projectId',
 ) =>
-  SetMetadata(DOCUMENT_PROJECT_REQUIREMENT, {
-    access,
-    param,
-  } satisfies DocumentProjectRequirement);
+  applyDecorators(
+    SetMetadata(DOCUMENT_PROJECT_REQUIREMENT, {
+      access,
+      param,
+    } satisfies DocumentProjectRequirement),
+    AuthenticatedAccess(DOCUMENT_LEVEL_REASON),
+  );
 
 @Injectable()
 export class DocumentAccessGuard implements CanActivate {

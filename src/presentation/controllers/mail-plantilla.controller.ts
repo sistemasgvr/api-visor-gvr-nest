@@ -13,6 +13,7 @@ import {
   Req,
   UseGuards,
   UnauthorizedException,
+  ForbiddenException,
   ParseIntPipe,
   UsePipes,
   ValidationPipe,
@@ -21,6 +22,7 @@ import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import { AuthorizationService } from '../../application/services/authorization.service';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { ListarMailPlantillasUseCase } from '../../application/use-cases/mail-plantilla/listar-mail-plantillas.use-case';
 import { ObtenerMailPlantillaUseCase } from '../../application/use-cases/mail-plantilla/obtener-mail-plantilla.use-case';
@@ -42,6 +44,10 @@ import {
   PreviewMailPlantillaDto,
   TestSendMailPlantillaDto,
 } from '../dtos/mail-plantilla/preview-mail-plantilla.dto';
+import {
+  RequireGranularPermission,
+  RequireScopedPermission,
+} from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('mail-plantillas')
 @ApiBearerAuth('access-token')
@@ -63,11 +69,13 @@ export class MailPlantillaController {
     private readonly testSendUseCase: TestSendMailPlantillaUseCase,
     private readonly sembrarUseCase: SembrarMailPlantillasSistemaUseCase,
     private readonly jwtService: JwtService,
+    private readonly authorization: AuthorizationService,
   ) {}
 
   @ApiOperation({ summary: 'Listar plantillas de correo' })
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.plantillas_correo.ver')
   async listar(@Query() query: ListMailPlantillaQueryDto) {
     const data = await this.listarUseCase.execute(query);
     return ApiResponseDto.success(data);
@@ -76,6 +84,9 @@ export class MailPlantillaController {
   @ApiOperation({ summary: 'Sembrar plantillas de sistema (.hbs → BD)' })
   @Post('sembrar-sistema')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission(
+    'comunicaciones.plantillas_correo.restaurar_sistema',
+  )
   async sembrarSistema(@Req() request: Request) {
     const userId = await this.getUserIdFromRequest(request);
     const data = await this.sembrarUseCase.execute(userId);
@@ -85,6 +96,7 @@ export class MailPlantillaController {
   @ApiOperation({ summary: 'Vista previa HTML de plantilla' })
   @Post('preview')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.plantillas_correo.previsualizar')
   async preview(@Body() dto: PreviewMailPlantillaDto) {
     const data = await this.previewUseCase.execute(dto);
     return ApiResponseDto.success(data);
@@ -93,6 +105,7 @@ export class MailPlantillaController {
   @ApiOperation({ summary: 'Enviar correo de prueba' })
   @Post('test-send')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.plantillas_correo.enviar_prueba')
   async testSend(@Body() dto: TestSendMailPlantillaDto) {
     const data = await this.testSendUseCase.execute(dto);
     return ApiResponseDto.success(data, data.message);
@@ -101,6 +114,7 @@ export class MailPlantillaController {
   @ApiOperation({ summary: 'Detalle de una versión histórica' })
   @Get('historial/:idHistorial')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.plantillas_correo.ver_historial')
   async obtenerHistorial(
     @Param('idHistorial', ParseIntPipe) idHistorial: number,
   ) {
@@ -111,6 +125,9 @@ export class MailPlantillaController {
   @ApiOperation({ summary: 'Eliminar versión histórica' })
   @Delete('historial/:idHistorial')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission(
+    'comunicaciones.plantillas_correo.eliminar_historial',
+  )
   async eliminarHistorial(
     @Param('idHistorial', ParseIntPipe) idHistorial: number,
     @Req() request: Request,
@@ -126,6 +143,7 @@ export class MailPlantillaController {
   @ApiOperation({ summary: 'Historial de versiones de una plantilla' })
   @Get(':id/historial')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.plantillas_correo.ver_historial')
   async listarHistorial(
     @Param('id', ParseIntPipe) id: number,
     @Query('limit') limit?: number,
@@ -142,6 +160,7 @@ export class MailPlantillaController {
   @ApiOperation({ summary: 'Obtener plantilla por ID' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.plantillas_correo.ver')
   async obtener(@Param('id', ParseIntPipe) id: number) {
     const data = await this.obtenerUseCase.execute(id);
     return ApiResponseDto.success(data);
@@ -150,6 +169,7 @@ export class MailPlantillaController {
   @ApiOperation({ summary: 'Crear plantilla de correo' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('comunicaciones.plantillas_correo.crear')
   async crear(@Body() dto: CreateMailPlantillaDto, @Req() request: Request) {
     const userId = await this.getUserIdFromRequest(request);
     const data = await this.crearUseCase.execute(dto, userId);
@@ -159,12 +179,17 @@ export class MailPlantillaController {
   @ApiOperation({ summary: 'Actualizar plantilla de correo' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission(
+    'comunicaciones.plantillas_correo.editar',
+    'comunicaciones.plantillas_correo.cambiar_estado',
+  )
   async actualizar(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateMailPlantillaDto,
     @Req() request: Request,
   ) {
     const userId = await this.getUserIdFromRequest(request);
+    await this.exigirCambiosPlantilla(userId, id, dto);
     const data = await this.actualizarUseCase.execute(id, dto, userId);
     return ApiResponseDto.success(data, data.message);
   }
@@ -174,6 +199,9 @@ export class MailPlantillaController {
   })
   @Patch(':id/variables-prueba')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission(
+    'comunicaciones.plantillas_correo.editar_variables_prueba',
+  )
   async actualizarVariablesPrueba(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateVariablesPruebaMailPlantillaDto,
@@ -191,6 +219,7 @@ export class MailPlantillaController {
   @ApiOperation({ summary: 'Eliminar plantilla (soft delete)' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.plantillas_correo.eliminar')
   async eliminar(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,
@@ -198,6 +227,32 @@ export class MailPlantillaController {
     const userId = await this.getUserIdFromRequest(request);
     const data = await this.eliminarUseCase.execute(id, userId);
     return ApiResponseDto.success(data, data.message);
+  }
+
+  /**
+   * La ruta admite editar o cambiar estado; cada cambio exige su acción: contenido → `editar`,
+   * estado distinto del actual → `cambiar_estado`.
+   */
+  private async exigirCambiosPlantilla(
+    userId: number,
+    id: number,
+    dto: UpdateMailPlantillaDto,
+  ) {
+    const { estado, ...contenido } = dto;
+    const requeridos: string[] = [];
+    if (Object.values(contenido).some((valor) => valor !== undefined))
+      requeridos.push('comunicaciones.plantillas_correo.editar');
+    if (
+      estado !== undefined &&
+      Number((await this.obtenerUseCase.execute(id)).estado) !== Number(estado)
+    )
+      requeridos.push('comunicaciones.plantillas_correo.cambiar_estado');
+    for (const codigo of requeridos)
+      if (!(await this.authorization.can(userId, codigo)))
+        throw new ForbiddenException({
+          message: 'No tienes permiso para este cambio en la plantilla',
+          code: 'GRANULAR_PERMISSION_DENIED',
+        });
   }
 
   private async getUserIdFromRequest(request: Request): Promise<number> {

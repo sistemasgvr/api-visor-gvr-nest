@@ -21,6 +21,7 @@ import { ObtenerMetadatosUseCase } from '../../application/use-cases/acc/viewer/
 // DTOs
 import { GenerarTokenViewerDto } from '../dtos/acc/viewer/generar-token-viewer.dto';
 import { ObtenerTokenPublicoDto } from '../dtos/acc/viewer/obtener-token-publico.dto';
+import { AuthenticatedAccess } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('acc')
 @ApiBearerAuth('access-token')
@@ -46,6 +47,9 @@ export class AccViewerController {
   })
   @Post('token')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Visor: token de solo lectura para sesiones válidas; el documento se autoriza al abrirlo en Docs',
+  )
   async generarTokenViewer(@Body() dto: GenerarTokenViewerDto) {
     const resultado = await this.generarTokenViewerUseCase.execute(dto);
 
@@ -62,6 +66,9 @@ export class AccViewerController {
   })
   @Post('token/public')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Visor: token de solo lectura para sesiones válidas; el documento se autoriza al abrirlo en Docs',
+  )
   async obtenerTokenPublico(@Body() dto: ObtenerTokenPublicoDto) {
     const resultado = await this.obtenerTokenPublicoUseCase.execute(dto);
 
@@ -81,6 +88,9 @@ export class AccViewerController {
   })
   @Get('manifest/:urn')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Visor: token de solo lectura para sesiones válidas; el documento se autoriza al abrirlo en Docs',
+  )
   async obtenerManifiesto(@Param('urn') urn: string) {
     const resultado = await this.obtenerManifiestoUseCase.execute(urn);
 
@@ -99,6 +109,9 @@ export class AccViewerController {
   })
   @Get('metadata/:urn')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Visor: token de solo lectura para sesiones válidas; el documento se autoriza al abrirlo en Docs',
+  )
   async obtenerMetadatos(@Param('urn') urn: string) {
     const resultado = await this.obtenerMetadatosUseCase.execute(urn);
 

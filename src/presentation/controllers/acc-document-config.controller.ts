@@ -13,7 +13,10 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { RequireDocumentProject } from '../../infrastructure/auth/document-access.guard';
+import {
+  RequireDocumentProject,
+  DocumentLevelAccess,
+} from '../../infrastructure/auth/document-access.guard';
 import { DocumentAccessService } from '../../application/services/document-access.service';
 import type { Request } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -207,6 +210,7 @@ export class AccDocumentConfigController {
 
   @Get(':projectExternalId/folders/:folderExternalId/naming-rule')
   @ApiOperation({ summary: 'Obtener regla de nomenclatura de una carpeta' })
+  @DocumentLevelAccess()
   async obtenerFolderNamingRule(
     @Req() request: Request,
     @Param('projectExternalId') projectExternalId: string,
@@ -278,6 +282,7 @@ export class AccDocumentConfigController {
   @Post(':projectExternalId/generate-name')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Generar nombre de documento según nomenclatura' })
+  @DocumentLevelAccess()
   async generarNombre(
     @Req() request: Request,
     @Param('projectExternalId') projectExternalId: string,
@@ -301,6 +306,7 @@ export class AccDocumentConfigController {
 
   @Get(':projectExternalId/folders/:folderExternalId/metadata')
   @ApiOperation({ summary: 'Listar metadatos GVR de archivos en una carpeta' })
+  @DocumentLevelAccess()
   async listarMetadataPorCarpeta(
     @Req() request: Request,
     @Param('projectExternalId') projectExternalId: string,
@@ -324,6 +330,7 @@ export class AccDocumentConfigController {
 
   @Get(':projectExternalId/metadata/:itemExternalId')
   @ApiOperation({ summary: 'Obtener metadatos GVR de un documento' })
+  @DocumentLevelAccess()
   async obtenerMetadata(
     @Req() request: Request,
     @Param('projectExternalId') projectExternalId: string,
@@ -345,6 +352,7 @@ export class AccDocumentConfigController {
   @Post(':projectExternalId/metadata')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Guardar metadatos GVR tras subida a ACC' })
+  @DocumentLevelAccess()
   async upsertMetadata(
     @Param('projectExternalId') projectExternalId: string,
     @Body() dto: UpsertDocumentMetadataDto,

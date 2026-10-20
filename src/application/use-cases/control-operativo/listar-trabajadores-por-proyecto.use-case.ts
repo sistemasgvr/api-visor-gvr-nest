@@ -1,7 +1,3 @@
-import {
-  AuthRole,
-  ROLES_ADMIN_CONTROL_OPERATIVO,
-} from '../../../domain/constants/auth-role.constants';
 import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import type {
   IControlOperativoRepository,
@@ -12,17 +8,12 @@ import { ForbiddenError } from '../../errors/application.error';
 export interface ListarTrabajadoresPorProyectoInput {
   idUsuario: number;
   idProyecto: number;
-  /** IDs de roles considerados admin (Desempeño / reportes). */
-  rolesAdminPermitidos: number[];
+  /**
+   * true si el permiso de la pantalla (desempeño / entregables) alcanza a todo el proyecto:
+   * «todos», o «asignados» en un proyecto de su ámbito. Si no, sólo la propia persona.
+   */
+  verProyecto: boolean;
 }
-
-/** Roles que pueden usar esta lista (admin, coordinador o colaborador de entregables). */
-const ROLES_ACCESO_LISTA_TRABAJADORES_PROYECTO: number[] = [
-  ...ROLES_ADMIN_CONTROL_OPERATIVO,
-  AuthRole.Coordinador,
-  AuthRole.Modelador,
-  AuthRole.DesarrolladorWeb,
-];
 
 export class ListarTrabajadoresPorProyectoUseCase {
   constructor(
@@ -37,34 +28,16 @@ export class ListarTrabajadoresPorProyectoUseCase {
     const perfil = await this.authRepository.obtenerPerfilUsuario(
       input.idUsuario,
     );
-    if (!perfil?.roles || !Array.isArray(perfil.roles)) {
+    if (!perfil) {
       throw new ForbiddenError(
         'No tienes permiso para listar trabajadores del proyecto',
       );
     }
-    const rolesIds = (perfil.roles as { id?: number }[])
-      .map((r) => r?.id)
-      .filter((id): id is number => id != null);
-
-    const puedeAcceder = ROLES_ACCESO_LISTA_TRABAJADORES_PROYECTO.some((id) =>
-      rolesIds.includes(id),
-    );
-    if (!puedeAcceder) {
-      throw new ForbiddenError(
-        'No tienes permiso para listar trabajadores del proyecto',
-      );
-    }
-
-    const permitidosAdmin = input.rolesAdminPermitidos?.length
-      ? input.rolesAdminPermitidos
-      : [...ROLES_ADMIN_CONTROL_OPERATIVO];
-    const esAdmin = permitidosAdmin.some((id) => rolesIds.includes(id));
-    const esCoordinador = rolesIds.includes(AuthRole.Coordinador);
 
     const yo = this.trabajadorDesdePerfil(perfil);
 
-    // Colaborador (modelador / desarrollador): solo se ve a sí mismo para autoasignarse.
-    if (!esAdmin && !esCoordinador) {
+    // Alcance propio: sólo se ve a sí mismo (p. ej. para autoasignarse un entregable).
+    if (!input.verProyecto) {
       return yo ? [yo] : [];
     }
 

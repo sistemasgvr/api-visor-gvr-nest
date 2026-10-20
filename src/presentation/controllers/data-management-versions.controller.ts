@@ -35,6 +35,8 @@ import {
 } from '../dtos/data-management/versions';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
@@ -69,6 +71,7 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Obtener una versión por ID' })
   @Get(':projectId/:versionId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerVersionPorId(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -113,6 +116,7 @@ export class DataManagementVersionsController {
   })
   @Get(':projectId/:versionId/downloadFormats')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerFormatosDescarga(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -155,6 +159,7 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Información para descarga directa desde APS' })
   @Get(':projectId/:versionId/downloads')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerDescargas(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -197,6 +202,7 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Item poseedor de esta versión' })
   @Get(':projectId/:versionId/item')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -239,6 +245,7 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Referencias (refs) de la versión' })
   @Get(':projectId/:versionId/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerReferencias(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -281,6 +288,7 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Relaciones tipo links de la versión' })
   @Get(':projectId/:versionId/relationships/links')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesLinks(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -323,6 +331,7 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Relaciones tipo refs de la versión' })
   @Get(':projectId/:versionId/relationships/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesRefs(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -367,6 +376,7 @@ export class DataManagementVersionsController {
   })
   @Post(':projectId')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async crearVersion(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -401,6 +411,7 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Crear ref en esta versión' })
   @Post(':projectId/:versionId/relationships/refs')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async crearReferencia(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -442,6 +453,7 @@ export class DataManagementVersionsController {
   })
   @Patch(':projectId/:versionId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async actualizarVersion(
     @Req() request: Request,
     @Param('projectId') projectId: string,
