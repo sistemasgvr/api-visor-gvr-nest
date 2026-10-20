@@ -15,18 +15,19 @@ import {
   CompaniesController,
   ProjectsCompaniesController,
 } from '../../presentation/controllers/companies.controller';
+import { applicationProvider } from '../application.providers';
 
 @Module({
   controllers: [CompaniesController, ProjectsCompaniesController],
   providers: [
-    CrearCompanyUseCase,
-    ImportarCompaniesUseCase,
-    ObtenerCompaniesUseCase,
-    ObtenerCompanyPorIdUseCase,
-    BuscarCompaniesUseCase,
-    ObtenerCompaniesProyectoUseCase,
-    ActualizarCompanyUseCase,
-    SubirImagenCompanyUseCase,
+    applicationProvider(CrearCompanyUseCase),
+    applicationProvider(ImportarCompaniesUseCase),
+    applicationProvider(ObtenerCompaniesUseCase),
+    applicationProvider(ObtenerCompanyPorIdUseCase),
+    applicationProvider(BuscarCompaniesUseCase),
+    applicationProvider(ObtenerCompaniesProyectoUseCase),
+    applicationProvider(ActualizarCompanyUseCase),
+    applicationProvider(SubirImagenCompanyUseCase),
     AutodeskApiService,
     HttpClientService,
   ],
