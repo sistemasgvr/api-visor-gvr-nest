@@ -52,6 +52,7 @@ import { CerrarHabilitacionesVencidasUseCase } from '../../application/use-cases
 import { HabilitarJornadasUsuariosDto } from '../dtos/control-operativo/habilitar-jornadas-usuarios.dto';
 import { ActualizarEstadoJornadaDto } from '../dtos/control-operativo/actualizar-estado-jornada.dto';
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
+import { ListarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/listar-coordinadores-proyecto.use-case';
 import { ListarProyectosParaValidacionUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-para-validacion.use-case';
 import { ListarTrabajadoresSinJornadaHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-jornada-hoy.use-case';
 import { ListarTrabajadoresSinActividadesHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-actividades-hoy.use-case';
@@ -143,7 +144,42 @@ export class ControlOperativoController {
     private readonly exportarActividadesJornadasWordMasivoUseCase: ExportarActividadesJornadasWordMasivoUseCase,
     private readonly configService: ConfigService,
     private readonly access: ControlOperativoAccess,
+    private readonly listarCoordinadoresProyectoUseCase: ListarCoordinadoresProyectoUseCase,
   ) {}
+
+  @ApiOperation({ summary: 'Coordinadores disponibles para registrar o editar actividades' })
+  @Get('proyectos/:id/coordinadores')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission(
+    'control_operativo.actividades.crear',
+    'control_operativo.actividades.editar',
+  )
+  async listarCoordinadoresActividad(
+    @ActorId() actor: number,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    let permitido = false;
+    for (const code of [
+      'control_operativo.actividades.crear',
+      'control_operativo.actividades.editar',
+    ]) {
+      const proyectos = await this.access.proyectosPermitidos(actor, code);
+      if (proyectos === null || proyectos.includes(id)) {
+        permitido = true;
+        break;
+      }
+    }
+    if (!permitido) throw ControlOperativoAccess.denied();
+    const coordinadores = await this.listarCoordinadoresProyectoUseCase.execute(id);
+    return ApiResponseDto.success(
+      coordinadores.map(({ idtrabajador, nombrecoordinador }) => ({
+        idtrabajador,
+        nombrecoordinador,
+      })),
+      'Coordinadores del proyecto',
+    );
+  }
 
   /**
    * Cron único de cierre de jornadas (al final del día).

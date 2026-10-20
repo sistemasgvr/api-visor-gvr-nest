@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { ControlOperativoController } from '../controllers/control-operativo.controller';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ControlOperativoAccess } from '../../infrastructure/auth/control-operativo-access.service';
+import { ListarCoordinadoresProyectoUseCase } from '../../application/use-cases/proyecto/listar-coordinadores-proyecto.use-case';
 import { HabilitarJornadasUsuariosUseCase } from '../../application/use-cases/control-operativo/habilitar-jornadas-usuarios.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
 import { CerrarHabilitacionesVencidasUseCase } from '../../application/use-cases/control-operativo/cerrar-habilitaciones-vencidas.use-case';
@@ -24,10 +25,12 @@ describe('HTTP de habilitación temporal de jornadas', () => {
   const habilitar = { execute: jest.fn() };
   const actualizar = { execute: jest.fn() };
   const cerrar = { execute: jest.fn() };
+  const coordinadores = { execute: jest.fn() };
   // El alcance (propios/asignados/todos) lo resuelve el servicio de acceso con el permiso.
   const access = {
     exigirTrabajador: jest.fn(),
     trabajadorDeJornada: jest.fn(),
+    proyectosPermitidos: jest.fn(),
   };
   const body = {
     idTrabajadores: [101, 102],
@@ -54,7 +57,9 @@ describe('HTTP de habilitación temporal de jornadas', () => {
                   ? access
                   : provide === ConfigService
                     ? { get: () => cronSecret }
-                    : {},
+                    : provide === ListarCoordinadoresProyectoUseCase
+                      ? coordinadores
+                      : {},
       })),
     })
       .overrideGuard(JwtAuthGuard)
@@ -97,6 +102,36 @@ describe('HTTP de habilitación temporal de jornadas', () => {
       pasados_culminado: 1,
       pasados_incompleto: 2,
     });
+  });
+
+  it('lista coordinadores con acceso de actividades sin exponer el equipo', async () => {
+    access.proyectosPermitidos.mockResolvedValue([38]);
+    coordinadores.execute.mockResolvedValue([
+      { idtrabajador: 12, nombrecoordinador: 'Diego', miembrosEquipo: [{ idtrabajador: 13 }] },
+    ]);
+    const response = await request(app.getHttpServer())
+      .get('/control-operativo/proyectos/38/coordinadores')
+      .expect(200);
+    expect(access.proyectosPermitidos).toHaveBeenCalledWith(7, 'control_operativo.actividades.crear');
+    expect(coordinadores.execute).toHaveBeenCalledWith(38);
+    expect(response.body.data).toEqual([{ idtrabajador: 12, nombrecoordinador: 'Diego' }]);
+  });
+
+  it('rechaza coordinadores de proyectos fuera del alcance del usuario', async () => {
+    access.proyectosPermitidos.mockResolvedValue([]);
+    await request(app.getHttpServer())
+      .get('/control-operativo/proyectos/38/coordinadores')
+      .expect(403);
+    expect(coordinadores.execute).not.toHaveBeenCalled();
+  });
+
+  it('permite consultar con alcance todos o solo permiso de edición', async () => {
+    access.proyectosPermitidos.mockResolvedValueOnce([]).mockResolvedValueOnce(null);
+    coordinadores.execute.mockResolvedValue([]);
+    await request(app.getHttpServer())
+      .get('/control-operativo/proyectos/38/coordinadores')
+      .expect(200);
+    expect(access.proyectosPermitidos).toHaveBeenCalledWith(7, 'control_operativo.actividades.editar');
   });
 
   it('habilita según el permiso sobre cada trabajador y toma el actor de la sesión', async () => {

@@ -69,6 +69,6 @@ import { StorageModule } from './platform/storage.module';
     applicationProvider(GuardarCoordinadoresProyectoUseCase),
     applicationProvider(ListarEstadisticasProyectosPorEstadoUseCase),
   ],
-  exports: [PROYECTO_REPOSITORY],
+  exports: [PROYECTO_REPOSITORY, ListarCoordinadoresProyectoUseCase],
 })
 export class ProyectoModule {}
