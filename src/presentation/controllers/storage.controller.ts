@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  ParseIntPipe,
   Query,
   Req,
   UploadedFile,
@@ -118,17 +119,25 @@ export class StorageController {
       },
     },
   })
+  // Query, no body: el guard global corre antes que multer y en multipart el body aún está vacío.
+  @ApiQuery({ name: 'actividadId', required: true, type: Number })
   @RequireResourcePermission(
     'control_operativo.actividades.adjuntar_evidencias',
     'control_activity',
     'actividadId',
-    'body',
+    'query',
   )
   async uploadEvidencia(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadEvidenciaDto,
+    @Query('actividadId', ParseIntPipe) actividadIdAutorizada: number,
     @Req() req: Request,
   ) {
+    if (dto.actividadId !== actividadIdAutorizada) {
+      throw new BadRequestException(
+        'actividadId del cuerpo no coincide con el de la consulta',
+      );
+    }
     const user = req.user!;
     const displayName =
       user.nombre?.trim() || user.correo || `usuario-${user.id}`;
