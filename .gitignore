@@ -3,6 +3,9 @@
 /node_modules
 /build
 
+# Local database backups
+/backups/
+
 # Logs
 logs
 *.log
