@@ -1,3 +1,4 @@
+import { ListarCalendariosPublicadosUseCase } from '../../application/use-cases/trabajador/listar-calendarios-publicados.use-case';
 import { Module } from '@nestjs/common';
 import { ActivarTrabajadorUseCase } from '../../application/use-cases/trabajador/activar-trabajador.use-case';
 import { ActualizarContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/actualizar-contrato-trabajador.use-case';
@@ -34,6 +35,7 @@ import { StorageModule } from './platform/storage.module';
     // Use cases
     applicationProvider(ListarTrabajadoresUseCase),
     applicationProvider(ListarAdministrativosUseCase),
+    applicationProvider(ListarCalendariosPublicadosUseCase),
     applicationProvider(ObtenerTrabajadorUseCase),
     applicationProvider(ObtenerFotoPerfilTrabajadorUseCase),
     applicationProvider(SubirFirmaTrabajadorUseCase),

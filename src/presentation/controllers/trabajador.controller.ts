@@ -1,3 +1,4 @@
+import { ListarCalendariosPublicadosUseCase } from '../../application/use-cases/trabajador/listar-calendarios-publicados.use-case';
 import {
   Controller,
   Get,
@@ -69,6 +70,7 @@ const CAMPOS_CONTRATO = [
 @UseGuards(JwtAuthGuard)
 export class TrabajadorController {
   constructor(
+    private readonly listarCalendariosPublicadosUseCase: ListarCalendariosPublicadosUseCase,
     private readonly listarTrabajadoresUseCase: ListarTrabajadoresUseCase,
     private readonly listarAdministrativosUseCase: ListarAdministrativosUseCase,
     private readonly obtenerTrabajadorUseCase: ObtenerTrabajadorUseCase,
@@ -86,6 +88,12 @@ export class TrabajadorController {
     private readonly jwtService: JwtService,
     private readonly authorization: AuthorizationService,
   ) {}
+
+  @Get('calendarios-publicados')
+  @RequireScopedPermission('usuarios.trabajadores.crear', 'usuarios.trabajadores.editar')
+  async listarCalendariosPublicados() {
+    return ApiResponseDto.success(await this.listarCalendariosPublicadosUseCase.execute(), 'Calendarios publicados obtenidos');
+  }
 
   /**
    * Listar trabajadores administrativos

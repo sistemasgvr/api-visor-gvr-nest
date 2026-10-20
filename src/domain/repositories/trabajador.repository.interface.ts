@@ -53,6 +53,7 @@ export interface CrearTrabajadorData {
   fechaInicioContrato?: string;
   fechaFinContrato?: string;
   idModalidad?: number;
+  idCalendario?: number | null;
   idPuestoTrabajo?: number;
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
@@ -123,6 +124,7 @@ export interface EditarTrabajadorData {
   fechaInicioContrato?: string;
   fechaFinContrato?: string;
   idModalidad?: number;
+  idCalendario?: number | null;
   idPuestoTrabajo?: number;
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }
@@ -131,6 +133,7 @@ export interface ITrabajadorRepository {
   listarTrabajadores(
     params: ListarTrabajadoresParams,
   ): Promise<ListarTrabajadoresResponse>;
+  listarCalendariosPublicados(): Promise<{ id: number; nombre: string; numeroversion: number }[]>;
   listarTrabajadoresAdministrativos(): Promise<any[]>;
   obtenerTrabajadorPorId(idTrabajador: number): Promise<any>;
 

@@ -9,6 +9,7 @@ import {
   IsNumber,
   IsDateString,
   IsArray,
+  Min,
 } from 'class-validator';
 import { EmptyStringToUndefined } from '../common/empty-string-to-undefined.transform';
 
@@ -61,6 +62,7 @@ export class CreateTrabajadorDto {
   @IsDateString()
   fechaFinContrato?: string;
   @IsOptional() @IsInt() idModalidad?: number;
+  @IsOptional() @IsInt() @Min(1) @Type(() => Number) idCalendario?: number | null;
   @IsOptional() @IsInt() idPuestoTrabajo?: number;
   @IsOptional() @IsArray() adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

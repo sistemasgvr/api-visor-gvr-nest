@@ -111,6 +111,10 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     };
   }
 
+  async listarCalendariosPublicados(): Promise<{ id: number; nombre: string; numeroversion: number }[]> {
+    return this.databaseFunctionService.callFunction('tra_ListarCalendariosPublicados');
+  }
+
   async listarTrabajadoresAdministrativos(): Promise<any[]> {
     // Call traListarTrabajadoresAdministrativos (otro archivo SQL)
     const result = await this.databaseFunctionService.callFunction<any>(
@@ -242,7 +246,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
   async obtenerTrabajadorPorId(idTrabajador: number): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'tra_ObtenerTrabajadorPorId',
+      'tra_ObtenerTrabajadorPorIdV2',
       [idTrabajador],
     );
 
@@ -337,7 +341,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
   async crearTrabajador(data: CrearTrabajadorData): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'tra_CrearTrabajador',
+      'tra_CrearTrabajadorV2',
       [
         data.nombres,
         data.apellidos,
@@ -373,6 +377,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         data.fechaFinContrato ?? null,
         data.idModalidad ?? null,
         data.idPuestoTrabajo ?? null,
+        data.idCalendario ?? null,
       ],
     );
 
@@ -381,7 +386,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
   async editarTrabajador(data: EditarTrabajadorData): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'tra_EditarTrabajador',
+      'tra_EditarTrabajadorV2',
       [
         data.idTrabajador,
         data.nombres,
@@ -418,6 +423,8 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         data.fechaFinContrato ?? null,
         data.idModalidad ?? null,
         data.idPuestoTrabajo ?? null,
+        data.idCalendario ?? null,
+        data.idCalendario !== undefined,
       ],
     );
 

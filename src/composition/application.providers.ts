@@ -1,3 +1,4 @@
+import { ListarCalendariosPublicadosUseCase } from '../application/use-cases/trabajador/listar-calendarios-publicados.use-case';
 import { AUTHORIZATION_POLICIES } from '../application/ports/authorization.port';
 import { GRANULAR_PERMISSIONS } from '../application/ports/granular-permissions.port';
 import { AuthorizationService } from '../application/services/authorization.service';
@@ -953,6 +954,7 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
   [EliminarContratoTrabajadorUseCase, [TRABAJADOR_REPOSITORY]],
   [EliminarTrabajadorUseCase, [TRABAJADOR_REPOSITORY]],
   [ListarAdministrativosUseCase, [TRABAJADOR_REPOSITORY]],
+  [ListarCalendariosPublicadosUseCase, [TRABAJADOR_REPOSITORY]],
   [ListarTrabajadoresUseCase, [TRABAJADOR_REPOSITORY]],
   [ObtenerFirmaTrabajadorUseCase, [TRABAJADOR_REPOSITORY, MinioStorageService]],
   [
