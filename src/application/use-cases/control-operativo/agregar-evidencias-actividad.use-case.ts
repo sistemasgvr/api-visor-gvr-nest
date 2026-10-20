@@ -2,7 +2,7 @@ import type {
   ActividadEvidenciaEntrada,
   IControlOperativoRepository,
 } from '../../../domain/repositories/control-operativo.repository.interface';
-import { ForbiddenError, NotFoundError } from '../../errors/application.error';
+import { NotFoundError } from '../../errors/application.error';
 
 export interface AgregarEvidenciasActividadInput {
   idActividad: number;
@@ -19,23 +19,11 @@ export class AgregarEvidenciasActividadUseCase {
     if (input.idActividad == null || input.idActividad < 1) {
       throw new NotFoundError('Actividad no encontrada');
     }
-    const idTrabajador =
-      await this.controlOperativoRepository.obtenerIdTrabajadorPorIdUsuario(
-        input.idUsuario,
-      );
-    if (idTrabajador == null) {
-      throw new ForbiddenError('Sin perfil de trabajador asociado al usuario');
-    }
     const actividad = await this.controlOperativoRepository.obtenerActividad(
       input.idActividad,
     );
     if (actividad == null) {
       throw new NotFoundError('Actividad no encontrada');
-    }
-    if (actividad.idtrabajador !== idTrabajador) {
-      throw new ForbiddenError(
-        'Solo puede registrar evidencias en sus propias actividades',
-      );
     }
     const seen = new Map<string, ActividadEvidenciaEntrada>();
     for (const e of input.evidencias ?? []) {

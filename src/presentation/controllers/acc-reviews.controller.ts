@@ -14,6 +14,8 @@ import {
   BadRequestException,
   ParseIntPipe,
 } from '@nestjs/common';
+import { RequireDocumentProject } from '../../infrastructure/auth/document-access.guard';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
@@ -58,6 +60,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 @Controller('acc/projects/:projectId/reviews')
 export class AccReviewsController {
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly obtenerRevisionesUseCase: ObtenerRevisionesUseCase,
     private readonly crearRevisionUseCase: CrearRevisionUseCase,
     private readonly obtenerRevisionPorIdUseCase: ObtenerRevisionPorIdUseCase,
@@ -88,6 +91,7 @@ export class AccReviewsController {
     summary: 'Directorio de revisiones ACC con filtros',
     description: 'Incluye metadatos de paginación si APS lo devolvió.',
   })
+  @RequireDocumentProject('member')
   @Get()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -132,6 +136,7 @@ export class AccReviewsController {
     summary: 'Exportar tabla de revisiones a PDF binario',
     description: 'Mismos filtros que lista sin paginar en cliente.',
   })
+  @RequireDocumentProject('member')
   @Get('export/pdf')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -174,6 +179,7 @@ export class AccReviewsController {
   @ApiOperation({
     summary: 'Crear revisión nueva en proyecto ACC/BIM Collaborate Pro',
   })
+  @RequireDocumentProject('member')
   @Post()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -211,6 +217,7 @@ export class AccReviewsController {
     summary: 'Ficha ejecutiva revisión PDF',
     description: 'Incluye flujo, adjuntos y comentarios por archivo ACC.',
   })
+  @RequireDocumentProject('member')
   @Get(':reviewId/export/pdf')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -220,6 +227,10 @@ export class AccReviewsController {
     @Req() request: Request,
     @Res() response: Response,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!projectId)
       throw new BadRequestException('El ID del proyecto es requerido');
     if (!reviewId)
@@ -253,6 +264,7 @@ export class AccReviewsController {
    * Obtiene el detalle de una revisi?n
    */
   @ApiOperation({ summary: 'Detalle APS de revisión por identificador' })
+  @RequireDocumentProject('member')
   @Get(':reviewId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -261,6 +273,10 @@ export class AccReviewsController {
     @Param('reviewId') reviewId: string,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!projectId)
       throw new BadRequestException('El ID del proyecto es requerido');
     if (!reviewId)
@@ -286,6 +302,7 @@ export class AccReviewsController {
   @ApiOperation({
     summary: 'Workflow estático Autodesk asociado a la revisión',
   })
+  @RequireDocumentProject('member')
   @Get(':reviewId/workflow')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -294,6 +311,10 @@ export class AccReviewsController {
     @Param('reviewId') reviewId: string,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!projectId)
       throw new BadRequestException('El ID del proyecto es requerido');
     if (!reviewId)
@@ -320,6 +341,7 @@ export class AccReviewsController {
    * Obtiene el progreso de una revisi?n
    */
   @ApiOperation({ summary: 'Avance (% pasos cerrados APS)' })
+  @RequireDocumentProject('member')
   @Get(':reviewId/progress')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -328,6 +350,10 @@ export class AccReviewsController {
     @Param('reviewId') reviewId: string,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!projectId)
       throw new BadRequestException('El ID del proyecto es requerido');
     if (!reviewId)
@@ -356,6 +382,7 @@ export class AccReviewsController {
   @ApiOperation({
     summary: 'Versiones BIM360/ACC relacionadas revisión actual',
   })
+  @RequireDocumentProject('member')
   @Get(':reviewId/versions')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -364,6 +391,10 @@ export class AccReviewsController {
     @Param('reviewId') reviewId: string,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!projectId)
       throw new BadRequestException('El ID del proyecto es requerido');
     if (!reviewId)
@@ -390,6 +421,7 @@ export class AccReviewsController {
    * Lista las referencias de una revisi?n
    */
   @ApiOperation({ summary: 'Referencias cruzadas almacenadas en GVR' })
+  @RequireDocumentProject('member')
   @Get(':reviewId/references')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -397,6 +429,10 @@ export class AccReviewsController {
     @Param('reviewId') reviewId: string,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!reviewId)
       throw new BadRequestException('El ID de la revisi?n es requerido');
 
@@ -419,6 +455,7 @@ export class AccReviewsController {
   @ApiOperation({
     summary: 'Adjuntar referencias internas proyecto ↔ revisión ACC',
   })
+  @RequireDocumentProject('member')
   @Post(':reviewId/references')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -428,6 +465,10 @@ export class AccReviewsController {
     @Body() dto: AgregarReferenciaRevisionDto | AgregarReferenciaRevisionDto[],
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!reviewId)
       throw new BadRequestException('El ID de la revisi?n es requerido');
 
@@ -464,6 +505,7 @@ export class AccReviewsController {
   @ApiOperation({
     summary: 'Eliminar referencia previamente persistida por id numérico GVR',
   })
+  @RequireDocumentProject('member')
   @Delete(':reviewId/references/:refId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -471,6 +513,11 @@ export class AccReviewsController {
     @Param('refId', ParseIntPipe) refId: number,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+      refId,
+    );
     const user = request.user!;
     const userId = user?.sub || user?.id;
     if (!userId) throw new BadRequestException('User ID es requerido');
@@ -490,6 +537,7 @@ export class AccReviewsController {
     summary: 'Anular completamente revisión (void entire APS)',
     description: 'Solo roles con permiso de owner según Autodesk.',
   })
+  @RequireDocumentProject('admin')
   @Post(':reviewId/void')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -499,6 +547,10 @@ export class AccReviewsController {
     @Body() dto: AnularRevisionDto,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!reviewId)
       throw new BadRequestException('El ID de la revisi?n es requerido');
 
@@ -529,6 +581,7 @@ export class AccReviewsController {
     summary: 'Forzar paso siguiente sin completar chequeos Autodesk',
     description: 'Útil automatizaciones aprobadas por PM.',
   })
+  @RequireDocumentProject('admin')
   @Post(':reviewId/skip-step')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -538,6 +591,10 @@ export class AccReviewsController {
     @Body() dto: SaltarPasoRevisionDto,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!reviewId)
       throw new BadRequestException('El ID de la revisi?n es requerido');
 
@@ -568,6 +625,7 @@ export class AccReviewsController {
     summary: 'Regresionar workflow al estado previo Autodesk',
     description: 'Motivo debe ir en dto.body.',
   })
+  @RequireDocumentProject('admin')
   @Post(':reviewId/return-step')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -577,6 +635,10 @@ export class AccReviewsController {
     @Body() dto: VolverPasoAnteriorRevisionDto,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!reviewId)
       throw new BadRequestException('El ID de la revisi?n es requerido');
 
@@ -604,6 +666,7 @@ export class AccReviewsController {
     summary: 'Reclamar paso editable (equivalent a claim Autodesk)',
     description: 'Usuario actual se bloquea escritura exclusiva APS.',
   })
+  @RequireDocumentProject('member')
   @Post(':reviewId/claim-step')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -612,6 +675,10 @@ export class AccReviewsController {
     @Param('reviewId') reviewId: string,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
     if (isNaN(idRevision))
       throw new BadRequestException('ID de revisi?n inv?lido');
@@ -633,6 +700,7 @@ export class AccReviewsController {
     summary: 'Delegar liberación paso Autodesk',
     description: 'Útil cuando revisor debe ceder escritura concurrente.',
   })
+  @RequireDocumentProject('member')
   @Post(':reviewId/delegate-step')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -641,6 +709,10 @@ export class AccReviewsController {
     @Param('reviewId') reviewId: string,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
     if (isNaN(idRevision))
       throw new BadRequestException('ID de revisi?n inv?lido');
@@ -662,6 +734,7 @@ export class AccReviewsController {
     summary: 'Enviar reseña/cierre del paso activo Autodesk',
     description: 'Fusiona contenido APS + payloads GVR (observaciones).',
   })
+  @RequireDocumentProject('member')
   @Post(':reviewId/submit-step')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -671,6 +744,10 @@ export class AccReviewsController {
     @Body() dto: EnviarResenaPasoDto,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
     if (isNaN(idRevision))
       throw new BadRequestException('ID de revisi?n inv?lido');
@@ -697,6 +774,7 @@ export class AccReviewsController {
     description:
       'Procesamiento asíncrono vía infraestructura de correos proyecto.',
   })
+  @RequireDocumentProject('member')
   @Post(':reviewId/notify-reviewers')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -706,6 +784,10 @@ export class AccReviewsController {
     @Body() dto: NotificarRevisoresRevisionDto,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     if (!reviewId)
       throw new BadRequestException('El ID de la revisi?n es requerido');
     if (!projectId)
@@ -732,12 +814,18 @@ export class AccReviewsController {
       'Histórico de comentarios en archivo ACC embebidos en revisión GVR',
     description: 'Resuelve id revision GVR-### antes de obtener comentarios.',
   })
+  @RequireDocumentProject('member')
   @Get(':reviewId/files/:fileId/comments')
   @UseGuards(JwtAuthGuard)
   async getComentariosArchivo(
+    @Req() request: Request,
     @Param('reviewId') reviewId: string,
     @Param('fileId') fileId: string,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
     const idArchivo = parseInt(fileId, 10);
     if (isNaN(idRevision))
@@ -756,6 +844,7 @@ export class AccReviewsController {
     summary: 'Agregar marcador/discusión BIM sobre archivo de revisión',
     description: 'Sincroniza con ACC Markups según archivo numérico asociado.',
   })
+  @RequireDocumentProject('member')
   @Post(':reviewId/files/:fileId/comments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -765,6 +854,10 @@ export class AccReviewsController {
     @Body() dto: AddComentarioArchivoDto,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertReviewInProject(
+      String(request.params.projectId),
+      String(request.params.reviewId),
+    );
     const idRevision = parseInt(reviewId.replace(/^GVR-/i, ''), 10);
     const idArchivo = parseInt(fileId, 10);
     if (isNaN(idRevision))

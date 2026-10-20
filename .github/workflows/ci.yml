@@ -28,6 +28,8 @@ jobs:
         run: npm run check:architecture
       - name: HTTP contracts
         run: npm run check:contracts
+      - name: Authorization coverage (blocks incomplete authorization)
+        run: npm run check:authorization-coverage
       - name: E2E tests
         run: npm run test:e2e
       - name: Build

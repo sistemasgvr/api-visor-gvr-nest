@@ -6,8 +6,10 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 
 // Use cases
@@ -19,9 +21,13 @@ import { ObtenerMetadatosUseCase } from '../../application/use-cases/acc/viewer/
 // DTOs
 import { GenerarTokenViewerDto } from '../dtos/acc/viewer/generar-token-viewer.dto';
 import { ObtenerTokenPublicoDto } from '../dtos/acc/viewer/obtener-token-publico.dto';
+import { AuthenticatedAccess } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('acc')
+@ApiBearerAuth('access-token')
 @Controller('acc/viewer')
+// Los tokens de aplicación dan lectura de modelos: sólo para sesiones válidas.
+@UseGuards(JwtAuthGuard)
 export class AccViewerController {
   constructor(
     private readonly generarTokenViewerUseCase: GenerarTokenViewerUseCase,
@@ -38,10 +44,12 @@ export class AccViewerController {
     summary: 'Generar token para el viewer Autodesk (2-legged)',
     description:
       'Obtiene un token de aplicación con ámbito viewables:read para cargar modelos.',
-    security: [],
   })
   @Post('token')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Visor: token de solo lectura para sesiones válidas; el documento se autoriza al abrirlo en Docs',
+  )
   async generarTokenViewer(@Body() dto: GenerarTokenViewerDto) {
     const resultado = await this.generarTokenViewerUseCase.execute(dto);
 
@@ -55,10 +63,12 @@ export class AccViewerController {
   @ApiOperation({
     summary: 'Token público para el viewer',
     description: 'Genera token con validaciones adicionales de seguridad.',
-    security: [],
   })
   @Post('token/public')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Visor: token de solo lectura para sesiones válidas; el documento se autoriza al abrirlo en Docs',
+  )
   async obtenerTokenPublico(@Body() dto: ObtenerTokenPublicoDto) {
     const resultado = await this.obtenerTokenPublicoUseCase.execute(dto);
 
@@ -75,10 +85,12 @@ export class AccViewerController {
   @ApiOperation({
     summary: 'Obtener manifiesto de traducción',
     description: 'Devuelve el manifiesto de un URN ya traducido en APS.',
-    security: [],
   })
   @Get('manifest/:urn')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Visor: token de solo lectura para sesiones válidas; el documento se autoriza al abrirlo en Docs',
+  )
   async obtenerManifiesto(@Param('urn') urn: string) {
     const resultado = await this.obtenerManifiestoUseCase.execute(urn);
 
@@ -94,10 +106,12 @@ export class AccViewerController {
    */
   @ApiOperation({
     summary: 'Obtener metadatos del modelo',
-    security: [],
   })
   @Get('metadata/:urn')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Visor: token de solo lectura para sesiones válidas; el documento se autoriza al abrirlo en Docs',
+  )
   async obtenerMetadatos(@Param('urn') urn: string) {
     const resultado = await this.obtenerMetadatosUseCase.execute(urn);
 

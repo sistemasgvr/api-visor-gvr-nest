@@ -45,6 +45,10 @@ export class EnvironmentVariables {
   @Transform(({ value }) => value === 'true')
   DB_LOGGING: boolean;
 
+  @IsOptional()
+  @IsString()
+  DB_SSL?: string;
+
   // Autodesk ACC Configuration
   @IsString()
   AUTODESK_CLIENT_ID: string;

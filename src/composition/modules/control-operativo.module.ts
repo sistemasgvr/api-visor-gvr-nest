@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ActualizarActividadUseCase } from '../../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
+import { HabilitarJornadasUsuariosUseCase } from '../../application/use-cases/control-operativo/habilitar-jornadas-usuarios.use-case';
+import { CerrarHabilitacionesVencidasUseCase } from '../../application/use-cases/control-operativo/cerrar-habilitaciones-vencidas.use-case';
 import { AgregarEvidenciasActividadUseCase } from '../../application/use-cases/control-operativo/agregar-evidencias-actividad.use-case';
 import { CrearActividadUseCase } from '../../application/use-cases/control-operativo/crear-actividad.use-case';
 import { CrearJornadaUseCase } from '../../application/use-cases/control-operativo/crear-jornada.use-case';
@@ -65,6 +67,8 @@ import { ProyectoModule } from './proyecto.module';
     applicationProvider(ListarActividadesUseCase),
     applicationProvider(CronCierreJornadasUseCase),
     applicationProvider(ActualizarEstadoJornadaUseCase),
+    applicationProvider(HabilitarJornadasUsuariosUseCase),
+    applicationProvider(CerrarHabilitacionesVencidasUseCase),
     applicationProvider(ListarProyectosAccesoTrabajadorUseCase),
     applicationProvider(ListarProyectosParaValidacionUseCase),
     applicationProvider(ListarTrabajadoresSinJornadaHoyUseCase),

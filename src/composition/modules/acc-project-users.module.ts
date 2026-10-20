@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { applicationProvider } from '../application.providers';
 import {
   ActualizarUsuarioProyectoUseCase,
   AgregarUsuarioProyectoUseCase,
@@ -15,13 +16,13 @@ import { AccProjectUsersController } from '../../presentation/controllers/acc-pr
 @Module({
   controllers: [AccProjectUsersController],
   providers: [
-    ObtenerUsuariosProyectoUseCase,
-    ObtenerUsuarioProyectoPorIdUseCase,
-    BuscarUsuariosProyectoUseCase,
-    AgregarUsuarioProyectoUseCase,
-    ImportarUsuariosProyectoUseCase,
-    ActualizarUsuarioProyectoUseCase,
-    EliminarUsuarioProyectoUseCase,
+    applicationProvider(ObtenerUsuariosProyectoUseCase),
+    applicationProvider(ObtenerUsuarioProyectoPorIdUseCase),
+    applicationProvider(BuscarUsuariosProyectoUseCase),
+    applicationProvider(AgregarUsuarioProyectoUseCase),
+    applicationProvider(ImportarUsuariosProyectoUseCase),
+    applicationProvider(ActualizarUsuarioProyectoUseCase),
+    applicationProvider(EliminarUsuarioProyectoUseCase),
     AutodeskApiService,
     HttpClientService,
   ],

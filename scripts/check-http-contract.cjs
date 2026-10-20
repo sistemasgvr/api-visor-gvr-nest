@@ -17,7 +17,7 @@ function canonical(node, source) {
 function describe(file, text) {
   const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
   if (file.includes('/dtos/')) return source.statements.filter(node => !ts.isImportDeclaration(node)).map(node => canonical(node, source));
-  const names = new Set(['Controller', 'Get', 'Post', 'Put', 'Patch', 'Delete', 'Head', 'Options', 'All', 'HttpCode', 'Header', 'UseGuards', 'UseInterceptors', 'Version', 'SetMetadata', 'Roles', 'UsePipes']);
+  const names = new Set(['Controller', 'Get', 'Post', 'Put', 'Patch', 'Delete', 'Head', 'Options', 'All', 'HttpCode', 'Header', 'UseGuards', 'UseInterceptors', 'Version', 'SetMetadata', 'Roles', 'UsePipes', 'RequireGranularPermission', 'RequireIssuePermission', 'RequireDocumentProject', 'RequireProjectPermission', 'RequireWorkerPermission', 'RequireScopedPermission', 'RequireResourcePermission', 'RequireSelfPermission', 'ContextualAuthorization', 'AuthenticatedAccess', 'DocumentLevelAccess']);
   const decorators = node => (ts.canHaveDecorators(node) ? ts.getDecorators(node) ?? [] : []).filter(decorator => {
     const expression = decorator.expression;
     return ts.isCallExpression(expression) && names.has(expression.expression.getText(source));

@@ -12,18 +12,19 @@ import {
 import { HttpClientService } from '../../infrastructure/http/http-client.service';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { Bim360ProjectsController } from '../../presentation/controllers/bim360-projects.controller';
+import { applicationProvider } from '../application.providers';
 
 @Module({
   controllers: [Bim360ProjectsController],
   providers: [
-    CrearProyectoBim360UseCase,
-    ObtenerProyectosLegacyUseCase,
-    ObtenerProyectosNewUseCase,
-    ObtenerProyectoPorIdLegacyUseCase,
-    ObtenerProyectoPorIdNewUseCase,
-    ActualizarProyectoBim360UseCase,
-    ActualizarImagenProyectoBim360UseCase,
-    ObtenerIssueContainerIdUseCase,
+    applicationProvider(CrearProyectoBim360UseCase),
+    applicationProvider(ObtenerProyectosLegacyUseCase),
+    applicationProvider(ObtenerProyectosNewUseCase),
+    applicationProvider(ObtenerProyectoPorIdLegacyUseCase),
+    applicationProvider(ObtenerProyectoPorIdNewUseCase),
+    applicationProvider(ActualizarProyectoBim360UseCase),
+    applicationProvider(ActualizarImagenProyectoBim360UseCase),
+    applicationProvider(ObtenerIssueContainerIdUseCase),
     AutodeskApiService,
     HttpClientService,
   ],

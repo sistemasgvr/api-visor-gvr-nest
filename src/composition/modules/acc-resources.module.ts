@@ -23,29 +23,30 @@ import { ACC_RESOURCES_REPOSITORY } from '../../domain/repositories/acc-resource
 import { DatabaseFunctionService } from '../../infrastructure/database/database-function.service';
 import { AccResourcesRepository } from '../../infrastructure/repositories/acc-resources.repository';
 import { AccResourcesController } from '../../presentation/controllers/acc-resources.controller';
+import { applicationProvider } from '../application.providers';
 
 @Module({
   controllers: [AccResourcesController],
   providers: [
     // Use Cases
-    ListarRecursosUseCase,
-    ObtenerRecursoPorIdUseCase,
-    CrearRecursoUseCase,
-    ActualizarRecursoUseCase,
-    EliminarRecursoUseCase,
-    ListarPermisosRolUseCase,
-    ListarRolesRecursoUseCase,
-    AsignarPermisoUseCase,
-    RemoverPermisoUseCase,
-    SincronizarPermisosRolUseCase,
-    ListarPermisosUsuarioUseCase,
-    ListarUsuariosRecursoUseCase,
-    ListarUsuariosDisponiblesRecursoUseCase,
-    AsignarPermisoUsuarioUseCase,
-    ActualizarNivelPermisoUsuarioUseCase,
-    RemoverPermisoUsuarioUseCase,
-    SincronizarPermisosUsuarioUseCase,
-    ListarNivelesPermisoUseCase,
+    applicationProvider(ListarRecursosUseCase),
+    applicationProvider(ObtenerRecursoPorIdUseCase),
+    applicationProvider(CrearRecursoUseCase),
+    applicationProvider(ActualizarRecursoUseCase),
+    applicationProvider(EliminarRecursoUseCase),
+    applicationProvider(ListarPermisosRolUseCase),
+    applicationProvider(ListarRolesRecursoUseCase),
+    applicationProvider(AsignarPermisoUseCase),
+    applicationProvider(RemoverPermisoUseCase),
+    applicationProvider(SincronizarPermisosRolUseCase),
+    applicationProvider(ListarPermisosUsuarioUseCase),
+    applicationProvider(ListarUsuariosRecursoUseCase),
+    applicationProvider(ListarUsuariosDisponiblesRecursoUseCase),
+    applicationProvider(AsignarPermisoUsuarioUseCase),
+    applicationProvider(ActualizarNivelPermisoUsuarioUseCase),
+    applicationProvider(RemoverPermisoUsuarioUseCase),
+    applicationProvider(SincronizarPermisosUsuarioUseCase),
+    applicationProvider(ListarNivelesPermisoUseCase),
 
     // Repository
     {

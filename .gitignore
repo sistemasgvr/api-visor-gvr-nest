@@ -2,6 +2,7 @@
 /dist
 /node_modules
 /build
+/backups/
 
 # Local database backups
 /backups/
@@ -44,6 +45,7 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
+.env.database-local
 
 # temp directory
 .temp

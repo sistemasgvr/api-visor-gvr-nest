@@ -1,3 +1,13 @@
+import { AUTHORIZATION_POLICIES } from '../application/ports/authorization.port';
+import { GRANULAR_PERMISSIONS } from '../application/ports/granular-permissions.port';
+import { AuthorizationService } from '../application/services/authorization.service';
+import { GranularPermissionsService } from '../application/services/granular-permissions.service';
+import { DocumentAccessService } from '../application/services/document-access.service';
+import { IssueAccessService } from '../application/services/issue-access.service';
+import {
+  DOCUMENT_ACCESS_READER,
+  DOCUMENT_HIERARCHY,
+} from '../application/ports/document-access.port';
 import { ListarFeriadosUseCase } from '../application/use-cases/planificacion/calendarios/listar-feriados.use-case';
 import { ObtenerFeriadoUseCase } from '../application/use-cases/planificacion/calendarios/obtener-feriado.use-case';
 import { GuardarFeriadoUseCase } from '../application/use-cases/planificacion/calendarios/guardar-feriado.use-case';
@@ -203,6 +213,8 @@ import { ObtenerProyectosLegacyUseCase } from '../application/use-cases/bim360/p
 import { ObtenerProyectosNewUseCase } from '../application/use-cases/bim360/projects/obtener-proyectos-new.use-case';
 import { ActualizarActividadUseCase } from '../application/use-cases/control-operativo/actualizar-actividad.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
+import { HabilitarJornadasUsuariosUseCase } from '../application/use-cases/control-operativo/habilitar-jornadas-usuarios.use-case';
+import { CerrarHabilitacionesVencidasUseCase } from '../application/use-cases/control-operativo/cerrar-habilitaciones-vencidas.use-case';
 import { AgregarEvidenciasActividadUseCase } from '../application/use-cases/control-operativo/agregar-evidencias-actividad.use-case';
 import { CrearActividadUseCase } from '../application/use-cases/control-operativo/crear-actividad.use-case';
 import { CrearJornadaUseCase } from '../application/use-cases/control-operativo/crear-jornada.use-case';
@@ -505,6 +517,13 @@ import { ActivityDocumentsAdapter } from '../infrastructure/word/activity-docume
 
 /** Ensamblaje de dependencias fuera de aplicación; los casos de uso son clases TypeScript puras. */
 const dependencies = new Map<Type<any>, InjectionToken[]>([
+  [AuthorizationService, [GRANULAR_PERMISSIONS, AUTHORIZATION_POLICIES]],
+  [GranularPermissionsService, [GRANULAR_PERMISSIONS, AuthorizationService]],
+  [IssueAccessService, [AuthorizationService]],
+  [
+    DocumentAccessService,
+    [DOCUMENT_ACCESS_READER, DOCUMENT_HIERARCHY, AuthorizationService],
+  ],
   [ListarFeriadosUseCase, [CALENDARIOS_REPOSITORY]],
   [ObtenerFeriadoUseCase, [CALENDARIOS_REPOSITORY]],
   [GuardarFeriadoUseCase, [CALENDARIOS_REPOSITORY]],
@@ -602,6 +621,8 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
     ],
   ],
   [ActualizarEstadoJornadaUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
+  [HabilitarJornadasUsuariosUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
+  [CerrarHabilitacionesVencidasUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [AgregarEvidenciasActividadUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [
     CrearActividadUseCase,
@@ -636,55 +657,35 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
     [CONTROL_OPERATIVO_REPOSITORY, ActivityDocumentsAdapter],
   ],
   [ListarActividadesObservadasSubsanarUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
-  [
-    ListarActividadesValidacionUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
-  ],
+  [ListarActividadesValidacionUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [ListarActividadesUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
-  [ListarDesempenoUseCase, [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY]],
+  [ListarDesempenoUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [ListarJornadasTrabajadorUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
-  [
-    ListarLideresEquipoReporteGeneralUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
-  ],
+  [ListarLideresEquipoReporteGeneralUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [ListarObservacionesActividadUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [ListarProyectosAccesoTrabajadorUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [ListarProyectosParaValidacionUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
-  [
-    ListarReporteGeneralUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
-  ],
+  [ListarReporteGeneralUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [
     ListarReporteHorasMesProyectoTrabajadorUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
+    [CONTROL_OPERATIVO_REPOSITORY],
   ],
   [
     ListarReporteHorasRangoDetalleProyectoUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
+    [CONTROL_OPERATIVO_REPOSITORY],
   ],
   [ListarTrabajadoresParaFiltroUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [
     ListarTrabajadoresPorProyectoUseCase,
     [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
   ],
-  [
-    ListarTrabajadoresSinActividadesHoyUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
-  ],
-  [
-    ListarTrabajadoresSinJornadaHoyUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
-  ],
-  [ListarValorizacionUseCase, [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY]],
-  [ObtenerActividadUseCase, [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY]],
+  [ListarTrabajadoresSinActividadesHoyUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
+  [ListarTrabajadoresSinJornadaHoyUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
+  [ListarValorizacionUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
+  [ObtenerActividadUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [
     ValidarActividadUseCase,
-    [
-      CONTROL_OPERATIVO_REPOSITORY,
-      AUTH_REPOSITORY,
-      BroadcastService,
-      NestLoggerFactory,
-    ],
+    [CONTROL_OPERATIVO_REPOSITORY, BroadcastService, NestLoggerFactory],
   ],
   [ObtenerCantidadActividadesObservadasUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerCantidadActividadesPendientesUseCase, [DASHBOARD_REPOSITORY]],

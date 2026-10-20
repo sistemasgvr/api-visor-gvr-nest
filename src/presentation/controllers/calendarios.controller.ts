@@ -52,6 +52,7 @@ import { EliminarFeriadoUseCase } from '../../application/use-cases/planificacio
 import { CrearFeriadoDto } from '../dtos/planificacion/calendarios/crear-feriado.dto';
 import { ActualizarFeriadoDto } from '../dtos/planificacion/calendarios/actualizar-feriado.dto';
 import { ListarFeriadosDto } from '../dtos/planificacion/calendarios/listar-feriados.dto';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('planificacion-calendarios')
 @ApiBearerAuth('access-token')
@@ -82,6 +83,7 @@ export class CalendariosController {
     summary:
       'Listar feriados centrales y sus calendarios, con filtros y paginación',
   })
+  @RequireGranularPermission('configuracion.feriados.ver')
   async listarFeriados(
     @Req() request: Request,
     @Query() query: ListarFeriadosDto,
@@ -96,6 +98,7 @@ export class CalendariosController {
     summary:
       'Consultar un feriado central, su revisión y asignaciones pendientes',
   })
+  @RequireGranularPermission('configuracion.feriados.ver')
   async obtenerFeriado(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,
@@ -112,6 +115,7 @@ export class CalendariosController {
   @ApiOperation({
     summary: 'Crear un feriado central con su selección de calendarios',
   })
+  @RequireGranularPermission('configuracion.feriados.crear')
   async crearFeriado(@Req() request: Request, @Body() data: CrearFeriadoDto) {
     return ApiResponseDto.created(
       await this.guardarFeriadoUseCase.execute(this.idUsuario(request), data),
@@ -124,6 +128,7 @@ export class CalendariosController {
     summary:
       'Actualizar un feriado y reemplazar su selección completa de calendarios; requiere revisión del feriado',
   })
+  @RequireGranularPermission('configuracion.feriados.editar')
   async actualizarFeriado(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,
@@ -144,6 +149,7 @@ export class CalendariosController {
     summary:
       'Eliminar lógicamente un feriado central; requiere revisión del feriado en query',
   })
+  @RequireGranularPermission('configuracion.feriados.eliminar')
   async eliminarFeriado(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,
@@ -163,6 +169,7 @@ export class CalendariosController {
   @ApiOperation({
     summary: 'Listar calendarios con búsqueda, estado y paginación',
   })
+  @RequireGranularPermission('configuracion.calendarios.ver')
   async listar(@Req() request: Request, @Query() query: ListarCalendariosDto) {
     return ApiResponseDto.success(
       await this.listarUseCase.execute(this.idUsuario(request), query),
@@ -171,6 +178,7 @@ export class CalendariosController {
 
   @Post()
   @ApiOperation({ summary: 'Crear calendario y primer borrador' })
+  @RequireGranularPermission('configuracion.calendarios.crear')
   async crear(@Req() request: Request, @Body() data: CrearCalendarioDto) {
     return ApiResponseDto.created(
       await this.crearUseCase.execute(this.idUsuario(request), data),
@@ -180,6 +188,7 @@ export class CalendariosController {
 
   @Post('duplicar')
   @ApiOperation({ summary: 'Duplicar una versión en otro calendario' })
+  @RequireGranularPermission('configuracion.calendarios.duplicar')
   async duplicar(@Req() request: Request, @Body() data: DuplicarCalendarioDto) {
     return ApiResponseDto.created(
       await this.duplicarUseCase.execute(
@@ -193,6 +202,7 @@ export class CalendariosController {
 
   @Post('versiones')
   @ApiOperation({ summary: 'Crear borrador desde una versión publicada' })
+  @RequireGranularPermission('configuracion.calendarios.crear_version')
   async crearVersion(
     @Req() request: Request,
     @Body() data: CrearVersionCalendarioDto,
@@ -210,6 +220,9 @@ export class CalendariosController {
   @ApiOperation({
     summary: 'Previsualizar capacidad de una versión sin registrar jornadas',
   })
+  @RequireGranularPermission(
+    'configuracion.calendarios.consultar_disponibilidad',
+  )
   async disponibilidad(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,
@@ -229,6 +242,7 @@ export class CalendariosController {
   @ApiOperation({
     summary: 'Guardar los siete días y la zona horaria del borrador',
   })
+  @RequireGranularPermission('configuracion.calendarios.editar_semana')
   async guardarSemana(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,
@@ -246,6 +260,7 @@ export class CalendariosController {
 
   @Post('versiones/:id/excepciones')
   @ApiOperation({ summary: 'Crear una excepción local en el borrador' })
+  @RequireGranularPermission('configuracion.calendarios.crear_excepcion')
   async crearExcepcion(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,
@@ -266,6 +281,7 @@ export class CalendariosController {
     summary:
       'Editar una excepción local; los feriados centrales se gestionan en /feriados',
   })
+  @RequireGranularPermission('configuracion.calendarios.editar_excepcion')
   async actualizarExcepcion(
     @Req() request: Request,
     @Param() params: ExcepcionCalendarioParamsDto,
@@ -286,6 +302,7 @@ export class CalendariosController {
   @ApiOperation({
     summary: 'Eliminar una excepción del borrador; requiere revision en query',
   })
+  @RequireGranularPermission('configuracion.calendarios.eliminar_excepcion')
   async eliminarExcepcion(
     @Req() request: Request,
     @Param() params: ExcepcionCalendarioParamsDto,
@@ -308,6 +325,7 @@ export class CalendariosController {
     summary:
       'Conservar una versión publicada sin activar otras funcionalidades',
   })
+  @RequireGranularPermission('configuracion.calendarios.publicar')
   async publicar(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,
@@ -327,6 +345,7 @@ export class CalendariosController {
   @ApiOperation({
     summary: 'Consultar calendario e histórico mediante idversion opcional',
   })
+  @RequireGranularPermission('configuracion.calendarios.ver')
   async obtener(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,
@@ -345,6 +364,7 @@ export class CalendariosController {
   @ApiOperation({
     summary: 'Actualizar nombre y descripción; requiere revisión de cabecera',
   })
+  @RequireGranularPermission('configuracion.calendarios.editar')
   async actualizar(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,
@@ -362,6 +382,7 @@ export class CalendariosController {
 
   @Patch(':id/estado')
   @ApiOperation({ summary: 'Desactivar o reactivar sin eliminar el histórico' })
+  @RequireGranularPermission('configuracion.calendarios.cambiar_estado')
   async cambiarEstado(
     @Req() request: Request,
     @Param() params: CalendarioIdParamsDto,

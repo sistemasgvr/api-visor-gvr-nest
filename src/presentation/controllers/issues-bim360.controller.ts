@@ -14,6 +14,8 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import { RequireIssuePermission } from '../../infrastructure/auth/granular-permission.guard';
+import { IssueAccessService } from '../../application/services/issue-access.service';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 
 // Use Cases
@@ -54,6 +56,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 @Controller('issues/projects/:projectId')
 export class IssuesBim360Controller {
   constructor(
+    private readonly issues: IssueAccessService,
     private readonly obtenerPerfilUsuarioBim360UseCase: ObtenerPerfilUsuarioBim360UseCase,
     private readonly obtenerTiposIncidenciasBim360UseCase: ObtenerTiposIncidenciasBim360UseCase,
     private readonly obtenerDefinicionesAtributosBim360UseCase: ObtenerDefinicionesAtributosBim360UseCase,
@@ -78,6 +81,7 @@ export class IssuesBim360Controller {
   @ApiOperation({
     summary: 'Perfil APS del usuario en contexto proyecto BIM 360',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('users/me')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -111,6 +115,7 @@ export class IssuesBim360Controller {
    * GET /issues/projects/:projectId/issue-types
    */
   @ApiOperation({ summary: 'Listar tipos de incidencia BIM 360' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issue-types')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -155,6 +160,7 @@ export class IssuesBim360Controller {
    * GET /issues/projects/:projectId/issue-attribute-definitions
    */
   @ApiOperation({ summary: 'Definiciones de atributos BIM 360' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issue-attribute-definitions')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -200,6 +206,7 @@ export class IssuesBim360Controller {
    * GET /issues/projects/:projectId/issue-attribute-mappings
    */
   @ApiOperation({ summary: 'Mapeos campo personalizado BIM 360' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issue-attribute-mappings')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -244,6 +251,7 @@ export class IssuesBim360Controller {
    * GET /issues/projects/:projectId/issue-root-cause-categories
    */
   @ApiOperation({ summary: 'Categorías de causa raíz BIM 360' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issue-root-cause-categories')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -290,6 +298,7 @@ export class IssuesBim360Controller {
   @ApiOperation({
     summary: 'Filtrar incidencias BIM 360 vinculadas a un modelo/documento',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issues/by-document')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -321,6 +330,13 @@ export class IssuesBim360Controller {
         dto,
       );
 
+    if (Array.isArray(resultado?.data))
+      resultado.data = await this.issues.visible(
+        Number(userId),
+        projectId,
+        resultado.data,
+      );
+
     if (resultado.pagination && Object.keys(resultado.pagination).length > 0) {
       return ApiResponseDto.custom(
         resultado.data,
@@ -341,6 +357,7 @@ export class IssuesBim360Controller {
    * GET /issues/projects/:projectId/issues
    */
   @ApiOperation({ summary: 'Listar incidencias BIM 360 con filtros APS' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issues')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -365,6 +382,13 @@ export class IssuesBim360Controller {
       dto,
     );
 
+    if (Array.isArray(resultado?.data))
+      resultado.data = await this.issues.visible(
+        Number(userId),
+        projectId,
+        resultado.data,
+      );
+
     if (resultado.pagination && Object.keys(resultado.pagination).length > 0) {
       return ApiResponseDto.custom(
         resultado.data,
@@ -385,6 +409,7 @@ export class IssuesBim360Controller {
    * POST /issues/projects/:projectId/issues
    */
   @ApiOperation({ summary: 'Registrar nueva incidencia BIM 360' })
+  @RequireIssuePermission('gestion_bim.incidencias.crear')
   @Post('issues')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -421,6 +446,7 @@ export class IssuesBim360Controller {
    * GET /issues/projects/:projectId/issues/:issueId
    */
   @ApiOperation({ summary: 'Detalle de incidencia BIM 360 por ID' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver', { issue: 'issueId' })
   @Get('issues/:issueId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -456,6 +482,15 @@ export class IssuesBim360Controller {
    * PATCH /issues/projects/:projectId/issues/:issueId
    */
   @ApiOperation({ summary: 'Actualizar campos de incidencia BIM 360' })
+  @RequireIssuePermission(
+    [
+      'gestion_bim.incidencias.editar',
+      'gestion_bim.incidencias.cambiar_estado',
+      'gestion_bim.incidencias.asignar',
+      'gestion_bim.incidencias.desasignar',
+    ],
+    { issue: 'issueId' },
+  )
   @Patch('issues/:issueId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -475,6 +510,7 @@ export class IssuesBim360Controller {
       throw new BadRequestException('User ID es requerido');
     }
 
+    await this.issues.requireChanges(Number(userId), projectId, issueId, dto);
     const resultado = await this.actualizarIncidenciaBim360UseCase.execute(
       userId,
       projectId,
@@ -493,6 +529,7 @@ export class IssuesBim360Controller {
    * GET /issues/projects/:projectId/issues/:issueId/comments
    */
   @ApiOperation({ summary: 'Comentarios BIM 360 de la incidencia' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver', { issue: 'issueId' })
   @Get('issues/:issueId/comments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -539,6 +576,9 @@ export class IssuesBim360Controller {
    * POST /issues/projects/:projectId/issues/:issueId/comments
    */
   @ApiOperation({ summary: 'Añadir comentario BIM 360' })
+  @RequireIssuePermission('gestion_bim.incidencias.comentar', {
+    issue: 'issueId',
+  })
   @Post('issues/:issueId/comments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -577,6 +617,7 @@ export class IssuesBim360Controller {
    * GET /issues/projects/:projectId/issues/:issueId/attachments
    */
   @ApiOperation({ summary: 'Adjuntos BIM 360 de la incidencia' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver', { issue: 'issueId' })
   @Get('issues/:issueId/attachments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -623,6 +664,9 @@ export class IssuesBim360Controller {
    * POST /issues/projects/:projectId/issues/:issueId/attachments
    */
   @ApiOperation({ summary: 'Crear adjunto BIM 360' })
+  @RequireIssuePermission('gestion_bim.incidencias.adjuntar', {
+    issue: 'issueId',
+  })
   @Post('issues/:issueId/attachments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -657,6 +701,9 @@ export class IssuesBim360Controller {
    * PATCH /issues/projects/:projectId/issues/:issueId/attachments/:attachmentId
    */
   @ApiOperation({ summary: 'Actualizar datos de adjunto BIM 360' })
+  @RequireIssuePermission('gestion_bim.incidencias.editar_adjuntos', {
+    issue: 'issueId',
+  })
   @Patch('issues/:issueId/attachments/:attachmentId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

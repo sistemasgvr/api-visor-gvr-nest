@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Controller,
   Get,
   Post,
@@ -48,6 +49,12 @@ import { SincronizarRolesNovedadDto } from '../dtos/novedad/sincronizar-roles-no
 import { CreateNovedadTarjetaDto } from '../dtos/novedad/create-novedad-tarjeta.dto';
 import { UpdateNovedadTarjetaDto } from '../dtos/novedad/update-novedad-tarjeta.dto';
 import { MarcarNovedadVistaDto } from '../dtos/novedad/marcar-novedad-vista.dto';
+import {
+  RequireGranularPermission,
+  RequireSelfPermission,
+  AuthenticatedAccess,
+} from '../../infrastructure/auth/granular-permission.guard';
+import { AuthorizationService } from '../../application/services/authorization.service';
 
 @ApiTags('novedades')
 @ApiBearerAuth('access-token')
@@ -68,7 +75,27 @@ export class NovedadController {
     private readonly obtenerPendientesUseCase: ObtenerNovedadPendientesUsuarioUseCase,
     private readonly marcarVistaUseCase: MarcarNovedadVistaUseCase,
     private readonly jwtService: JwtService,
+    private readonly authorization: AuthorizationService,
   ) {}
+
+  /** Adjuntar un archivo (imagen o video) a una tarjeta requiere `subir_contenido`. */
+  private async exigirSubirContenido(
+    request: Request,
+    file: Express.Multer.File | undefined,
+  ) {
+    if (!file) return;
+    const actor = Number((request.user as { sub?: number } | undefined)?.sub);
+    if (
+      !(await this.authorization.can(
+        actor,
+        'comunicaciones.novedades.subir_contenido',
+      ))
+    )
+      throw new ForbiddenException({
+        message: 'No tienes permiso para subir contenido a las novedades',
+        code: 'GRANULAR_PERMISSION_DENIED',
+      });
+  }
 
   @ApiOperation({
     summary: 'Novedades pendientes del usuario autenticado',
@@ -76,6 +103,7 @@ export class NovedadController {
   })
   @Get('mi/pendientes')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess('Novedades dirigidas a la propia persona')
   async obtenerPendientes(@Req() request: Request) {
     const userId = await this.getUserIdFromRequest(request);
     const data = await this.obtenerPendientesUseCase.execute(userId);
@@ -85,6 +113,7 @@ export class NovedadController {
   @ApiOperation({ summary: 'Marcar lanzamiento como visto' })
   @Post('mi/marcar-vista')
   @HttpCode(HttpStatus.OK)
+  @RequireSelfPermission('comunicaciones.novedades.marcar_vista')
   async marcarVista(
     @Body() dto: MarcarNovedadVistaDto,
     @Req() request: Request,
@@ -101,6 +130,7 @@ export class NovedadController {
   @ApiOperation({ summary: 'Listar lanzamientos de novedades (admin)' })
   @Get('lanzamientos')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.novedades.ver')
   async listarLanzamientos(@Query() query: ListarNovedadLanzamientosQueryDto) {
     const data = await this.listarLanzamientosUseCase.execute({
       busqueda: query.busqueda,
@@ -114,6 +144,7 @@ export class NovedadController {
   @ApiOperation({ summary: 'Detalle de lanzamiento con tarjetas y roles' })
   @Get('lanzamientos/:id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.novedades.ver')
   async obtenerLanzamiento(@Param('id', ParseIntPipe) id: number) {
     const data = await this.obtenerLanzamientoUseCase.execute(id);
     return ApiResponseDto.success(data, 'Lanzamiento obtenido exitosamente');
@@ -122,6 +153,7 @@ export class NovedadController {
   @ApiOperation({ summary: 'Crear lanzamiento de novedades' })
   @Post('lanzamientos')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('comunicaciones.novedades.crear')
   async crearLanzamiento(
     @Body() dto: CreateNovedadLanzamientoDto,
     @Req() request: Request,
@@ -134,6 +166,7 @@ export class NovedadController {
   @ApiOperation({ summary: 'Actualizar lanzamiento de novedades' })
   @Put('lanzamientos/:id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.novedades.editar')
   async editarLanzamiento(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateNovedadLanzamientoDto,
@@ -147,6 +180,7 @@ export class NovedadController {
   @ApiOperation({ summary: 'Eliminar lanzamiento (soft delete)' })
   @Delete('lanzamientos/:id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.novedades.eliminar')
   async eliminarLanzamiento(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,
@@ -162,6 +196,7 @@ export class NovedadController {
   })
   @Put('lanzamientos/:id/roles')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.novedades.asignar_roles')
   async sincronizarRoles(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: SincronizarRolesNovedadDto,
@@ -202,12 +237,14 @@ export class NovedadController {
       },
     },
   })
+  @RequireGranularPermission('comunicaciones.novedades.crear_tarjetas')
   async crearTarjeta(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreateNovedadTarjetaDto,
     @UploadedFile() file: Express.Multer.File | undefined,
     @Req() request: Request,
   ) {
+    await this.exigirSubirContenido(request, file);
     const userId = await this.getUserIdFromRequest(request);
     const data = await this.crearTarjetaUseCase.execute(id, dto, userId, file);
     return ApiResponseDto.created(data, data.message);
@@ -226,12 +263,14 @@ export class NovedadController {
       limits: { fileSize: 20 * 1024 * 1024 },
     }),
   )
+  @RequireGranularPermission('comunicaciones.novedades.editar_tarjetas')
   async editarTarjeta(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateNovedadTarjetaDto,
     @UploadedFile() file: Express.Multer.File | undefined,
     @Req() request: Request,
   ) {
+    await this.exigirSubirContenido(request, file);
     const userId = await this.getUserIdFromRequest(request);
     const data = await this.editarTarjetaUseCase.execute(id, dto, userId, file);
     return ApiResponseDto.success(data, data?.message ?? 'Tarjeta actualizada');
@@ -240,6 +279,7 @@ export class NovedadController {
   @ApiOperation({ summary: 'Eliminar tarjeta (soft delete)' })
   @Delete('tarjetas/:id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('comunicaciones.novedades.eliminar_tarjetas')
   async eliminarTarjeta(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,

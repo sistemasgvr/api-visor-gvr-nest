@@ -19,6 +19,10 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
+import {
+  RequireGranularPermission,
+  RequireSelfPermission,
+} from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('usuarios')
 @ApiBearerAuth('access-token')
@@ -43,6 +47,7 @@ export class UserController {
   })
   @Put(':idUsuario/credenciales')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.credenciales.editar')
   async actualizarCredenciales(
     @Param('idUsuario', ParseIntPipe) idUsuario: number,
     @Body() updateDto: UpdateCredentialsDto,
@@ -107,6 +112,7 @@ export class UserController {
   })
   @Get('perfil')
   @HttpCode(HttpStatus.OK)
+  @RequireSelfPermission('inicio.perfil.ver')
   async obtenerPerfil(@Req() request: Request) {
     const token = this.extractTokenFromHeader(request);
 

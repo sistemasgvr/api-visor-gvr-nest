@@ -85,12 +85,50 @@ export class ProyectoRepository implements IProyectoRepository {
       busqueda = '',
       limit = 10,
       offset = 0,
+      soloAsignados = false,
     } = params;
 
-    const result = await this.databaseFunctionService.callFunction<any>(
-      'pro_ListarProyectos',
-      [idUsuario, idTipoProyecto, idPais, idCliente, busqueda, limit, offset],
-    );
+    // «asignados»: se filtra sobre el listado completo y se pagina después (la función no filtra por usuario).
+    const result = soloAsignados
+      ? await this.databaseFunctionService
+          .executeQuery<Record<string, unknown> & { total_asignados: number }>(
+            `SELECT f.*, count(*) OVER() AS total_asignados
+           FROM public."pro_ListarProyectos"($1, $2, $3, $4, $5, 2147483647, 0) f
+           WHERE EXISTS (SELECT 1 FROM public.proaccesoproyecto ap
+                         WHERE ap.idproyecto = f.id AND ap.idusuario = $1 AND ap.estado = 1)
+              OR EXISTS (SELECT 1 FROM public.proproyectocoordinador pc
+                         JOIN public.tratrabajador t ON t.id = pc.idtrabajador AND t.estado = 1
+                         WHERE pc.idproyecto = f.id AND pc.estado = 1 AND t.idusuario = $1)
+           ORDER BY f.fechacreacion DESC
+           LIMIT $6 OFFSET $7`,
+            [
+              idUsuario,
+              idTipoProyecto,
+              idPais,
+              idCliente,
+              busqueda,
+              limit,
+              offset,
+            ],
+          )
+          .then((rows) =>
+            rows.map(({ total_asignados, ...row }) => ({
+              ...row,
+              total_registros: total_asignados,
+            })),
+          )
+      : await this.databaseFunctionService.callFunction<any>(
+          'pro_ListarProyectos',
+          [
+            idUsuario,
+            idTipoProyecto,
+            idPais,
+            idCliente,
+            busqueda,
+            limit,
+            offset,
+          ],
+        );
 
     if (!result || result.length === 0) {
       return {

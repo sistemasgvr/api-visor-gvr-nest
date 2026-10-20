@@ -6,6 +6,8 @@ export interface ListarProyectosParams {
   busqueda?: string;
   limit?: number;
   offset?: number;
+  /** Alcance «asignados»: sólo proyectos con acceso activo del usuario o que coordina. */
+  soloAsignados?: boolean;
 }
 
 export interface ListarProyectosResponse {

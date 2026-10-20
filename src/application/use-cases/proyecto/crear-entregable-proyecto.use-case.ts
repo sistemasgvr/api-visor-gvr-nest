@@ -3,12 +3,14 @@ import type {
   CrearEntregableProyectoData,
   IProyectoRepository,
 } from '../../../domain/repositories/proyecto.repository.interface';
-import { InvalidInputError } from '../../errors/application.error';
+import {
+  ForbiddenError,
+  InvalidInputError,
+} from '../../errors/application.error';
 import { BroadcastPort } from '../../ports/broadcast.port';
 import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
 import {
-  esRolCoordinador,
-  esRolModeladorColaborador,
+  participaEnProyecto,
   responsablePerteneceAlProyecto,
 } from './entregable-acceso.helper';
 import { emitirEntregableAsignado } from './entregable-notificaciones.helper';
@@ -30,7 +32,7 @@ export class CrearEntregableProyectoUseCase {
   async execute(
     data: CrearEntregableProyectoData,
     idUsuarioCreacion: number,
-    rolesIds: number[] = [],
+    accesoTotal = false,
   ) {
     if (data.idEstado === ID_ESTADO_ENTREGABLE_CULMINADO) {
       throw new InvalidInputError(
@@ -46,24 +48,28 @@ export class CrearEntregableProyectoUseCase {
         idUsuarioCreacion,
       );
 
+    // «asignados»: sólo en proyectos donde participa.
+    if (
+      !accesoTotal &&
+      !(await participaEnProyecto(
+        this.proyectoRepository,
+        data.idProyecto,
+        idUsuarioCreacion,
+      ))
+    ) {
+      throw new ForbiddenError(
+        'No tienes permiso para crear entregables en este proyecto',
+      );
+    }
+
+    // Sin responsable indicado, quien crea queda como responsable.
     if (idsResponsables.length === 0) {
-      if (esRolCoordinador(rolesIds)) {
-        throw new InvalidInputError(
-          'El responsable es obligatorio al crear un entregable como coordinador',
-        );
-      }
-      if (esRolModeladorColaborador(rolesIds)) {
-        if (idTrabajadorActor == null) {
-          throw new InvalidInputError(
-            'No se encontró trabajador activo para auto-asignarte como responsable',
-          );
-        }
-        idsResponsables = [idTrabajadorActor];
-      } else {
+      if (idTrabajadorActor == null) {
         throw new InvalidInputError(
           'Debe indicar al menos un trabajador responsable del entregable',
         );
       }
+      idsResponsables = [idTrabajadorActor];
     }
 
     for (const idResponsable of idsResponsables) {

@@ -35,6 +35,12 @@ import {
   type IAccRepository,
 } from '../../domain/repositories/acc.repository.interface';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  RequireGranularPermission,
+  RequireSelfPermission,
+  ContextualAuthorization,
+  AuthenticatedAccess,
+} from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('acc')
 @ApiBearerAuth('access-token')
@@ -68,6 +74,7 @@ export class AccController {
   @Post('token')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async obtenerToken(@Body() dto: ObtenerToken2LeggedDto) {
     const resultado = await this.obtenerToken2LeggedUseCase.execute(dto);
 
@@ -89,6 +96,7 @@ export class AccController {
   @Post('oauth/authorize')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireSelfPermission('configuracion.autodesk.vincular_cuenta')
   async generarUrlAutorizacion(@Body() dto: GenerarUrlAutorizacionDto) {
     const resultado = await this.generarUrlAutorizacionUseCase.execute(dto);
 
@@ -106,6 +114,9 @@ export class AccController {
   @Get('oauth/mi-token')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Estado del propio vínculo Autodesk (sin token en la respuesta)',
+  )
   async obtenerMiToken(@Req() request: Request) {
     // User is automatically attached by JwtAuthGuard
     const user = request.user!;
@@ -127,6 +138,7 @@ export class AccController {
   })
   @Get('cron/refresh-tokens')
   @HttpCode(HttpStatus.OK)
+  @ContextualAuthorization('Cron con CRON_SECRET')
   async cronRefrescarTokens(@Query('key') key?: string) {
     const secret = this.configService.get<string>('CRON_SECRET');
     if (secret && key !== secret) {
@@ -147,6 +159,7 @@ export class AccController {
   @Post('oauth/refresh')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireSelfPermission('configuracion.autodesk.vincular_cuenta')
   async refrescarToken(@Req() request: Request) {
     // User is automatically attached by JwtAuthGuard
     const user = request.user!;
@@ -176,6 +189,7 @@ export class AccController {
   @Delete('oauth/revoke')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireSelfPermission('configuracion.autodesk.revocar_vinculo')
   async revocarMiToken(@Req() request: Request) {
     // User is automatically attached by JwtAuthGuard
     const user = request.user!;
@@ -197,6 +211,7 @@ export class AccController {
   @Post('validar-expiracion')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess('Comprobación de caducidad del propio vínculo Autodesk')
   async validarExpiracion(@Body() dto: ValidarExpiracionDto) {
     const resultado = await this.validarExpiracionUseCase.execute(dto);
 
@@ -217,6 +232,7 @@ export class AccController {
     security: [],
   })
   @Get('oauth/callback')
+  @ContextualAuthorization('Retorno OAuth de Autodesk validado con state')
   async callbackAutorizacion(
     @Query() dto: CallbackAutorizacionDto,
     @Req() request: Request,
@@ -261,6 +277,7 @@ export class AccController {
   @Get('perfil-usuario')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess('Perfil Autodesk del propio usuario')
   async obtenerPerfilUsuarioAcc(@Req() request: Request) {
     const user = request.user!;
     const userId = user?.sub;

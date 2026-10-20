@@ -14,12 +14,15 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
+  BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { getUploadMaxFileSizeBytes } from '../../config/upload.constants';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import { RequestInfoHelper } from '../http/request-info.helper';
 
 // Use cases - Grupo 1
@@ -58,13 +61,28 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IniciarSubidaChunkedDto } from '../dtos/data-management/items/iniciar-subida-chunked.dto';
 import { ObtenerUrlsSubidaChunkedDto } from '../dtos/data-management/items/obtener-urls-subida-chunked.dto';
 import { CompletarSubidaChunkedDto } from '../dtos/data-management/items/completar-subida-chunked.dto';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
 @Controller('data-management/items')
 @UseGuards(JwtAuthGuard)
 export class DataManagementItemsController {
+  private actor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
+  private requiredFolder(folderId: unknown): string {
+    if (typeof folderId !== 'string' || !folderId.trim())
+      throw new BadRequestException('Se requiere la carpeta de destino');
+    return folderId.trim();
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     // Grupo 1
     private readonly obtenerItemPorIdUseCase: ObtenerItemPorIdUseCase,
     private readonly descargarItemUseCase: DescargarItemUseCase,
@@ -108,12 +126,20 @@ export class DataManagementItemsController {
     }),
   )
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async subirArchivo(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: SubirArchivoDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      dto.folderId,
+      'upload',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -147,11 +173,19 @@ export class DataManagementItemsController {
   })
   @Post(':projectId/upload/chunked/init')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async iniciarSubidaChunked(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Body() dto: IniciarSubidaChunkedDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      dto.folderId,
+      'upload',
+    );
     const user = request.user!;
     const data = await this.iniciarSubidaChunkedUseCase.execute(
       user.sub,
@@ -168,6 +202,7 @@ export class DataManagementItemsController {
   })
   @Post(':projectId/upload/chunked/urls')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerUrlsSubidaChunked(
     @Req() request: Request,
     @Param('projectId') _projectId: string,
@@ -187,11 +222,19 @@ export class DataManagementItemsController {
   })
   @Post(':projectId/upload/chunked/complete')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async completarSubidaChunked(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Body() dto: CompletarSubidaChunkedDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      dto.folderId,
+      'upload',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -229,11 +272,19 @@ export class DataManagementItemsController {
   })
   @Post(':projectId')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Body() dto: CrearItemDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      this.requiredFolder(dto?.data?.relationships?.parent?.data?.id),
+      'upload',
+    );
     const user = request.user!;
     const resultado = await this.crearItemUseCase.execute(
       user.sub,
@@ -260,12 +311,20 @@ export class DataManagementItemsController {
   })
   @Get(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerItemPorId(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerItemPorIdUseCase.execute(
       user.sub,
@@ -289,6 +348,7 @@ export class DataManagementItemsController {
   })
   @Get(':projectId/:itemId/download')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async descargarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -297,6 +357,13 @@ export class DataManagementItemsController {
     @Query() queryParams: any,
     @Res() res: Response,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'download',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -340,11 +407,19 @@ export class DataManagementItemsController {
   })
   @Get(':projectId/:itemId/storage-url')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerStorageUrl(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerStorageUrlItemUseCase.execute(
       user.sub,
@@ -365,12 +440,20 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Carpeta contenedora inmediata del item' })
   @Get(':projectId/:itemId/parent')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerItemPadre(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerItemPadreUseCase.execute(
       user.sub,
@@ -392,12 +475,20 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Referencias APS del item (refs)' })
   @Get(':projectId/:itemId/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerReferencias(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerReferenciasItemUseCase.execute(
       user.sub,
@@ -419,12 +510,20 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Relaciones links del item' })
   @Get(':projectId/:itemId/relationships/links')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesLinks(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerRelacionesLinksItemUseCase.execute(
       user.sub,
@@ -446,12 +545,20 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Relaciones refs del item' })
   @Get(':projectId/:itemId/relationships/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesRefs(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerRelacionesRefsItemUseCase.execute(
       user.sub,
@@ -476,12 +583,20 @@ export class DataManagementItemsController {
   })
   @Get(':projectId/:itemId/tip')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerTipVersion(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerTipVersionUseCase.execute(
       user.sub,
@@ -503,12 +618,20 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Historial cronológico de versiones APS' })
   @Get(':projectId/:itemId/versions')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerVersiones(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Query() queryParams: any,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerVersionesUseCase.execute(
       user.sub,
@@ -532,11 +655,19 @@ export class DataManagementItemsController {
   })
   @Get(':projectId/:itemId/activities')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerActividadesArchivo(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerActividadesArchivoUseCase.execute(
       user.sub,
@@ -557,12 +688,20 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Crear nueva ref que apunta a otro recurso' })
   @Post(':projectId/:itemId/relationships/refs')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearReferencia(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Body() dto: CrearReferenciaItemDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'edit',
+    );
     const user = request.user!;
     const resultado = await this.crearReferenciaItemUseCase.execute(
       user.sub,
@@ -588,12 +727,28 @@ export class DataManagementItemsController {
   })
   @Post(':projectId/:itemId/restore')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async restaurarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Body() body?: { parentFolderId?: string },
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    if (body?.parentFolderId)
+      await this.documentAccess.assertFolder(
+        this.actor(request),
+        projectId,
+        body.parentFolderId,
+        'edit',
+      );
+    else
+      await this.documentAccess.assertItem(
+        this.actor(request),
+        projectId,
+        itemId,
+        'edit',
+      );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -636,12 +791,20 @@ export class DataManagementItemsController {
   })
   @Patch(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async actualizarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Body() dto: ActualizarItemDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'edit',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -674,11 +837,19 @@ export class DataManagementItemsController {
   })
   @Delete(':projectId/:itemId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async eliminarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'delete',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -717,12 +888,26 @@ export class DataManagementItemsController {
   @ApiOperation({ summary: 'Mover item entre carpetas APS' })
   @Patch(':projectId/:itemId/move')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async desplazarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('itemId') itemId: string,
     @Body() dto: DesplazarItemDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      itemId,
+      'edit',
+    );
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      this.requiredFolder(dto.targetFolderId),
+      'upload',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -754,11 +939,25 @@ export class DataManagementItemsController {
   })
   @Post(':projectId/copy')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async copiarItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Body() dto: CopiarItemDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertItem(
+      this.actor(request),
+      projectId,
+      dto.sourceItemId,
+      'download',
+    );
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      this.requiredFolder(dto.targetFolderId),
+      'upload',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =

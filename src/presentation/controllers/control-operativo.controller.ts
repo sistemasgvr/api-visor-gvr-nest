@@ -21,6 +21,25 @@ import {
 import { Request } from 'express';
 import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import {
+  ContextualAuthorization,
+  RequireGranularPermission,
+  RequireResourcePermission,
+  RequireScopedPermission,
+  RequireWorkerPermission,
+} from '../../infrastructure/auth/granular-permission.guard';
+import {
+  CONTROL_ACTIVITY_RESOURCE,
+  CONTROL_JORNADA_RESOURCE,
+} from '../../infrastructure/auth/control-worker-policies';
+import { ControlOperativoAccess } from '../../infrastructure/auth/control-operativo-access.service';
+import { ActorId, GrantedScope } from '../http/granted-scopes.decorator';
+import type { AuthorizationScope } from '../../application/ports/authorization.port';
+import {
+  ID_ESTADO_ACTIVIDAD_APROBADO,
+  ID_ESTADO_ACTIVIDAD_OBSERVADO,
+  ID_ESTADO_ACTIVIDAD_RECHAZADO,
+} from '../../domain/constants/estado-actividad.constants';
 import { ListarJornadasTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-jornadas-trabajador.use-case';
 import { ListarTrabajadoresParaFiltroUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-para-filtro.use-case';
 import { CrearJornadaUseCase } from '../../application/use-cases/control-operativo/crear-jornada.use-case';
@@ -28,6 +47,10 @@ import { ListarActividadesUseCase } from '../../application/use-cases/control-op
 import { CronCierreJornadasUseCase } from '../../application/use-cases/control-operativo/cron-cierre-jornadas.use-case';
 import { CronAlertaActividadesSinValidarUseCase } from '../../application/use-cases/control-operativo/cron-alerta-actividades-sin-validar.use-case';
 import { ActualizarEstadoJornadaUseCase } from '../../application/use-cases/control-operativo/actualizar-estado-jornada.use-case';
+import { HabilitarJornadasUsuariosUseCase } from '../../application/use-cases/control-operativo/habilitar-jornadas-usuarios.use-case';
+import { CerrarHabilitacionesVencidasUseCase } from '../../application/use-cases/control-operativo/cerrar-habilitaciones-vencidas.use-case';
+import { HabilitarJornadasUsuariosDto } from '../dtos/control-operativo/habilitar-jornadas-usuarios.dto';
+import { ActualizarEstadoJornadaDto } from '../dtos/control-operativo/actualizar-estado-jornada.dto';
 import { ListarProyectosAccesoTrabajadorUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-acceso-trabajador.use-case';
 import { ListarProyectosParaValidacionUseCase } from '../../application/use-cases/control-operativo/listar-proyectos-para-validacion.use-case';
 import { ListarTrabajadoresSinJornadaHoyUseCase } from '../../application/use-cases/control-operativo/listar-trabajadores-sin-jornada-hoy.use-case';
@@ -54,16 +77,33 @@ import { ExportarActividadesJornadasWordMasivoUseCase } from '../../application/
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { getFechaHoy } from '../../domain/utils/date.util';
 import type { AuthenticatedUser } from '../../domain/types/authenticated-user';
-import {
-  usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades,
-  usuarioPuedeExportacionMasivaWordActividades,
-} from '../../infrastructure/word/constants/reporte-actividades-word.constants';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { AgregarEvidenciasActividadDto } from '../dtos/control-operativo/agregar-evidencias-actividad.dto';
 import { ExportarActividadesWordMasivoDto } from '../dtos/control-operativo/exportar-actividades-word-masivo.dto';
 import type { ActividadEvidenciaEntrada } from '../../domain/repositories/control-operativo.repository.interface';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ROLES_ADMIN_CONTROL_OPERATIVO } from '../../domain/constants/auth-role.constants';
+
+const CRON = 'Cron con CRON_SECRET';
+/** Proyectos de los filtros de cada pestaña: «todos» en alguna de ellas muestra todos los proyectos. */
+const PERMISOS_PESTANAS = [
+  'control_operativo.jornadas.ver',
+  'control_operativo.valorizacion.ver',
+  'control_operativo.desempeno.ver',
+  'control_operativo.reportes.ver_general',
+  'control_operativo.reportes.ver_horas_mes',
+  'control_operativo.entregables.ver',
+];
+const LECTURA_ACTIVIDAD = [
+  'control_operativo.actividades.ver',
+  'control_operativo.actividades.subsanar',
+  'control_operativo.validacion.ver',
+];
+/** Acción de validación según el estado elegido. */
+const PERMISO_VALIDACION: Record<number, string> = {
+  [ID_ESTADO_ACTIVIDAD_APROBADO]: 'control_operativo.validacion.aprobar',
+  [ID_ESTADO_ACTIVIDAD_OBSERVADO]: 'control_operativo.validacion.observar',
+  [ID_ESTADO_ACTIVIDAD_RECHAZADO]: 'control_operativo.validacion.rechazar',
+};
 
 @ApiTags('control-operativo')
 @Controller('control-operativo')
@@ -75,6 +115,8 @@ export class ControlOperativoController {
     private readonly listarActividadesUseCase: ListarActividadesUseCase,
     private readonly cronCierreJornadasUseCase: CronCierreJornadasUseCase,
     private readonly actualizarEstadoJornadaUseCase: ActualizarEstadoJornadaUseCase,
+    private readonly habilitarJornadasUsuariosUseCase: HabilitarJornadasUsuariosUseCase,
+    private readonly cerrarHabilitacionesVencidasUseCase: CerrarHabilitacionesVencidasUseCase,
     private readonly listarProyectosAccesoTrabajadorUseCase: ListarProyectosAccesoTrabajadorUseCase,
     private readonly listarProyectosParaValidacionUseCase: ListarProyectosParaValidacionUseCase,
     private readonly listarTrabajadoresSinJornadaHoyUseCase: ListarTrabajadoresSinJornadaHoyUseCase,
@@ -100,6 +142,7 @@ export class ControlOperativoController {
     private readonly exportarActividadesJornadasWordUseCase: ExportarActividadesJornadasWordUseCase,
     private readonly exportarActividadesJornadasWordMasivoUseCase: ExportarActividadesJornadasWordMasivoUseCase,
     private readonly configService: ConfigService,
+    private readonly access: ControlOperativoAccess,
   ) {}
 
   /**
@@ -117,6 +160,7 @@ export class ControlOperativoController {
     security: [],
   })
   @Get('cron/cierre-jornadas')
+  @ContextualAuthorization(CRON)
   async cronCierreJornadas(
     @Query('key') key?: string,
     @Query('fecha') fecha?: string,
@@ -139,6 +183,26 @@ export class ControlOperativoController {
     );
   }
 
+  @ApiOperation({
+    summary: 'Cron: cerrar habilitaciones temporales vencidas',
+    description:
+      'Requiere CRON_SECRET configurado y query key. Se puede invocar cada minuto.',
+    security: [],
+  })
+  @Get('cron/cierre-habilitaciones-vencidas')
+  @ContextualAuthorization(CRON)
+  async cronCierreHabilitacionesVencidas(@Query('key') key?: string) {
+    const secret = this.configService.get<string>('CRON_SECRET');
+    if (!secret || key !== secret) {
+      throw new UnauthorizedException('Cron no autorizado');
+    }
+    const result = await this.cerrarHabilitacionesVencidasUseCase.execute();
+    return ApiResponseDto.success(
+      result,
+      'Cierre de habilitaciones vencidas ejecutado',
+    );
+  }
+
   /**
    * Cron de alerta por actividades sin validar (> 7 días "Por Aprobar").
    * GET /control-operativo/cron/alerta-actividades-sin-validar?key=CRON_SECRET
@@ -149,11 +213,12 @@ export class ControlOperativoController {
   @ApiOperation({
     summary: 'Cron: alerta actividades sin validar (>7 días en Por aprobar)',
     description:
-      'Requiere `key=CRON_SECRET`. Notifica a roles administrativos.',
+      'Requiere `key=CRON_SECRET`. Notifica a quienes validan con alcance «todos».',
     security: [],
   })
   @Get('cron/alerta-actividades-sin-validar')
   @HttpCode(HttpStatus.OK)
+  @ContextualAuthorization(CRON)
   async cronAlertaActividadesSinValidar(
     @Query('key') key?: string,
     @Query('fecha') fecha?: string,
@@ -185,6 +250,7 @@ export class ControlOperativoController {
     description: 'Rango de fechas opcional (por defecto semana actual).',
   })
   @Get('trabajadores/:idTrabajador/jornadas')
+  @RequireWorkerPermission('control_operativo.jornadas.ver')
   @UseGuards(JwtAuthGuard)
   async listarJornadasTrabajador(
     @Param('idTrabajador', ParseIntPipe) idTrabajador: number,
@@ -216,22 +282,26 @@ export class ControlOperativoController {
   @ApiOperation({
     summary: 'Exportar reporte de actividades (Word)',
     description:
-      'Descarga un .docx del reporte de actividades (portada + detalle). Las horas dedicadas en el detalle solo se incluyen si el usuario exportador tiene rol administrativo (ids en reporte-actividades-word.constants).',
+      'Descarga un .docx del reporte de actividades (portada + detalle). Las horas dedicadas solo se incluyen con `control_operativo.jornadas.exportar_word` en alcance «todos».',
   })
   @Get('trabajadores/:idTrabajador/actividades/export-word')
+  @RequireScopedPermission('control_operativo.jornadas.exportar_word')
   @UseGuards(JwtAuthGuard)
   async exportarActividadesJornadasWord(
     @Res() res: Response,
-    @Req() req: Request & { user?: AuthenticatedUser },
+    @ActorId() actor: number,
     @Param('idTrabajador', ParseIntPipe) idTrabajador: number,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
     @Query('fechaEmision') fechaEmision?: string,
   ): Promise<void> {
-    const incluirHorasDedicadasEnWord =
-      usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades(
-        req.user?.roles,
-      );
+    // El trabajador debe estar en el alcance de la persona que exporta.
+    const codigo = 'control_operativo.jornadas.exportar_word';
+    if (!(await this.access.trabajadorPermitido(actor, codigo, idTrabajador)))
+      throw ControlOperativoAccess.denied();
+    const incluirHorasDedicadasEnWord = (
+      await this.access.scopes(actor, codigo)
+    ).includes('todos');
     const { buffer, fileName } =
       await this.exportarActividadesJornadasWordUseCase.execute({
         idTrabajador,
@@ -255,31 +325,39 @@ export class ControlOperativoController {
    * Exportación masiva: ZIP con un .docx por colaborador (mismo contenido que export-word).
    * POST /control-operativo/actividades/export-word-masivo
    * Body: { fechaInicio, fechaFin, fechaEmision?, idsTrabajador: number[] }
-   * Solo roles administrativos (usuarioPuedeExportacionMasivaWordActividades).
+   * Requiere `control_operativo.reportes.exportar_word_masivo` («asignados»: sólo su equipo).
    * Si fallan algunos, el ZIP incluye `exportacion_errores.txt` y los .docx generados correctamente.
    */
   @ApiOperation({
     summary: 'Exportar actividades Word masivo (ZIP)',
     description:
-      'ZIP con un informe por id de colaborador. Requiere rol administrativo. Máx. 80 ids por solicitud.',
+      'ZIP con un informe por id de colaborador, según el alcance del permiso. Máx. 80 ids por solicitud.',
   })
   @Post('actividades/export-word-masivo')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.reportes.exportar_word_masivo')
   async exportarActividadesJornadasWordMasivo(
     @Res() res: Response,
-    @Req() req: Request & { user?: AuthenticatedUser },
+    @ActorId() actor: number,
+    @GrantedScope('control_operativo.reportes.exportar_word_masivo')
+    alcance: AuthorizationScope,
     @Body() body: ExportarActividadesWordMasivoDto,
   ): Promise<void> {
-    if (!usuarioPuedeExportacionMasivaWordActividades(req.user?.roles)) {
+    // «asignados»: sólo colaboradores de su equipo.
+    const permitidos = await this.access.trabajadoresPermitidos(
+      actor,
+      'control_operativo.reportes.exportar_word_masivo',
+    );
+    if (
+      permitidos !== null &&
+      (body.idsTrabajador ?? []).some((id) => !permitidos.includes(Number(id)))
+    ) {
       throw new ForbiddenException(
-        'Solo usuarios con rol administrativo pueden usar la exportación masiva.',
+        'Solo puede exportar informes de colaboradores de su equipo.',
       );
     }
-    const incluirHorasDedicadasEnWord =
-      usuarioTieneRolParaVerHorasDedicadasEnExportWordActividades(
-        req.user?.roles,
-      );
+    const incluirHorasDedicadasEnWord = alcance === 'todos';
     const { buffer, fileName } =
       await this.exportarActividadesJornadasWordMasivoUseCase.execute({
         idsTrabajador: body.idsTrabajador,
@@ -303,11 +381,13 @@ export class ControlOperativoController {
   @ApiOperation({
     summary: 'Trabajadores para filtro de jornadas',
     description:
-      'Según rol: administradores ven todos; otros según jerarquía. Requiere idTrabajador en query.',
+      'Según el alcance de jornadas.ver: todos, su equipo o él mismo. Requiere idTrabajador en query.',
   })
   @Get('trabajadores-para-filtro')
+  @RequireScopedPermission('control_operativo.jornadas.ver')
   @UseGuards(JwtAuthGuard)
   async listarTrabajadoresParaFiltro(
+    @Req() req: Request & { user: { sub: number } },
     @Query('idTrabajador') idTrabajador?: string,
   ) {
     const id =
@@ -320,7 +400,10 @@ export class ControlOperativoController {
         'Trabajadores para filtro (sin id se devuelve vacío)',
       );
     }
-    const data = await this.listarTrabajadoresParaFiltroUseCase.execute(id);
+    const data = await this.listarTrabajadoresParaFiltroUseCase.execute(
+      req.user.sub,
+      await this.access.scopes(req.user.sub, 'control_operativo.jornadas.ver'),
+    );
     return ApiResponseDto.success(
       data,
       'Trabajadores para filtro listados exitosamente',
@@ -330,7 +413,7 @@ export class ControlOperativoController {
   /**
    * Listar proyectos para filtros en actividades, valorización, desempeño y validación.
    * idTrabajador = tratrabajador.id (ID del trabajador), NO idUsuario (auth). Proyectos se filtran por proaccesoproyecto.idtrabajador.
-   * Por rol: admins ven todos; coordinador BIM los que coordina; resto por acceso.
+   * «todos» en el permiso de la pestaña: todos los proyectos; si no, los que coordina, con acceso o de su equipo.
    * GET /control-operativo/proyectos-acceso-trabajador?idTrabajador=123&paraValidacion=1&soloVigentes=1
    * paraValidacion=1 usa pro_ListarProyectosParaValidacion (alineado con actividades-validacion).
    * soloVigentes=1 limita a proyectos en estado Vigente (registro de actividades).
@@ -344,7 +427,14 @@ export class ControlOperativoController {
   @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission(
+    ...PERMISOS_PESTANAS,
+    'control_operativo.validacion.ver',
+    'control_operativo.actividades.crear',
+    'control_operativo.entregables.crear',
+  )
   async listarProyectosAccesoTrabajador(
+    @ActorId() actor: number,
     @Query('idTrabajador') idTrabajador?: string,
     @Query('paraValidacion') paraValidacion?: string,
     @Query('soloVigentes') soloVigentes?: string,
@@ -361,9 +451,25 @@ export class ControlOperativoController {
     }
     const pv = paraValidacion === 'true' || paraValidacion === '1';
     const sv = soloVigentes === 'true' || soloVigentes === '1';
+    // «todos» según la pestaña: validación, registro de actividades (crear jornadas) o el resto.
+    const tieneTodos = async (codigos: string[]) => {
+      for (const codigo of codigos)
+        if ((await this.access.scopes(actor, codigo)).includes('todos'))
+          return true;
+      return false;
+    };
     const data = pv
-      ? await this.listarProyectosParaValidacionUseCase.execute(id)
-      : await this.listarProyectosAccesoTrabajadorUseCase.execute(id, sv);
+      ? await this.listarProyectosParaValidacionUseCase.execute(
+          id,
+          await tieneTodos(['control_operativo.validacion.ver']),
+        )
+      : await this.listarProyectosAccesoTrabajadorUseCase.execute(
+          id,
+          sv,
+          await tieneTodos(
+            sv ? ['control_operativo.jornadas.crear'] : PERMISOS_PESTANAS,
+          ),
+        );
     return ApiResponseDto.success(
       Array.isArray(data) ? data : [],
       'Proyectos con acceso listados exitosamente',
@@ -372,7 +478,7 @@ export class ControlOperativoController {
 
   /**
    * Dashboard: trabajadores que tienen jornada abierta hoy pero no han registrado ninguna actividad.
-   * Roles permitidos enviados por el front (rolesAdmin). GET .../trabajadores-sin-actividades-hoy?fecha=YYYY-MM-DD&rolesAdmin=1,5,11
+   * Requiere `inicio.indicadores.ver_sin_actividades`. GET .../trabajadores-sin-actividades-hoy?fecha=YYYY-MM-DD
    */
   @ApiOperation({
     summary: 'Dashboard: trabajadores con jornada abierta sin actividades',
@@ -380,22 +486,20 @@ export class ControlOperativoController {
   })
   @Get('trabajadores-sin-actividades-hoy')
   @UseGuards(JwtAuthGuard)
+  @RequireGranularPermission('inicio.indicadores.ver_sin_actividades')
   async listarTrabajadoresSinActividadesHoy(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Query('fecha') fecha?: string,
-    @Query('rolesAdmin') rolesAdmin?: string,
   ) {
     const userId = req.user?.sub ?? req.user?.id;
     if (userId == null) {
       throw new UnauthorizedException('Usuario no identificado');
     }
     const f = (fecha ?? '').trim() || getFechaHoy();
-    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
     const result =
       await this.listarTrabajadoresSinActividadesHoyUseCase.execute(
         Number(userId),
         f,
-        rolesAdminIds,
       );
     return ApiResponseDto.success(
       result,
@@ -405,7 +509,7 @@ export class ControlOperativoController {
 
   /**
    * Dashboard: trabajadores que no han registrado (abierto) jornada en la fecha (ej. hoy).
-   * Roles permitidos enviados por el front (rolesAdmin). GET .../trabajadores-sin-jornada-hoy?fecha=YYYY-MM-DD&rolesAdmin=1,5,11
+   * Requiere `inicio.indicadores.ver_sin_jornada`. GET .../trabajadores-sin-jornada-hoy?fecha=YYYY-MM-DD
    */
   @ApiOperation({
     summary: 'Dashboard: trabajadores sin jornada registrada en la fecha',
@@ -413,21 +517,19 @@ export class ControlOperativoController {
   })
   @Get('trabajadores-sin-jornada-hoy')
   @UseGuards(JwtAuthGuard)
+  @RequireGranularPermission('inicio.indicadores.ver_sin_jornada')
   async listarTrabajadoresSinJornadaHoy(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Query('fecha') fecha?: string,
-    @Query('rolesAdmin') rolesAdmin?: string,
   ) {
     const userId = req.user?.sub ?? req.user?.id;
     if (userId == null) {
       throw new UnauthorizedException('Usuario no identificado');
     }
     const f = (fecha ?? '').trim() || getFechaHoy();
-    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
     const result = await this.listarTrabajadoresSinJornadaHoyUseCase.execute(
       Number(userId),
       f,
-      rolesAdminIds,
     );
     return ApiResponseDto.success(
       result,
@@ -453,6 +555,7 @@ export class ControlOperativoController {
       'Si ya existe jornada ese día, la devuelve sin duplicar. Body incluye fechaJornada y opcionales de contrato.',
   })
   @Post('trabajadores/:idTrabajador/jornadas')
+  @RequireWorkerPermission('control_operativo.jornadas.crear')
   @UseGuards(JwtAuthGuard)
   async crearJornada(
     @Param('idTrabajador', ParseIntPipe) idTrabajador: number,
@@ -479,7 +582,8 @@ export class ControlOperativoController {
   /**
    * Actualizar estado de una jornada (admin / rol con permiso). Ej: Incompleto → Abierta.
    * PATCH /control-operativo/jornadas/:idJornada/estado
-   * Body: { "idEstadoJornada": number }
+   * Body: { "idEstadoJornada": number, "duracionMinutos"?: number }
+   * La duración es obligatoria al abrir; el actor procede de la sesión.
    */
   @ApiOperation({
     summary: 'Cambiar estado de una jornada',
@@ -487,19 +591,27 @@ export class ControlOperativoController {
   })
   @Patch('jornadas/:idJornada/estado')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.jornadas.cambiar_estado')
   async actualizarEstadoJornada(
+    @Req() req: Request & { user?: AuthenticatedUser },
     @Param('idJornada', ParseIntPipe) idJornada: number,
-    @Body('idEstadoJornada') idEstadoJornada: number,
+    @Body() body: ActualizarEstadoJornadaDto,
+    @ActorId() idUsuario: number,
   ) {
-    const id = idEstadoJornada != null ? Number(idEstadoJornada) : NaN;
-    if (Number.isNaN(id) || id < 1) {
-      return ApiResponseDto.badRequest(
-        'idEstadoJornada es obligatorio y debe ser un número válido',
-      );
-    }
+    const idTrabajador = await this.access.trabajadorDeJornada(idJornada);
+    if (idTrabajador == null)
+      throw new BadRequestException('No existe la jornada o está inactiva');
+    await this.access.exigirTrabajador(
+      idUsuario,
+      'control_operativo.jornadas.cambiar_estado',
+      idTrabajador,
+    );
+    const id = body.idEstadoJornada;
     const ok = await this.actualizarEstadoJornadaUseCase.execute({
       idJornada,
       idEstadoJornada: id,
+      idUsuarioModificacion: idUsuario,
+      duracionMinutos: body.duracionMinutos,
     });
     if (!ok) {
       throw new BadRequestException(
@@ -510,6 +622,36 @@ export class ControlOperativoController {
       { idJornada, idEstadoJornada: id },
       'Estado de jornada actualizado',
     );
+  }
+
+  @ApiOperation({
+    summary: 'Habilitar jornadas de usuarios por rango y duración',
+    description:
+      'Solo administradores y gerencia. idTrabajadores son IDs de tratrabajador; duración en minutos desde la llamada.',
+  })
+  @Post('jornadas/habilitar-usuarios')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('control_operativo.jornadas.cambiar_estado')
+  async habilitarJornadasUsuarios(
+    @Req() req: Request & { user?: AuthenticatedUser },
+    @Body() body: HabilitarJornadasUsuariosDto,
+    @ActorId() idUsuario: number,
+  ) {
+    for (const idTrabajador of body.idTrabajadores ?? [])
+      await this.access.exigirTrabajador(
+        idUsuario,
+        'control_operativo.jornadas.cambiar_estado',
+        Number(idTrabajador),
+      );
+    const result = await this.habilitarJornadasUsuariosUseCase.execute({
+      idTrabajadores: body.idTrabajadores,
+      fechaInicio: body.fechaInicio,
+      fechaFin: body.fechaFin,
+      duracionMinutos: body.duracionMinutos,
+      idUsuarioHabilita: idUsuario,
+    });
+    return ApiResponseDto.success(result, 'Habilitación de jornadas procesada');
   }
 
   /**
@@ -525,6 +667,12 @@ export class ControlOperativoController {
   })
   @Post('actividades')
   @UseGuards(JwtAuthGuard)
+  @RequireResourcePermission(
+    'control_operativo.actividades.crear',
+    CONTROL_JORNADA_RESOURCE,
+    'idJornada',
+    'body',
+  )
   async crearActividad(
     @Body('idJornada') idJornada: number,
     @Body('idProyecto') idProyecto: number,
@@ -542,6 +690,14 @@ export class ControlOperativoController {
     @Body('incidenciaDetallada') incidenciaDetallada?: string,
     @Body('entregableCulminado') entregableCulminado?: boolean,
   ) {
+    if (
+      (await this.access.trabajadorDeJornada(Number(idJornada))) !==
+      Number(idTrabajador)
+    ) {
+      throw new BadRequestException(
+        'La actividad debe registrarse para el trabajador de la jornada',
+      );
+    }
     const data = await this.crearActividadUseCase.execute({
       idJornada: Number(idJornada),
       idProyecto: Number(idProyecto),
@@ -581,6 +737,11 @@ export class ControlOperativoController {
   @Post('actividades/:id/evidencias')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
+  @RequireResourcePermission(
+    'control_operativo.actividades.adjuntar_evidencias',
+    CONTROL_ACTIVITY_RESOURCE,
+    'id',
+  )
   async agregarEvidenciasActividad(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AgregarEvidenciasActividadDto,
@@ -631,6 +792,11 @@ export class ControlOperativoController {
   @Delete('actividades/:id/evidencias/:idEvidencia')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
+  @RequireResourcePermission(
+    'control_operativo.actividades.eliminar_evidencias',
+    CONTROL_ACTIVITY_RESOURCE,
+    'id',
+  )
   async eliminarEvidenciaActividad(
     @Param('id', ParseIntPipe) idActividad: number,
     @Param('idEvidencia', ParseIntPipe) idEvidencia: number,
@@ -659,7 +825,9 @@ export class ControlOperativoController {
   })
   @Get('actividades')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.actividades.ver')
   async listarActividades(
+    @ActorId() actor: number,
     @Query('idJornada') idJornada?: string,
     @Query('idTrabajador') idTrabajador?: string,
     @Query('idProyecto') idProyecto?: string,
@@ -678,7 +846,33 @@ export class ControlOperativoController {
       offset:
         offset != null && offset !== '' ? parseInt(offset, 10) : undefined,
     };
+    // propios = sus actividades; asignados = las de su equipo; todos = cualquiera.
+    const trabajadorJornada = params.idJornada
+      ? await this.access.trabajadorDeJornada(params.idJornada)
+      : null;
+    const idTrabajadorObjetivo = trabajadorJornada ?? params.idTrabajador;
+    if (
+      !idTrabajadorObjetivo ||
+      (params.idTrabajador != null &&
+        trabajadorJornada != null &&
+        params.idTrabajador !== trabajadorJornada)
+    ) {
+      throw new BadRequestException('Indique la jornada o el trabajador');
+    }
+    await this.access.exigirTrabajador(
+      actor,
+      'control_operativo.actividades.ver',
+      idTrabajadorObjetivo,
+    );
     const result = await this.listarActividadesUseCase.execute(params);
+    if (
+      !(await this.access.trabajadorPermitido(
+        actor,
+        'control_operativo.actividades.ver_evidencias',
+        idTrabajadorObjetivo,
+      ))
+    )
+      for (const actividad of result.data ?? []) delete actividad.evidencias;
     return ApiResponseDto.success(result, 'Actividades listadas exitosamente');
   }
 
@@ -690,11 +884,14 @@ export class ControlOperativoController {
   @ApiOperation({
     summary: 'Actividades para la pestaña Validación',
     description:
-      'Alcance según jerarquía del usuario (excluye propias según reglas). Admins pueden ver todo.',
+      'Alcance según jerarquía del usuario (excluye propias). Con validacion.ver «todos», todas.',
   })
   @Get('actividades-validacion')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.validacion.ver')
   async listarActividadesValidacion(
+    @GrantedScope('control_operativo.validacion.ver')
+    alcance: AuthorizationScope,
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Query('idTrabajador') idTrabajador?: string,
     @Query('idProyecto') idProyecto?: string,
@@ -708,6 +905,7 @@ export class ControlOperativoController {
     }
     const result = await this.listarActividadesValidacionUseCase.execute({
       idUsuario: Number(userId),
+      accesoTotal: alcance === 'todos',
       idTrabajadorFiltro:
         idTrabajador != null && idTrabajador !== ''
           ? parseInt(idTrabajador, 10)
@@ -741,6 +939,7 @@ export class ControlOperativoController {
   })
   @Get('actividades-observadas-subsanar')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.actividades.subsanar')
   async listarActividadesObservadasSubsanar(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Query('idProyecto') idProyecto?: string,
@@ -770,22 +969,22 @@ export class ControlOperativoController {
 
   /**
    * Valorización: actividades aprobadas por proyecto y rango de fechas, agrupadas por modelador y coordinador.
-   * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
-   * GET /control-operativo/valorizacion?idProyecto=1&fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD&rolesAdmin=1,5,11
+   * Requiere `control_operativo.valorizacion.ver` («asignados»: proyectos de su ámbito).
+   * GET /control-operativo/valorizacion?idProyecto=1&fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD
    */
   @ApiOperation({
     summary: 'Valorización de horas (actividades aprobadas)',
     description:
-      'Requiere proyecto, fechas y roles administrativos permitidos (query rolesAdmin).',
+      'Requiere proyecto y fechas; el proyecto debe estar en el alcance del permiso.',
   })
   @Get('valorizacion')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.valorizacion.ver')
   async listarValorizacion(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Query('idProyecto') idProyecto?: string,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
-    @Query('rolesAdmin') rolesAdmin?: string,
   ) {
     const userId = req.user?.sub ?? req.user?.id;
     if (userId == null) {
@@ -807,21 +1006,23 @@ export class ControlOperativoController {
         'Valorización (fechaInicio y fechaFin requeridos)',
       );
     }
-    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
     const result = await this.listarValorizacionUseCase.execute({
       idUsuario: Number(userId),
       idProyecto: idProy,
       fechaInicio: fInicio,
       fechaFin: fFin,
-      rolesAdminPermitidos: rolesAdminIds,
+      proyectosPermitidos: await this.access.proyectosPermitidos(
+        Number(userId),
+        'control_operativo.valorizacion.ver',
+      ),
     });
     return ApiResponseDto.success(result, 'Valorización listada exitosamente');
   }
 
   /**
    * Evaluación de desempeño: actividades rechazadas, observaciones, horas no justificadas, comentarios coordinador.
-   * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
-   * GET /control-operativo/desempeno?idProyecto=1&fechaInicio=...&fechaFin=...&idTrabajador=1&rolesAdmin=1,5,11
+   * Requiere `control_operativo.desempeno.ver` (propios / asignados / todos).
+   * GET /control-operativo/desempeno?idProyecto=1&fechaInicio=...&fechaFin=...&idTrabajador=1
    */
   @ApiOperation({
     summary: 'Evaluación de desempeño (rechazos, observaciones, horas)',
@@ -830,13 +1031,13 @@ export class ControlOperativoController {
   })
   @Get('desempeno')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.desempeno.ver')
   async listarDesempeno(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Query('idProyecto') idProyecto?: string,
     @Query('fechaInicio') fechaInicio?: string,
     @Query('fechaFin') fechaFin?: string,
     @Query('idTrabajador') idTrabajador?: string,
-    @Query('rolesAdmin') rolesAdmin?: string,
   ) {
     const userId = req.user?.sub ?? req.user?.id;
     if (userId == null) {
@@ -870,17 +1071,36 @@ export class ControlOperativoController {
         'Evaluación de desempeño (fechaInicio y fechaFin requeridos)',
       );
     }
-    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
     const idTrab =
       idTrabajador != null && idTrabajador !== ''
         ? parseInt(idTrabajador, 10)
         : undefined;
+    // «propios»: sólo su propio desempeño; «asignados»: proyectos y equipo; «todos»: cualquiera.
+    const alcancesDesempeno = await this.access.scopes(
+      Number(userId),
+      'control_operativo.desempeno.ver',
+    );
+    const soloPropio =
+      !alcancesDesempeno.includes('todos') &&
+      !alcancesDesempeno.includes('asignados');
     const result = await this.listarDesempenoUseCase.execute({
       idUsuario: Number(userId),
       idProyecto: idProy,
       fechaInicio: fInicio,
       fechaFin: fFin,
-      rolesAdminPermitidos: rolesAdminIds,
+      proyectosPermitidos: soloPropio
+        ? null
+        : await this.access.proyectosPermitidos(
+            Number(userId),
+            'control_operativo.desempeno.ver',
+          ),
+      trabajadoresPermitidos: await this.access.trabajadoresPermitidos(
+        Number(userId),
+        'control_operativo.desempeno.ver',
+      ),
+      trabajadorPropio: soloPropio
+        ? await this.access.trabajadorDe(Number(userId))
+        : null,
       idTrabajador:
         idTrab !== undefined && !Number.isNaN(idTrab) && idTrab >= 1
           ? idTrab
@@ -894,21 +1114,25 @@ export class ControlOperativoController {
 
   /**
    * Lista trabajadores del proyecto (Desempeño / asignación de entregables).
-   * Admin/Gerencia/Coordinador: listado del proyecto (+ el usuario actual si falta).
+   * Con desempeño o entregables en «todos» (o «asignados» en un proyecto propio): listado del proyecto.
    * Modelador/Desarrollador Web: solo su propia persona (autoasignación).
-   * GET /control-operativo/trabajadores-por-proyecto?idProyecto=1&rolesAdmin=1,5,11
+   * GET /control-operativo/trabajadores-por-proyecto?idProyecto=1
    */
   @ApiOperation({
     summary: 'Trabajadores del proyecto',
     description:
-      'Admin/coordinador: trabajadores con actividad en el proyecto. Colaborador: solo sí mismo.',
+      'Con alcance sobre el proyecto: sus trabajadores. Si no: solo sí mismo.',
   })
   @Get('trabajadores-por-proyecto')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission(
+    'control_operativo.desempeno.ver',
+    'control_operativo.entregables.crear',
+    'control_operativo.entregables.editar',
+  )
   async listarTrabajadoresPorProyecto(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Query('idProyecto') idProyecto?: string,
-    @Query('rolesAdmin') rolesAdmin?: string,
   ) {
     const userId = req.user?.sub ?? req.user?.id;
     if (userId == null) {
@@ -919,11 +1143,26 @@ export class ControlOperativoController {
     if (Number.isNaN(idProy) || idProy < 1) {
       return ApiResponseDto.success([], 'Proyecto requerido');
     }
-    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
+    // Todo el proyecto con «todos», o con «asignados» en un proyecto de su ámbito.
+    let verProyecto = false;
+    for (const codigo of [
+      'control_operativo.desempeno.ver',
+      'control_operativo.entregables.crear',
+      'control_operativo.entregables.editar',
+    ]) {
+      const permitidos = await this.access.proyectosPermitidos(
+        Number(userId),
+        codigo,
+      );
+      if (permitidos === null || permitidos.includes(idProy)) {
+        verProyecto = true;
+        break;
+      }
+    }
     const result = await this.listarTrabajadoresPorProyectoUseCase.execute({
       idUsuario: Number(userId),
       idProyecto: idProy,
-      rolesAdminPermitidos: rolesAdminIds,
+      verProyecto,
     });
     return ApiResponseDto.success(
       result,
@@ -933,7 +1172,7 @@ export class ControlOperativoController {
 
   /**
    * Coordinadores / responsables con personal a cargo (filtro reporte general).
-   * GET /control-operativo/reporte-general/lideres-equipo?rolesAdmin=...
+   * GET /control-operativo/reporte-general/lideres-equipo
    */
   @ApiOperation({
     summary: 'Líderes de equipo para filtro del reporte general',
@@ -941,34 +1180,31 @@ export class ControlOperativoController {
   })
   @Get('reporte-general/lideres-equipo')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.reportes.ver_general')
   async listarLideresEquipoReporteGeneral(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
-    @Query('rolesAdmin') rolesAdmin?: string,
   ) {
     const userId = req.user?.sub ?? req.user?.id;
     if (userId == null) {
       throw new UnauthorizedException('Usuario no identificado');
     }
-    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
-    const data = await this.listarLideresEquipoReporteGeneralUseCase.execute({
-      idUsuario: Number(userId),
-      rolesAdminPermitidos: rolesAdminIds,
-    });
+    const data = await this.listarLideresEquipoReporteGeneralUseCase.execute();
     return ApiResponseDto.success(data, 'Líderes listados exitosamente');
   }
 
   /**
    * Reporte general de actividades con filtros opcionales.
-   * Solo roles enviados en rolesAdmin (front envía ROLES_ADMIN_CONTROL_OPERATIVO).
+   * Requiere `control_operativo.reportes.ver_general` («asignados»: proyectos de su ámbito).
    * GET /control-operativo/reporte-general?...&idTrabajadores=1,2&idProyectos=3&idEstadosActividad=374,375&idLiderEquipo=5&...
    */
   @ApiOperation({
     summary: 'Reporte general de actividades',
     description:
-      'Filtros múltiples (fechas, proyectos, trabajadores, estados, líder). Solo roles administrativos indicados.',
+      'Filtros múltiples (fechas, proyectos, trabajadores, estados, líder). Según el alcance del permiso.',
   })
   @Get('reporte-general')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.reportes.ver_general')
   async listarReporteGeneral(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Query('fechaInicio') fechaInicio?: string,
@@ -979,7 +1215,6 @@ export class ControlOperativoController {
     @Query('idLiderEquipo') idLiderEquipo?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
-    @Query('rolesAdmin') rolesAdmin?: string,
   ) {
     const userId = req.user?.sub ?? req.user?.id;
     if (userId == null) {
@@ -987,7 +1222,6 @@ export class ControlOperativoController {
     }
     const fInicio = (fechaInicio ?? '').trim() || null;
     const fFin = (fechaFin ?? '').trim() || null;
-    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
     const limitNum = limit && limit !== '' ? parseInt(limit, 10) : 50;
     const offsetNum = offset && offset !== '' ? parseInt(offset, 10) : 0;
     const idLiderParsed =
@@ -1006,7 +1240,10 @@ export class ControlOperativoController {
       idLiderEquipo: idLiderEquipoVal,
       limit: !Number.isNaN(limitNum) && limitNum >= 0 ? limitNum : 50,
       offset: !Number.isNaN(offsetNum) && offsetNum >= 0 ? offsetNum : 0,
-      rolesAdminPermitidos: rolesAdminIds,
+      proyectosPermitidos: await this.access.proyectosPermitidos(
+        Number(userId),
+        'control_operativo.reportes.ver_general',
+      ),
     });
     return ApiResponseDto.success(
       result,
@@ -1025,6 +1262,7 @@ export class ControlOperativoController {
   })
   @Get('reporte-horas-mes-proyecto-trabajador/detalle-por-proyecto')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.reportes.exportar_horas_excel')
   async listarReporteHorasRangoDetalleProyecto(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Query('fechaInicio') fechaInicio?: string,
@@ -1032,7 +1270,6 @@ export class ControlOperativoController {
     @Query('idTrabajadores') idTrabajadores?: string,
     @Query('idProyectos') idProyectos?: string,
     @Query('idEstadosActividad') idEstadosActividad?: string,
-    @Query('rolesAdmin') rolesAdmin?: string,
   ) {
     const userId = req.user?.sub ?? req.user?.id;
     if (userId == null) {
@@ -1048,7 +1285,6 @@ export class ControlOperativoController {
         'fechaInicio no puede ser posterior a fechaFin',
       );
     }
-    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
     const result =
       await this.listarReporteHorasRangoDetalleProyectoUseCase.execute({
         idUsuario: Number(userId),
@@ -1057,7 +1293,10 @@ export class ControlOperativoController {
         idTrabajadores: this.parseIdsListQuery(idTrabajadores),
         idProyectos: this.parseIdsListQuery(idProyectos),
         idEstadosActividad: this.parseIdsListQuery(idEstadosActividad),
-        rolesAdminPermitidos: rolesAdminIds,
+        proyectosPermitidos: await this.access.proyectosPermitidos(
+          Number(userId),
+          'control_operativo.reportes.exportar_horas_excel',
+        ),
       });
     return ApiResponseDto.success(
       result,
@@ -1072,10 +1311,11 @@ export class ControlOperativoController {
   @ApiOperation({
     summary: 'Reporte horas por rango (por colaborador)',
     description:
-      'Totales por trabajador en el periodo; filtro opcional por proyectos/estados. Solo roles administrativos.',
+      'Totales por trabajador en el periodo; filtro opcional por proyectos/estados, según el alcance del permiso.',
   })
   @Get('reporte-horas-mes-proyecto-trabajador')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission('control_operativo.reportes.ver_horas_mes')
   async listarReporteHorasMesProyectoTrabajador(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Query('fechaInicio') fechaInicio?: string,
@@ -1084,7 +1324,6 @@ export class ControlOperativoController {
     @Query('idTrabajadores') idTrabajadores?: string,
     @Query('idProyectos') idProyectos?: string,
     @Query('idEstadosActividad') idEstadosActividad?: string,
-    @Query('rolesAdmin') rolesAdmin?: string,
   ) {
     const userId = req.user?.sub ?? req.user?.id;
     if (userId == null) {
@@ -1105,7 +1344,6 @@ export class ControlOperativoController {
         ? parseFloat(horasMetaDia.trim().replace(',', '.'))
         : 8;
     const horasMeta = Number.isFinite(metaRaw) && metaRaw > 0 ? metaRaw : 8;
-    const rolesAdminIds = this.parseRolesAdminQuery(rolesAdmin);
     const result =
       await this.listarReporteHorasMesProyectoTrabajadorUseCase.execute({
         idUsuario: Number(userId),
@@ -1115,7 +1353,10 @@ export class ControlOperativoController {
         idProyectos: this.parseIdsListQuery(idProyectos),
         idEstadosActividad: this.parseIdsListQuery(idEstadosActividad),
         horasMetaDia: horasMeta,
-        rolesAdminPermitidos: rolesAdminIds,
+        proyectosPermitidos: await this.access.proyectosPermitidos(
+          Number(userId),
+          'control_operativo.reportes.ver_horas_mes',
+        ),
       });
     return ApiResponseDto.success(
       result,
@@ -1135,16 +1376,31 @@ export class ControlOperativoController {
     return ids.length > 0 ? ids : null;
   }
 
-  /** Parsea query rolesAdmin a número[]. Si viene vacío, usa ROLES_ADMIN_CONTROL_OPERATIVO. */
-  private parseRolesAdminQuery(rolesAdmin?: string): number[] {
-    if (rolesAdmin == null || (rolesAdmin = rolesAdmin.trim()) === '') {
-      return [...ROLES_ADMIN_CONTROL_OPERATIVO];
-    }
-    const ids = rolesAdmin
-      .split(',')
-      .map((s) => parseInt(s.trim(), 10))
-      .filter((n) => !Number.isNaN(n) && n >= 1);
-    return ids.length > 0 ? ids : [...ROLES_ADMIN_CONTROL_OPERATIVO];
+  /** Leer una actividad: suya o de su equipo (ver/subsanar), o validable por la persona. */
+  private async exigirLecturaActividad(actor: number, idActividad: number) {
+    const idTrabajador = await this.access.trabajadorDeActividad(idActividad);
+    if (idTrabajador == null) return;
+    for (const codigo of [
+      'control_operativo.actividades.ver',
+      'control_operativo.actividades.subsanar',
+    ])
+      if (await this.access.trabajadorPermitido(actor, codigo, idTrabajador))
+        return;
+    const validacion = await this.access.scopes(
+      actor,
+      'control_operativo.validacion.ver',
+    );
+    if (
+      validacion.length &&
+      (await this.obtenerActividadUseCase.execute({
+        idActividad,
+        contextoValidacion: true,
+        idUsuario: actor,
+        accesoTotalValidacion: validacion.includes('todos'),
+      }))
+    )
+      return;
+    throw ControlOperativoAccess.denied();
   }
 
   /**
@@ -1157,7 +1413,12 @@ export class ControlOperativoController {
   })
   @Get('actividades/:id/observaciones')
   @UseGuards(JwtAuthGuard)
-  async listarObservacionesActividad(@Param('id', ParseIntPipe) id: number) {
+  @RequireScopedPermission(...LECTURA_ACTIVIDAD)
+  async listarObservacionesActividad(
+    @Param('id', ParseIntPipe) id: number,
+    @ActorId() actor: number,
+  ) {
+    await this.exigirLecturaActividad(actor, id);
     const data = await this.listarObservacionesActividadUseCase.execute(id);
     return ApiResponseDto.success(data, 'Observaciones listadas exitosamente');
   }
@@ -1174,6 +1435,7 @@ export class ControlOperativoController {
   })
   @Get('actividades/:id')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission(...LECTURA_ACTIVIDAD)
   async obtenerActividad(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Param('id', ParseIntPipe) id: number,
@@ -1181,18 +1443,38 @@ export class ControlOperativoController {
   ) {
     const userId = req.user?.sub ?? req.user?.id;
     const ctxVal = contextoValidacion === 'true' || contextoValidacion === '1';
-    if (ctxVal && userId == null) {
+    if (userId == null) {
       throw new UnauthorizedException('Usuario no identificado');
     }
+    const validacion = ctxVal
+      ? await this.access.scopes(
+          Number(userId),
+          'control_operativo.validacion.ver',
+        )
+      : [];
+    if (ctxVal && !validacion.length) throw ControlOperativoAccess.denied();
+    if (!ctxVal) await this.exigirLecturaActividad(Number(userId), id);
     const data = await this.obtenerActividadUseCase.execute(
       ctxVal
         ? {
             idActividad: id,
             contextoValidacion: true,
             idUsuario: Number(userId),
+            accesoTotalValidacion: validacion.includes('todos'),
           }
         : id,
     );
+    // Fuera de validación, las evidencias requieren «ver evidencias» sobre el trabajador.
+    if (
+      data &&
+      !ctxVal &&
+      !(await this.access.trabajadorPermitido(
+        Number(userId),
+        'control_operativo.actividades.ver_evidencias',
+        Number(data.idtrabajador),
+      ))
+    )
+      delete (data as { evidencias?: unknown }).evidencias;
     if (!data) {
       if (ctxVal) {
         throw new ForbiddenException(
@@ -1215,6 +1497,11 @@ export class ControlOperativoController {
   })
   @Patch('actividades/:id/validar')
   @UseGuards(JwtAuthGuard)
+  @RequireScopedPermission(
+    'control_operativo.validacion.aprobar',
+    'control_operativo.validacion.observar',
+    'control_operativo.validacion.rechazar',
+  )
   async validarActividad(
     @Req() req: Request & { user?: { id?: number; sub?: number } },
     @Param('id', ParseIntPipe) id: number,
@@ -1232,11 +1519,17 @@ export class ControlOperativoController {
         'idEstadoActividad es obligatorio y debe ser un número válido',
       );
     }
+    const codigo = PERMISO_VALIDACION[idEstado];
+    const alcances = codigo
+      ? await this.access.scopes(Number(userId), codigo)
+      : [];
+    if (!alcances.length) throw ControlOperativoAccess.denied();
     const data = await this.validarActividadUseCase.execute({
       idActividad: id,
       idEstadoActividad: idEstado,
       comentarioValidacion: comentarioValidacion?.trim() || null,
       idUsuario: Number(userId),
+      accesoTotal: alcances.includes('todos'),
     });
     if (!data) {
       return ApiResponseDto.badRequest('No se pudo validar la actividad');
@@ -1255,6 +1548,14 @@ export class ControlOperativoController {
   })
   @Patch('actividades/:id')
   @UseGuards(JwtAuthGuard)
+  @RequireResourcePermission(
+    [
+      'control_operativo.actividades.editar',
+      'control_operativo.actividades.subsanar',
+    ],
+    CONTROL_ACTIVITY_RESOURCE,
+    'id',
+  )
   async actualizarActividad(
     @Param('id', ParseIntPipe) id: number,
     @Body('idProyecto') idProyecto: number,
@@ -1306,6 +1607,11 @@ export class ControlOperativoController {
   })
   @Delete('actividades/:id')
   @UseGuards(JwtAuthGuard)
+  @RequireResourcePermission(
+    'control_operativo.actividades.eliminar',
+    CONTROL_ACTIVITY_RESOURCE,
+    'id',
+  )
   async eliminarActividad(@Param('id', ParseIntPipe) id: number) {
     try {
       const ok = await this.eliminarActividadUseCase.execute(id);

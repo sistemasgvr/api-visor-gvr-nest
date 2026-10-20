@@ -10,7 +10,9 @@ import {
   Req,
   UseGuards,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
@@ -33,13 +35,23 @@ import {
 } from '../dtos/data-management/versions';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
 @Controller('data-management/versions')
 @UseGuards(JwtAuthGuard)
 export class DataManagementVersionsController {
+  private documentActor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly obtenerVersionPorIdUseCase: ObtenerVersionPorIdUseCase,
     private readonly obtenerFormatosDescargaUseCase: ObtenerFormatosDescargaUseCase,
     private readonly obtenerDescargasUseCase: ObtenerDescargasUseCase,
@@ -59,11 +71,18 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Obtener una versión por ID' })
   @Get(':projectId/:versionId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerVersionPorId(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      versionId,
+      'view',
+    );
     if (!projectId) {
       throw new BadRequestException('El ID del proyecto es requerido');
     }
@@ -97,11 +116,18 @@ export class DataManagementVersionsController {
   })
   @Get(':projectId/:versionId/downloadFormats')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerFormatosDescarga(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      versionId,
+      'download',
+    );
     if (!projectId) {
       throw new BadRequestException('El ID del proyecto es requerido');
     }
@@ -133,11 +159,18 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Información para descarga directa desde APS' })
   @Get(':projectId/:versionId/downloads')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerDescargas(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      versionId,
+      'download',
+    );
     if (!projectId) {
       throw new BadRequestException('El ID del proyecto es requerido');
     }
@@ -169,11 +202,18 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Item poseedor de esta versión' })
   @Get(':projectId/:versionId/item')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      versionId,
+      'view',
+    );
     if (!projectId) {
       throw new BadRequestException('El ID del proyecto es requerido');
     }
@@ -205,11 +245,18 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Referencias (refs) de la versión' })
   @Get(':projectId/:versionId/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerReferencias(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      versionId,
+      'view',
+    );
     if (!projectId) {
       throw new BadRequestException('El ID del proyecto es requerido');
     }
@@ -241,11 +288,18 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Relaciones tipo links de la versión' })
   @Get(':projectId/:versionId/relationships/links')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesLinks(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      versionId,
+      'view',
+    );
     if (!projectId) {
       throw new BadRequestException('El ID del proyecto es requerido');
     }
@@ -277,11 +331,18 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Relaciones tipo refs de la versión' })
   @Get(':projectId/:versionId/relationships/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesRefs(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      versionId,
+      'view',
+    );
     if (!projectId) {
       throw new BadRequestException('El ID del proyecto es requerido');
     }
@@ -315,11 +376,13 @@ export class DataManagementVersionsController {
   })
   @Post(':projectId')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async crearVersion(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Body() dto: CrearVersionDto,
   ) {
+    await this.documentAccess.assertFullAccess(this.documentActor(request));
     if (!projectId) {
       throw new BadRequestException('El ID del proyecto es requerido');
     }
@@ -348,12 +411,14 @@ export class DataManagementVersionsController {
   @ApiOperation({ summary: 'Crear ref en esta versión' })
   @Post(':projectId/:versionId/relationships/refs')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async crearReferencia(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
     @Body() dto: CrearReferenciaDto,
   ) {
+    await this.documentAccess.assertFullAccess(this.documentActor(request));
     if (!projectId) {
       throw new BadRequestException('El ID del proyecto es requerido');
     }
@@ -388,12 +453,14 @@ export class DataManagementVersionsController {
   })
   @Patch(':projectId/:versionId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async actualizarVersion(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
     @Body() dto: ActualizarVersionDto,
   ) {
+    await this.documentAccess.assertFullAccess(this.documentActor(request));
     if (!projectId) {
       throw new BadRequestException('El ID del proyecto es requerido');
     }
