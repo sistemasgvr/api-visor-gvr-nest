@@ -64,6 +64,7 @@ temp
 *.tmp
 
 # Local database and environment copies
+backups
 .env.*
 *.dump
 *.backup

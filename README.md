@@ -42,3 +42,5 @@ Las pruebas de integración locales simulan la base de datos y no ejecutan opera
 El contenedor arranca con `NODE_ENV=production`. Proporcionar las variables y credenciales desde el entorno del servidor; `.env`, temporales, volcados y datos QA se excluyen del contexto Docker. El control de cobertura de autorización se mantiene activo en producción.
 
 Aplicar SQL y publicar backend y frontend durante la misma ventana, siguiendo [MIGRACION.md](../api-visor-gvr-sql/docs/permisos/MIGRACION.md).
+
+Los respaldos de producción se conservan en `backups/produccion/`, excluidos de Git y Docker; no son temporales de desarrollo. Cada carpeta contiene el archivo `.dump`, su contenido y un manifiesto con checksum, verificación y pasos ejecutados. La conexión de producción permanece como referencia comentada en el `.env` privado; la conexión activa local no se cambia al respaldar.
