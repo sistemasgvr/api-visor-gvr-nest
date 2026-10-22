@@ -1,16 +1,25 @@
-import { IsInt, Min, IsString, MaxLength, ValidateIf } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
+
 export class CambioEntregableQueryDto {
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
+  static readonly schema: z.ZodType<CambioEntregableQueryDto> =
+    defineZodDto<CambioEntregableQueryDto>('CambioEntregableQueryDto', {
+      revisionPlan: {
+        schema: z.number().int().min(1),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+      motivo: {
+        schema: z.string().max(1000),
+        when: (_o, v) => v !== undefined,
+        transforms: [
+          ({ value }: { value: unknown }) =>
+            typeof value === 'string' ? value.trim() : value,
+        ],
+      },
+    });
+
   revisionPlan?: number;
-  @ValidateIf((_o, v) => v !== undefined)
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
-  @IsString()
-  @MaxLength(1000)
+
   motivo?: string;
 }

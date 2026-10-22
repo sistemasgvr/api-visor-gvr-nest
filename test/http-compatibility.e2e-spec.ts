@@ -1,10 +1,10 @@
+import { ZodValidationPipe } from '../src/presentation/validation/zod-validation.pipe';
 import {
   Controller,
   Get,
   HttpException,
   Post,
   Body,
-  ValidationPipe,
   type INestApplication,
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -13,7 +13,6 @@ import request from 'supertest';
 import { UnauthenticatedError } from '../src/application/errors/application.error';
 import { toApplicationFailure } from '../src/infrastructure/runtime/application-failure.adapter';
 import { LoginDto } from '../src/presentation/dtos/login.dto';
-import { spanishValidationExceptionFactory } from '../src/presentation/validation/spanish-validation-messages';
 import type * as FilterModule from '../src/presentation/filters/global-exception.filter';
 
 @Controller('compatibility-fixture')
@@ -67,12 +66,7 @@ describe('Compatibilidad del borde HTTP', () => {
     }).compile();
     app = module.createNestApplication();
     app.useGlobalFilters(new GlobalExceptionFilter());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        transform: true,
-        exceptionFactory: spanishValidationExceptionFactory,
-      }),
-    );
+    app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
   });
 

@@ -1,50 +1,50 @@
-import {
-  IsNotEmpty,
-  IsArray,
-  IsString,
-  IsOptional,
-  IsInt,
-  Min,
-  Max,
-  ArrayMinSize,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class GetProyectosPorTipoDto {
-  @IsNotEmpty({ message: 'El array de tipos es requerido' })
-  @IsArray()
-  @ArrayMinSize(1, {
-    message: 'Debe proporcionar al menos un tipo de proyecto',
-  })
-  @IsString({ each: true })
+  static readonly schema: z.ZodType<GetProyectosPorTipoDto> =
+    defineZodDto<GetProyectosPorTipoDto>('GetProyectosPorTipoDto', {
+      tipos: {
+        schema: z
+          .array(z.string())
+          .min(1)
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      fields: { schema: z.string(), optional: true },
+      filter_status: { schema: z.string(), optional: true },
+      sort: { schema: z.string(), optional: true },
+      limit: {
+        schema: z.number().int().min(1).max(200),
+        optional: true,
+        coerce: 'number',
+        defaultValue: 20,
+      },
+      offset: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+        defaultValue: 0,
+      },
+      token: { schema: z.string(), optional: true },
+    });
+
   tipos: string[];
 
-  @IsOptional()
-  @IsString()
   fields?: string;
 
-  @IsOptional()
-  @IsString()
   filter_status?: string;
 
-  @IsOptional()
-  @IsString()
   sort?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(200)
   limit?: number = 20;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number = 0;
 
-  @IsOptional()
-  @IsString()
   token?: string;
 }

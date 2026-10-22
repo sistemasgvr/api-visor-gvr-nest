@@ -1,3 +1,4 @@
+import { ZodValidationPipe } from '../validation/zod-validation.pipe';
 import {
   Controller,
   Get,
@@ -16,7 +17,6 @@ import {
   ForbiddenException,
   ParseIntPipe,
   UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
@@ -53,7 +53,7 @@ import {
 @ApiBearerAuth('access-token')
 @Controller('mail/plantillas')
 @UseGuards(JwtAuthGuard)
-@UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+@UsePipes(new ZodValidationPipe())
 export class MailPlantillaController {
   constructor(
     private readonly listarUseCase: ListarMailPlantillasUseCase,

@@ -1,7 +1,22 @@
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class AsignarPermisoDto {
-  @IsNotEmpty({ message: 'El ID del permiso es requerido' })
-  @IsInt()
+  static readonly schema: z.ZodType<AsignarPermisoDto> =
+    defineZodDto<AsignarPermisoDto>('rol_AsignarPermisoDto', {
+      id_permiso: {
+        schema: z
+          .number()
+          .int()
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+    });
+
   id_permiso: number;
 }

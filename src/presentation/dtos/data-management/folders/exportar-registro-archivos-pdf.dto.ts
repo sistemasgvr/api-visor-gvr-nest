@@ -1,31 +1,35 @@
-import { Transform } from 'class-transformer';
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ExportarRegistroArchivosPdfDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(500)
+  static readonly schema: z.ZodType<ExportarRegistroArchivosPdfDto> =
+    defineZodDto<ExportarRegistroArchivosPdfDto>(
+      'ExportarRegistroArchivosPdfDto',
+      {
+        titulo: { schema: z.string().min(1).max(500) },
+        incluirSubcarpetas: {
+          schema: z.boolean(),
+          transforms: [({ value }) => value === 'true' || value === true],
+        },
+        incluirAtributosPersonalizados: {
+          schema: z.boolean(),
+          transforms: [({ value }) => value === 'true' || value === true],
+        },
+        hubId: { schema: z.string().max(200), optional: true },
+      },
+    );
+
   titulo: string;
 
   /** true = carpeta actual y subcarpetas; false = solo carpeta actual */
-  @Transform(({ value }) => value === 'true' || value === true)
-  @IsBoolean()
+
   incluirSubcarpetas: boolean;
 
   /** Incluir columna de atributos personalizados (extension.data) */
-  @Transform(({ value }) => value === 'true' || value === true)
-  @IsBoolean()
+
   incluirAtributosPersonalizados: boolean;
 
   /** Hub ACC (mismo id de ruta) para resolver el nombre del proyecto al exportar */
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
+
   hubId?: string;
 }

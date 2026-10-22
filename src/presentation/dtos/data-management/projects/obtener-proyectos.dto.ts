@@ -1,7 +1,14 @@
-import { IsOptional, IsObject } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ObtenerProyectosDto {
-  @IsOptional()
-  @IsObject()
+  static readonly schema: z.ZodType<ObtenerProyectosDto> =
+    defineZodDto<ObtenerProyectosDto>(
+      'data-management_projects_ObtenerProyectosDto',
+      {
+        filters: { schema: z.record(z.string(), z.unknown()), optional: true },
+      },
+    );
+
   filters?: Record<string, any>;
 }

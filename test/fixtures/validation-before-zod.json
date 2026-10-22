@@ -1,0 +1,2472 @@
+{
+  "description": "Máscaras históricas: bit 1 significa que el validador anterior rechazaba la propiedad. Datos sintéticos, sin secretos.",
+  "labels": [
+    "ausente",
+    "null",
+    "vacio",
+    "cero",
+    "negativo",
+    "entero",
+    "decimal",
+    "true",
+    "false",
+    "texto",
+    "numeroTexto",
+    "arreglo",
+    "objeto"
+  ],
+  "values": [
+    null,
+    null,
+    "",
+    0,
+    -1,
+    1,
+    1.5,
+    true,
+    false,
+    "x",
+    "2",
+    [],
+    {}
+  ],
+  "models": {
+    "LoginDto": {
+      "properties": {
+        "correo": 8191,
+        "contrasena": 8191
+      }
+    },
+    "RegisterDto": {
+      "properties": {
+        "nombre": 6651,
+        "correo": 8191,
+        "contrasena": 8191,
+        "estado": 8148,
+        "id": 8132
+      }
+    },
+    "CallbackAutorizacionDto": {
+      "properties": {
+        "code": 6651,
+        "state": 6651,
+        "error": 6648,
+        "error_description": 6648
+      }
+    },
+    "GenerarUrlAutorizacionDto": {
+      "properties": {
+        "scopes": 6140
+      }
+    },
+    "ObtenerToken2LeggedDto": {
+      "properties": {
+        "scopes": 6140
+      }
+    },
+    "ValidarExpiracionDto": {
+      "properties": {
+        "expires_at": 8191
+      }
+    },
+    "acc-recursos_ActualizarRecursoDto": {
+      "properties": {
+        "idusuario_asignado": 8132,
+        "estado": 6648,
+        "metadatos": 4092
+      }
+    },
+    "GuardarRecursoDto": {
+      "properties": {
+        "recurso_tipo": 6655,
+        "recurso_id": 6655,
+        "recurso_urn": 6648,
+        "project_id": 6648,
+        "parent_id": 6648,
+        "idusuario_creador": 8135,
+        "idusuario_asignado": 8132,
+        "nombre": 6648,
+        "descripcion": 6648,
+        "estado": 6648,
+        "metadatos": 4092
+      }
+    },
+    "ObtenerRecursosHijosDto": {
+      "properties": {
+        "tipo": 6648
+      }
+    },
+    "ObtenerRecursosProyectoDto": {
+      "properties": {
+        "tipo": 6648,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ObtenerRecursosUsuarioDto": {
+      "properties": {
+        "tipo": 6648,
+        "rol": 8188,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ListarAuditoriasDto": {
+      "properties": {
+        "idusuario": 6720,
+        "accion": 6648,
+        "entidad": 6648,
+        "fecha_desde": 8188,
+        "fecha_hasta": 8188,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ObtenerEstadisticasDto": {
+      "properties": {
+        "fecha_desde": 8188,
+        "fecha_hasta": 8188
+      }
+    },
+    "ObtenerHistorialUsuarioDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ChangePasswordDto": {
+      "properties": {
+        "contrasenaActual": 8191,
+        "nuevaContrasena": 8191
+      }
+    },
+    "UpdateCredentialsDto": {
+      "properties": {
+        "nuevoCorreo": 8188,
+        "nuevaContrasena": 8184
+      }
+    },
+    "CloneRoleDto": {
+      "properties": {
+        "nombre": 6655,
+        "descripcion": 6648
+      }
+    },
+    "RolePermissionGrantDto": {
+      "properties": {
+        "idpermiso": 8159,
+        "alcances": 8191
+      }
+    },
+    "SynchronizeRolePermissionsDto": {
+      "properties": {
+        "revision": 8151,
+        "permisos": 6143
+      }
+    },
+    "SynchronizeMenuPermissionsDto": {
+      "properties": {
+        "revision": 8151,
+        "permisos": 6143
+      }
+    },
+    "PaginationDto": {
+      "properties": {
+        "page": 7004,
+        "limit": 7004
+      }
+    },
+    "ActualizarEstadoJornadaDto": {
+      "properties": {
+        "idEstadoJornada": 8191,
+        "duracionMinutos": 8158
+      }
+    },
+    "ActividadEvidenciaInDto": {
+      "properties": {
+        "url": 6650,
+        "nombreOriginal": 6648,
+        "tipoMime": 6648,
+        "tamanoBytes": 6672
+      }
+    },
+    "AgregarEvidenciasActividadDto": {
+      "properties": {
+        "evidencias": 6140,
+        "urls": 6140
+      }
+    },
+    "ExportarActividadesWordMasivoDto": {
+      "properties": {
+        "fechaInicio": 8191,
+        "fechaFin": 8191,
+        "fechaEmision": 8188,
+        "idsTrabajador": 8191
+      }
+    },
+    "HabilitarJornadasUsuariosDto": {
+      "properties": {
+        "idTrabajadores": 8191,
+        "fechaInicio": 8191,
+        "fechaFin": 8191,
+        "duracionMinutos": 8159
+      }
+    },
+    "ObtenerHubsDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ObtenerItemsDto": {
+      "properties": {
+        "folder_id": 6648
+      }
+    },
+    "data-management_ObtenerProyectosDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "CreateEmpresaDto": {
+      "properties": {
+        "razonSocial": 6655,
+        "nombreComercial": 6648,
+        "idTipoDocumento": 8135,
+        "nroDocumento": 6655,
+        "celularEmpresa": 6648,
+        "correoEmpresa": 6136,
+        "urlLogo": 6648,
+        "direccion": 6648,
+        "idDepartamento": 8132,
+        "idProvincia": 8132,
+        "idDistrito": 8132
+      }
+    },
+    "UpdateEmpresaDto": {
+      "properties": {
+        "razonSocial": 6655,
+        "nombreComercial": 6648,
+        "idTipoDocumento": 8135,
+        "nroDocumento": 6655,
+        "celularEmpresa": 6648,
+        "correoEmpresa": 6136,
+        "urlLogo": 6648,
+        "direccion": 6648,
+        "idDepartamento": 8132,
+        "idProvincia": 8132,
+        "idDistrito": 8132
+      }
+    },
+    "ActualizarAdjuntoDto": {
+      "properties": {
+        "name": 6648,
+        "displayName": 6648,
+        "data": 4092
+      }
+    },
+    "issues-bim360_ActualizarIncidenciaDto": {
+      "properties": {
+        "title": 6648,
+        "description": 6648,
+        "status": 6648,
+        "issueSubtypeId": 6648,
+        "dueDate": 6648,
+        "assignedTo": 6648,
+        "assignedToType": 6648,
+        "rootCauseId": 6648,
+        "startDate": 6648,
+        "locationId": 6648,
+        "locationDetails": 6648
+      }
+    },
+    "issues-bim360_CrearAdjuntoDto": {
+      "properties": {
+        "urn": 6648,
+        "name": 6648,
+        "fileName": 6648,
+        "displayName": 6648,
+        "type": 6648,
+        "data": 4092
+      }
+    },
+    "issues-bim360_CrearComentarioDto": {
+      "properties": {
+        "body": 6651
+      }
+    },
+    "issues-bim360_CrearIncidenciaDto": {
+      "properties": {
+        "title": 6651,
+        "description": 6648,
+        "status": 6648,
+        "issueSubtypeId": 6648,
+        "dueDate": 6648,
+        "assignedTo": 6648,
+        "assignedToType": 6648,
+        "rootCauseId": 6648,
+        "startDate": 6648,
+        "locationId": 6648,
+        "locationDetails": 6648,
+        "linkedDocuments": 4092
+      }
+    },
+    "issues-bim360_ObtenerAdjuntosDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "issues-bim360_ObtenerCategoriasRaizDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "issues-bim360_ObtenerComentariosDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "issues-bim360_ObtenerDefinicionesAtributosDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "issues-bim360_ObtenerIncidenciasPorDocumentoDto": {
+      "properties": {
+        "documentUrn": 6651,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "issues-bim360_ObtenerIncidenciasDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "filter": 4092
+      }
+    },
+    "issues-bim360_ObtenerMapeosAtributosDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "issues-bim360_ObtenerTiposIncidenciasDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "EmailRecipientDto": {
+      "properties": {
+        "email": 8191,
+        "name": 6648
+      }
+    },
+    "EnqueueOutboundEmailDto": {
+      "properties": {
+        "templateId": 6655,
+        "to": 8191,
+        "cc": 6140,
+        "bcc": 6140,
+        "variables": 4095,
+        "subjectOverride": 6648,
+        "correlationId": 6648
+      }
+    },
+    "ListMailEnvioCoberturaQueryDto": {
+      "properties": {
+        "templateId": 6651,
+        "busqueda": 6648,
+        "estadoEnvio": 8184,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ListMailEnvioLogsQueryDto": {
+      "properties": {
+        "templateId": 6648,
+        "busqueda": 6648,
+        "status": 8184,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ReenviarMailEnvioDto": {
+      "properties": {
+        "templateId": 6651,
+        "idTrabajador": 7007
+      }
+    },
+    "ReenviarPendientesMailEnvioDto": {
+      "properties": {
+        "templateId": 6651,
+        "idTrabajadores": 6140
+      }
+    },
+    "CreateMailPlantillaDto": {
+      "properties": {
+        "slug": 6655,
+        "nombre": 6655,
+        "asuntoPlantilla": 6655,
+        "descripcion": 6648,
+        "cuerpoMjml": 6648,
+        "cuerpoHtml": 6648,
+        "designJson": 4092,
+        "esquemaVariables": 6140,
+        "variablesPrueba": 4092,
+        "claveLayout": 6648,
+        "esSistema": 7804
+      }
+    },
+    "ListMailPlantillaQueryDto": {
+      "properties": {
+        "busqueda": 6648,
+        "soloActivas": 2048,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "MailTemplateVariableDto": {
+      "properties": {
+        "name": 6655,
+        "label": 6648,
+        "required": 7804,
+        "example": 6648
+      }
+    },
+    "PreviewMailPlantillaDto": {
+      "properties": {
+        "id": 6720,
+        "slug": 6648,
+        "asuntoPlantilla": 6648,
+        "cuerpoMjml": 6648,
+        "cuerpoHtml": 6648,
+        "claveLayout": 6648,
+        "variables": 4092
+      }
+    },
+    "TestSendMailPlantillaDto": {
+      "properties": {
+        "email": 8191,
+        "nombreDestinatario": 6648,
+        "id": 6720,
+        "slug": 6648,
+        "asuntoPlantilla": 6648,
+        "cuerpoMjml": 6648,
+        "cuerpoHtml": 6648,
+        "claveLayout": 6648,
+        "variables": 4092
+      }
+    },
+    "UpdateMailPlantillaDto": {
+      "properties": {
+        "nombre": 6652,
+        "descripcion": 6648,
+        "asuntoPlantilla": 6652,
+        "cuerpoMjml": 6648,
+        "cuerpoHtml": 6648,
+        "designJson": 4092,
+        "esquemaVariables": 6140,
+        "variablesPrueba": 4092,
+        "claveLayout": 6648,
+        "estado": 8132
+      }
+    },
+    "UpdateVariablesPruebaMailPlantillaDto": {
+      "properties": {
+        "variablesPrueba": 4095
+      }
+    },
+    "AsignarRolMenuDto": {
+      "properties": {
+        "id_rol": 8135
+      }
+    },
+    "AsignarRolesMenuDto": {
+      "properties": {
+        "roles": 8191
+      }
+    },
+    "ClonarMenuDto": {
+      "properties": {
+        "nombre_nuevo": 6655,
+        "id_padre_nuevo": 8132,
+        "clonar_roles": 7804
+      }
+    },
+    "CreateMenuDto": {
+      "properties": {
+        "nombre": 6655,
+        "url": 6648,
+        "icono": 6648,
+        "idPadre": 8132,
+        "orden": 8132
+      }
+    },
+    "MoverMenuDto": {
+      "properties": {
+        "id_padre_nuevo": 8132
+      }
+    },
+    "ReordenarMenuDto": {
+      "properties": {
+        "orden_nuevo": 8135
+      }
+    },
+    "UpdateMenuDto": {
+      "properties": {
+        "nombre": 6655,
+        "url": 6648,
+        "icono": 6648,
+        "idPadre": 8132,
+        "orden": 8132
+      }
+    },
+    "CreateNovedadLanzamientoDto": {
+      "properties": {
+        "titulo": 6655,
+        "fechaPublicacion": 8188,
+        "fechaVigenciaHasta": 8188,
+        "textoBotonCerrar": 6648
+      }
+    },
+    "CreateNovedadTarjetaDto": {
+      "properties": {
+        "titulo": 6655,
+        "descripcion": 6648,
+        "orden": 6720,
+        "tipoMultimedia": 8188,
+        "sinMultimedia": 0,
+        "idArchivo": 6720,
+        "urlMultimedia": 6648
+      }
+    },
+    "ListarNovedadLanzamientosQueryDto": {
+      "properties": {
+        "busqueda": 6648,
+        "soloActivos": 0,
+        "limit": 7006,
+        "offset": 4688
+      }
+    },
+    "MarcarNovedadVistaDto": {
+      "properties": {
+        "idNovedadLanzamiento": 8135
+      }
+    },
+    "SincronizarRolesNovedadDto": {
+      "properties": {
+        "roles": 6143
+      }
+    },
+    "UpdateNovedadLanzamientoDto": {
+      "properties": {
+        "titulo": 6655,
+        "fechaPublicacion": 8188,
+        "fechaVigenciaHasta": 8188,
+        "textoBotonCerrar": 6648
+      }
+    },
+    "UpdateNovedadTarjetaDto": {
+      "properties": {
+        "titulo": 6655,
+        "descripcion": 6648,
+        "orden": 6720,
+        "tipoMultimedia": 8188,
+        "idArchivo": 6720,
+        "urlMultimedia": 6648,
+        "limpiarMultimedia": 0,
+        "sinMultimedia": 0
+      }
+    },
+    "CreatePermisoDto": {
+      "properties": {
+        "nombre": 6655,
+        "descripcion": 6648
+      }
+    },
+    "UpdatePermisoDto": {
+      "properties": {
+        "nombre": 6655,
+        "descripcion": 6648
+      }
+    },
+    "ActualizarNivelAccesoProyectoDto": {
+      "properties": {
+        "idNivelAcceso": 8135
+      }
+    },
+    "AsignarAccesoProyectoDto": {
+      "properties": {
+        "idUsuario": 8135,
+        "idNivelAcceso": 8132
+      }
+    },
+    "CambioEntregableQueryDto": {
+      "properties": {
+        "revisionPlan": 7006,
+        "motivo": 6650
+      }
+    },
+    "CreateDocumentoProyectoDto": {
+      "properties": {
+        "idTipoDocumento": 8135,
+        "nombre": 6651,
+        "linkDocumento": 6648
+      }
+    },
+    "CreateEntregableProyectoDto": {
+      "properties": {
+        "idProyecto": 8135,
+        "nombre": 6651,
+        "descripcion": 6648,
+        "idEstado": 8132,
+        "fechaEstimada": 8188,
+        "fechaEntrega": 8188,
+        "idTrabajadoresResponsables": 6140,
+        "idTrabajadorResponsable": 8132,
+        "revisionPlan": 8156,
+        "motivo": 6648,
+        "orden": 8148
+      }
+    },
+    "CreateProyectoDto": {
+      "properties": {
+        "nombreProyecto": 6655,
+        "nroProyecto": 6655,
+        "idTipoProyecto": 8135,
+        "idPais": 8135,
+        "direccion1": 6648,
+        "direccion2": 6648,
+        "ciudad": 6648,
+        "provincia": 6648,
+        "codigoPostal": 6648,
+        "idZonaHoraria": 8132,
+        "fechaInicio": 8188,
+        "fechaFinalizacion": 8188,
+        "valorProyecto": 8084,
+        "idTipoMoneda": 8132,
+        "diaValorizar": 8156,
+        "idCliente": 8132,
+        "observaciones": 6648,
+        "idModalidad": 8132,
+        "idEstadoProyecto": 8132,
+        "idEstadoCotizacion": 8132,
+        "idCalendario": 8156
+      }
+    },
+    "CoordinadorItemDto": {
+      "properties": {
+        "idtrabajador": 8135,
+        "miembrosEquipo": 6142
+      }
+    },
+    "GuardarCoordinadoresProyectoDto": {
+      "properties": {
+        "coordinadores": 6143
+      }
+    },
+    "UpdateDocumentoProyectoDto": {
+      "properties": {
+        "idTipoDocumento": 8135,
+        "nombre": 6651,
+        "linkDocumento": 6648
+      }
+    },
+    "UpdateEntregableProyectoDto": {
+      "properties": {
+        "nombre": 6651,
+        "descripcion": 6648,
+        "idEstado": 8132,
+        "fechaEstimada": 8188,
+        "fechaEntrega": 8188,
+        "idTrabajadoresResponsables": 6140,
+        "idTrabajadorResponsable": 8132,
+        "revisionPlan": 8156,
+        "motivo": 6648,
+        "orden": 8148
+      }
+    },
+    "UpdateProyectoDto": {
+      "properties": {
+        "nombreProyecto": 6655,
+        "nroProyecto": 6655,
+        "idTipoProyecto": 8135,
+        "idPais": 8135,
+        "direccion1": 6648,
+        "direccion2": 6648,
+        "ciudad": 6648,
+        "provincia": 6648,
+        "codigoPostal": 6648,
+        "idZonaHoraria": 8132,
+        "fechaInicio": 8188,
+        "fechaFinalizacion": 8188,
+        "valorProyecto": 8084,
+        "idTipoMoneda": 8132,
+        "diaValorizar": 8156,
+        "idCliente": 8132,
+        "observaciones": 6648,
+        "idModalidad": 8132,
+        "idEstadoProyecto": 8132,
+        "idEstadoCotizacion": 8132,
+        "idCalendario": 8156,
+        "revisionPlan": 8156,
+        "motivo": 6648
+      }
+    },
+    "rol_AsignarPermisoDto": {
+      "properties": {
+        "id_permiso": 8135
+      }
+    },
+    "AsignarPermisosDto": {
+      "properties": {
+        "permisos": 8191
+      }
+    },
+    "CreateRolDto": {
+      "properties": {
+        "nombre": 6655,
+        "descripcion": 6648
+      }
+    },
+    "GestionarRolesUsuarioDto": {
+      "properties": {
+        "rolesIds": 6143
+      }
+    },
+    "UpdateRolDto": {
+      "properties": {
+        "nombre": 6655,
+        "descripcion": 6648
+      }
+    },
+    "UploadEvidenciaDto": {
+      "properties": {
+        "actividadId": 7047,
+        "diaActividad": 8191,
+        "indiceEvidencia": 24,
+        "actividadSlug": 6648
+      }
+    },
+    "UploadPrefixedDto": {
+      "properties": {
+        "prefix": 6655,
+        "filename": 6648
+      }
+    },
+    "UploadVisorElementoFotoDto": {
+      "properties": {
+        "idProyectoAcc": 6648,
+        "itemId": 6651,
+        "identificador": 7071,
+        "dia": 8191,
+        "indiceFoto": 24
+      }
+    },
+    "CreateContratoTrabajadorDto": {
+      "properties": {
+        "idTipoContrato": 6723,
+        "idDuracionContrato": 6720,
+        "fechaInicio": 8184,
+        "fechaFin": 8184,
+        "remuneracion": 8068,
+        "fechaInicioLabores": 8184,
+        "idPuestoTrabajo": 6720
+      }
+    },
+    "CreateTrabajadorDto": {
+      "properties": {
+        "nombres": 6655,
+        "apellidos": 6655,
+        "idTipoDocumento": 8135,
+        "nroDocumento": 6655,
+        "correo": 8191,
+        "idEmpresa": 8135,
+        "idResponsable": 8132,
+        "idRol": 8132,
+        "fechaNacimiento": 8184,
+        "celular": 6648,
+        "telefonoEmergencia": 6648,
+        "contactoEmergenciaNombre": 6648,
+        "idContactoEmergenciaParentesco": 6720,
+        "direccionDomiciliaria": 6648,
+        "observaciones": 6648,
+        "idPais": 8132,
+        "idDepartamento": 8132,
+        "idProvincia": 8132,
+        "idDistrito": 8132,
+        "nroRuc": 6648,
+        "idGradoInstruccion": 8132,
+        "idCarrera": 8132,
+        "idEntidadBancaria": 8132,
+        "nroCuentaCorriente": 6648,
+        "nroCci": 6648,
+        "remuneracion": 8068,
+        "idTipoContrato": 8132,
+        "idDuracionContrato": 8132,
+        "fechaInicioLabores": 8184,
+        "fechaInicioContrato": 8184,
+        "fechaFinContrato": 8184,
+        "idModalidad": 8132,
+        "idCalendario": 7004,
+        "idPuestoTrabajo": 8132,
+        "adjuntos": 6140
+      }
+    },
+    "UpdateContratoTrabajadorDto": {
+      "properties": {
+        "idTipoContrato": 6720,
+        "idDuracionContrato": 6720,
+        "fechaInicio": 8184,
+        "fechaFin": 8184,
+        "remuneracion": 8068,
+        "fechaInicioLabores": 8184,
+        "idPuestoTrabajo": 6720
+      }
+    },
+    "UpdateTrabajadorDto": {
+      "properties": {
+        "nombres": 6655,
+        "apellidos": 6655,
+        "idTipoDocumento": 8135,
+        "nroDocumento": 6655,
+        "correo": 8191,
+        "idEmpresa": 8135,
+        "idResponsable": 8132,
+        "idRol": 8132,
+        "fechaNacimiento": 8184,
+        "celular": 6648,
+        "telefonoEmergencia": 6648,
+        "contactoEmergenciaNombre": 6648,
+        "idContactoEmergenciaParentesco": 6720,
+        "direccionDomiciliaria": 6648,
+        "observaciones": 6648,
+        "idPais": 8132,
+        "idDepartamento": 8132,
+        "idProvincia": 8132,
+        "idDistrito": 8132,
+        "nroRuc": 6648,
+        "idGradoInstruccion": 8132,
+        "idCarrera": 8132,
+        "idEntidadBancaria": 8132,
+        "nroCuentaCorriente": 6648,
+        "nroCci": 6648,
+        "remuneracion": 8068,
+        "idTipoContrato": 8132,
+        "idDuracionContrato": 8132,
+        "fechaInicioLabores": 8184,
+        "fechaInicioContrato": 8184,
+        "fechaFinContrato": 8184,
+        "idModalidad": 6720,
+        "idCalendario": 7004,
+        "idPuestoTrabajo": 6720,
+        "adjuntos": 6140
+      }
+    },
+    "ActualizarUsuarioDto": {
+      "properties": {
+        "company_id": 6648,
+        "nickname": 6648,
+        "first_name": 6648,
+        "last_name": 6648,
+        "image_url": 6648,
+        "address_line_1": 6648,
+        "address_line_2": 6648,
+        "city": 6648,
+        "state_or_province": 6648,
+        "postal_code": 6648,
+        "country": 6648,
+        "phone": 6648,
+        "company": 6648,
+        "job_title": 6648,
+        "industry": 6648,
+        "about_me": 6648,
+        "default_role": 6648,
+        "region": 8188
+      }
+    },
+    "BuscarUsuariosDto": {
+      "properties": {
+        "name": 6655,
+        "limit": 7004,
+        "offset": 6736,
+        "operator": 8188,
+        "partial": 2048,
+        "region": 8188
+      }
+    },
+    "CrearUsuarioDto": {
+      "properties": {
+        "email": 8191,
+        "company_id": 6648,
+        "nickname": 6648,
+        "first_name": 6648,
+        "last_name": 6648,
+        "image_url": 6648,
+        "address_line_1": 6648,
+        "address_line_2": 6648,
+        "city": 6648,
+        "state_or_province": 6648,
+        "postal_code": 6648,
+        "country": 6648,
+        "phone": 6648,
+        "company": 6648,
+        "job_title": 6648,
+        "industry": 6648,
+        "about_me": 6648,
+        "default_role": 6648,
+        "region": 8188
+      }
+    },
+    "ImportarUsuariosDto": {
+      "properties": {
+        "users": 6143,
+        "region": 8188
+      }
+    },
+    "ObtenerProyectosUsuarioDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "region": 8188
+      }
+    },
+    "ObtenerUsuariosDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "sort": 8188,
+        "field": 8188,
+        "region": 8188
+      }
+    },
+    "BuscarBusinessUnitsDto": {
+      "properties": {
+        "term": 6655,
+        "region": 8188
+      }
+    },
+    "CrearOActualizarBusinessUnitsDto": {
+      "properties": {
+        "business_units": 6143,
+        "region": 8188
+      }
+    },
+    "ObtenerBusinessUnitsHijasDto": {
+      "properties": {
+        "parent_id": 6648,
+        "region": 8188
+      }
+    },
+    "ObtenerBusinessUnitsDto": {
+      "properties": {
+        "region": 8188
+      }
+    },
+    "ActualizarCompanyDto": {
+      "properties": {
+        "name": 6648,
+        "trade": 6648,
+        "address_line_1": 6648,
+        "address_line_2": 6648,
+        "city": 6648,
+        "state_or_province": 6648,
+        "postal_code": 6648,
+        "country": 6648,
+        "phone": 6648,
+        "website_url": 6648,
+        "description": 6648,
+        "erp_id": 6648,
+        "tax_id": 6648,
+        "region": 8188
+      }
+    },
+    "BuscarCompaniesDto": {
+      "properties": {
+        "term": 6655,
+        "limit": 7004,
+        "offset": 6736,
+        "region": 8188
+      }
+    },
+    "CrearCompanyDto": {
+      "properties": {
+        "name": 6655,
+        "trade": 6655,
+        "address_line_1": 6648,
+        "address_line_2": 6648,
+        "city": 6648,
+        "state_or_province": 6648,
+        "postal_code": 6648,
+        "country": 6648,
+        "phone": 6648,
+        "website_url": 6648,
+        "description": 6648,
+        "erp_id": 6648,
+        "tax_id": 6648,
+        "region": 8188
+      }
+    },
+    "ImportarCompaniesDto": {
+      "properties": {
+        "companies": 6143,
+        "region": 8188
+      }
+    },
+    "ObtenerCompaniesProyectoDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "region": 8188
+      }
+    },
+    "ObtenerCompaniesDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "filter": 6648,
+        "region": 8188
+      }
+    },
+    "CreateNamingStandardFromTemplateDto": {
+      "properties": {
+        "templateCode": 8191,
+        "codigo": 6655,
+        "nombre": 6655,
+        "descripcion": 6648,
+        "separador": 6648
+      }
+    },
+    "GenerarNombreDocumentoDto": {
+      "properties": {
+        "folderExternalId": 6655,
+        "valores": 4095,
+        "extension": 6648
+      }
+    },
+    "ListDocumentAttributesQueryDto": {
+      "properties": {
+        "busqueda": 6648,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "DocumentAttributeOptionDto": {
+      "properties": {
+        "valor": 6655,
+        "etiqueta": 6648,
+        "orden": 6736
+      }
+    },
+    "UpsertDocumentAttributeDto": {
+      "properties": {
+        "id": 6720,
+        "codigo": 6655,
+        "nombre": 6655,
+        "tipo": 6655,
+        "descripcion": 6648,
+        "esObligatorio": 7804,
+        "orden": 6736,
+        "opciones": 6140
+      }
+    },
+    "UpsertDocumentMetadataDto": {
+      "properties": {
+        "folderExternalId": 6655,
+        "itemExternalId": 6655,
+        "versionExternalId": 6648,
+        "namingStandardId": 6720,
+        "nombreGenerado": 6655,
+        "valores": 4092
+      }
+    },
+    "ItemExternalIdParamDto": {
+      "properties": {
+        "itemExternalId": 6655
+      }
+    },
+    "NamingStandardPartDto": {
+      "properties": {
+        "attributeId": 6723,
+        "orden": 7007
+      }
+    },
+    "UpsertDocumentNamingStandardDto": {
+      "properties": {
+        "id": 6720,
+        "codigo": 6655,
+        "nombre": 6655,
+        "descripcion": 6648,
+        "separador": 6648,
+        "partes": 6140
+      }
+    },
+    "UpsertFolderNamingRuleDto": {
+      "properties": {
+        "namingStandardId": 6723
+      }
+    },
+    "FolderExternalIdParamDto": {
+      "properties": {
+        "folderExternalId": 6655
+      }
+    },
+    "acc_issues_ActualizarIncidenciaDto": {
+      "properties": {
+        "title": 6648,
+        "description": 6648,
+        "status": 6648,
+        "issueSubtypeId": 6648,
+        "dueDate": 6648,
+        "assignedTo": 6648,
+        "assignedToType": 6648,
+        "rootCauseId": 6648,
+        "startDate": 6648,
+        "locationId": 6648,
+        "locationDetails": 6648,
+        "published": 0,
+        "deleted": 0
+      }
+    },
+    "AsignarIncidenciaDto": {
+      "properties": {
+        "issueId": 6655,
+        "userIds": 6140,
+        "userId": 8132
+      }
+    },
+    "acc_issues_CrearAdjuntoDto": {
+      "properties": {
+        "issueId": 6651,
+        "urn": 6648,
+        "name": 6648,
+        "fileName": 6648,
+        "displayName": 6648,
+        "type": 6648,
+        "fileType": 6648
+      }
+    },
+    "acc_issues_CrearComentarioDto": {
+      "properties": {
+        "body": 6651,
+        "issueId": 6648
+      }
+    },
+    "acc_issues_CrearIncidenciaDto": {
+      "properties": {
+        "title": 6651,
+        "description": 6651,
+        "status": 6648,
+        "issueSubtypeId": 6651,
+        "dueDate": 6648,
+        "assignedTo": 6648,
+        "assignedToType": 6648,
+        "rootCauseId": 6648,
+        "startDate": 6648,
+        "locationId": 6648,
+        "locationDetails": 6648,
+        "thumbnail": 6648,
+        "documentUrn": 6648,
+        "itemId": 6648,
+        "objectId": 8068,
+        "externalId": 6648,
+        "viewableGuid": 6648,
+        "viewableName": 6648,
+        "is3D": 7804,
+        "pushpinPosition": 6140,
+        "viewerState": 2044
+      }
+    },
+    "ExportarIncidenciasDto": {
+      "properties": {
+        "issueId": 6648,
+        "tipoReporte": 8191,
+        "formato": 8191,
+        "titulo": 6648,
+        "guardarEnArchivos": 0,
+        "diseño": 6648,
+        "incluirCubierta": 0,
+        "incluirIndice": 0,
+        "incluirInformacionGeneralPlano": 0,
+        "incluirCamposPersonalizados": 0,
+        "incluirVinculosArchivo": 0,
+        "incluirFotos": 0,
+        "tamañoFotos": 6648,
+        "incluirOtrasReferencias": 0,
+        "incluirComentarios": 0,
+        "issueIds": 6140,
+        "filter_status": 6648,
+        "filter_linkedDocumentUrn": 6648,
+        "usuarioNombre": 6648,
+        "usuarioEmail": 6648
+      }
+    },
+    "acc_issues_ObtenerAdjuntosDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "sort": 6648
+      }
+    },
+    "acc_issues_ObtenerCategoriasRaizDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "sort": 6648
+      }
+    },
+    "acc_issues_ObtenerComentariosDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "sort": 6648
+      }
+    },
+    "acc_issues_ObtenerDefinicionesAtributosDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "sort": 6648
+      }
+    },
+    "acc_issues_ObtenerIncidenciasPorDocumentoDto": {
+      "properties": {
+        "documentUrn": 6651,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "acc_issues_ObtenerIncidenciasDto": {
+      "properties": {
+        "filter_status": 6648,
+        "filter_assignedTo": 6648,
+        "filter_issueTypeId": 6648,
+        "filter_rootCauseId": 6648,
+        "filter_locationId": 6648,
+        "filter_linkedDocumentUrn": 6648,
+        "limit": 7004,
+        "offset": 6736,
+        "sort": 6648
+      }
+    },
+    "acc_issues_ObtenerMapeosAtributosDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "sort": 6648
+      }
+    },
+    "acc_issues_ObtenerPerfilUsuarioDto": {
+      "properties": {
+        "projectId": 6651
+      }
+    },
+    "acc_issues_ObtenerTiposIncidenciasDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "sort": 6648
+      }
+    },
+    "ObtenerUrlMiniaturaDto": {
+      "properties": {
+        "snapshotUrn": 6651
+      }
+    },
+    "ActualizarUsuarioProyectoDto": {
+      "properties": {
+        "companyId": 6648,
+        "roleIds": 6140,
+        "products": 6140,
+        "region": 8188,
+        "user_id": 6648
+      }
+    },
+    "AgregarUsuarioProyectoDto": {
+      "properties": {
+        "email": 8191,
+        "companyId": 6648,
+        "roleIds": 6140,
+        "products": 6140,
+        "region": 8188,
+        "user_id": 6648
+      }
+    },
+    "BuscarUsuariosProyectoDto": {
+      "properties": {
+        "name": 6648,
+        "email": 6648,
+        "companyName": 6648,
+        "filterTextMatch": 8188,
+        "limit": 7004,
+        "offset": 6736,
+        "region": 8188,
+        "user_id": 6648
+      }
+    },
+    "ImportarUsuariosProyectoDto": {
+      "properties": {
+        "users": 6143,
+        "region": 8188,
+        "user_id": 6648
+      }
+    },
+    "ObtenerUsuariosProyectoDto": {
+      "properties": {
+        "filter": 6140,
+        "sort": 6140,
+        "fields": 6140,
+        "orFilters": 6140,
+        "filterTextMatch": 8188,
+        "limit": 7004,
+        "offset": 6736,
+        "region": 8188,
+        "user_id": 6648
+      }
+    },
+    "ActivarServicioProyectoDto": {
+      "properties": {
+        "email": 8191,
+        "service": 8191,
+        "accessLevel": 8188,
+        "region": 8188
+      }
+    },
+    "ActualizarProyectoDto": {
+      "properties": {
+        "name": 6648,
+        "startDate": 8188,
+        "endDate": 8188,
+        "type": 6648,
+        "classification": 8188,
+        "jobNumber": 6648,
+        "addressLine1": 6648,
+        "addressLine2": 6648,
+        "city": 6648,
+        "stateOrProvince": 6648,
+        "postalCode": 6648,
+        "country": 6648,
+        "latitude": 6648,
+        "longitude": 6648,
+        "timezone": 6648,
+        "constructionType": 6648,
+        "deliveryMethod": 6648,
+        "contractType": 6648,
+        "currentPhase": 6648,
+        "businessUnitId": 8188,
+        "projectValue": 2044,
+        "token": 6648
+      }
+    },
+    "ClonarProyectoDto": {
+      "properties": {
+        "name": 6655,
+        "templateId": 8191,
+        "type": 6648,
+        "classification": 8188,
+        "startDate": 8188,
+        "endDate": 8188,
+        "jobNumber": 6648,
+        "addressLine1": 6648,
+        "addressLine2": 6648,
+        "city": 6648,
+        "stateOrProvince": 6648,
+        "postalCode": 6648,
+        "country": 6648,
+        "latitude": 6648,
+        "longitude": 6648,
+        "timezone": 6648,
+        "constructionType": 6648,
+        "deliveryMethod": 6648,
+        "contractType": 6648,
+        "currentPhase": 6648,
+        "businessUnitId": 8188,
+        "projectValue": 2044,
+        "token": 6648
+      }
+    },
+    "CrearProyectoDto": {
+      "properties": {
+        "name": 6655,
+        "type": 6655,
+        "classification": 8188,
+        "products": 0,
+        "startDate": 8188,
+        "endDate": 8188,
+        "jobNumber": 6648,
+        "addressLine1": 6648,
+        "addressLine2": 6648,
+        "city": 6648,
+        "stateOrProvince": 6648,
+        "postalCode": 6648,
+        "country": 6648,
+        "latitude": 6648,
+        "longitude": 6648,
+        "timezone": 6648,
+        "constructionType": 6648,
+        "deliveryMethod": 6648,
+        "contractType": 6648,
+        "currentPhase": 6648,
+        "businessUnitId": 8188,
+        "projectValue": 2044,
+        "token": 6648
+      }
+    },
+    "GetPlantillasDto": {
+      "properties": {
+        "fields": 6648,
+        "filter_name": 6648,
+        "filter_type": 6648,
+        "sort": 6648,
+        "limit": 7004,
+        "offset": 6736,
+        "token": 6648
+      }
+    },
+    "GetProyectoPorIdDto": {
+      "properties": {
+        "fields": 6648,
+        "token": 6648
+      }
+    },
+    "GetProyectosActivosDto": {
+      "properties": {
+        "fields": 6648,
+        "filter_type": 6648,
+        "filter_name": 6648,
+        "sort": 6648,
+        "limit": 7004,
+        "offset": 6736,
+        "token": 6648
+      }
+    },
+    "GetProyectosPorTipoDto": {
+      "properties": {
+        "tipos": 8191,
+        "fields": 6648,
+        "filter_status": 6648,
+        "sort": 6648,
+        "limit": 7004,
+        "offset": 6736,
+        "token": 6648
+      }
+    },
+    "GetProyectosDto": {
+      "properties": {
+        "fields": 6648,
+        "filter_classification": 6648,
+        "filter_platform": 6648,
+        "filter_products": 4600,
+        "filter_name": 6648,
+        "filter_type": 6648,
+        "filter_status": 6648,
+        "filter_businessUnitId": 6648,
+        "filter_jobNumber": 6648,
+        "filter_updatedAt": 6648,
+        "filterTextMatch": 6648,
+        "sort": 6648,
+        "limit": 7004,
+        "offset": 6736,
+        "token": 6648
+      }
+    },
+    "SubirImagenProyectoDto": {
+      "properties": {
+        "token": 6648
+      }
+    },
+    "ActualizarNivelPermisoUsuarioDto": {
+      "properties": {
+        "permission_level_id": 7007
+      }
+    },
+    "acc_resources_ActualizarRecursoDto": {
+      "properties": {
+        "name": 6655,
+        "parent_id": 8132,
+        "account_id": 6648
+      }
+    },
+    "AsignarPermisoUsuarioDto": {
+      "properties": {
+        "user_id": 7007,
+        "resource_id": 7007,
+        "permission_level_id": 7004
+      }
+    },
+    "acc_resources_AsignarPermisoDto": {
+      "properties": {
+        "role_id": 8135,
+        "resource_id": 8135
+      }
+    },
+    "CrearRecursoDto": {
+      "properties": {
+        "external_id": 6655,
+        "resource_type": 6655,
+        "name": 6655,
+        "parent_id": 8132,
+        "account_id": 6648
+      }
+    },
+    "ListarPermisosRolDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ListarPermisosUsuarioDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ListarRecursosDto": {
+      "properties": {
+        "busqueda": 6648,
+        "resource_type": 6648,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ListarUsuariosDisponiblesRecursoDto": {
+      "properties": {
+        "busqueda": 6648,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "SincronizarPermisosRolDto": {
+      "properties": {
+        "role_id": 8135,
+        "resource_ids": 6143
+      }
+    },
+    "SincronizarPermisosUsuarioDto": {
+      "properties": {
+        "user_id": 7007,
+        "resource_ids": 6143
+      }
+    },
+    "AddComentarioArchivoDto": {
+      "properties": {
+        "contenido": 6655
+      }
+    },
+    "AgregarReferenciaRevisionDto": {
+      "properties": {
+        "tipoReferencia": 6655,
+        "idReferenciaExterna": 6655,
+        "dominioReferencia": 6648,
+        "versionReferencia": 6648,
+        "notasReferencia": 6648,
+        "urlDeepLink": 6648,
+        "metadataJson": 4092
+      }
+    },
+    "AnularRevisionDto": {
+      "properties": {
+        "notas": 6648
+      }
+    },
+    "CambiarEstadoWorkflowDto": {
+      "properties": {
+        "status": 8191
+      }
+    },
+    "CrearRevisionDto": {
+      "properties": {
+        "name": 6655,
+        "workflowId": 6655,
+        "description": 6648,
+        "linkedDocuments": 6140
+      }
+    },
+    "CrearWorkflowDto": {
+      "properties": {
+        "name": 6655,
+        "description": 6648,
+        "notes": 6648,
+        "additionalOptions": 0,
+        "steps": 6140,
+        "candidatos": 6140,
+        "approvalStatusOptions": 6140,
+        "additionalApprovalStatusOptions": 6140,
+        "copyFilesOptions": 0,
+        "attachedAttributes": 6140,
+        "updateAttributesOptions": 0,
+        "saveAsDraft": 7804,
+        "workflowStatus": 8188
+      }
+    },
+    "DocStatusDto": {
+      "properties": {
+        "idArchivo": 8135,
+        "estado": 6651
+      }
+    },
+    "EnviarResenaPasoDto": {
+      "properties": {
+        "notas": 6648,
+        "docStatuses": 6140
+      }
+    },
+    "ExportarRevisionesPdfQueryDto": {
+      "properties": {
+        "filter_status": 6648,
+        "filter_name": 6648,
+        "filter_createdAt": 6648,
+        "filter_finishedAt": 6648,
+        "filter_currentStepDueDate": 6648,
+        "filter_workflowId": 6648
+      }
+    },
+    "NotificarRevisorDestinatarioDto": {
+      "properties": {
+        "email": 8191,
+        "name": 6648
+      }
+    },
+    "NotificarRevisoresRevisionDto": {
+      "properties": {
+        "recipients": 8191,
+        "scenario": 8191,
+        "message": 6648,
+        "stepTitle": 6655,
+        "idHub": 6655
+      }
+    },
+    "ObtenerApprovalStatusesDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ObtenerRevisionesDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "sort": 6648,
+        "filter_workflowId": 6648,
+        "filter_status": 6648,
+        "filter_currentStepDueDate": 6648,
+        "filter_createdAt": 6648,
+        "filter_updatedAt": 6648,
+        "filter_finishedAt": 6648,
+        "filter_nextActionByUser": 6648,
+        "filter_nextActionByRole": 6648,
+        "filter_nextActionByCompany": 6648,
+        "filter_name": 6648,
+        "filter_sequenceId": 6720,
+        "filter_archived": 0,
+        "filter_archivedBy": 6648,
+        "filter_archivedAt": 6648
+      }
+    },
+    "ObtenerWorkflowsDto": {
+      "properties": {
+        "limit": 7004,
+        "offset": 6736,
+        "sort": 6648,
+        "filter_status": 6648,
+        "filter_name": 6648
+      }
+    },
+    "SaltarPasoRevisionDto": {
+      "properties": {
+        "notas": 6648
+      }
+    },
+    "VolverPasoAnteriorRevisionDto": {
+      "properties": {
+        "notas": 6648
+      }
+    },
+    "GenerarTokenViewerDto": {
+      "properties": {
+        "scope": 6648
+      }
+    },
+    "ObtenerTokenPublicoDto": {
+      "properties": {
+        "urn": 6655
+      }
+    },
+    "VisorElementoFotoArchivoDto": {
+      "properties": {
+        "url": 6655,
+        "nombreOriginal": 6648,
+        "tipoMime": 6648,
+        "tamanoBytes": 8148,
+        "fechaAvance": 6648
+      }
+    },
+    "CrearVisorElementoFotoDto": {
+      "properties": {
+        "documentUrn": 6655,
+        "itemId": 6655,
+        "versionId": 6648,
+        "nombreDocumento": 6648,
+        "objectId": 8159,
+        "externalId": 6648,
+        "nombreElemento": 6648,
+        "posicionX": 8071,
+        "posicionY": 8071,
+        "posicionZ": 8071,
+        "viewableGuid": 6648,
+        "viewableName": 6648,
+        "is3D": 7804,
+        "viewerState": 4092,
+        "idProyectoGvr": 8156,
+        "titulo": 6648,
+        "descripcion": 6648,
+        "archivos": 6143
+      }
+    },
+    "ActualizarVisorElementoFotoDto": {
+      "properties": {
+        "titulo": 6648,
+        "descripcion": 6648,
+        "posicionX": 8068,
+        "posicionY": 8068,
+        "posicionZ": 8068,
+        "nombreElemento": 6648
+      }
+    },
+    "AgregarArchivosVisorElementoFotoDto": {
+      "properties": {
+        "archivos": 6143
+      }
+    },
+    "CrearVisorMarcaRevisionDto": {
+      "properties": {
+        "documentUrn": 6655,
+        "itemId": 6655,
+        "tipoMarca": 6655,
+        "markupPayload": 4095,
+        "versionId": 6648,
+        "nombreDocumento": 6648,
+        "viewableGuid": 6648,
+        "viewableName": 6648,
+        "paginaNumero": 8156,
+        "is3D": 7804,
+        "viewerState": 4092,
+        "idProyectoGvr": 8156,
+        "idRevisionArchivo": 8156,
+        "titulo": 6648,
+        "markupIdAps": 6648,
+        "layerName": 6648,
+        "estilos": 4092,
+        "boundingBox": 4092,
+        "miniaturaSvg": 6648
+      }
+    },
+    "ActualizarVisorMarcaRevisionDto": {
+      "properties": {
+        "titulo": 6648,
+        "markupPayload": 4092,
+        "markupIdAps": 6648,
+        "estilos": 4092,
+        "boundingBox": 4092,
+        "miniaturaSvg": 6648,
+        "viewerState": 4092,
+        "viewableGuid": 6648,
+        "viewableName": 6648,
+        "paginaNumero": 8156
+      }
+    },
+    "DuplicarVisorMarcaRevisionDto": {
+      "properties": {
+        "desplazamiento": 4092,
+        "titulo": 6648
+      }
+    },
+    "SincronizarMarkupIdApsDto": {
+      "properties": {
+        "markupIdAps": 6655
+      }
+    },
+    "ActualizarImagenProyectoBim360Dto": {
+      "properties": {
+        "image": 6655,
+        "region": 8188
+      }
+    },
+    "ActualizarProyectoBim360Dto": {
+      "properties": {
+        "name": 6648,
+        "status": 6648,
+        "start_date": 8188,
+        "end_date": 8188,
+        "project_type": 6648,
+        "value": 8068,
+        "currency": 6648,
+        "job_number": 6648,
+        "address_line_1": 6648,
+        "city": 6648,
+        "state_or_province": 6648,
+        "postal_code": 6648,
+        "country": 6648,
+        "timezone": 6648,
+        "language": 6648,
+        "construction_type": 6648,
+        "contract_type": 6648,
+        "region": 8188
+      }
+    },
+    "CrearProyectoBim360Dto": {
+      "properties": {
+        "name": 6655,
+        "start_date": 8191,
+        "end_date": 8191,
+        "project_type": 6655,
+        "value": 8071,
+        "currency": 6655,
+        "job_number": 6648,
+        "address_line_1": 6648,
+        "city": 6648,
+        "state_or_province": 6648,
+        "postal_code": 6648,
+        "country": 6648,
+        "timezone": 6648,
+        "language": 6648,
+        "construction_type": 6648,
+        "contract_type": 6648,
+        "template_project_id": 6648,
+        "include_locations": 7804,
+        "include_companies": 7804,
+        "region": 8188
+      }
+    },
+    "ObtenerProyectosLegacyDto": {
+      "properties": {
+        "region": 8188
+      }
+    },
+    "CrearBucketDto": {
+      "properties": {
+        "bucketKey": 8191,
+        "policyKey": 8188,
+        "region": 8188
+      }
+    },
+    "ObtenerBucketsDto": {
+      "properties": {
+        "region": 8188,
+        "limit": 7004,
+        "startAt": 6648
+      }
+    },
+    "ActualizarCarpetaDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "BuscarEnCarpetaDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "BuscarEnContenidoCarpetaDto": {
+      "properties": {
+        "searchName": 6648,
+        "filterType": 6648,
+        "extensionType": 6648,
+        "additionalFilters": 4092
+      }
+    },
+    "CrearCarpetaDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "data-management_folders_CrearReferenciaDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "CrearSubcarpetaDto": {
+      "properties": {
+        "folderName": 6655,
+        "folderType": 6648
+      }
+    },
+    "ExportarPermisosCarpetaPdfDto": {
+      "properties": {
+        "titulo": 6655,
+        "alcance": 8191,
+        "hubId": 6648
+      }
+    },
+    "ExportarRegistroArchivosPdfDto": {
+      "properties": {
+        "titulo": 6655,
+        "incluirSubcarpetas": 1,
+        "incluirAtributosPersonalizados": 1,
+        "hubId": 6648
+      }
+    },
+    "ObtenerCarpetaPadreDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ObtenerCarpetaPorIdDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ObtenerReferenciasDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ObtenerRelacionesLinksDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ObtenerRelacionesRefsDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ActualizarItemDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "CompletarSubidaChunkedDto": {
+      "properties": {
+        "folderId": 6655,
+        "fileName": 6655,
+        "storageId": 6655,
+        "bucketKey": 6655,
+        "objectKey": 6655,
+        "uploadKey": 6655,
+        "fileSize": 8159,
+        "eTags": 6140
+      }
+    },
+    "CopiarItemDto": {
+      "properties": {
+        "sourceItemId": 6655,
+        "sourceVersionId": 6655,
+        "targetFolderId": 6655,
+        "fileName": 6655
+      }
+    },
+    "CrearItemDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "CrearReferenciaItemDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "DesplazarItemDto": {
+      "properties": {
+        "targetFolderId": 6655
+      }
+    },
+    "IniciarSubidaChunkedDto": {
+      "properties": {
+        "folderId": 6655,
+        "fileName": 6655,
+        "fileSize": 8159,
+        "partSizeBytes": 8188
+      }
+    },
+    "ObtenerUrlsSubidaChunkedDto": {
+      "properties": {
+        "bucketKey": 6655,
+        "objectKey": 6655,
+        "uploadKey": 6655,
+        "firstPart": 8159,
+        "parts": 8156
+      }
+    },
+    "SubirArchivoDto": {
+      "properties": {
+        "folderId": 6655
+      }
+    },
+    "CrearDescargaDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "CrearStorageDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "ObtenerCarpetasPrincipalesDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ObtenerEstadoDescargaDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ObtenerEstadoJobDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ObtenerHubDeProyectoDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ObtenerProyectoPorIdDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "data-management_projects_ObtenerProyectosDto": {
+      "properties": {
+        "filters": 4092
+      }
+    },
+    "ActualizarVersionDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "data-management_versions_CrearReferenciaDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "CrearVersionDto": {
+      "properties": {
+        "data": 4095
+      }
+    },
+    "ActualizarCalendarioDto": {
+      "properties": {
+        "nombre": 6655,
+        "descripcion": 6648,
+        "revision": 7007
+      }
+    },
+    "ActualizarFeriadoDto": {
+      "properties": {
+        "idcalendarios": 6143,
+        "fecha": 8191,
+        "nombre": 6655,
+        "idtipo": 8159,
+        "minutosefectivos": 8151,
+        "activo": 7806,
+        "revision": 7007
+      }
+    },
+    "CalendarioIdParamsDto": {
+      "properties": {
+        "id": 7007
+      }
+    },
+    "ExcepcionCalendarioParamsDto": {
+      "properties": {
+        "idexcepcion": 7007,
+        "id": 7007
+      }
+    },
+    "ObtenerCalendarioQueryDto": {
+      "properties": {
+        "idversion": 7004
+      }
+    },
+    "CambiarEstadoCalendarioDto": {
+      "properties": {
+        "estado": 8151,
+        "revision": 7007
+      }
+    },
+    "CrearCalendarioDto": {
+      "properties": {
+        "nombre": 6655,
+        "descripcion": 6648,
+        "zonahoraria": 6652
+      }
+    },
+    "CrearFeriadoDto": {
+      "properties": {
+        "idcalendarios": 6143,
+        "fecha": 8191,
+        "nombre": 6655,
+        "idtipo": 8159,
+        "minutosefectivos": 8151,
+        "activo": 7806
+      }
+    },
+    "CrearVersionCalendarioDto": {
+      "properties": {
+        "idversionorigen": 8159
+      }
+    },
+    "DisponibilidadCalendarioDto": {
+      "properties": {
+        "desde": 8191,
+        "hasta": 8191
+      }
+    },
+    "DuplicarCalendarioDto": {
+      "properties": {
+        "nombre": 6655,
+        "idversionorigen": 8159
+      }
+    },
+    "GuardarExcepcionCalendarioDto": {
+      "properties": {
+        "fecha": 8191,
+        "nombre": 6655,
+        "idtipo": 8159,
+        "minutosefectivos": 8151,
+        "activo": 7806,
+        "revision": 7007
+      }
+    },
+    "DiaSemanaCalendarioDto": {
+      "properties": {
+        "diasemana": 8159,
+        "laborable": 7807,
+        "horaentrada": 8188,
+        "horasalida": 8188,
+        "minutosrefrigerio": 8151
+      }
+    },
+    "GuardarSemanaCalendarioDto": {
+      "properties": {
+        "zonahoraria": 6655,
+        "semana": 8191,
+        "revision": 7007
+      }
+    },
+    "ListarCalendariosDto": {
+      "properties": {
+        "busqueda": 6648,
+        "estado": 7760,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "ListarFeriadosDto": {
+      "properties": {
+        "busqueda": 6648,
+        "estado": 7760,
+        "limit": 7004,
+        "offset": 6736
+      }
+    },
+    "RevisionCalendarioDto": {
+      "properties": {
+        "revision": 7007
+      }
+    },
+    "ProyectoPlanParamsDto": {
+      "properties": {
+        "id": 7007
+      }
+    },
+    "PlanParamsDto": {
+      "properties": {
+        "idPlan": 7007,
+        "id": 7007
+      }
+    },
+    "ActividadPlanParamsDto": {
+      "properties": {
+        "idActividad": 7007,
+        "id": 7007,
+        "idPlan": 7007
+      }
+    },
+    "AmpliacionPlanParamsDto": {
+      "properties": {
+        "idAmpliacion": 7007,
+        "id": 7007,
+        "idPlan": 7007
+      }
+    },
+    "AsignacionParamsDto": {
+      "properties": {
+        "idAsignacion": 7007
+      }
+    },
+    "CrearPlanDto": {
+      "properties": {
+        "idaprobador": 7006
+      }
+    },
+    "RevisionPlanDto": {
+      "properties": {
+        "revisionPlan": 7007,
+        "motivo": 6654
+      }
+    },
+    "RevisionActividadDto": {
+      "properties": {
+        "revision": 7007,
+        "revisionPlan": 7007,
+        "motivo": 6654
+      }
+    },
+    "MotivoPlanDto": {
+      "properties": {
+        "revisionPlan": 7007,
+        "motivo": 6655
+      }
+    },
+    "ReglasDto": {
+      "properties": {
+        "idaprobador": 8156,
+        "bloquearexceso": 7806,
+        "permitirnoplaneadas": 7806,
+        "toleranciaporcentaje": 8086,
+        "alertaporcentaje": 8086
+      }
+    },
+    "ReglasPlanDto": {
+      "properties": {
+        "reglas": 4095,
+        "revisionPlan": 7007,
+        "motivo": 6654
+      }
+    },
+    "PersonaPlanDto": {
+      "properties": {
+        "idtrabajador": 7007,
+        "minutosasignados": 7007
+      }
+    },
+    "DependenciaPlanDto": {
+      "properties": {
+        "idpredecesora": 7007,
+        "desfasedias": 6739
+      }
+    },
+    "CrearDatosActividadDto": {
+      "properties": {
+        "identregable": 7007,
+        "nombre": 6655,
+        "descripcion": 6650,
+        "eshito": 7806,
+        "minutosestimados": 6738,
+        "orden": 6738,
+        "fechanoiniciarantes": 8188,
+        "fechanofinalizarantes": 8188,
+        "fechalimite": 8188,
+        "asignaciones": 6142
+      }
+    },
+    "EditarDatosActividadDto": {
+      "properties": {
+        "identregable": 7006,
+        "nombre": 6654,
+        "descripcion": 6650,
+        "eshito": 7806,
+        "minutosestimados": 6738,
+        "orden": 6738,
+        "fechanoiniciarantes": 8188,
+        "fechanofinalizarantes": 8188,
+        "fechalimite": 8188,
+        "asignaciones": 6142
+      }
+    },
+    "CrearActividadPlanDto": {
+      "properties": {
+        "datos": 8191,
+        "revisionPlan": 7007,
+        "motivo": 6654
+      }
+    },
+    "EditarActividadPlanDto": {
+      "properties": {
+        "datos": 4095,
+        "revisionPlan": 7007,
+        "motivo": 6654,
+        "revision": 7007
+      }
+    },
+    "AsignacionesPlanDto": {
+      "properties": {
+        "revisionActividad": 7007,
+        "asignaciones": 6143,
+        "revisionPlan": 7007,
+        "motivo": 6654
+      }
+    },
+    "DependenciasPlanDto": {
+      "properties": {
+        "dependencias": 6143,
+        "revisionPlan": 7007,
+        "motivo": 6654
+      }
+    },
+    "OrdenPlanDto": {
+      "properties": {
+        "entregables": 6143,
+        "actividades": 6143,
+        "revisionPlan": 7007,
+        "motivo": 6654
+      }
+    },
+    "CambioActividadDto": {
+      "properties": {
+        "idactividad": 7007,
+        "fechanoiniciarantes": 8188,
+        "fechanofinalizarantes": 8188,
+        "orden": 6738
+      }
+    },
+    "CambioAsignacionDto": {
+      "properties": {
+        "idactividad": 7007,
+        "personas": 6143
+      }
+    },
+    "CambioDependenciaDto": {
+      "properties": {
+        "idsucesora": 7007,
+        "predecesoras": 6143
+      }
+    },
+    "CambioEntregableDto": {
+      "properties": {
+        "identregable": 7007,
+        "orden": 6739
+      }
+    },
+    "CambiosDto": {
+      "properties": {
+        "idactividad": 7006,
+        "fechanoiniciarantes": 8188,
+        "fechanofinalizarantes": 8188,
+        "actividades": 6142,
+        "asignaciones": 6142,
+        "dependencias": 6142,
+        "entregables": 6142
+      }
+    },
+    "PrevisualizarPlanDto": {
+      "properties": {
+        "cambios": 4095
+      }
+    },
+    "LineaBaseDto": {
+      "properties": {
+        "nombre": 6655,
+        "revisionPlan": 7007,
+        "motivo": 6655
+      }
+    },
+    "ReprogramarPlanDto": {
+      "properties": {
+        "revision": 7007,
+        "fechaNoIniciarAntes": 8188,
+        "fechaNoFinalizarAntes": 8188,
+        "revisionPlan": 7007,
+        "motivo": 6655
+      }
+    },
+    "EstadoActividadPlanDto": {
+      "properties": {
+        "revision": 7007,
+        "idEstadoDestino": 8191,
+        "revisionPlan": 7007,
+        "motivo": 6655
+      }
+    },
+    "EstadoPlanDto": {
+      "properties": {
+        "idEstadoDestino": 8191,
+        "revisionPlan": 7007,
+        "motivo": 6655
+      }
+    },
+    "PaginacionPlanDto": {
+      "properties": {
+        "offset": 6738,
+        "limite": 7006
+      }
+    },
+    "HistorialPlanDto": {
+      "properties": {
+        "tipo": 8191,
+        "idLineaBase": 7006,
+        "offset": 6738,
+        "limite": 7006
+      }
+    },
+    "ResolverAmpliacionDto": {
+      "properties": {
+        "minutosAprobados": 6739,
+        "resolucion": 6655
+      }
+    },
+    "MisAsignacionesDto": {
+      "properties": {
+        "fecha": 8191,
+        "idProyecto": 7006
+      }
+    },
+    "EstadoParteDto": {
+      "properties": {
+        "revision": 7007,
+        "idEstadoDestino": 8191,
+        "motivo": 6655
+      }
+    },
+    "SolicitarAmpliacionDto": {
+      "properties": {
+        "minutos": 7007,
+        "motivo": 6655
+      }
+    },
+    "MisAmpliacionesDto": {
+      "properties": {
+        "idPlan": 7007,
+        "offset": 6738,
+        "limite": 7006
+      }
+    }
+  },
+  "intentionallyStricter": [
+    "acc_issues_CrearIncidenciaDto:pushpinPosition:arreglo",
+    "acc_issues_CrearIncidenciaDto:viewerState:arreglo",
+    "ActualizarProyectoDto:projectValue:arreglo",
+    "ClonarProyectoDto:projectValue:arreglo",
+    "CrearProyectoDto:products:vacio",
+    "CrearProyectoDto:products:cero",
+    "CrearProyectoDto:products:negativo",
+    "CrearProyectoDto:products:entero",
+    "CrearProyectoDto:products:decimal",
+    "CrearProyectoDto:products:true",
+    "CrearProyectoDto:products:false",
+    "CrearProyectoDto:products:texto",
+    "CrearProyectoDto:products:numeroTexto",
+    "CrearProyectoDto:products:objeto",
+    "CrearProyectoDto:projectValue:arreglo",
+    "CrearWorkflowDto:additionalOptions:vacio",
+    "CrearWorkflowDto:additionalOptions:cero",
+    "CrearWorkflowDto:additionalOptions:negativo",
+    "CrearWorkflowDto:additionalOptions:entero",
+    "CrearWorkflowDto:additionalOptions:decimal",
+    "CrearWorkflowDto:additionalOptions:true",
+    "CrearWorkflowDto:additionalOptions:false",
+    "CrearWorkflowDto:additionalOptions:texto",
+    "CrearWorkflowDto:additionalOptions:numeroTexto",
+    "CrearWorkflowDto:additionalOptions:arreglo"
+  ]
+}

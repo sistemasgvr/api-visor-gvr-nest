@@ -1,27 +1,26 @@
-import { IsString, IsOptional, IsObject } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class CrearAdjuntoDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<CrearAdjuntoDto> =
+    defineZodDto<CrearAdjuntoDto>('issues-bim360_CrearAdjuntoDto', {
+      urn: { schema: z.string(), optional: true },
+      name: { schema: z.string(), optional: true },
+      fileName: { schema: z.string(), optional: true },
+      displayName: { schema: z.string(), optional: true },
+      type: { schema: z.string(), optional: true },
+      data: { schema: z.record(z.string(), z.unknown()), optional: true },
+    });
+
   urn?: string;
 
-  @IsOptional()
-  @IsString()
   name?: string;
 
-  @IsOptional()
-  @IsString()
   fileName?: string;
 
-  @IsOptional()
-  @IsString()
   displayName?: string;
 
-  @IsOptional()
-  @IsString()
   type?: string;
 
-  @IsOptional()
-  @IsObject()
   data?: Record<string, any>;
 }

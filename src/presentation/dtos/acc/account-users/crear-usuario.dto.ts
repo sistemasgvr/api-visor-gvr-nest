@@ -1,103 +1,74 @@
-import {
-  IsNotEmpty,
-  IsEmail,
-  IsOptional,
-  IsString,
-  IsIn,
-  MaxLength,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class CrearUsuarioDto {
-  @IsNotEmpty({ message: 'El email es requerido' })
-  @IsEmail()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<CrearUsuarioDto> =
+    defineZodDto<CrearUsuarioDto>('CrearUsuarioDto', {
+      email: { schema: z.string().min(1).email().max(255) },
+      company_id: { schema: z.string(), optional: true },
+      nickname: { schema: z.string().max(255), optional: true },
+      first_name: { schema: z.string().max(255), optional: true },
+      last_name: { schema: z.string().max(255), optional: true },
+      image_url: { schema: z.string().max(255), optional: true },
+      address_line_1: { schema: z.string().max(255), optional: true },
+      address_line_2: { schema: z.string().max(255), optional: true },
+      city: { schema: z.string().max(255), optional: true },
+      state_or_province: { schema: z.string().max(255), optional: true },
+      postal_code: { schema: z.string().max(255), optional: true },
+      country: { schema: z.string(), optional: true },
+      phone: { schema: z.string().max(255), optional: true },
+      company: { schema: z.string().max(255), optional: true },
+      job_title: { schema: z.string().max(255), optional: true },
+      industry: { schema: z.string().max(255), optional: true },
+      about_me: { schema: z.string().max(255), optional: true },
+      default_role: { schema: z.string().max(255), optional: true },
+      region: {
+        schema: z
+          .string()
+          .refine(
+            (value) => (['US', 'EMEA'] as readonly unknown[]).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['US', 'EMEA'] }),
+        optional: true,
+      },
+    });
+
   email: string;
 
-  @IsOptional()
-  @IsString()
   company_id?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   nickname?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   first_name?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   last_name?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   image_url?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   address_line_1?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   address_line_2?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   city?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   state_or_province?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   postal_code?: string;
 
-  @IsOptional()
-  @IsString()
   country?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   phone?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   company?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   job_title?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   industry?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   about_me?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   default_role?: string;
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['US', 'EMEA'])
   region?: string;
 }

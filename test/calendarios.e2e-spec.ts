@@ -1,4 +1,5 @@
-import { ValidationPipe, type INestApplication } from '@nestjs/common';
+import { ZodValidationPipe } from '../src/presentation/validation/zod-validation.pipe';
+import { type INestApplication } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -6,7 +7,6 @@ import { getDataSourceToken } from '@nestjs/typeorm';
 import type { Server } from 'node:http';
 import request from 'supertest';
 import { CalendariosModule } from '../src/composition/modules/calendarios.module';
-import { spanishValidationExceptionFactory } from '../src/presentation/validation/spanish-validation-messages';
 import type * as FilterModule from '../src/presentation/filters/global-exception.filter';
 
 describe('Configuración HTTP de calendarios', () => {
@@ -76,14 +76,7 @@ describe('Configuración HTTP de calendarios', () => {
     app = module.createNestApplication();
     app.setGlobalPrefix('api');
     app.useGlobalFilters(new GlobalExceptionFilter());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        transform: true,
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        exceptionFactory: spanishValidationExceptionFactory,
-      }),
-    );
+    app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
     expect(query).not.toHaveBeenCalled();
   });

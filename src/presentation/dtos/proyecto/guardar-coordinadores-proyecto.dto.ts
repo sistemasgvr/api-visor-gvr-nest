@@ -1,19 +1,39 @@
-import { IsArray, IsInt, IsNotEmpty, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class CoordinadorItemDto {
-  @IsNotEmpty()
-  @IsInt()
+  static readonly schema: z.ZodType<CoordinadorItemDto> =
+    defineZodDto<CoordinadorItemDto>('CoordinadorItemDto', {
+      idtrabajador: {
+        schema: z
+          .number()
+          .int()
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      miembrosEquipo: { schema: z.array(z.number().int()), defaultValue: [] },
+    });
+
   idtrabajador: number;
 
-  @IsArray()
-  @IsInt({ each: true })
   miembrosEquipo: number[] = [];
 }
 
 export class GuardarCoordinadoresProyectoDto {
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CoordinadorItemDto)
+  static readonly schema: z.ZodType<GuardarCoordinadoresProyectoDto> =
+    defineZodDto<GuardarCoordinadoresProyectoDto>(
+      'GuardarCoordinadoresProyectoDto',
+      {
+        coordinadores: {
+          schema: z.array(z.lazy(() => CoordinadorItemDto.schema)),
+        },
+      },
+    );
+
   coordinadores: CoordinadorItemDto[];
 }

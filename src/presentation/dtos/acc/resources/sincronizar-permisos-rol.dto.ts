@@ -1,12 +1,35 @@
-import { IsInt, IsNotEmpty, IsArray } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class SincronizarPermisosRolDto {
-  @IsNotEmpty({ message: 'El role_id es requerido' })
-  @IsInt()
+  static readonly schema: z.ZodType<SincronizarPermisosRolDto> =
+    defineZodDto<SincronizarPermisosRolDto>('SincronizarPermisosRolDto', {
+      role_id: {
+        schema: z
+          .number()
+          .int()
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      resource_ids: {
+        schema: z
+          .array(z.number().int())
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+    });
+
   role_id: number;
 
-  @IsNotEmpty({ message: 'Los resource_ids son requeridos' })
-  @IsArray()
-  @IsInt({ each: true })
   resource_ids: number[];
 }

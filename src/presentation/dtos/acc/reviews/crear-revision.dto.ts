@@ -1,21 +1,23 @@
-import { IsString, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class CrearRevisionDto {
-  @IsString()
-  @IsNotEmpty()
+  static readonly schema: z.ZodType<CrearRevisionDto> =
+    defineZodDto<CrearRevisionDto>('CrearRevisionDto', {
+      name: { schema: z.string().min(1) },
+      workflowId: { schema: z.string().min(1) },
+      description: { schema: z.string(), optional: true },
+      linkedDocuments: { schema: z.array(z.unknown()), optional: true },
+    });
+
   name: string;
 
   /** ID interno GVR del flujo (numérico en string). */
-  @IsNotEmpty()
-  @IsString()
+
   workflowId: string;
 
-  @IsOptional()
-  @IsString()
   description?: string;
 
-  @IsOptional()
-  @IsArray()
   linkedDocuments?: Array<{
     versionUrn?: string;
     urn?: string;

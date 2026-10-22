@@ -28,6 +28,7 @@ La configuración se obtiene de `.env`; consultar `.env.example` para los nombre
 npm run check:architecture
 npm run check:contracts
 npm run check:authorization-coverage
+npm run check:openapi
 npm run typecheck
 npm test -- --runInBand
 npm run test:e2e -- --runInBand
@@ -44,3 +45,15 @@ El contenedor arranca con `NODE_ENV=production`. Proporcionar las variables y cr
 Aplicar SQL y publicar backend y frontend durante la misma ventana, siguiendo [MIGRACION.md](../api-visor-gvr-sql/docs/permisos/MIGRACION.md).
 
 Los respaldos de producción se conservan en `backups/produccion/`, excluidos de Git y Docker; no son temporales de desarrollo. Cada carpeta contiene el archivo `.dump`, su contenido y un manifiesto con checksum, verificación y pasos ejecutados. La conexión de producción permanece como referencia comentada en el `.env` privado; la conexión activa local no se cambia al respaldar.
+
+
+## Validación y documentación de la API
+
+Todos los módulos HTTP y la configuración usan Zod. Los contratos de entrada también generan los modelos de OpenAPI; la documentación incluye respuestas, ejemplos, parámetros, archivos y errores.
+
+- Interfaz Scalar: `/api/docs`.
+- Documento OpenAPI: `/api/openapi.json`.
+- Regenerar después de cambiar contratos: `npm run docs:generate`.
+- Verificar sincronización de los contratos en CI: `npm run check:openapi`.
+
+Detalles de la migración, reglas de compatibilidad y mantenimiento: [VALIDACION-ZOD-OPENAPI.md](docs/VALIDACION-ZOD-OPENAPI.md).

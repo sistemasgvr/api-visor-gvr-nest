@@ -1,236 +1,51 @@
-import {
-  IsString,
-  IsInt,
-  IsBoolean,
-  IsEnum,
-  IsOptional,
-} from 'class-validator';
-import { Transform } from 'class-transformer';
+import { z } from 'zod';
 
 export enum Environment {
   Development = 'development',
   Production = 'production',
   Test = 'test',
 }
-
-export class EnvironmentVariables {
-  @IsEnum(Environment)
-  NODE_ENV: Environment;
-
-  @IsInt()
-  @Transform(({ value }) => parseInt(value, 10))
-  PORT: number;
-
-  @IsString()
-  DB_HOST: string;
-
-  @IsInt()
-  @Transform(({ value }) => parseInt(value, 10))
-  DB_PORT: number;
-
-  @IsString()
-  DB_USERNAME: string;
-
-  @IsString()
-  DB_PASSWORD: string;
-
-  @IsString()
-  DB_DATABASE: string;
-
-  @IsBoolean()
-  @Transform(({ value }) => value === 'true')
-  DB_SYNCHRONIZE: boolean;
-
-  @IsBoolean()
-  @Transform(({ value }) => value === 'true')
-  DB_LOGGING: boolean;
-
-  @IsOptional()
-  @IsString()
-  DB_SSL?: string;
-
-  // Autodesk ACC Configuration
-  @IsString()
-  AUTODESK_CLIENT_ID: string;
-
-  @IsString()
-  AUTODESK_CLIENT_SECRET: string;
-
-  @IsString()
-  AUTODESK_CALLBACK_URL: string;
-
-  // Frontend URLs (opcional)
-  @IsOptional()
-  @IsString()
-  FRONTEND_URLS?: string;
-
-  // Collabora Online Configuration
-  @IsOptional()
-  @IsString()
-  COLLABORA_URL?: string;
-
-  // Backend public URL (para callbacks y descargas)
-  @IsOptional()
-  @IsString()
-  BACKEND_PUBLIC_URL?: string;
-
-  // --- Correo (SMTP vía Nodemailer; SendGrid/SES/Mailgun suelen exponer SMTP) ---
-  @IsOptional()
-  @IsString()
-  MAIL_ENABLED?: string;
-
-  @IsOptional()
-  @IsString()
-  MAIL_SMTP_HOST?: string;
-
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (value === undefined || value === null || value === '') return undefined;
-    const n = parseInt(String(value), 10);
-    return Number.isFinite(n) ? n : undefined;
-  })
-  @IsInt()
-  MAIL_SMTP_PORT?: number;
-
-  @IsOptional()
-  @IsString()
-  MAIL_SMTP_SECURE?: string;
-
-  @IsOptional()
-  @IsString()
-  MAIL_SMTP_USER?: string;
-
-  @IsOptional()
-  @IsString()
-  MAIL_SMTP_PASS?: string;
-
-  @IsOptional()
-  @IsString()
-  MAIL_FROM_ADDRESS?: string;
-
-  @IsOptional()
-  @IsString()
-  MAIL_FROM_NAME?: string;
-
-  /** true + REDIS_HOST activa BullMQ para la cola `mail` */
-  @IsOptional()
-  @IsString()
-  MAIL_USE_QUEUE?: string;
-
-  @IsOptional()
-  @IsString()
-  REDIS_HOST?: string;
-
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (value === undefined || value === null || value === '') return undefined;
-    const n = parseInt(String(value), 10);
-    return Number.isFinite(n) ? n : undefined;
-  })
-  @IsInt()
-  REDIS_PORT?: number;
-
-  @IsOptional()
-  @IsString()
-  REDIS_PASSWORD?: string;
-
-  // --- MinIO (S3 compatible; opcional hasta que uses /api/storage/*) ---
-  @IsOptional()
-  @IsString()
-  MINIO_ENDPOINT?: string;
-
-  /** Alias típico en EasyPanel / despliegues Docker */
-  @IsOptional()
-  @IsString()
-  MINIO_SERVER_URL?: string;
-
-  @IsOptional()
-  @IsString()
-  MINIO_ACCESS_KEY?: string;
-
-  /** Mismo valor que suele ir en MINIO_ROOT_USER del servidor MinIO */
-  @IsOptional()
-  @IsString()
-  MINIO_ROOT_USER?: string;
-
-  @IsOptional()
-  @IsString()
-  MINIO_SECRET_KEY?: string;
-
-  /** Mismo valor que suele ir en MINIO_ROOT_PASSWORD del servidor MinIO */
-  @IsOptional()
-  @IsString()
-  MINIO_ROOT_PASSWORD?: string;
-
-  @IsOptional()
-  @IsString()
-  MINIO_BUCKET?: string;
-
-  @IsOptional()
-  @IsString()
-  MINIO_REGION?: string;
-
-  /** true por defecto en MinIO self-hosted */
-  @IsOptional()
-  @IsString()
-  MINIO_FORCE_PATH_STYLE?: string;
-
-  /**
-   * URL base pública para armar enlaces guardados en BD (puede ser CDN o el mismo API de MinIO).
-   * Sin barra final. Si no se define, se usa MINIO_ENDPOINT + bucket + key (path-style).
-   */
-  @IsOptional()
-  @IsString()
-  MINIO_PUBLIC_BASE_URL?: string;
-
-  /** Evidencias: compresión con Sharp al subir (`false` desactiva). */
-  @IsOptional()
-  @IsString()
-  EVIDENCIA_IMAGE_OPTIMIZE?: string;
-
-  /** Lado largo máximo en px (2560 por defecto vía service). */
-  @IsOptional()
-  @IsString()
-  EVIDENCIA_IMAGE_MAX_EDGE_PX?: string;
-
-  /** (Legacy) no usado; salida WebP. Puede quedar en .env sin efecto. */
-  @IsOptional()
-  @IsString()
-  EVIDENCIA_JPEG_QUALITY?: string;
-
-  /** Calidad WebP 40-100 (por defecto ~82 en el servicio). */
-  @IsOptional()
-  @IsString()
-  EVIDENCIA_WEBP_QUALITY?: string;
-
-  /** Efuerzo WebP 0-6 (5 por defecto; más = archivo más pequeño, más CPU). */
-  @IsOptional()
-  @IsString()
-  EVIDENCIA_WEBP_EFFORT?: string;
-
-  /** Imagen proyecto ACC: tamaño máximo enviado a Autodesk tras comprimir (bytes). */
-  @IsOptional()
-  @IsString()
-  ACC_PROJECT_IMAGE_MAX_BYTES?: string;
-
-  /** Imagen proyecto ACC: tamaño máximo de subida al API antes de comprimir (bytes). */
-  @IsOptional()
-  @IsString()
-  ACC_PROJECT_IMAGE_UPLOAD_MAX_BYTES?: string;
-
-  /** Imagen proyecto ACC: `false` desactiva Sharp (se reenvía el archivo tal cual). */
-  @IsOptional()
-  @IsString()
-  ACC_PROJECT_IMAGE_OPTIMIZE?: string;
-
-  /** Imagen proyecto ACC: lado largo máximo en px al redimensionar (1920 por defecto). */
-  @IsOptional()
-  @IsString()
-  ACC_PROJECT_IMAGE_MAX_EDGE_PX?: string;
-}
-
-export function validate(config: Record<string, unknown>) {
-  const validatedConfig = new EnvironmentVariables();
-  Object.assign(validatedConfig, config);
-  return validatedConfig;
+const numberFromEnvironment = (value: unknown) =>
+  typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
+const booleanFromEnvironment = (value: unknown) =>
+  typeof value === 'string' && /^(true|false)$/i.test(value)
+    ? value.toLowerCase() === 'true'
+    : value;
+/** Esquema único para ConfigModule y la configuración tipada del proceso. */
+export const environmentSchema = z.looseObject({
+  PORT: z.preprocess(numberFromEnvironment, z.number().default(4001)),
+  HOST: z.string().default('0.0.0.0'),
+  NODE_ENV: z.enum(Environment).default(Environment.Development),
+  DB_HOST: z.string().optional(),
+  DB_PORT: z.preprocess(numberFromEnvironment, z.number().optional()),
+  DB_USERNAME: z.string().optional(),
+  DB_PASSWORD: z.string().optional(),
+  DB_DATABASE: z.string().optional(),
+  DB_SYNCHRONIZE: z.preprocess(
+    booleanFromEnvironment,
+    z.boolean().default(false),
+  ),
+  DB_LOGGING: z.preprocess(booleanFromEnvironment, z.boolean().default(false)),
+  DATABASE_URL: z.string().optional(),
+  FRONTEND_URLS: z.string().min(1),
+  COLLABORA_URL: z.string().optional(),
+  JWT_SECRET: z.string().min(1),
+  JWT_EXPIRES_IN: z.string().min(1),
+  AUTODESK_CLIENT_ID: z.string().min(1),
+  AUTODESK_CLIENT_SECRET: z.string().min(1),
+  AUTODESK_CALLBACK_URL: z.string().min(1),
+});
+export type EnvironmentVariables = z.infer<typeof environmentSchema>;
+export function validate(
+  config: Record<string, unknown>,
+): EnvironmentVariables {
+  const result = environmentSchema.safeParse(config);
+  if (!result.success)
+    throw new Error(
+      'Error de validación de configuración: ' +
+        result.error.issues
+          .map((issue) => issue.path.join('.') + ' no tiene un valor válido')
+          .join('; '),
+    );
+  return result.data;
 }

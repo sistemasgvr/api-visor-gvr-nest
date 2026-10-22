@@ -1,63 +1,56 @@
-import {
-  IsString,
-  IsInt,
-  IsOptional,
-  MaxLength,
-  IsNotEmpty,
-  IsEmail,
-  ValidateIf,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class CreateEmpresaDto {
-  @IsNotEmpty({ message: 'La razón social es requerida' })
-  @IsString()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<CreateEmpresaDto> =
+    defineZodDto<CreateEmpresaDto>('CreateEmpresaDto', {
+      razonSocial: { schema: z.string().min(1).max(255) },
+      nombreComercial: { schema: z.string().max(255), optional: true },
+      idTipoDocumento: {
+        schema: z
+          .number()
+          .int()
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      nroDocumento: { schema: z.string().min(1).max(50) },
+      celularEmpresa: { schema: z.string().max(40), optional: true },
+      correoEmpresa: {
+        schema: z.string().email().max(255),
+        optional: true,
+        when: (_, v) => v != null && String(v).trim() !== '',
+      },
+      urlLogo: { schema: z.string().max(2000), optional: true },
+      direccion: { schema: z.string().max(500), optional: true },
+      idDepartamento: { schema: z.number().int(), optional: true },
+      idProvincia: { schema: z.number().int(), optional: true },
+      idDistrito: { schema: z.number().int(), optional: true },
+    });
+
   razonSocial: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   nombreComercial?: string;
 
-  @IsNotEmpty({ message: 'El tipo de documento es requerido' })
-  @IsInt()
   idTipoDocumento: number;
 
-  @IsNotEmpty({ message: 'El número de documento es requerido' })
-  @IsString()
-  @MaxLength(50)
   nroDocumento: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(40)
   celularEmpresa?: string;
 
-  @IsOptional()
-  @ValidateIf((_, v) => v != null && String(v).trim() !== '')
-  @IsEmail({}, { message: 'Correo de empresa inválido' })
-  @MaxLength(255)
   correoEmpresa?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(2000)
   urlLogo?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
   direccion?: string;
 
-  @IsOptional()
-  @IsInt()
   idDepartamento?: number;
 
-  @IsOptional()
-  @IsInt()
   idProvincia?: number;
 
-  @IsOptional()
-  @IsInt()
   idDistrito?: number;
 }

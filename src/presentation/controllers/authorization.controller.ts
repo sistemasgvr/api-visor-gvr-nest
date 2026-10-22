@@ -1,3 +1,4 @@
+import { ZodValidationPipe } from '../validation/zod-validation.pipe';
 import {
   Post,
   Body,
@@ -10,7 +11,6 @@ import {
   UnauthorizedException,
   UseGuards,
   UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
@@ -28,13 +28,7 @@ import { CloneRoleDto } from '../dtos/authorization/clone-role.dto';
 @ApiBearerAuth('access-token')
 @Controller('autorizacion')
 @UseGuards(JwtAuthGuard)
-@UsePipes(
-  new ValidationPipe({
-    transform: true,
-    whitelist: true,
-    forbidNonWhitelisted: true,
-  }),
-)
+@UsePipes(new ZodValidationPipe())
 export class AuthorizationController {
   constructor(private readonly permissions: GranularPermissionsService) {}
 

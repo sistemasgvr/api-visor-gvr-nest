@@ -170,7 +170,7 @@ src/domain/repositories/planificacion.repository.interface.ts   # PLANIFICACION_
 src/application/inputs/planificacion/*.input.ts           # sin decoradores
 src/application/use-cases/planificacion/proyectos/*.use-case.ts # uno por operación
 src/infrastructure/repositories/planificacion.repository.ts     # llamadas SQL + mapeo de errores
-src/presentation/dtos/planificacion/proyectos/*.dto.ts    # class-validator
+src/presentation/dtos/planificacion/proyectos/*.dto.ts    # esquemas Zod
 src/presentation/controllers/planificacion.controller.ts          # /proyectos/:id/planificacion
 src/presentation/controllers/planificacion-colaborador.controller.ts # /planificacion (trabajo propio)
 src/composition/modules/planificacion.module.ts            # registrar en el módulo raíz
@@ -283,7 +283,7 @@ Controlador `/planificacion`. La propiedad de la asignación la garantiza SQL. E
 
 ### 7.3. Validación de DTO
 
-Las reglas salen de las restricciones de las tablas. Configurar `whitelist` + `forbidNonWhitelisted`, igual que el resto del proyecto.
+Las reglas salen de las restricciones de las tablas. Usar los esquemas Zod estrictos y `ZodValidationPipe`, igual que el resto del proyecto. La migración completa está en [VALIDACION-ZOD-OPENAPI.md](VALIDACION-ZOD-OPENAPI.md).
 
 | DTO / campo | Regla |
 | --- | --- |

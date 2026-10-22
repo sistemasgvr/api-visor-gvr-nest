@@ -2,7 +2,7 @@
 import { config as loadDotenv } from 'dotenv';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import * as joi from 'joi';
+import { validate } from './env.validation';
 import { buildCorsAllowedOrigins } from './cors-origins.util';
 
 const rootEnvPath = join(__dirname, '..', '..', '.env');
@@ -33,39 +33,7 @@ interface EnvsVars {
   AUTODESK_CALLBACK_URL: string;
 }
 
-const envSchema = joi
-  .object<EnvsVars>({
-    PORT: joi.number().default(4001),
-    HOST: joi.string().default('0.0.0.0'),
-    NODE_ENV: joi
-      .string()
-      .valid('development', 'production', 'test')
-      .default('development'),
-    DB_HOST: joi.string().optional().allow(''),
-    DB_PORT: joi.number().optional(),
-    DB_USERNAME: joi.string().optional().allow(''),
-    DB_PASSWORD: joi.string().optional().allow(''),
-    DB_DATABASE: joi.string().optional().allow(''),
-    DB_SYNCHRONIZE: joi.boolean().default(false),
-    DB_LOGGING: joi.boolean().default(false),
-    DATABASE_URL: joi.string().optional().allow(''),
-    FRONTEND_URLS: joi.string().required(),
-    COLLABORA_URL: joi.string().optional().allow(''),
-    JWT_SECRET: joi.string().required(),
-    JWT_EXPIRES_IN: joi.string().required(),
-    AUTODESK_CLIENT_ID: joi.string().required(),
-    AUTODESK_CLIENT_SECRET: joi.string().required(),
-    AUTODESK_CALLBACK_URL: joi.string().required(),
-  })
-  .unknown(true);
-
-const { error, value: validatedEnv } = envSchema.validate(process.env);
-
-if (error) {
-  throw new Error(`Error de validación de configuración: ${error.message}`);
-}
-
-const envsVars: EnvsVars = validatedEnv;
+const envsVars: EnvsVars = validate(process.env);
 
 export const envs = {
   port: envsVars.PORT,

@@ -110,3 +110,27 @@ export interface AmpliacionPlan {
   minutosaprobados: number | null;
   idestadosolicitud: number;
 }
+
+export interface CambioEstadoActividadPlan {
+  idactividad: number;
+  revision: number;
+  revisionplan: number;
+  idestadoactividad: number;
+}
+export interface CambioEstadoPlan {
+  idplan: number;
+  revision: number;
+  idestadoplan: number;
+}
+export interface CambioEstadoPartePlan {
+  idasignacion: number;
+  revision: number;
+  idestadoactividad: number;
+}
+export interface AsignacionColaboradorPlan extends AsignacionPlan {
+  nombre: string;
+  identregable: number;
+  idplan: number;
+  fecha: string;
+  saldo: SaldoAsignacion;
+}

@@ -1,59 +1,52 @@
-import {
-  IsNotEmpty,
-  IsString,
-  IsOptional,
-  IsInt,
-  IsObject,
-  MaxLength,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class GuardarRecursoDto {
-  @IsNotEmpty({ message: 'El tipo de recurso es requerido' })
-  @IsString()
-  @MaxLength(50)
+  static readonly schema: z.ZodType<GuardarRecursoDto> =
+    defineZodDto<GuardarRecursoDto>('GuardarRecursoDto', {
+      recurso_tipo: { schema: z.string().min(1).max(50) },
+      recurso_id: { schema: z.string().min(1).max(255) },
+      recurso_urn: { schema: z.string(), optional: true },
+      project_id: { schema: z.string().max(255), optional: true },
+      parent_id: { schema: z.string().max(255), optional: true },
+      idusuario_creador: {
+        schema: z
+          .number()
+          .int()
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      idusuario_asignado: { schema: z.number().int(), optional: true },
+      nombre: { schema: z.string(), optional: true },
+      descripcion: { schema: z.string(), optional: true },
+      estado: { schema: z.string().max(50), optional: true },
+      metadatos: { schema: z.record(z.string(), z.unknown()), optional: true },
+    });
+
   recurso_tipo: string;
 
-  @IsNotEmpty({ message: 'El ID del recurso es requerido' })
-  @IsString()
-  @MaxLength(255)
   recurso_id: string;
 
-  @IsOptional()
-  @IsString()
   recurso_urn?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   project_id?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   parent_id?: string;
 
-  @IsNotEmpty({ message: 'El ID del usuario creador es requerido' })
-  @IsInt()
   idusuario_creador: number;
 
-  @IsOptional()
-  @IsInt()
   idusuario_asignado?: number;
 
-  @IsOptional()
-  @IsString()
   nombre?: string;
 
-  @IsOptional()
-  @IsString()
   descripcion?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
   estado?: string;
 
-  @IsOptional()
-  @IsObject()
   metadatos?: any;
 }

@@ -1,43 +1,66 @@
-import { IsOptional, IsInt, IsString, IsIn, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class BuscarUsuariosProyectoDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<BuscarUsuariosProyectoDto> =
+    defineZodDto<BuscarUsuariosProyectoDto>('BuscarUsuariosProyectoDto', {
+      name: { schema: z.string(), optional: true },
+      email: { schema: z.string(), optional: true },
+      companyName: { schema: z.string(), optional: true },
+      filterTextMatch: {
+        schema: z
+          .string()
+          .refine(
+            (value) =>
+              (
+                [
+                  'contains',
+                  'startsWith',
+                  'endsWith',
+                  'equals',
+                ] as readonly unknown[]
+              ).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['contains', 'startsWith', 'endsWith', 'equals'] }),
+        optional: true,
+      },
+      limit: {
+        schema: z.number().int().min(1).max(200),
+        optional: true,
+        coerce: 'number',
+      },
+      offset: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+      },
+      region: {
+        schema: z
+          .string()
+          .refine(
+            (value) => (['US', 'EMEA'] as readonly unknown[]).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['US', 'EMEA'] }),
+        optional: true,
+      },
+      user_id: { schema: z.string(), optional: true },
+    });
+
   name?: string;
 
-  @IsOptional()
-  @IsString()
   email?: string;
 
-  @IsOptional()
-  @IsString()
   companyName?: string;
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['contains', 'startsWith', 'endsWith', 'equals'])
   filterTextMatch?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(200)
   limit?: number;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number;
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['US', 'EMEA'])
   region?: string;
 
-  @IsOptional()
-  @IsString()
   user_id?: string;
 }

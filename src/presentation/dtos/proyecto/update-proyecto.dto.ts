@@ -1,118 +1,115 @@
-import {
-  IsString,
-  IsInt,
-  IsOptional,
-  IsNumber,
-  MaxLength,
-  IsNotEmpty,
-  Min,
-  Max,
-  IsDateString,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto, isoDate } from '../../validation/zod-dto';
 
 export class UpdateProyectoDto {
-  @IsNotEmpty({ message: 'El nombre del proyecto es requerido' })
-  @IsString()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<UpdateProyectoDto> =
+    defineZodDto<UpdateProyectoDto>('UpdateProyectoDto', {
+      nombreProyecto: { schema: z.string().min(1).max(255) },
+      nroProyecto: { schema: z.string().min(1).max(100) },
+      idTipoProyecto: {
+        schema: z
+          .number()
+          .int()
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      idPais: {
+        schema: z
+          .number()
+          .int()
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      direccion1: { schema: z.string().max(255), optional: true },
+      direccion2: { schema: z.string().max(255), optional: true },
+      ciudad: { schema: z.string().max(100), optional: true },
+      provincia: { schema: z.string().max(100), optional: true },
+      codigoPostal: { schema: z.string().max(20), optional: true },
+      idZonaHoraria: { schema: z.number().int(), optional: true },
+      fechaInicio: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+      },
+      fechaFinalizacion: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+      },
+      valorProyecto: { schema: z.number().min(0), optional: true },
+      idTipoMoneda: { schema: z.number().int(), optional: true },
+      diaValorizar: { schema: z.number().int().min(1).max(31), optional: true },
+      idCliente: { schema: z.number().int(), optional: true },
+      observaciones: { schema: z.string(), optional: true },
+      idModalidad: { schema: z.number().int(), optional: true },
+      idEstadoProyecto: { schema: z.number().int(), optional: true },
+      idEstadoCotizacion: { schema: z.number().int(), optional: true },
+      idCalendario: { schema: z.number().int().min(1), optional: true },
+      revisionPlan: { schema: z.number().int().min(1), optional: true },
+      motivo: { schema: z.string().max(1000), optional: true },
+    });
+
   nombreProyecto: string;
 
-  @IsNotEmpty({ message: 'El número de proyecto es requerido' })
-  @IsString()
-  @MaxLength(100)
   nroProyecto: string;
 
-  @IsNotEmpty({ message: 'El tipo de proyecto es requerido' })
-  @IsInt()
   idTipoProyecto: number;
 
-  @IsNotEmpty({ message: 'El país es requerido' })
-  @IsInt()
   idPais: number;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   direccion1?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   direccion2?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
   ciudad?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
   provincia?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
   codigoPostal?: string;
 
-  @IsOptional()
-  @IsInt()
   idZonaHoraria?: number;
 
-  @IsOptional()
-  @IsDateString()
   fechaInicio?: string;
 
-  @IsOptional()
-  @IsDateString()
   fechaFinalizacion?: string;
 
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
   valorProyecto?: number;
 
-  @IsOptional()
-  @IsInt()
   idTipoMoneda?: number;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Max(31)
   diaValorizar?: number;
 
-  @IsOptional()
-  @IsInt()
   idCliente?: number;
 
-  @IsOptional()
-  @IsString()
   observaciones?: string;
 
-  @IsOptional()
-  @IsInt()
   idModalidad?: number;
 
-  @IsOptional()
-  @IsInt()
   idEstadoProyecto?: number;
 
-  @IsOptional()
-  @IsInt()
   idEstadoCotizacion?: number;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
   idCalendario?: number | null;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
   revisionPlan?: number;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(1000)
   motivo?: string;
 }

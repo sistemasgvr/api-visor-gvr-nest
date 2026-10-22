@@ -1,6 +1,6 @@
 # Arquitectura del backend
 
-Actualización: 15 de octubre de 2026.
+Actualización: 22 de octubre de 2026.
 
 El backend conserva sus funcionalidades y contratos HTTP anteriores. La reorganización separa las reglas y operaciones de aplicación de NestJS, PostgreSQL, Autodesk, almacenamiento y otros proveedores. La configuración de calendarios añadida posteriormente sigue estas mismas reglas y se documenta en [CALENDARIOS.md](CALENDARIOS.md); no modifica SQL remoto ni integra control operativo.
 
@@ -54,7 +54,7 @@ Los controladores de protocolos como WOPI/Office y los endpoints técnicos de ar
 
 ## Validación y errores
 
-Las clases con `class-validator`, `class-transformer` y decoradores Swagger están en `presentation/dtos`. Se conservaron sus reglas, transformaciones, campos y valores iniciales. Los contratos en `application/inputs` no ejecutan validación HTTP; los controladores validan antes de invocar la aplicación.
+Los DTO con esquemas Zod y metadatos Swagger están en `presentation/dtos`. La validación global usa `ZodValidationPipe`; se conservaron reglas, transformaciones, campos y valores iniciales con pruebas de compatibilidad. Los contratos en `application/inputs` no ejecutan validación HTTP; los controladores validan antes de invocar la aplicación.
 
 `ApplicationFailure` expresa categorías de error sin importar Nest. En el límite de los proveedores, los errores HTTP de implementaciones existentes se traducen a errores internos. El filtro y el interceptor de presentación conservan mensajes, códigos de negocio y estados HTTP. Se mantiene la respuesta original de los errores externos, incluidos estados que no tengan una categoría específica en aplicación.
 
@@ -77,3 +77,6 @@ npm run build
 - CI ejecuta las comprobaciones de arquitectura y contratos además de las verificaciones existentes.
 
 La verificación local utiliza dependencias simuladas para las integraciones. No reemplaza una prueba de aceptación con servicios reales en un entorno de pruebas.
+
+
+La migración completa a Zod y la generación/verificación de OpenAPI están documentadas en [VALIDACION-ZOD-OPENAPI.md](VALIDACION-ZOD-OPENAPI.md). Zod se mantiene en presentación/configuración: dominio y aplicación continúan sin dependencias de librerías de validación.

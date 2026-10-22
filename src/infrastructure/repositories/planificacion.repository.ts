@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import type * as Input from '../../domain/entities/planificacion-input.entity';
 import type {
   PlanificacionJson,
+  CambioEstadoActividadPlan,
+  CambioEstadoPlan,
+  CambioEstadoPartePlan,
+  AsignacionColaboradorPlan,
   AsignacionContexto,
   ActividadPlan,
   ActividadPlanDetalle,
@@ -206,7 +210,7 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     ctx: Input.ContextoPlan,
     data: Input.EstadoActividadPlanInput,
   ) {
-    return this.call<PlanificacionJson>('pla_CambiarEstadoActividad', [
+    return this.call<CambioEstadoActividadPlan>('pla_CambiarEstadoActividad', [
       actor,
       ctx.idActividad,
       data.revisionPlan,
@@ -220,7 +224,7 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     ctx: Input.ContextoPlan,
     data: Input.EstadoPlanInput,
   ) {
-    return this.call<PlanificacionJson>('pla_CambiarEstadoPlanProyecto', [
+    return this.call<CambioEstadoPlan>('pla_CambiarEstadoPlanProyecto', [
       actor,
       ctx.idPlan,
       data.revisionPlan,
@@ -271,19 +275,17 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     trabajador: number,
     data: Input.MisAsignacionesInput,
   ) {
-    return this.call<PlanificacionJson>('pla_ListarAsignacionesColaborador', [
-      actor,
-      trabajador,
-      data.fecha,
-      data.idProyecto ?? null,
-    ]);
+    return this.call<AsignacionColaboradorPlan[]>(
+      'pla_ListarAsignacionesColaborador',
+      [actor, trabajador, data.fecha, data.idProyecto ?? null],
+    );
   }
   estadoParte(
     actor: number,
     idAsignacion: number,
     data: Input.EstadoParteInput,
   ) {
-    return this.call<PlanificacionJson>('pla_CambiarEstadoAsignacion', [
+    return this.call<CambioEstadoPartePlan>('pla_CambiarEstadoAsignacion', [
       actor,
       idAsignacion,
       data.revision,

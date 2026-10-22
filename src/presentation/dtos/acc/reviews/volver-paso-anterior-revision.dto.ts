@@ -1,7 +1,12 @@
-import { IsOptional, IsString } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class VolverPasoAnteriorRevisionDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<VolverPasoAnteriorRevisionDto> =
+    defineZodDto<VolverPasoAnteriorRevisionDto>(
+      'VolverPasoAnteriorRevisionDto',
+      { notas: { schema: z.string(), optional: true } },
+    );
+
   notas?: string;
 }

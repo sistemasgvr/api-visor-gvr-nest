@@ -1,28 +1,28 @@
-import {
-  IsArray,
-  IsInt,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class DocStatusDto {
-  @IsInt()
+  static readonly schema: z.ZodType<DocStatusDto> = defineZodDto<DocStatusDto>(
+    'DocStatusDto',
+    { idArchivo: { schema: z.number().int() }, estado: { schema: z.string() } },
+  );
+
   idArchivo!: number;
 
-  @IsString()
   estado!: string;
 }
 
 export class EnviarResenaPasoDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<EnviarResenaPasoDto> =
+    defineZodDto<EnviarResenaPasoDto>('EnviarResenaPasoDto', {
+      notas: { schema: z.string(), optional: true },
+      docStatuses: {
+        schema: z.array(z.lazy(() => DocStatusDto.schema)),
+        optional: true,
+      },
+    });
+
   notas?: string;
 
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => DocStatusDto)
   docStatuses?: DocStatusDto[];
 }

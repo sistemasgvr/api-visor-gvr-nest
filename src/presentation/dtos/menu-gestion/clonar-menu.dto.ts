@@ -1,23 +1,17 @@
-import {
-  IsString,
-  IsInt,
-  IsOptional,
-  IsBoolean,
-  MaxLength,
-  IsNotEmpty,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class ClonarMenuDto {
-  @IsNotEmpty({ message: 'El nuevo nombre es requerido' })
-  @IsString()
-  @MaxLength(100)
+  static readonly schema: z.ZodType<ClonarMenuDto> =
+    defineZodDto<ClonarMenuDto>('ClonarMenuDto', {
+      nombre_nuevo: { schema: z.string().min(1).max(100) },
+      id_padre_nuevo: { schema: z.number().int(), optional: true },
+      clonar_roles: { schema: z.boolean(), optional: true },
+    });
+
   nombre_nuevo: string;
 
-  @IsOptional()
-  @IsInt()
   id_padre_nuevo?: number;
 
-  @IsOptional()
-  @IsBoolean()
   clonar_roles?: boolean;
 }

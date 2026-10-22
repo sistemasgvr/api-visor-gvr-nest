@@ -1,55 +1,61 @@
-import {
-  IsString,
-  IsOptional,
-  IsObject,
-  IsBoolean,
-  IsArray,
-  ValidateNested,
-  IsNumber,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 class PushpinPositionDto {
-  @IsNumber()
+  static readonly schema: z.ZodType<PushpinPositionDto> =
+    defineZodDto<PushpinPositionDto>('PushpinPositionDto', {
+      x: { schema: z.number() },
+      y: { schema: z.number() },
+      z: { schema: z.number() },
+    });
+
   x: number;
 
-  @IsNumber()
   y: number;
 
-  @IsNumber()
   z: number;
 }
 
 class ViewerStateDto {
-  @IsOptional()
-  @IsObject()
+  static readonly schema: z.ZodType<ViewerStateDto> =
+    defineZodDto<ViewerStateDto>('ViewerStateDto', {
+      viewport: { schema: z.record(z.string(), z.unknown()), optional: true },
+      objectSet: { schema: z.array(z.unknown()), optional: true },
+      renderOptions: {
+        schema: z.record(z.string(), z.unknown()),
+        optional: true,
+      },
+    });
+
   viewport?: any;
 
-  @IsOptional()
-  @IsArray()
   objectSet?: any[];
 
-  @IsOptional()
-  @IsObject()
   renderOptions?: any;
 }
 
 class LinkedDocumentDetailsDto {
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => PushpinPositionDto)
+  static readonly schema: z.ZodType<LinkedDocumentDetailsDto> =
+    defineZodDto<LinkedDocumentDetailsDto>('LinkedDocumentDetailsDto', {
+      position: {
+        schema: z.lazy(() => PushpinPositionDto.schema),
+        optional: true,
+      },
+      objectId: { schema: z.number(), optional: true },
+      externalId: { schema: z.string(), optional: true },
+      viewable: { schema: z.record(z.string(), z.unknown()), optional: true },
+      viewerState: {
+        schema: z.record(z.string(), z.unknown()),
+        optional: true,
+      },
+    });
+
   position?: PushpinPositionDto;
 
-  @IsOptional()
-  @IsNumber()
   objectId?: number;
 
-  @IsOptional()
-  @IsString()
   externalId?: string;
 
-  @IsOptional()
-  @IsObject()
   viewable?: {
     id: string;
     viewableId: string;
@@ -58,92 +64,80 @@ class LinkedDocumentDetailsDto {
     is3D: boolean;
   };
 
-  @IsOptional()
-  @IsObject()
   viewerState?: ViewerStateDto;
 }
 
 export class CrearIncidenciaDto {
-  @IsString()
+  static readonly schema: z.ZodType<CrearIncidenciaDto> =
+    defineZodDto<CrearIncidenciaDto>('acc_issues_CrearIncidenciaDto', {
+      title: { schema: z.string() },
+      description: { schema: z.string() },
+      status: { schema: z.string(), optional: true },
+      issueSubtypeId: { schema: z.string() },
+      dueDate: { schema: z.string(), optional: true },
+      assignedTo: { schema: z.string(), optional: true },
+      assignedToType: { schema: z.string(), optional: true },
+      rootCauseId: { schema: z.string(), optional: true },
+      startDate: { schema: z.string(), optional: true },
+      locationId: { schema: z.string(), optional: true },
+      locationDetails: { schema: z.string(), optional: true },
+      thumbnail: { schema: z.string(), optional: true },
+      documentUrn: { schema: z.string(), optional: true },
+      itemId: { schema: z.string(), optional: true },
+      objectId: { schema: z.number(), optional: true },
+      externalId: { schema: z.string(), optional: true },
+      viewableGuid: { schema: z.string(), optional: true },
+      viewableName: { schema: z.string(), optional: true },
+      is3D: { schema: z.boolean(), optional: true },
+      pushpinPosition: {
+        schema: z.lazy(() => PushpinPositionDto.schema),
+        optional: true,
+      },
+      viewerState: {
+        schema: z.lazy(() => ViewerStateDto.schema),
+        optional: true,
+      },
+    });
+
   title: string;
 
-  @IsString()
   description: string;
 
-  @IsOptional()
-  @IsString()
   status?: string;
 
-  @IsString()
   issueSubtypeId: string;
 
-  @IsOptional()
-  @IsString()
   dueDate?: string;
 
-  @IsOptional()
-  @IsString()
   assignedTo?: string;
 
-  @IsOptional()
-  @IsString()
   assignedToType?: string;
 
-  @IsOptional()
-  @IsString()
   rootCauseId?: string;
 
-  @IsOptional()
-  @IsString()
   startDate?: string;
 
-  @IsOptional()
-  @IsString()
   locationId?: string;
 
-  @IsOptional()
-  @IsString()
   locationDetails?: string;
 
-  @IsOptional()
-  @IsString()
   thumbnail?: string;
 
-  @IsOptional()
-  @IsString()
   documentUrn?: string;
 
-  @IsOptional()
-  @IsString()
   itemId?: string;
 
-  @IsOptional()
-  @IsNumber()
   objectId?: number;
 
-  @IsOptional()
-  @IsString()
   externalId?: string;
 
-  @IsOptional()
-  @IsString()
   viewableGuid?: string;
 
-  @IsOptional()
-  @IsString()
   viewableName?: string;
 
-  @IsOptional()
-  @IsBoolean()
   is3D?: boolean;
 
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => PushpinPositionDto)
   pushpinPosition?: PushpinPositionDto;
 
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => ViewerStateDto)
   viewerState?: ViewerStateDto;
 }

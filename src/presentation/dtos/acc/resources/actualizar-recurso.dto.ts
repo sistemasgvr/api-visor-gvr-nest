@@ -1,15 +1,17 @@
-import { IsString, IsNotEmpty, IsOptional, IsInt } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ActualizarRecursoDto {
-  @IsNotEmpty({ message: 'El name es requerido' })
-  @IsString()
+  static readonly schema: z.ZodType<ActualizarRecursoDto> =
+    defineZodDto<ActualizarRecursoDto>('acc_resources_ActualizarRecursoDto', {
+      name: { schema: z.string().min(1) },
+      parent_id: { schema: z.number().int(), optional: true },
+      account_id: { schema: z.string(), optional: true },
+    });
+
   name: string;
 
-  @IsOptional()
-  @IsInt()
   parent_id?: number;
 
-  @IsOptional()
-  @IsString()
   account_id?: string;
 }

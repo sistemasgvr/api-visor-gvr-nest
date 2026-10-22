@@ -1,86 +1,75 @@
-import {
-  IsOptional,
-  IsString,
-  IsInt,
-  IsBoolean,
-  Min,
-  Max,
-} from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ObtenerRevisionesDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(50)
+  static readonly schema: z.ZodType<ObtenerRevisionesDto> =
+    defineZodDto<ObtenerRevisionesDto>('ObtenerRevisionesDto', {
+      limit: {
+        schema: z.number().int().min(1).max(50),
+        optional: true,
+        coerce: 'number',
+      },
+      offset: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+      },
+      sort: { schema: z.string(), optional: true },
+      filter_workflowId: { schema: z.string(), optional: true },
+      filter_status: { schema: z.string(), optional: true },
+      filter_currentStepDueDate: { schema: z.string(), optional: true },
+      filter_createdAt: { schema: z.string(), optional: true },
+      filter_updatedAt: { schema: z.string(), optional: true },
+      filter_finishedAt: { schema: z.string(), optional: true },
+      filter_nextActionByUser: { schema: z.string(), optional: true },
+      filter_nextActionByRole: { schema: z.string(), optional: true },
+      filter_nextActionByCompany: { schema: z.string(), optional: true },
+      filter_name: { schema: z.string(), optional: true },
+      filter_sequenceId: {
+        schema: z.number().int(),
+        optional: true,
+        coerce: 'number',
+      },
+      filter_archived: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === 'true' || value === true],
+      },
+      filter_archivedBy: { schema: z.string(), optional: true },
+      filter_archivedAt: { schema: z.string(), optional: true },
+    });
+
   limit?: number;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number;
 
-  @IsOptional()
-  @IsString()
   sort?: string;
 
-  @IsOptional()
-  @IsString()
   filter_workflowId?: string;
 
-  @IsOptional()
-  @IsString()
   filter_status?: string;
 
-  @IsOptional()
-  @IsString()
   filter_currentStepDueDate?: string;
 
-  @IsOptional()
-  @IsString()
   filter_createdAt?: string;
 
-  @IsOptional()
-  @IsString()
   filter_updatedAt?: string;
 
-  @IsOptional()
-  @IsString()
   filter_finishedAt?: string;
 
-  @IsOptional()
-  @IsString()
   filter_nextActionByUser?: string;
 
-  @IsOptional()
-  @IsString()
   filter_nextActionByRole?: string;
 
-  @IsOptional()
-  @IsString()
   filter_nextActionByCompany?: string;
 
-  @IsOptional()
-  @IsString()
   filter_name?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
   filter_sequenceId?: number;
 
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
-  @IsBoolean()
   filter_archived?: boolean;
 
-  @IsOptional()
-  @IsString()
   filter_archivedBy?: string;
 
-  @IsOptional()
-  @IsString()
   filter_archivedAt?: string;
 }

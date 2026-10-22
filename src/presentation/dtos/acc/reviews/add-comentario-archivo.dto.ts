@@ -1,7 +1,11 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class AddComentarioArchivoDto {
-  @IsNotEmpty()
-  @IsString()
+  static readonly schema: z.ZodType<AddComentarioArchivoDto> =
+    defineZodDto<AddComentarioArchivoDto>('AddComentarioArchivoDto', {
+      contenido: { schema: z.string().min(1) },
+    });
+
   contenido!: string;
 }

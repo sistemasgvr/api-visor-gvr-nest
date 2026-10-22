@@ -6,7 +6,9 @@ if (!globalThis.crypto) {
 }
 
 import { NestFactory } from '@nestjs/core';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { completeOpenApi } from './presentation/openapi/complete-openapi';
+import { ZodValidationPipe } from './presentation/validation/zod-validation.pipe';
+import { Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
@@ -20,7 +22,6 @@ import { envs } from './config';
 import { isOriginAllowed } from './config/cors-origins.util';
 import { GlobalExceptionFilter } from './presentation/filters/global-exception.filter';
 import { LoggingInterceptor } from './presentation/interceptors/logging.interceptor';
-import { spanishValidationExceptionFactory } from './presentation/validation/spanish-validation-messages';
 
 async function bootstrap() {
   const logger = new Logger('Main.ts');
@@ -68,15 +69,7 @@ async function bootstrap() {
     }),
   );
   app.use(urlencoded({ extended: true, limit: '50mb' }));
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // Elimina propiedades no definidas en el DTO
-      forbidNonWhitelisted: true, // Lanza error si hay propiedades extra
-      transform: true, // Transforma los payloads a instancias de DTO
-      // Mensajes de validación en español (class-validator en inglés por defecto)
-      exceptionFactory: (errors) => spanishValidationExceptionFactory(errors),
-    }),
-  );
+  app.useGlobalPipes(new ZodValidationPipe());
 
   // Configurar interceptor de logging
   app.useGlobalInterceptors(new LoggingInterceptor());
@@ -175,7 +168,7 @@ async function bootstrap() {
     .addTag('business-units', 'Unidades de negocio')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
+  const document = completeOpenApi(SwaggerModule.createDocument(app, config));
 
   // Scalar: documentación interactiva en /api/docs
   app.use(

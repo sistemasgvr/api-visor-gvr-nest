@@ -1,6 +1,10 @@
 import type * as Input from '../entities/planificacion-input.entity';
 import type {
   PlanificacionJson,
+  CambioEstadoActividadPlan,
+  CambioEstadoPlan,
+  CambioEstadoPartePlan,
+  AsignacionColaboradorPlan,
   AsignacionContexto,
   ActividadPlan,
   ActividadPlanDetalle,
@@ -99,12 +103,12 @@ export interface IPlanificacionRepository {
     actor: number,
     ctx: Input.ContextoPlan,
     data: Input.EstadoActividadPlanInput,
-  ): Promise<PlanificacionJson>;
+  ): Promise<CambioEstadoActividadPlan>;
   estadoPlan(
     actor: number,
     ctx: Input.ContextoPlan,
     data: Input.EstadoPlanInput,
-  ): Promise<PlanificacionJson>;
+  ): Promise<CambioEstadoPlan>;
   historial(
     actor: number,
     ctx: Input.ContextoPlan,
@@ -124,12 +128,12 @@ export interface IPlanificacionRepository {
     actor: number,
     trabajador: number,
     data: Input.MisAsignacionesInput,
-  ): Promise<PlanificacionJson>;
+  ): Promise<AsignacionColaboradorPlan[]>;
   estadoParte(
     actor: number,
     idAsignacion: number,
     data: Input.EstadoParteInput,
-  ): Promise<PlanificacionJson>;
+  ): Promise<CambioEstadoPartePlan>;
   solicitarAmpliacion(
     actor: number,
     idAsignacion: number,

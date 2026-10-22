@@ -1,13 +1,16 @@
-import { IsString, IsOptional, MaxLength, IsNotEmpty } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class UpdateRolDto {
-  @IsNotEmpty({ message: 'El nombre del rol es requerido' })
-  @IsString()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<UpdateRolDto> = defineZodDto<UpdateRolDto>(
+    'UpdateRolDto',
+    {
+      nombre: { schema: z.string().min(1).max(255) },
+      descripcion: { schema: z.string().max(255), optional: true },
+    },
+  );
+
   nombre: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   descripcion?: string;
 }

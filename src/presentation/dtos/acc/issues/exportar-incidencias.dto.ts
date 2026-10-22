@@ -1,12 +1,5 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsEnum,
-  IsBoolean,
-  IsArray,
-} from 'class-validator';
-import { Transform } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export enum TipoReporte {
   DETALLE_INCIDENCIA = 'issue_detail',
@@ -20,96 +13,131 @@ export enum FormatoExportacion {
 }
 
 export class ExportarIncidenciasDto {
-  @IsString()
-  @IsOptional()
+  static readonly schema: z.ZodType<ExportarIncidenciasDto> =
+    defineZodDto<ExportarIncidenciasDto>('ExportarIncidenciasDto', {
+      issueId: { schema: z.string(), optional: true },
+      tipoReporte: {
+        schema: z
+          .enum(TipoReporte)
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      formato: {
+        schema: z
+          .enum(FormatoExportacion)
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      titulo: { schema: z.string(), optional: true },
+      guardarEnArchivos: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === 'true' || value === true],
+      },
+      diseño: { schema: z.string(), optional: true },
+      incluirCubierta: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === 'true' || value === true],
+      },
+      incluirIndice: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === 'true' || value === true],
+      },
+      incluirInformacionGeneralPlano: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === 'true' || value === true],
+      },
+      incluirCamposPersonalizados: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === 'true' || value === true],
+      },
+      incluirVinculosArchivo: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === 'true' || value === true],
+      },
+      incluirFotos: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === 'true' || value === true],
+      },
+      tamañoFotos: { schema: z.string(), optional: true },
+      incluirOtrasReferencias: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === 'true' || value === true],
+      },
+      incluirComentarios: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === 'true' || value === true],
+      },
+      issueIds: { schema: z.array(z.unknown()), optional: true },
+      filter_status: { schema: z.string(), optional: true },
+      filter_linkedDocumentUrn: { schema: z.string(), optional: true },
+      usuarioNombre: { schema: z.string(), optional: true },
+      usuarioEmail: { schema: z.string(), optional: true },
+    });
+
   issueId?: string; // Para detalle de incidencia
 
-  @IsEnum(TipoReporte)
-  @IsNotEmpty()
   tipoReporte: TipoReporte;
 
-  @IsEnum(FormatoExportacion)
-  @IsNotEmpty()
   formato: FormatoExportacion;
 
-  @IsString()
-  @IsOptional()
   titulo?: string;
 
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
   guardarEnArchivos?: boolean;
 
-  @IsString()
-  @IsOptional()
   diseño?: string;
 
   // Opciones para incluir en el reporte
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+
   incluirCubierta?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
   incluirIndice?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
   incluirInformacionGeneralPlano?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
   incluirCamposPersonalizados?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
   incluirVinculosArchivo?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
   incluirFotos?: boolean;
 
-  @IsString()
-  @IsOptional()
   tamañoFotos?: string;
 
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
   incluirOtrasReferencias?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
   incluirComentarios?: boolean;
 
   // Para resumen o incidencias en planos
-  @IsArray()
-  @IsOptional()
+
   issueIds?: string[];
 
   // Filtros para exportar múltiples incidencias
-  @IsString()
-  @IsOptional()
+
   filter_status?: string;
 
-  @IsString()
-  @IsOptional()
   filter_linkedDocumentUrn?: string;
 
   // Información del usuario de la sesión
-  @IsString()
-  @IsOptional()
+
   usuarioNombre?: string;
 
-  @IsString()
-  @IsOptional()
   usuarioEmail?: string;
 }

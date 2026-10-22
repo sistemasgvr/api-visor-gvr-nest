@@ -1,41 +1,39 @@
-import { Type } from 'class-transformer';
-import {
-  IsInt,
-  IsNotEmpty,
-  IsObject,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class UpsertDocumentMetadataDto {
-  @IsString()
-  @IsNotEmpty()
+  static readonly schema: z.ZodType<UpsertDocumentMetadataDto> =
+    defineZodDto<UpsertDocumentMetadataDto>('UpsertDocumentMetadataDto', {
+      folderExternalId: { schema: z.string().min(1) },
+      itemExternalId: { schema: z.string().min(1) },
+      versionExternalId: { schema: z.string(), optional: true },
+      namingStandardId: {
+        schema: z.number().int(),
+        optional: true,
+        coerce: 'number',
+      },
+      nombreGenerado: { schema: z.string().min(1) },
+      valores: { schema: z.record(z.string(), z.unknown()), optional: true },
+    });
+
   folderExternalId: string;
 
-  @IsString()
-  @IsNotEmpty()
   itemExternalId: string;
 
-  @IsOptional()
-  @IsString()
   versionExternalId?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
   namingStandardId?: number;
 
-  @IsString()
-  @IsNotEmpty()
   nombreGenerado: string;
 
-  @IsOptional()
-  @IsObject()
   valores?: Record<string, unknown>;
 }
 
 export class ItemExternalIdParamDto {
-  @IsString()
-  @IsNotEmpty()
+  static readonly schema: z.ZodType<ItemExternalIdParamDto> =
+    defineZodDto<ItemExternalIdParamDto>('ItemExternalIdParamDto', {
+      itemExternalId: { schema: z.string().min(1) },
+    });
+
   itemExternalId: string;
 }

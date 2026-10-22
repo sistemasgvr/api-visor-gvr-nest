@@ -1,69 +1,59 @@
-import { IsOptional, IsString, IsIn, MaxLength } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ActualizarCompanyDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<ActualizarCompanyDto> =
+    defineZodDto<ActualizarCompanyDto>('ActualizarCompanyDto', {
+      name: { schema: z.string().max(255), optional: true },
+      trade: { schema: z.string(), optional: true },
+      address_line_1: { schema: z.string().max(255), optional: true },
+      address_line_2: { schema: z.string().max(255), optional: true },
+      city: { schema: z.string().max(255), optional: true },
+      state_or_province: { schema: z.string().max(255), optional: true },
+      postal_code: { schema: z.string().max(255), optional: true },
+      country: { schema: z.string(), optional: true },
+      phone: { schema: z.string().max(255), optional: true },
+      website_url: { schema: z.string().max(255), optional: true },
+      description: { schema: z.string().max(255), optional: true },
+      erp_id: { schema: z.string(), optional: true },
+      tax_id: { schema: z.string(), optional: true },
+      region: {
+        schema: z
+          .string()
+          .refine(
+            (value) => (['US', 'EMEA'] as readonly unknown[]).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['US', 'EMEA'] }),
+        optional: true,
+      },
+    });
+
   name?: string;
 
-  @IsOptional()
-  @IsString()
   trade?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   address_line_1?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   address_line_2?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   city?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   state_or_province?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   postal_code?: string;
 
-  @IsOptional()
-  @IsString()
   country?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   phone?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   website_url?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   description?: string;
 
-  @IsOptional()
-  @IsString()
   erp_id?: string;
 
-  @IsOptional()
-  @IsString()
   tax_id?: string;
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['US', 'EMEA'])
   region?: string;
 }

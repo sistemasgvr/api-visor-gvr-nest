@@ -1,9 +1,5 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ValidationPipe,
-  type INestApplication,
-} from '@nestjs/common';
+import { ZodValidationPipe } from '../src/presentation/validation/zod-validation.pipe';
+import { ArgumentsHost, Catch, type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -68,13 +64,7 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
     app = module.createNestApplication();
     app.setGlobalPrefix('api');
     app.useGlobalFilters(new FailureFilter());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        transform: true,
-        whitelist: true,
-        forbidNonWhitelisted: true,
-      }),
-    );
+    app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
     token = module.get(JwtService).sign({ sub: 23, roles: [], permisos: [] });
   });

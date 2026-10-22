@@ -1,45 +1,53 @@
-import {
-  IsOptional,
-  IsInt,
-  IsString,
-  IsDateString,
-  Min,
-  Max,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto, isoDate } from '../../validation/zod-dto';
 
 export class ListarAuditoriasDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
+  static readonly schema: z.ZodType<ListarAuditoriasDto> =
+    defineZodDto<ListarAuditoriasDto>('ListarAuditoriasDto', {
+      idusuario: { schema: z.number().int(), optional: true, coerce: 'number' },
+      accion: { schema: z.string(), optional: true },
+      entidad: { schema: z.string(), optional: true },
+      fecha_desde: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+      },
+      fecha_hasta: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+      },
+      limit: {
+        schema: z.number().int().min(1).max(100),
+        optional: true,
+        coerce: 'number',
+      },
+      offset: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+      },
+    });
+
   idusuario?: number;
 
-  @IsOptional()
-  @IsString()
   accion?: string;
 
-  @IsOptional()
-  @IsString()
   entidad?: string;
 
-  @IsOptional()
-  @IsDateString()
   fecha_desde?: string;
 
-  @IsOptional()
-  @IsDateString()
   fecha_hasta?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
   limit?: number;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number;
 }

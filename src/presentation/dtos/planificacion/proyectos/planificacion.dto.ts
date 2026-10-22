@@ -1,650 +1,1110 @@
-import { Type, Transform } from 'class-transformer';
-import {
-  IsInt,
-  Min,
-  Max,
-  IsString,
-  MinLength,
-  MaxLength,
-  IsBoolean,
-  IsNumber,
-  IsArray,
-  ArrayMaxSize,
-  ArrayUnique,
-  ValidateNested,
-  ValidateIf,
-  IsIn,
-  Matches,
-  IsDateString,
-  IsDefined,
-  IsObject,
-  registerDecorator,
-  type ValidationArguments,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto, mappedDto, isoDate } from '../../../validation/zod-dto';
+
 const trim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() : value;
-function ActividadCompatible() {
-  return (target: object, propertyName: string) =>
-    registerDecorator({
-      name: 'actividadCompatible',
-      target: target.constructor,
-      propertyName,
-      options: {
-        message: 'Un hito requiere cero minutos y no admite asignaciones',
-      },
-      validator: {
-        validate(value: unknown) {
-          if (!value || typeof value !== 'object' || Array.isArray(value))
-            return false;
-          const data = value as {
-            eshito?: boolean;
-            minutosestimados?: number;
-            asignaciones?: unknown[];
-          };
-          return (
-            data.eshito !== true ||
-            ((data.minutosestimados === undefined ||
-              data.minutosestimados === 0) &&
-              (!data.asignaciones || data.asignaciones.length === 0))
-          );
-        },
-      },
-    });
-}
-function FechaPosterior(inicio: string) {
-  return (target: object, propertyName: string) =>
-    registerDecorator({
-      name: 'fechaPosterior',
-      target: target.constructor,
-      propertyName,
-      constraints: [inicio],
-      options: {
-        message: 'La fecha final debe ser mayor o igual a la inicial',
-      },
-      validator: {
-        validate(value: unknown, args: ValidationArguments) {
-          const start = (args.object as Record<string, unknown>)[inicio];
-          return (
-            value == null ||
-            start == null ||
-            (typeof value === 'string' &&
-              typeof start === 'string' &&
-              value >= start)
-          );
-        },
-      },
-    });
-}
+
 export class ProyectoPlanParamsDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<ProyectoPlanParamsDto> =
+    defineZodDto<ProyectoPlanParamsDto>('ProyectoPlanParamsDto', {
+      id: { schema: z.number().int().max(2147483647).min(1), coerce: 'number' },
+    });
+
   id!: number;
 }
 export class PlanParamsDto extends ProyectoPlanParamsDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<PlanParamsDto> =
+    defineZodDto<PlanParamsDto>(
+      'PlanParamsDto',
+      {
+        idPlan: {
+          schema: z.number().int().max(2147483647).min(1),
+          coerce: 'number',
+        },
+      },
+      () => mappedDto(ProyectoPlanParamsDto.schema),
+    );
+
   idPlan!: number;
 }
 export class ActividadPlanParamsDto extends PlanParamsDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<ActividadPlanParamsDto> =
+    defineZodDto<ActividadPlanParamsDto>(
+      'ActividadPlanParamsDto',
+      {
+        idActividad: {
+          schema: z.number().int().max(2147483647).min(1),
+          coerce: 'number',
+        },
+      },
+      () => mappedDto(PlanParamsDto.schema),
+    );
+
   idActividad!: number;
 }
 export class AmpliacionPlanParamsDto extends PlanParamsDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<AmpliacionPlanParamsDto> =
+    defineZodDto<AmpliacionPlanParamsDto>(
+      'AmpliacionPlanParamsDto',
+      {
+        idAmpliacion: {
+          schema: z.number().int().max(2147483647).min(1),
+          coerce: 'number',
+        },
+      },
+      () => mappedDto(PlanParamsDto.schema),
+    );
+
   idAmpliacion!: number;
 }
 export class AsignacionParamsDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<AsignacionParamsDto> =
+    defineZodDto<AsignacionParamsDto>('AsignacionParamsDto', {
+      idAsignacion: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+    });
+
   idAsignacion!: number;
 }
 export class CrearPlanDto {
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<CrearPlanDto> = defineZodDto<CrearPlanDto>(
+    'CrearPlanDto',
+    {
+      idaprobador: {
+        schema: z.number().int().max(2147483647).min(1),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+    },
+  );
+
   idaprobador?: number;
 }
 export class RevisionPlanDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<RevisionPlanDto> =
+    defineZodDto<RevisionPlanDto>('RevisionPlanDto', {
+      revisionPlan: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      motivo: {
+        schema: z.string().min(1).max(1000),
+        when: (_o, v) => v !== undefined,
+        transforms: [trim],
+      },
+    });
+
   revisionPlan!: number;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @Transform(trim)
-  @IsString()
-  @MinLength(1)
-  @MaxLength(1000)
   motivo?: string;
 }
 export class RevisionActividadDto extends RevisionPlanDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<RevisionActividadDto> =
+    defineZodDto<RevisionActividadDto>(
+      'RevisionActividadDto',
+      {
+        revision: {
+          schema: z.number().int().max(2147483647).min(1),
+          coerce: 'number',
+        },
+      },
+      () => mappedDto(RevisionPlanDto.schema),
+    );
+
   revision!: number;
 }
 export class MotivoPlanDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<MotivoPlanDto> =
+    defineZodDto<MotivoPlanDto>('MotivoPlanDto', {
+      revisionPlan: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      motivo: { schema: z.string().min(1).max(1000), transforms: [trim] },
+    });
+
   revisionPlan!: number;
 
-  @Transform(trim)
-  @IsString()
-  @MinLength(1)
-  @MaxLength(1000)
   motivo!: string;
 }
 export class ReglasDto {
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<ReglasDto> = defineZodDto<ReglasDto>(
+    'ReglasDto',
+    {
+      idaprobador: {
+        schema: z.number().int().max(2147483647).min(1),
+        when: (_o, v) => v !== undefined && v !== null,
+      },
+      bloquearexceso: { schema: z.boolean(), when: (_o, v) => v !== undefined },
+      permitirnoplaneadas: {
+        schema: z.boolean(),
+        when: (_o, v) => v !== undefined,
+      },
+      toleranciaporcentaje: {
+        schema: z.number().multipleOf(0.01).min(0).max(100),
+        when: (_o, v) => v !== undefined,
+      },
+      alertaporcentaje: {
+        schema: z.number().multipleOf(0.01).min(0).max(100),
+        when: (_o, v) => v !== undefined,
+      },
+    },
+  );
+
   idaprobador?: number | null;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsBoolean()
   bloquearexceso?: boolean;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsBoolean()
   permitirnoplaneadas?: boolean;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  @Max(100)
   toleranciaporcentaje?: number;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  @Max(100)
   alertaporcentaje?: number;
 }
 export class ReglasPlanDto extends RevisionPlanDto {
-  @IsDefined()
-  @IsObject()
-  @ValidateNested({ each: false })
-  @Type(() => ReglasDto)
+  static readonly schema: z.ZodType<ReglasPlanDto> =
+    defineZodDto<ReglasPlanDto>(
+      'ReglasPlanDto',
+      {
+        reglas: {
+          schema: z
+            .lazy(() => ReglasDto.schema)
+            .refine((value) => value !== undefined && value !== null, {
+              message: 'El campo es obligatorio',
+            }),
+        },
+      },
+      () => mappedDto(RevisionPlanDto.schema),
+    );
+
   reglas!: ReglasDto;
 }
 export class PersonaPlanDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<PersonaPlanDto> =
+    defineZodDto<PersonaPlanDto>('PersonaPlanDto', {
+      idtrabajador: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      minutosasignados: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+    });
+
   idtrabajador!: number;
 
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
   minutosasignados!: number;
 }
 export class DependenciaPlanDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<DependenciaPlanDto> =
+    defineZodDto<DependenciaPlanDto>('DependenciaPlanDto', {
+      idpredecesora: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      desfasedias: {
+        schema: z.number().int().max(2147483647).min(0),
+        coerce: 'number',
+      },
+    });
+
   idpredecesora!: number;
 
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(0)
   desfasedias!: number;
 }
 export class CrearDatosActividadDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<CrearDatosActividadDto> =
+    defineZodDto<CrearDatosActividadDto>('CrearDatosActividadDto', {
+      identregable: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      nombre: { schema: z.string().min(1).max(240), transforms: [trim] },
+      descripcion: {
+        schema: z.string().max(4000),
+        when: (_o, v) => v !== undefined,
+      },
+      eshito: { schema: z.boolean(), when: (_o, v) => v !== undefined },
+      minutosestimados: {
+        schema: z.number().int().max(2147483647).min(0),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+      orden: {
+        schema: z.number().int().max(2147483647).min(0),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+      fechanoiniciarantes: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        when: (_o, v) => v !== undefined && v !== null,
+      },
+      fechanofinalizarantes: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        when: (_o, v) => v !== undefined && v !== null,
+        checks: [
+          {
+            validate: (value, object) =>
+              value == null ||
+              object['fechanoiniciarantes'] == null ||
+              String(value) >= String(object['fechanoiniciarantes']),
+            message: 'La fecha final debe ser mayor o igual a la inicial',
+          },
+        ],
+      },
+      fechalimite: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        when: (_o, v) => v !== undefined && v !== null,
+      },
+      asignaciones: {
+        schema: z
+          .array(z.lazy(() => PersonaPlanDto.schema))
+          .max(100)
+          .refine(
+            (values) => {
+              const keys = values.map((v: PersonaPlanDto) => v.idtrabajador);
+              return new Set(keys).size === keys.length;
+            },
+            { message: 'No se permiten valores repetidos' },
+          )
+          .meta({ 'x-unique-by': 'idtrabajador' }),
+        when: (_o, v) => v !== undefined,
+      },
+    });
+
   identregable!: number;
 
-  @Transform(trim)
-  @IsString()
-  @MinLength(1)
-  @MaxLength(240)
   nombre!: string;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsString()
-  @MaxLength(4000)
   descripcion?: string;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsBoolean()
   eshito?: boolean;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(0)
   minutosestimados?: number;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(0)
   orden?: number;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
   fechanoiniciarantes?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
-  @FechaPosterior('fechanoiniciarantes')
   fechanofinalizarantes?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
   fechalimite?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsArray()
-  @ArrayMaxSize(100)
-  @ArrayUnique((v: PersonaPlanDto) => v.idtrabajador)
-  @ValidateNested({ each: true })
-  @Type(() => PersonaPlanDto)
   asignaciones?: PersonaPlanDto[];
 }
 export class EditarDatosActividadDto {
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<EditarDatosActividadDto> =
+    defineZodDto<EditarDatosActividadDto>('EditarDatosActividadDto', {
+      identregable: {
+        schema: z.number().int().max(2147483647).min(1),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+      nombre: {
+        schema: z.string().min(1).max(240),
+        when: (_o, v) => v !== undefined,
+        transforms: [trim],
+      },
+      descripcion: {
+        schema: z.string().max(4000),
+        when: (_o, v) => v !== undefined,
+      },
+      eshito: { schema: z.boolean(), when: (_o, v) => v !== undefined },
+      minutosestimados: {
+        schema: z.number().int().max(2147483647).min(0),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+      orden: {
+        schema: z.number().int().max(2147483647).min(0),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+      fechanoiniciarantes: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        when: (_o, v) => v !== undefined && v !== null,
+      },
+      fechanofinalizarantes: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        when: (_o, v) => v !== undefined && v !== null,
+        checks: [
+          {
+            validate: (value, object) =>
+              value == null ||
+              object['fechanoiniciarantes'] == null ||
+              String(value) >= String(object['fechanoiniciarantes']),
+            message: 'La fecha final debe ser mayor o igual a la inicial',
+          },
+        ],
+      },
+      fechalimite: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        when: (_o, v) => v !== undefined && v !== null,
+      },
+      asignaciones: {
+        schema: z
+          .array(z.lazy(() => PersonaPlanDto.schema))
+          .max(100)
+          .refine(
+            (values) => {
+              const keys = values.map((v: PersonaPlanDto) => v.idtrabajador);
+              return new Set(keys).size === keys.length;
+            },
+            { message: 'No se permiten valores repetidos' },
+          )
+          .meta({ 'x-unique-by': 'idtrabajador' }),
+        when: (_o, v) => v !== undefined,
+      },
+    });
+
   identregable?: number;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @Transform(trim)
-  @IsString()
-  @MinLength(1)
-  @MaxLength(240)
   nombre?: string;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsString()
-  @MaxLength(4000)
   descripcion?: string;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsBoolean()
   eshito?: boolean;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(0)
   minutosestimados?: number;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(0)
   orden?: number;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
   fechanoiniciarantes?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
-  @FechaPosterior('fechanoiniciarantes')
   fechanofinalizarantes?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
   fechalimite?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsArray()
-  @ArrayMaxSize(100)
-  @ArrayUnique((v: PersonaPlanDto) => v.idtrabajador)
-  @ValidateNested({ each: true })
-  @Type(() => PersonaPlanDto)
   asignaciones?: PersonaPlanDto[];
 }
 export class CrearActividadPlanDto extends RevisionPlanDto {
-  @IsDefined()
-  @IsObject()
-  @ValidateNested({ each: false })
-  @ActividadCompatible()
-  @Type(() => CrearDatosActividadDto)
+  static readonly schema: z.ZodType<CrearActividadPlanDto> =
+    defineZodDto<CrearActividadPlanDto>(
+      'CrearActividadPlanDto',
+      {
+        datos: {
+          schema: z
+            .lazy(() => CrearDatosActividadDto.schema)
+            .refine((value) => value !== undefined && value !== null, {
+              message: 'El campo es obligatorio',
+            }),
+          checks: [
+            {
+              validate: (value) => {
+                if (!value || typeof value !== 'object' || Array.isArray(value))
+                  return false;
+                const data = value as {
+                  eshito?: boolean;
+                  minutosestimados?: number;
+                  asignaciones?: unknown[];
+                };
+                return (
+                  data.eshito !== true ||
+                  ((data.minutosestimados === undefined ||
+                    data.minutosestimados === 0) &&
+                    (!data.asignaciones || data.asignaciones.length === 0))
+                );
+              },
+              message: 'Un hito requiere cero minutos y no admite asignaciones',
+            },
+          ],
+        },
+      },
+      () => mappedDto(RevisionPlanDto.schema),
+    );
+
   datos!: CrearDatosActividadDto;
 }
 export class EditarActividadPlanDto extends RevisionActividadDto {
-  @IsDefined()
-  @IsObject()
-  @ValidateNested({ each: false })
-  @ActividadCompatible()
-  @Type(() => EditarDatosActividadDto)
+  static readonly schema: z.ZodType<EditarActividadPlanDto> =
+    defineZodDto<EditarActividadPlanDto>(
+      'EditarActividadPlanDto',
+      {
+        datos: {
+          schema: z
+            .lazy(() => EditarDatosActividadDto.schema)
+            .refine((value) => value !== undefined && value !== null, {
+              message: 'El campo es obligatorio',
+            }),
+          checks: [
+            {
+              validate: (value) => {
+                if (!value || typeof value !== 'object' || Array.isArray(value))
+                  return false;
+                const data = value as {
+                  eshito?: boolean;
+                  minutosestimados?: number;
+                  asignaciones?: unknown[];
+                };
+                return (
+                  data.eshito !== true ||
+                  ((data.minutosestimados === undefined ||
+                    data.minutosestimados === 0) &&
+                    (!data.asignaciones || data.asignaciones.length === 0))
+                );
+              },
+              message: 'Un hito requiere cero minutos y no admite asignaciones',
+            },
+          ],
+        },
+      },
+      () => mappedDto(RevisionActividadDto.schema),
+    );
+
   datos!: EditarDatosActividadDto;
 }
 export class AsignacionesPlanDto extends RevisionPlanDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<AsignacionesPlanDto> =
+    defineZodDto<AsignacionesPlanDto>(
+      'AsignacionesPlanDto',
+      {
+        revisionActividad: {
+          schema: z.number().int().max(2147483647).min(1),
+          coerce: 'number',
+        },
+        asignaciones: {
+          schema: z
+            .array(z.lazy(() => PersonaPlanDto.schema))
+            .max(100)
+            .refine(
+              (values) => {
+                const keys = values.map((v: PersonaPlanDto) => v.idtrabajador);
+                return new Set(keys).size === keys.length;
+              },
+              { message: 'No se permiten valores repetidos' },
+            )
+            .meta({ 'x-unique-by': 'idtrabajador' }),
+        },
+      },
+      () => mappedDto(RevisionPlanDto.schema),
+    );
+
   revisionActividad!: number;
 
-  @IsArray()
-  @ArrayMaxSize(100)
-  @ArrayUnique((v: PersonaPlanDto) => v.idtrabajador)
-  @ValidateNested({ each: true })
-  @Type(() => PersonaPlanDto)
   asignaciones!: PersonaPlanDto[];
 }
 export class DependenciasPlanDto extends RevisionPlanDto {
-  @IsArray()
-  @ArrayMaxSize(200)
-  @ArrayUnique((v: DependenciaPlanDto) => v.idpredecesora)
-  @ValidateNested({ each: true })
-  @Type(() => DependenciaPlanDto)
+  static readonly schema: z.ZodType<DependenciasPlanDto> =
+    defineZodDto<DependenciasPlanDto>(
+      'DependenciasPlanDto',
+      {
+        dependencias: {
+          schema: z
+            .array(z.lazy(() => DependenciaPlanDto.schema))
+            .max(200)
+            .refine(
+              (values) => {
+                const keys = values.map(
+                  (v: DependenciaPlanDto) => v.idpredecesora,
+                );
+                return new Set(keys).size === keys.length;
+              },
+              { message: 'No se permiten valores repetidos' },
+            )
+            .meta({ 'x-unique-by': 'idpredecesora' }),
+        },
+      },
+      () => mappedDto(RevisionPlanDto.schema),
+    );
+
   dependencias!: DependenciaPlanDto[];
 }
 export class OrdenPlanDto extends RevisionPlanDto {
-  @IsArray()
-  @ArrayMaxSize(2000)
-  @ArrayUnique()
-  @IsInt({ each: true })
-  @Min(1, { each: true })
+  static readonly schema: z.ZodType<OrdenPlanDto> = defineZodDto<OrdenPlanDto>(
+    'OrdenPlanDto',
+    {
+      entregables: {
+        schema: z
+          .array(z.number().int().min(1))
+          .max(2000)
+          .refine(
+            (values) => {
+              const keys = values.map((value) => value);
+              return new Set(keys).size === keys.length;
+            },
+            { message: 'No se permiten valores repetidos' },
+          )
+          .meta({ uniqueItems: true }),
+      },
+      actividades: {
+        schema: z
+          .array(z.number().int().min(1))
+          .max(2000)
+          .refine(
+            (values) => {
+              const keys = values.map((value) => value);
+              return new Set(keys).size === keys.length;
+            },
+            { message: 'No se permiten valores repetidos' },
+          )
+          .meta({ uniqueItems: true }),
+      },
+    },
+    () => mappedDto(RevisionPlanDto.schema),
+  );
+
   entregables!: number[];
 
-  @IsArray()
-  @ArrayMaxSize(2000)
-  @ArrayUnique()
-  @IsInt({ each: true })
-  @Min(1, { each: true })
   actividades!: number[];
 }
 export class CambioActividadDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<CambioActividadDto> =
+    defineZodDto<CambioActividadDto>('CambioActividadDto', {
+      idactividad: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      fechanoiniciarantes: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        when: (_o, v) => v !== undefined && v !== null,
+      },
+      fechanofinalizarantes: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        when: (_o, v) => v !== undefined && v !== null,
+        checks: [
+          {
+            validate: (value, object) =>
+              value == null ||
+              object['fechanoiniciarantes'] == null ||
+              String(value) >= String(object['fechanoiniciarantes']),
+            message: 'La fecha final debe ser mayor o igual a la inicial',
+          },
+        ],
+      },
+      orden: {
+        schema: z.number().int().max(2147483647).min(0),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+    });
+
   idactividad!: number;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
   fechanoiniciarantes?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
-  @FechaPosterior('fechanoiniciarantes')
   fechanofinalizarantes?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(0)
   orden?: number;
 }
 export class CambioAsignacionDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<CambioAsignacionDto> =
+    defineZodDto<CambioAsignacionDto>('CambioAsignacionDto', {
+      idactividad: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      personas: {
+        schema: z
+          .array(z.lazy(() => PersonaPlanDto.schema))
+          .max(100)
+          .refine(
+            (values) => {
+              const keys = values.map((v: PersonaPlanDto) => v.idtrabajador);
+              return new Set(keys).size === keys.length;
+            },
+            { message: 'No se permiten valores repetidos' },
+          )
+          .meta({ 'x-unique-by': 'idtrabajador' }),
+      },
+    });
+
   idactividad!: number;
 
-  @IsArray()
-  @ArrayMaxSize(100)
-  @ArrayUnique((v: PersonaPlanDto) => v.idtrabajador)
-  @ValidateNested({ each: true })
-  @Type(() => PersonaPlanDto)
   personas!: PersonaPlanDto[];
 }
 export class CambioDependenciaDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<CambioDependenciaDto> =
+    defineZodDto<CambioDependenciaDto>('CambioDependenciaDto', {
+      idsucesora: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      predecesoras: {
+        schema: z
+          .array(z.lazy(() => DependenciaPlanDto.schema))
+          .max(200)
+          .refine(
+            (values) => {
+              const keys = values.map(
+                (v: DependenciaPlanDto) => v.idpredecesora,
+              );
+              return new Set(keys).size === keys.length;
+            },
+            { message: 'No se permiten valores repetidos' },
+          )
+          .meta({ 'x-unique-by': 'idpredecesora' }),
+      },
+    });
+
   idsucesora!: number;
 
-  @IsArray()
-  @ArrayMaxSize(200)
-  @ArrayUnique((v: DependenciaPlanDto) => v.idpredecesora)
-  @ValidateNested({ each: true })
-  @Type(() => DependenciaPlanDto)
   predecesoras!: DependenciaPlanDto[];
 }
 export class CambioEntregableDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<CambioEntregableDto> =
+    defineZodDto<CambioEntregableDto>('CambioEntregableDto', {
+      identregable: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      orden: {
+        schema: z.number().int().max(2147483647).min(0),
+        coerce: 'number',
+      },
+    });
+
   identregable!: number;
 
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(0)
   orden!: number;
 }
 export class CambiosDto {
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<CambiosDto> = defineZodDto<CambiosDto>(
+    'CambiosDto',
+    {
+      idactividad: {
+        schema: z.number().int().max(2147483647).min(1),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+      fechanoiniciarantes: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        when: (_o, v) => v !== undefined && v !== null,
+      },
+      fechanofinalizarantes: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        when: (_o, v) => v !== undefined && v !== null,
+        checks: [
+          {
+            validate: (value, object) =>
+              value == null ||
+              object['fechanoiniciarantes'] == null ||
+              String(value) >= String(object['fechanoiniciarantes']),
+            message: 'La fecha final debe ser mayor o igual a la inicial',
+          },
+        ],
+      },
+      actividades: {
+        schema: z
+          .array(z.lazy(() => CambioActividadDto.schema))
+          .max(200)
+          .refine(
+            (values) => {
+              const keys = values.map((v: CambioActividadDto) => v.idactividad);
+              return new Set(keys).size === keys.length;
+            },
+            { message: 'No se permiten valores repetidos' },
+          )
+          .meta({ 'x-unique-by': 'idactividad' }),
+        when: (_o, v) => v !== undefined,
+      },
+      asignaciones: {
+        schema: z
+          .array(z.lazy(() => CambioAsignacionDto.schema))
+          .max(200)
+          .refine(
+            (values) => {
+              const keys = values.map(
+                (v: CambioAsignacionDto) => v.idactividad,
+              );
+              return new Set(keys).size === keys.length;
+            },
+            { message: 'No se permiten valores repetidos' },
+          )
+          .meta({ 'x-unique-by': 'idactividad' }),
+        when: (_o, v) => v !== undefined,
+      },
+      dependencias: {
+        schema: z
+          .array(z.lazy(() => CambioDependenciaDto.schema))
+          .max(200)
+          .refine(
+            (values) => {
+              const keys = values.map(
+                (v: CambioDependenciaDto) => v.idsucesora,
+              );
+              return new Set(keys).size === keys.length;
+            },
+            { message: 'No se permiten valores repetidos' },
+          )
+          .meta({ 'x-unique-by': 'idsucesora' }),
+        when: (_o, v) => v !== undefined,
+      },
+      entregables: {
+        schema: z
+          .array(z.lazy(() => CambioEntregableDto.schema))
+          .max(200)
+          .refine(
+            (values) => {
+              const keys = values.map(
+                (v: CambioEntregableDto) => v.identregable,
+              );
+              return new Set(keys).size === keys.length;
+            },
+            { message: 'No se permiten valores repetidos' },
+          )
+          .meta({ 'x-unique-by': 'identregable' }),
+        when: (_o, v) => v !== undefined,
+      },
+    },
+  );
+
   idactividad?: number;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
   fechanoiniciarantes?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
-  @FechaPosterior('fechanoiniciarantes')
   fechanofinalizarantes?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsArray()
-  @ArrayMaxSize(200)
-  @ArrayUnique((v: CambioActividadDto) => v.idactividad)
-  @ValidateNested({ each: true })
-  @Type(() => CambioActividadDto)
   actividades?: CambioActividadDto[];
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsArray()
-  @ArrayMaxSize(200)
-  @ArrayUnique((v: CambioAsignacionDto) => v.idactividad)
-  @ValidateNested({ each: true })
-  @Type(() => CambioAsignacionDto)
   asignaciones?: CambioAsignacionDto[];
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsArray()
-  @ArrayMaxSize(200)
-  @ArrayUnique((v: CambioDependenciaDto) => v.idsucesora)
-  @ValidateNested({ each: true })
-  @Type(() => CambioDependenciaDto)
   dependencias?: CambioDependenciaDto[];
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @IsArray()
-  @ArrayMaxSize(200)
-  @ArrayUnique((v: CambioEntregableDto) => v.identregable)
-  @ValidateNested({ each: true })
-  @Type(() => CambioEntregableDto)
   entregables?: CambioEntregableDto[];
 }
 export class PrevisualizarPlanDto {
-  @IsDefined()
-  @IsObject()
-  @ValidateNested({ each: false })
-  @Type(() => CambiosDto)
+  static readonly schema: z.ZodType<PrevisualizarPlanDto> =
+    defineZodDto<PrevisualizarPlanDto>('PrevisualizarPlanDto', {
+      cambios: {
+        schema: z
+          .lazy(() => CambiosDto.schema)
+          .refine((value) => value !== undefined && value !== null, {
+            message: 'El campo es obligatorio',
+          }),
+      },
+    });
+
   cambios!: CambiosDto;
 }
 export class LineaBaseDto extends MotivoPlanDto {
-  @Transform(trim)
-  @IsString()
-  @MinLength(1)
-  @MaxLength(160)
+  static readonly schema: z.ZodType<LineaBaseDto> = defineZodDto<LineaBaseDto>(
+    'LineaBaseDto',
+    { nombre: { schema: z.string().min(1).max(160), transforms: [trim] } },
+    () => mappedDto(MotivoPlanDto.schema),
+  );
+
   nombre!: string;
 }
 export class ReprogramarPlanDto extends MotivoPlanDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<ReprogramarPlanDto> =
+    defineZodDto<ReprogramarPlanDto>(
+      'ReprogramarPlanDto',
+      {
+        revision: {
+          schema: z.number().int().max(2147483647).min(1),
+          coerce: 'number',
+        },
+        fechaNoIniciarAntes: {
+          schema: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .refine((value) => isoDate(value, true), {
+              message: 'Debe ser una fecha ISO válida',
+            })
+            .meta({ format: 'date-time' }),
+          when: (_o, v) => v !== undefined && v !== null,
+        },
+        fechaNoFinalizarAntes: {
+          schema: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .refine((value) => isoDate(value, true), {
+              message: 'Debe ser una fecha ISO válida',
+            })
+            .meta({ format: 'date-time' }),
+          when: (_o, v) => v !== undefined && v !== null,
+          checks: [
+            {
+              validate: (value, object) =>
+                value == null ||
+                object['fechaNoIniciarAntes'] == null ||
+                String(value) >= String(object['fechaNoIniciarAntes']),
+              message: 'La fecha final debe ser mayor o igual a la inicial',
+            },
+          ],
+        },
+      },
+      () => mappedDto(MotivoPlanDto.schema),
+    );
+
   revision!: number;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
   fechaNoIniciarAntes?: string | null;
 
-  @ValidateIf((_o, v) => v !== undefined && v !== null)
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
-  @FechaPosterior('fechaNoIniciarAntes')
   fechaNoFinalizarAntes?: string | null;
 }
 export class EstadoActividadPlanDto extends MotivoPlanDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<EstadoActividadPlanDto> =
+    defineZodDto<EstadoActividadPlanDto>(
+      'EstadoActividadPlanDto',
+      {
+        revision: {
+          schema: z.number().int().max(2147483647).min(1),
+          coerce: 'number',
+        },
+        idEstadoDestino: {
+          schema: z
+            .number()
+            .int()
+            .max(2147483647)
+            .refine(
+              (value) =>
+                ([703, 704, 705, 706] as readonly unknown[]).includes(value),
+              { message: 'Seleccione una opción válida' },
+            )
+            .meta({ enum: [703, 704, 705, 706] }),
+        },
+      },
+      () => mappedDto(MotivoPlanDto.schema),
+    );
+
   revision!: number;
 
-  @IsInt()
-  @Max(2147483647)
-  @IsIn([703, 704, 705, 706])
   idEstadoDestino!: number;
 }
 export class EstadoPlanDto extends MotivoPlanDto {
-  @IsInt()
-  @Max(2147483647)
-  @IsIn([701, 702])
+  static readonly schema: z.ZodType<EstadoPlanDto> =
+    defineZodDto<EstadoPlanDto>(
+      'EstadoPlanDto',
+      {
+        idEstadoDestino: {
+          schema: z
+            .number()
+            .int()
+            .max(2147483647)
+            .refine(
+              (value) => ([701, 702] as readonly unknown[]).includes(value),
+              { message: 'Seleccione una opción válida' },
+            )
+            .meta({ enum: [701, 702] }),
+        },
+      },
+      () => mappedDto(MotivoPlanDto.schema),
+    );
+
   idEstadoDestino!: number;
 }
 export class PaginacionPlanDto {
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(0)
+  static readonly schema: z.ZodType<PaginacionPlanDto> =
+    defineZodDto<PaginacionPlanDto>('PaginacionPlanDto', {
+      offset: {
+        schema: z.number().int().max(2147483647).min(0),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+      limite: {
+        schema: z.number().int().max(2147483647).min(1).max(200),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+    });
+
   offset?: number;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
-  @Max(200)
   limite?: number;
 }
 export class HistorialPlanDto extends PaginacionPlanDto {
-  @IsIn(['cambios', 'movimientos', 'lineasbase', 'detallelineabase'])
+  static readonly schema: z.ZodType<HistorialPlanDto> =
+    defineZodDto<HistorialPlanDto>(
+      'HistorialPlanDto',
+      {
+        tipo: {
+          schema: z
+            .union([
+              z.literal('cambios'),
+              z.literal('movimientos'),
+              z.literal('lineasbase'),
+              z.literal('detallelineabase'),
+            ])
+            .refine(
+              (value) =>
+                (
+                  [
+                    'cambios',
+                    'movimientos',
+                    'lineasbase',
+                    'detallelineabase',
+                  ] as readonly unknown[]
+                ).includes(value),
+              { message: 'Seleccione una opción válida' },
+            )
+            .meta({
+              enum: [
+                'cambios',
+                'movimientos',
+                'lineasbase',
+                'detallelineabase',
+              ],
+            }),
+        },
+        idLineaBase: {
+          schema: z.number().int().max(2147483647).min(1),
+          when: (o: HistorialPlanDto, v) =>
+            o.tipo === 'detallelineabase' || v !== undefined,
+          coerce: 'number',
+        },
+      },
+      () => mappedDto(PaginacionPlanDto.schema),
+    );
+
   tipo!: 'cambios' | 'movimientos' | 'lineasbase' | 'detallelineabase';
 
-  @ValidateIf(
-    (o: HistorialPlanDto, v) =>
-      o.tipo === 'detallelineabase' || v !== undefined,
-  )
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
   idLineaBase?: number;
 }
 export class ResolverAmpliacionDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(0)
+  static readonly schema: z.ZodType<ResolverAmpliacionDto> =
+    defineZodDto<ResolverAmpliacionDto>('ResolverAmpliacionDto', {
+      minutosAprobados: {
+        schema: z.number().int().max(2147483647).min(0),
+        coerce: 'number',
+      },
+      resolucion: { schema: z.string().min(1).max(1000), transforms: [trim] },
+    });
+
   minutosAprobados!: number;
 
-  @Transform(trim)
-  @IsString()
-  @MinLength(1)
-  @MaxLength(1000)
   resolucion!: string;
 }
 export class MisAsignacionesDto {
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @IsDateString({ strict: true })
+  static readonly schema: z.ZodType<MisAsignacionesDto> =
+    defineZodDto<MisAsignacionesDto>('MisAsignacionesDto', {
+      fecha: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((value) => isoDate(value, true), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+      },
+      idProyecto: {
+        schema: z.number().int().max(2147483647).min(1),
+        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+    });
+
   fecha!: string;
 
-  @ValidateIf((_o, v) => v !== undefined)
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
   idProyecto?: number;
 }
 export class EstadoParteDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<EstadoParteDto> =
+    defineZodDto<EstadoParteDto>('EstadoParteDto', {
+      revision: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      idEstadoDestino: {
+        schema: z
+          .number()
+          .int()
+          .max(2147483647)
+          .refine(
+            (value) =>
+              ([703, 704, 705, 706] as readonly unknown[]).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: [703, 704, 705, 706] }),
+      },
+      motivo: { schema: z.string().min(1).max(1000), transforms: [trim] },
+    });
+
   revision!: number;
 
-  @IsInt()
-  @Max(2147483647)
-  @IsIn([703, 704, 705, 706])
   idEstadoDestino!: number;
 
-  @Transform(trim)
-  @IsString()
-  @MinLength(1)
-  @MaxLength(1000)
   motivo!: string;
 }
 export class SolicitarAmpliacionDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
-  @Max(60000)
+  static readonly schema: z.ZodType<SolicitarAmpliacionDto> =
+    defineZodDto<SolicitarAmpliacionDto>('SolicitarAmpliacionDto', {
+      minutos: {
+        schema: z.number().int().max(2147483647).min(1).max(60000),
+        coerce: 'number',
+      },
+      motivo: { schema: z.string().min(1).max(1000), transforms: [trim] },
+    });
+
   minutos!: number;
 
-  @Transform(trim)
-  @IsString()
-  @MinLength(1)
-  @MaxLength(1000)
   motivo!: string;
 }
 export class MisAmpliacionesDto extends PaginacionPlanDto {
-  @Type(() => Number)
-  @IsInt()
-  @Max(2147483647)
-  @Min(1)
+  static readonly schema: z.ZodType<MisAmpliacionesDto> =
+    defineZodDto<MisAmpliacionesDto>(
+      'MisAmpliacionesDto',
+      {
+        idPlan: {
+          schema: z.number().int().max(2147483647).min(1),
+          coerce: 'number',
+        },
+      },
+      () => mappedDto(PaginacionPlanDto.schema),
+    );
+
   idPlan!: number;
 }

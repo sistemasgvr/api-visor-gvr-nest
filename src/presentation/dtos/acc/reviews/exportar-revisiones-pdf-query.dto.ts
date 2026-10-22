@@ -1,28 +1,30 @@
-import { IsOptional, IsString } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 /** Mismos filtros que GET /reviews; sin paginación (el export recorre todas las páginas). */
 export class ExportarRevisionesPdfQueryDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<ExportarRevisionesPdfQueryDto> =
+    defineZodDto<ExportarRevisionesPdfQueryDto>(
+      'ExportarRevisionesPdfQueryDto',
+      {
+        filter_status: { schema: z.string(), optional: true },
+        filter_name: { schema: z.string(), optional: true },
+        filter_createdAt: { schema: z.string(), optional: true },
+        filter_finishedAt: { schema: z.string(), optional: true },
+        filter_currentStepDueDate: { schema: z.string(), optional: true },
+        filter_workflowId: { schema: z.string(), optional: true },
+      },
+    );
+
   filter_status?: string;
 
-  @IsOptional()
-  @IsString()
   filter_name?: string;
 
-  @IsOptional()
-  @IsString()
   filter_createdAt?: string;
 
-  @IsOptional()
-  @IsString()
   filter_finishedAt?: string;
 
-  @IsOptional()
-  @IsString()
   filter_currentStepDueDate?: string;
 
-  @IsOptional()
-  @IsString()
   filter_workflowId?: string;
 }

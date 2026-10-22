@@ -1,25 +1,41 @@
-import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class ListarNovedadLanzamientosQueryDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<ListarNovedadLanzamientosQueryDto> =
+    defineZodDto<ListarNovedadLanzamientosQueryDto>(
+      'ListarNovedadLanzamientosQueryDto',
+      {
+        busqueda: { schema: z.string(), optional: true },
+        soloActivos: {
+          schema: z.boolean(),
+          optional: true,
+          transforms: [
+            ({ value }) => value === true || value === 'true' || value === '1',
+          ],
+        },
+        limit: {
+          schema: z.number().int().min(1),
+          optional: true,
+          transforms: [
+            ({ value }) => (value !== undefined ? Number(value) : undefined),
+          ],
+        },
+        offset: {
+          schema: z.number().int().min(0),
+          optional: true,
+          transforms: [
+            ({ value }) => (value !== undefined ? Number(value) : undefined),
+          ],
+        },
+      },
+    );
+
   busqueda?: string;
 
-  @IsOptional()
-  @Transform(({ value }) => value === true || value === 'true' || value === '1')
-  @IsBoolean()
   soloActivos?: boolean;
 
-  @IsOptional()
-  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
-  @IsInt()
-  @Min(1)
   limit?: number;
 
-  @IsOptional()
-  @Transform(({ value }) => (value !== undefined ? Number(value) : undefined))
-  @IsInt()
-  @Min(0)
   offset?: number;
 }

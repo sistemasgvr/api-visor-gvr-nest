@@ -1,43 +1,54 @@
-import {
-  IsNotEmpty,
-  IsArray,
-  IsString,
-  IsOptional,
-  IsIn,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 class BusinessUnitDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<BusinessUnitDto> =
+    defineZodDto<BusinessUnitDto>('BusinessUnitDto', {
+      id: { schema: z.string(), optional: true },
+      parent_id: { schema: z.string(), optional: true },
+      name: { schema: z.string().min(1).max(255) },
+      description: { schema: z.string().max(500), optional: true },
+    });
+
   id?: string;
 
-  @IsOptional()
-  @IsString()
   parent_id?: string;
 
-  @IsNotEmpty({ message: 'El nombre es requerido' })
-  @IsString()
-  @MaxLength(255)
   name: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
   description?: string;
 }
 
 export class CrearOActualizarBusinessUnitsDto {
-  @IsNotEmpty({ message: 'Las business units son requeridas' })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => BusinessUnitDto)
+  static readonly schema: z.ZodType<CrearOActualizarBusinessUnitsDto> =
+    defineZodDto<CrearOActualizarBusinessUnitsDto>(
+      'CrearOActualizarBusinessUnitsDto',
+      {
+        business_units: {
+          schema: z
+            .array(z.lazy(() => BusinessUnitDto.schema))
+            .refine(
+              (value) =>
+                value !== undefined &&
+                value !== null &&
+                (value as unknown) !== '',
+              { message: 'El campo es obligatorio' },
+            ),
+        },
+        region: {
+          schema: z
+            .string()
+            .refine(
+              (value) => (['US', 'EMEA'] as readonly unknown[]).includes(value),
+              { message: 'Seleccione una opción válida' },
+            )
+            .meta({ enum: ['US', 'EMEA'] }),
+          optional: true,
+        },
+      },
+    );
+
   business_units: BusinessUnitDto[];
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['US', 'EMEA'])
   region?: string;
 }

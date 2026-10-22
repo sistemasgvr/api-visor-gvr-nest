@@ -1,8 +1,11 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class GenerarUrlAutorizacionDto {
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
+  static readonly schema: z.ZodType<GenerarUrlAutorizacionDto> =
+    defineZodDto<GenerarUrlAutorizacionDto>('GenerarUrlAutorizacionDto', {
+      scopes: { schema: z.array(z.string()), optional: true },
+    });
+
   scopes?: string[];
 }

@@ -1,45 +1,43 @@
-import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ObtenerIncidenciasDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<ObtenerIncidenciasDto> =
+    defineZodDto<ObtenerIncidenciasDto>('acc_issues_ObtenerIncidenciasDto', {
+      filter_status: { schema: z.string(), optional: true },
+      filter_assignedTo: { schema: z.string(), optional: true },
+      filter_issueTypeId: { schema: z.string(), optional: true },
+      filter_rootCauseId: { schema: z.string(), optional: true },
+      filter_locationId: { schema: z.string(), optional: true },
+      filter_linkedDocumentUrn: { schema: z.string(), optional: true },
+      limit: {
+        schema: z.number().int().min(1).max(200),
+        optional: true,
+        coerce: 'number',
+      },
+      offset: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+      },
+      sort: { schema: z.string(), optional: true },
+    });
+
   filter_status?: string;
 
-  @IsOptional()
-  @IsString()
   filter_assignedTo?: string;
 
-  @IsOptional()
-  @IsString()
   filter_issueTypeId?: string;
 
-  @IsOptional()
-  @IsString()
   filter_rootCauseId?: string;
 
-  @IsOptional()
-  @IsString()
   filter_locationId?: string;
 
-  @IsOptional()
-  @IsString()
   filter_linkedDocumentUrn?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(200)
   limit?: number;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number;
 
-  @IsOptional()
-  @IsString()
   sort?: string;
 }

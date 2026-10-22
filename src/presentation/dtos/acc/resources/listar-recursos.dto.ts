@@ -1,25 +1,30 @@
-import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ListarRecursosDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<ListarRecursosDto> =
+    defineZodDto<ListarRecursosDto>('ListarRecursosDto', {
+      busqueda: { schema: z.string(), optional: true, defaultValue: '' },
+      resource_type: { schema: z.string(), optional: true, defaultValue: '' },
+      limit: {
+        schema: z.number().int().min(1).max(200),
+        optional: true,
+        coerce: 'number',
+        defaultValue: 10,
+      },
+      offset: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+        defaultValue: 0,
+      },
+    });
+
   busqueda?: string = '';
 
-  @IsOptional()
-  @IsString()
   resource_type?: string = '';
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(200)
   limit?: number = 10;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number = 0;
 }

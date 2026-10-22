@@ -1,68 +1,159 @@
-import { Type } from 'class-transformer';
-import {
-  IsString,
-  IsInt,
-  IsEmail,
-  IsOptional,
-  MaxLength,
-  IsNotEmpty,
-  IsNumber,
-  IsDateString,
-  IsArray,
-  Min,
-} from 'class-validator';
-import { EmptyStringToUndefined } from '../common/empty-string-to-undefined.transform';
+import { z } from 'zod';
+import { defineZodDto, isoDate } from '../../validation/zod-dto';
 
 export class UpdateTrabajadorDto {
-  @IsNotEmpty() @IsString() @MaxLength(255) nombres: string;
-  @IsNotEmpty() @IsString() @MaxLength(255) apellidos: string;
-  @IsNotEmpty() @IsInt() idTipoDocumento: number;
-  @IsNotEmpty() @IsString() @MaxLength(50) nroDocumento: string;
-  @IsNotEmpty() @IsEmail() @MaxLength(255) correo: string;
-  @IsNotEmpty() @IsInt() idEmpresa: number;
+  static readonly schema: z.ZodType<UpdateTrabajadorDto> =
+    defineZodDto<UpdateTrabajadorDto>('UpdateTrabajadorDto', {
+      nombres: { schema: z.string().min(1).max(255) },
+      apellidos: { schema: z.string().min(1).max(255) },
+      idTipoDocumento: {
+        schema: z
+          .number()
+          .int()
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      nroDocumento: { schema: z.string().min(1).max(50) },
+      correo: { schema: z.string().min(1).email().max(255) },
+      idEmpresa: {
+        schema: z
+          .number()
+          .int()
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      idResponsable: { schema: z.number().int(), optional: true },
+      idRol: { schema: z.number().int(), optional: true },
+      fechaNacimiento: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+        transforms: [({ value }) => (value === '' ? undefined : value)],
+      },
+      celular: { schema: z.string().max(20), optional: true },
+      telefonoEmergencia: { schema: z.string().max(20), optional: true },
+      contactoEmergenciaNombre: { schema: z.string().max(255), optional: true },
+      idContactoEmergenciaParentesco: {
+        schema: z.number().int(),
+        optional: true,
+        coerce: 'number',
+      },
+      direccionDomiciliaria: { schema: z.string(), optional: true },
+      observaciones: { schema: z.string(), optional: true },
+      idPais: { schema: z.number().int(), optional: true },
+      idDepartamento: { schema: z.number().int(), optional: true },
+      idProvincia: { schema: z.number().int(), optional: true },
+      idDistrito: { schema: z.number().int(), optional: true },
+      nroRuc: { schema: z.string().max(11), optional: true },
+      idGradoInstruccion: { schema: z.number().int(), optional: true },
+      idCarrera: { schema: z.number().int(), optional: true },
+      idEntidadBancaria: { schema: z.number().int(), optional: true },
+      nroCuentaCorriente: { schema: z.string().max(50), optional: true },
+      nroCci: { schema: z.string().max(50), optional: true },
+      remuneracion: { schema: z.number(), optional: true },
+      idTipoContrato: { schema: z.number().int(), optional: true },
+      idDuracionContrato: { schema: z.number().int(), optional: true },
+      fechaInicioLabores: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+        transforms: [({ value }) => (value === '' ? undefined : value)],
+      },
+      fechaInicioContrato: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+        transforms: [({ value }) => (value === '' ? undefined : value)],
+      },
+      fechaFinContrato: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+        transforms: [({ value }) => (value === '' ? undefined : value)],
+      },
+      idModalidad: {
+        schema: z.number().int(),
+        optional: true,
+        coerce: 'number',
+      },
+      idCalendario: {
+        schema: z.number().int().min(1),
+        optional: true,
+        coerce: 'number',
+      },
+      idPuestoTrabajo: {
+        schema: z.number().int(),
+        optional: true,
+        coerce: 'number',
+      },
+      adjuntos: { schema: z.array(z.unknown()), optional: true },
+    });
 
-  @IsOptional() @IsInt() idResponsable?: number;
-  @IsOptional() @IsInt() idRol?: number;
-  @EmptyStringToUndefined()
-  @IsOptional()
-  @IsDateString()
+  nombres: string;
+  apellidos: string;
+  idTipoDocumento: number;
+  nroDocumento: string;
+  correo: string;
+  idEmpresa: number;
+
+  idResponsable?: number;
+  idRol?: number;
+
   fechaNacimiento?: string;
-  @IsOptional() @IsString() @MaxLength(20) celular?: string;
-  @IsOptional() @IsString() @MaxLength(20) telefonoEmergencia?: string;
-  @IsOptional() @IsString() @MaxLength(255) contactoEmergenciaNombre?: string;
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
+  celular?: string;
+  telefonoEmergencia?: string;
+  contactoEmergenciaNombre?: string;
+
   idContactoEmergenciaParentesco?: number;
-  @IsOptional() @IsString() direccionDomiciliaria?: string;
-  @IsOptional() @IsString() observaciones?: string;
-  @IsOptional() @IsInt() idPais?: number;
-  @IsOptional() @IsInt() idDepartamento?: number;
-  @IsOptional() @IsInt() idProvincia?: number;
-  @IsOptional() @IsInt() idDistrito?: number;
-  @IsOptional() @IsString() @MaxLength(11) nroRuc?: string;
-  @IsOptional() @IsInt() idGradoInstruccion?: number;
-  @IsOptional() @IsInt() idCarrera?: number;
-  @IsOptional() @IsInt() idEntidadBancaria?: number;
-  @IsOptional() @IsString() @MaxLength(50) nroCuentaCorriente?: string;
-  @IsOptional() @IsString() @MaxLength(50) nroCci?: string;
-  @IsOptional() @IsNumber() remuneracion?: number;
-  @IsOptional() @IsInt() idTipoContrato?: number;
-  @IsOptional() @IsInt() idDuracionContrato?: number;
-  @EmptyStringToUndefined()
-  @IsOptional()
-  @IsDateString()
+  direccionDomiciliaria?: string;
+  observaciones?: string;
+  idPais?: number;
+  idDepartamento?: number;
+  idProvincia?: number;
+  idDistrito?: number;
+  nroRuc?: string;
+  idGradoInstruccion?: number;
+  idCarrera?: number;
+  idEntidadBancaria?: number;
+  nroCuentaCorriente?: string;
+  nroCci?: string;
+  remuneracion?: number;
+  idTipoContrato?: number;
+  idDuracionContrato?: number;
+
   fechaInicioLabores?: string;
-  @EmptyStringToUndefined()
-  @IsOptional()
-  @IsDateString()
+
   fechaInicioContrato?: string;
-  @EmptyStringToUndefined()
-  @IsOptional()
-  @IsDateString()
+
   fechaFinContrato?: string;
-  @IsOptional() @IsInt() @Type(() => Number) idModalidad?: number;
-  @IsOptional() @IsInt() @Min(1) @Type(() => Number) idCalendario?: number | null;
-  @IsOptional() @IsInt() @Type(() => Number) idPuestoTrabajo?: number;
-  @IsOptional() @IsArray() adjuntos?: { idTipoAdjunto: number; ruta: string }[];
+  idModalidad?: number;
+  idCalendario?: number | null;
+  idPuestoTrabajo?: number;
+  adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

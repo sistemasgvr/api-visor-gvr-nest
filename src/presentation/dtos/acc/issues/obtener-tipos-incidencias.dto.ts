@@ -1,21 +1,28 @@
-import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ObtenerTiposIncidenciasDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(200)
+  static readonly schema: z.ZodType<ObtenerTiposIncidenciasDto> =
+    defineZodDto<ObtenerTiposIncidenciasDto>(
+      'acc_issues_ObtenerTiposIncidenciasDto',
+      {
+        limit: {
+          schema: z.number().int().min(1).max(200),
+          optional: true,
+          coerce: 'number',
+        },
+        offset: {
+          schema: z.number().int().min(0),
+          optional: true,
+          coerce: 'number',
+        },
+        sort: { schema: z.string(), optional: true },
+      },
+    );
+
   limit?: number;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number;
 
-  @IsOptional()
-  @IsString()
   sort?: string;
 }

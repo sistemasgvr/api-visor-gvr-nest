@@ -1,7 +1,11 @@
-import { IsArray, IsInt } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class SincronizarRolesNovedadDto {
-  @IsArray()
-  @IsInt({ each: true, message: 'Cada rol debe ser un número entero' })
+  static readonly schema: z.ZodType<SincronizarRolesNovedadDto> =
+    defineZodDto<SincronizarRolesNovedadDto>('SincronizarRolesNovedadDto', {
+      roles: { schema: z.array(z.number().int()) },
+    });
+
   roles: number[];
 }

@@ -1,32 +1,23 @@
-import {
-  IsString,
-  IsInt,
-  IsOptional,
-  MaxLength,
-  IsNotEmpty,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class CreateMenuDto {
-  @IsNotEmpty({ message: 'El nombre del menú es requerido' })
-  @IsString()
-  @MaxLength(100)
+  static readonly schema: z.ZodType<CreateMenuDto> =
+    defineZodDto<CreateMenuDto>('CreateMenuDto', {
+      nombre: { schema: z.string().min(1).max(100) },
+      url: { schema: z.string().max(255), optional: true },
+      icono: { schema: z.string().max(50), optional: true },
+      idPadre: { schema: z.number().int(), optional: true },
+      orden: { schema: z.number().int(), optional: true },
+    });
+
   nombre: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   url?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
   icono?: string;
 
-  @IsOptional()
-  @IsInt()
   idPadre?: number;
 
-  @IsOptional()
-  @IsInt()
   orden?: number;
 }

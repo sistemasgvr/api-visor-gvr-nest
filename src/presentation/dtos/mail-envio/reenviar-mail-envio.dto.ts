@@ -1,31 +1,48 @@
-import { IsArray, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
+
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ReenviarMailEnvioDto {
+  static readonly schema: z.ZodType<ReenviarMailEnvioDto> =
+    defineZodDto<ReenviarMailEnvioDto>('ReenviarMailEnvioDto', {
+      templateId: { schema: z.string(), example: 'welcome' },
+      idTrabajador: {
+        schema: z.number().int().min(1),
+        coerce: 'number',
+        example: 42,
+      },
+    });
+
   @ApiProperty({ example: 'welcome' })
-  @IsString()
   templateId!: string;
 
   @ApiProperty({ example: 42 })
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
   idTrabajador!: number;
 }
 
 export class ReenviarPendientesMailEnvioDto {
+  static readonly schema: z.ZodType<ReenviarPendientesMailEnvioDto> =
+    defineZodDto<ReenviarPendientesMailEnvioDto>(
+      'ReenviarPendientesMailEnvioDto',
+      {
+        templateId: { schema: z.string(), example: 'welcome' },
+        idTrabajadores: {
+          schema: z.array(z.number().int()),
+          optional: true,
+          coerce: 'number',
+          description:
+            'IDs específicos; si se omite, reenvía todos los pendientes/fallidos',
+        },
+      },
+    );
+
   @ApiProperty({ example: 'welcome' })
-  @IsString()
   templateId!: string;
 
   @ApiPropertyOptional({
     description:
       'IDs específicos; si se omite, reenvía todos los pendientes/fallidos',
   })
-  @IsOptional()
-  @IsArray()
-  @Type(() => Number)
-  @IsInt({ each: true })
   idTrabajadores?: number[];
 }

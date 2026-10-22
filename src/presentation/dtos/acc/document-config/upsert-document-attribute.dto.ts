@@ -1,72 +1,58 @@
-import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsBoolean,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  Min,
-  ValidateNested,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class DocumentAttributeOptionDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<DocumentAttributeOptionDto> =
+    defineZodDto<DocumentAttributeOptionDto>('DocumentAttributeOptionDto', {
+      valor: { schema: z.string().min(1).max(255) },
+      etiqueta: { schema: z.string().max(255), optional: true },
+      orden: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+      },
+    });
+
   valor: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   etiqueta?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   orden?: number;
 }
 
 export class UpsertDocumentAttributeDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
+  static readonly schema: z.ZodType<UpsertDocumentAttributeDto> =
+    defineZodDto<UpsertDocumentAttributeDto>('UpsertDocumentAttributeDto', {
+      id: { schema: z.number().int(), optional: true, coerce: 'number' },
+      codigo: { schema: z.string().min(1).max(100) },
+      nombre: { schema: z.string().min(1).max(255) },
+      tipo: { schema: z.string().min(1).max(50) },
+      descripcion: { schema: z.string(), optional: true },
+      esObligatorio: { schema: z.boolean(), optional: true },
+      orden: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+      },
+      opciones: {
+        schema: z.array(z.lazy(() => DocumentAttributeOptionDto.schema)),
+        optional: true,
+      },
+    });
+
   id?: number;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
   codigo: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
   nombre: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(50)
   tipo: string;
 
-  @IsOptional()
-  @IsString()
   descripcion?: string;
 
-  @IsOptional()
-  @IsBoolean()
   esObligatorio?: boolean;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   orden?: number;
 
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => DocumentAttributeOptionDto)
   opciones?: DocumentAttributeOptionDto[];
 }

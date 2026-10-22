@@ -1,6 +1,6 @@
+import { ZodValidationPipe } from '../validation/zod-validation.pipe';
 import {
   ForbiddenException,
-  ValidationPipe,
   type INestApplication,
   type ExecutionContext,
 } from '@nestjs/common';
@@ -66,13 +66,7 @@ describe('HTTP de habilitación temporal de jornadas', () => {
       })
       .compile();
     app = module.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
+    app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
   });
   afterAll(async () => app?.close());

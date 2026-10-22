@@ -1,55 +1,50 @@
-import { Type } from 'class-transformer';
-import {
-  IsArray,
-  ArrayMinSize,
-  ArrayMaxSize,
-  ArrayUnique,
-  IsBoolean,
-  IsInt,
-  IsString,
-  Min,
-  Max,
-  MaxLength,
-  Matches,
-  ValidateIf,
-  ValidateNested,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto, mappedDto } from '../../../validation/zod-dto';
+
 import { ApiProperty } from '@nestjs/swagger';
 import type { ConfiguracionDiaCalendario } from '../../../../domain/entities/calendario.entity';
 import type { GuardarSemanaCalendarioData } from '../../../../domain/repositories/calendarios.repository.interface';
 import { RevisionCalendarioDto } from './revision-calendario.dto';
 
 export class DiaSemanaCalendarioDto implements ConfiguracionDiaCalendario {
+  static readonly schema: z.ZodType<DiaSemanaCalendarioDto> =
+    defineZodDto<DiaSemanaCalendarioDto>('DiaSemanaCalendarioDto', {
+      diasemana: {
+        schema: z.number().int().min(1).max(7),
+        description: 'Lunes=1, domingo=7.',
+      },
+      laborable: { schema: z.boolean() },
+      horaentrada: {
+        schema: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/),
+        when: (dia: DiaSemanaCalendarioDto) =>
+          dia.laborable || dia.horaentrada != null,
+        example: '08:00',
+      },
+      horasalida: {
+        schema: z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/),
+        when: (dia: DiaSemanaCalendarioDto) =>
+          dia.laborable || dia.horasalida != null,
+        example: '17:00',
+      },
+      minutosrefrigerio: {
+        schema: z.number().int().min(0).max(1439),
+        example: 60,
+      },
+    });
+
   @ApiProperty({ minimum: 1, maximum: 7, description: 'Lunes=1, domingo=7.' })
-  @IsInt()
-  @Min(1)
-  @Max(7)
   diasemana: number;
 
   @ApiProperty()
-  @IsBoolean()
   laborable: boolean;
 
   @ApiProperty({ nullable: true, example: '08:00' })
-  @ValidateIf(
-    (dia: DiaSemanaCalendarioDto) => dia.laborable || dia.horaentrada != null,
-  )
-  @IsString()
-  @Matches(/^([01][0-9]|2[0-3]):[0-5][0-9]$/)
   horaentrada: string | null;
 
   @ApiProperty({ nullable: true, example: '17:00' })
-  @ValidateIf(
-    (dia: DiaSemanaCalendarioDto) => dia.laborable || dia.horasalida != null,
-  )
-  @IsString()
-  @Matches(/^([01][0-9]|2[0-3]):[0-5][0-9]$/)
   horasalida: string | null;
 
   @ApiProperty({ minimum: 0, maximum: 1439, example: 60 })
-  @IsInt()
-  @Min(0)
-  @Max(1439)
   minutosrefrigerio: number;
 }
 
@@ -57,18 +52,37 @@ export class GuardarSemanaCalendarioDto
   extends RevisionCalendarioDto
   implements GuardarSemanaCalendarioData
 {
+  static readonly schema: z.ZodType<GuardarSemanaCalendarioDto> =
+    defineZodDto<GuardarSemanaCalendarioDto>(
+      'GuardarSemanaCalendarioDto',
+      {
+        zonahoraria: {
+          schema: z.string().regex(/^\S+$/u).max(100),
+          example: 'America/Lima',
+        },
+        semana: {
+          schema: z
+            .array(z.lazy(() => DiaSemanaCalendarioDto.schema))
+            .min(7)
+            .max(7)
+            .refine(
+              (values) => {
+                const keys = values.map(
+                  (dia: DiaSemanaCalendarioDto | null) => dia?.diasemana,
+                );
+                return new Set(keys).size === keys.length;
+              },
+              { message: 'No se permiten valores repetidos' },
+            )
+            .meta({ 'x-unique-by': 'diasemana' }),
+        },
+      },
+      () => mappedDto(RevisionCalendarioDto.schema),
+    );
+
   @ApiProperty({ example: 'America/Lima', maxLength: 100 })
-  @IsString()
-  @Matches(/^\S+$/u)
-  @MaxLength(100)
   zonahoraria: string;
 
   @ApiProperty({ type: [DiaSemanaCalendarioDto], minItems: 7, maxItems: 7 })
-  @IsArray()
-  @ArrayMinSize(7)
-  @ArrayMaxSize(7)
-  @ArrayUnique((dia: DiaSemanaCalendarioDto | null) => dia?.diasemana)
-  @ValidateNested({ each: true })
-  @Type(() => DiaSemanaCalendarioDto)
   semana: DiaSemanaCalendarioDto[];
 }

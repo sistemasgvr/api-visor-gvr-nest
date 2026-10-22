@@ -1,26 +1,45 @@
-import {
-  ArrayMinSize,
-  IsArray,
-  IsDateString,
-  IsInt,
-  IsOptional,
-  Min,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto, isoDate } from '../../validation/zod-dto';
 
 export class ExportarActividadesWordMasivoDto {
-  @IsDateString()
+  static readonly schema: z.ZodType<ExportarActividadesWordMasivoDto> =
+    defineZodDto<ExportarActividadesWordMasivoDto>(
+      'ExportarActividadesWordMasivoDto',
+      {
+        fechaInicio: {
+          schema: z
+            .string()
+            .refine((value) => isoDate(value, false), {
+              message: 'Debe ser una fecha ISO válida',
+            })
+            .meta({ format: 'date-time' }),
+        },
+        fechaFin: {
+          schema: z
+            .string()
+            .refine((value) => isoDate(value, false), {
+              message: 'Debe ser una fecha ISO válida',
+            })
+            .meta({ format: 'date-time' }),
+        },
+        fechaEmision: {
+          schema: z
+            .string()
+            .refine((value) => isoDate(value, false), {
+              message: 'Debe ser una fecha ISO válida',
+            })
+            .meta({ format: 'date-time' }),
+          optional: true,
+        },
+        idsTrabajador: { schema: z.array(z.number().int().min(1)).min(1) },
+      },
+    );
+
   fechaInicio: string;
 
-  @IsDateString()
   fechaFin: string;
 
-  @IsOptional()
-  @IsDateString()
   fechaEmision?: string;
 
-  @IsArray()
-  @ArrayMinSize(1, { message: 'Debe seleccionar al menos un colaborador.' })
-  @IsInt({ each: true })
-  @Min(1, { each: true })
   idsTrabajador: number[];
 }

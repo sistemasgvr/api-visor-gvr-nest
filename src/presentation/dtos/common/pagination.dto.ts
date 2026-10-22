@@ -1,18 +1,25 @@
-import { IsOptional, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class PaginationDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
+  static readonly schema: z.ZodType<PaginationDto> =
+    defineZodDto<PaginationDto>('PaginationDto', {
+      page: {
+        schema: z.number().int().min(1),
+        optional: true,
+        coerce: 'number',
+        defaultValue: 1,
+      },
+      limit: {
+        schema: z.number().int().min(1).max(100),
+        optional: true,
+        coerce: 'number',
+        defaultValue: 10,
+      },
+    });
+
   page: number = 1;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
   limit: number = 10;
 
   get skip(): number {

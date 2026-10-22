@@ -1,14 +1,6 @@
-import {
-  IsBoolean,
-  IsDateString,
-  IsInt,
-  IsString,
-  Matches,
-  Max,
-  MaxLength,
-  Min,
-  ValidateIf,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto, mappedDto, isoDate } from '../../../validation/zod-dto';
+
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { GuardarExcepcionCalendarioData } from '../../../../domain/repositories/calendarios.repository.interface';
 import { RevisionCalendarioDto } from './revision-calendario.dto';
@@ -17,18 +9,47 @@ export class GuardarExcepcionCalendarioDto
   extends RevisionCalendarioDto
   implements GuardarExcepcionCalendarioData
 {
+  static readonly schema: z.ZodType<GuardarExcepcionCalendarioDto> =
+    defineZodDto<GuardarExcepcionCalendarioDto>(
+      'GuardarExcepcionCalendarioDto',
+      {
+        fecha: {
+          schema: z
+            .string()
+            .refine((value) => isoDate(value, true), {
+              message: 'Debe ser una fecha ISO válida',
+            })
+            .meta({ format: 'date-time' })
+            .regex(/^(?!0000)[0-9]{4}-[0-9]{2}-[0-9]{2}$/),
+          example: '2026-12-24',
+          description: 'Fecha local, sin componente horario.',
+        },
+        nombre: { schema: z.string().regex(/\S/u).max(160) },
+        idtipo: {
+          schema: z.number().int().min(1).max(2147483647),
+          example: 617,
+          description:
+            'ID de una opción activa de la lista 48 (tipo de excepción de calendario).',
+        },
+        minutosefectivos: {
+          schema: z.number().int().min(0).max(1439),
+          description: '0=feriado completo; >0=límite de minutos del día.',
+        },
+        activo: {
+          schema: z.boolean(),
+          when: (_object, value: unknown) => value !== undefined,
+        },
+      },
+      () => mappedDto(RevisionCalendarioDto.schema),
+    );
+
   @ApiProperty({
     example: '2026-12-24',
     description: 'Fecha local, sin componente horario.',
   })
-  @IsDateString({ strict: true })
-  @Matches(/^(?!0000)[0-9]{4}-[0-9]{2}-[0-9]{2}$/)
   fecha: string;
 
   @ApiProperty({ maxLength: 160 })
-  @IsString()
-  @Matches(/\S/u)
-  @MaxLength(160)
   nombre: string;
 
   @ApiProperty({
@@ -38,9 +59,6 @@ export class GuardarExcepcionCalendarioDto
     description:
       'ID de una opción activa de la lista 48 (tipo de excepción de calendario).',
   })
-  @IsInt()
-  @Min(1)
-  @Max(2147483647)
   idtipo: number;
 
   @ApiProperty({
@@ -48,13 +66,8 @@ export class GuardarExcepcionCalendarioDto
     maximum: 1439,
     description: '0=feriado completo; >0=límite de minutos del día.',
   })
-  @IsInt()
-  @Min(0)
-  @Max(1439)
   minutosefectivos: number;
 
   @ApiPropertyOptional({ default: true })
-  @ValidateIf((_object, value: unknown) => value !== undefined)
-  @IsBoolean()
   activo?: boolean;
 }

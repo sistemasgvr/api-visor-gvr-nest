@@ -1,11 +1,14 @@
-import { IsOptional, IsString } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class GetProyectoPorIdDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<GetProyectoPorIdDto> =
+    defineZodDto<GetProyectoPorIdDto>('GetProyectoPorIdDto', {
+      fields: { schema: z.string(), optional: true },
+      token: { schema: z.string(), optional: true },
+    });
+
   fields?: string;
 
-  @IsOptional()
-  @IsString()
   token?: string;
 }
