@@ -16,6 +16,10 @@ export const environmentSchema = z.looseObject({
   PORT: z.preprocess(numberFromEnvironment, z.number().default(4001)),
   HOST: z.string().default('0.0.0.0'),
   NODE_ENV: z.enum(Environment).default(Environment.Development),
+  LOG_LEVEL: z
+    .enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'])
+    .default('info'),
+  LOG_PRETTY: z.preprocess(booleanFromEnvironment, z.boolean().optional()),
   DB_HOST: z.string().optional(),
   DB_PORT: z.preprocess(numberFromEnvironment, z.number().optional()),
   DB_USERNAME: z.string().optional(),

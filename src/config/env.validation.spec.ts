@@ -15,6 +15,7 @@ describe('Configuración del proceso validada con Zod', () => {
       NODE_ENV: 'development',
       DB_SYNCHRONIZE: false,
       DB_LOGGING: false,
+      LOG_LEVEL: 'info',
     });
     expect(
       validate({
@@ -49,5 +50,17 @@ describe('Configuración del proceso validada con Zod', () => {
         CUSTOM_VALUE: 'ok',
       }),
     ).toMatchObject({ DATABASE_URL: '', DB_HOST: '', CUSTOM_VALUE: 'ok' });
+  });
+
+  it('valida el nivel y el formato de Pino', () => {
+    expect(
+      validate({ ...required, LOG_LEVEL: 'debug', LOG_PRETTY: 'false' }),
+    ).toMatchObject({ LOG_LEVEL: 'debug', LOG_PRETTY: false });
+    expect(() => validate({ ...required, LOG_LEVEL: 'verbose' })).toThrow(
+      /LOG_LEVEL/,
+    );
+    expect(() => validate({ ...required, LOG_PRETTY: 'yes' })).toThrow(
+      /LOG_PRETTY/,
+    );
   });
 });

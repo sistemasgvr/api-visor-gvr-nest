@@ -9,6 +9,7 @@ import { NestFactory } from '@nestjs/core';
 import { completeOpenApi } from './presentation/openapi/complete-openapi';
 import { ZodValidationPipe } from './presentation/validation/zod-validation.pipe';
 import { Logger } from '@nestjs/common';
+import { Logger as PinoLogger } from 'nestjs-pino';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
@@ -21,11 +22,13 @@ import { useRequestId } from './bootstrap/apply-core-middlewares';
 import { envs } from './config';
 import { isOriginAllowed } from './config/cors-origins.util';
 import { GlobalExceptionFilter } from './presentation/filters/global-exception.filter';
-import { LoggingInterceptor } from './presentation/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const logger = new Logger('Main.ts');
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
+  app.useLogger(app.get(PinoLogger));
 
   useRequestId(app);
   // CSP desactivada: la API y Scalar se sirven en el mismo host; el foco es cabeceras de seguridad básicas.
@@ -70,9 +73,6 @@ async function bootstrap() {
   );
   app.use(urlencoded({ extended: true, limit: '50mb' }));
   app.useGlobalPipes(new ZodValidationPipe());
-
-  // Configurar interceptor de logging
-  app.useGlobalInterceptors(new LoggingInterceptor());
 
   // Configurar filtro global de excepciones
   app.useGlobalFilters(new GlobalExceptionFilter());
@@ -197,15 +197,15 @@ async function bootstrap() {
     const dataSource = app.get(DataSource);
     const isConnected = dataSource.isInitialized;
     logger.log(
-      `📊 Database: ${isConnected ? '✅ Connected' : '❌ Not connected'}`,
+      `Database: ${isConnected ? 'Connected' : 'Not connected'}`,
     );
   } catch (error) {
-    logger.log(`📊 Database: ❌ Connection check failed`);
+    logger.log(`Database: Connection check failed`);
   }
 
   const port = envs.port || 4001;
   const host = envs.host;
-  logger.log(`🚀⭐ Application is running on: http://${host}:${port}/api`);
-  logger.log(`📖 API Docs (Scalar): http://${host}:${port}/api/docs`);
+  logger.log(`Application is running on: http://${host}:${port}/api`);
+  logger.log(`API Docs (Scalar): http://${host}:${port}/api/docs`);
 }
 bootstrap();

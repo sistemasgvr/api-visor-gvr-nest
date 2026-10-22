@@ -86,6 +86,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     }
 
+    // Pino registra la causa real de los 5xx junto al estado HTTP definitivo.
+    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+      response.err =
+        exception instanceof Error
+          ? exception
+          : new Error('Error interno del servidor');
+    }
     const errorResponse = ApiResponseDto.error(message, status, code);
 
     const origin = request.headers.origin;

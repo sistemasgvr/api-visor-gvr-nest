@@ -57,3 +57,9 @@ Todos los módulos HTTP y la configuración usan Zod. Los contratos de entrada t
 - Verificar sincronización de los contratos en CI: `npm run check:openapi`.
 
 Detalles de la migración, reglas de compatibilidad y mantenimiento: [VALIDACION-ZOD-OPENAPI.md](docs/VALIDACION-ZOD-OPENAPI.md).
+
+## Logs
+
+Pino recibe los mensajes de Nest y los registros HTTP, con `requestId`, estado y duración. Usa formato legible en desarrollo y JSON en producción. `LOG_LEVEL` controla el nivel mínimo y `LOG_PRETTY` permite cambiar el formato; ambas variables son opcionales y se validan con Zod.
+
+Configuración, protección de datos y pruebas: [LOGGING-PINO.md](docs/LOGGING-PINO.md).
