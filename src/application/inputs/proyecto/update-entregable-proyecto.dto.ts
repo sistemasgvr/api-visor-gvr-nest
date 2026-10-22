@@ -12,4 +12,7 @@ export class UpdateEntregableProyectoDto {
   idTrabajadoresResponsables?: number[];
 
   idTrabajadorResponsable?: number;
+  revisionPlan?: number;
+  motivo?: string;
+  orden?: number;
 }

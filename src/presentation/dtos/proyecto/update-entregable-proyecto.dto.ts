@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
@@ -72,4 +73,19 @@ export class UpdateEntregableProyectoDto {
   @IsOptional()
   @IsInt()
   idTrabajadorResponsable?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  revisionPlan?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  motivo?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  orden?: number;
 }

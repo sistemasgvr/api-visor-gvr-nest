@@ -1,3 +1,4 @@
+import { PlanificacionAccessService } from '../../services/planificacion-access.service';
 import { ID_ESTADO_ENTREGABLE_CULMINADO } from '../../../domain/constants/estado-entregable.constants';
 import type {
   CrearEntregableProyectoData,
@@ -23,6 +24,7 @@ export class CrearEntregableProyectoUseCase {
     private readonly proyectoRepository: IProyectoRepository,
     private readonly broadcastService: BroadcastPort,
     private readonly loggerFactory: LoggerFactoryPort,
+    private readonly planificacion: PlanificacionAccessService,
   ) {
     this.logger = this.loggerFactory.create(
       CrearEntregableProyectoUseCase.name,
@@ -34,6 +36,11 @@ export class CrearEntregableProyectoUseCase {
     idUsuarioCreacion: number,
     accesoTotal = false,
   ) {
+    await this.planificacion.editarProyectoConPlan(
+      idUsuarioCreacion,
+      data.idProyecto,
+    );
+
     if (data.idEstado === ID_ESTADO_ENTREGABLE_CULMINADO) {
       throw new InvalidInputError(
         'No se puede crear un entregable como CULMINADO. Márcalo desde una actividad.',

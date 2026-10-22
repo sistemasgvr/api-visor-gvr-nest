@@ -193,6 +193,14 @@ export function scopedOnlyPolicies(
 
 export const GVR_PROJECT_RESOURCE = 'gvr_project';
 export const GVR_PROJECT_ACTIONS: Record<string, readonly string[]> = {
+  'proyectos.planificacion': [
+    'ver',
+    'editar',
+    'configurar',
+    'publicar',
+    'reprogramar',
+    'dar_conformidad',
+  ],
   'proyectos.proyectos': ['ver', 'editar', 'eliminar', 'configurar'],
   'proyectos.accesos': ['ver', 'asignar', 'cambiar_nivel', 'retirar'],
   'proyectos.coordinadores': ['ver', 'asignar', 'gestionar_equipo'],

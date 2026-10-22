@@ -14,4 +14,7 @@ export class CreateEntregableProyectoDto {
   idTrabajadoresResponsables?: number[];
 
   idTrabajadorResponsable?: number;
+  revisionPlan?: number;
+  motivo?: string;
+  orden?: number;
 }

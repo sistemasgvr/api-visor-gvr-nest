@@ -38,4 +38,7 @@ export class UpdateProyectoDto {
   idEstadoProyecto?: number;
 
   idEstadoCotizacion?: number;
+  idCalendario?: number | null;
+  revisionPlan?: number;
+  motivo?: string;
 }

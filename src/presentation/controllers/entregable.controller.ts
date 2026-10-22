@@ -1,3 +1,4 @@
+import { CambioEntregableQueryDto } from '../dtos/proyecto/cambio-entregable-query.dto';
 import {
   Body,
   Controller,
@@ -329,6 +330,7 @@ export class EntregableController {
   async eliminarEntregable(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,
+    @Query() cambio: CambioEntregableQueryDto,
     @GrantedScope('control_operativo.entregables.eliminar')
     alcance: AuthorizationScope,
   ) {
@@ -339,6 +341,8 @@ export class EntregableController {
       id,
       payload.sub,
       alcance === 'todos',
+      cambio.revisionPlan,
+      cambio.motivo,
     );
     return ApiResponseDto.success(data, 'Entregable eliminado exitosamente');
   }

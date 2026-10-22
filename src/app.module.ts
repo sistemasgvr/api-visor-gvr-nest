@@ -1,3 +1,4 @@
+import { PlanificacionModule } from './composition/modules/planificacion.module';
 import { CalendariosModule } from './composition/modules/calendarios.module';
 import { AuthorizationModule } from './composition/modules/platform/authorization.module';
 import { DocumentAccessModule } from './composition/modules/platform/document-access.module';
@@ -78,6 +79,7 @@ import { StorageModule } from './composition/modules/platform/storage.module';
     // Módulo de health check
     HealthModule,
     CalendariosModule,
+    PlanificacionModule,
     // Módulos de funcionalidad
     AuthModule,
     AccModule,

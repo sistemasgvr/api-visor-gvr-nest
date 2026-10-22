@@ -1,3 +1,4 @@
+import { ejecutarPlanificacion } from './planificacion-errors';
 import { Injectable, Inject } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -380,17 +381,14 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
       idestadojornada?: number | null;
       estadojornada?: string | null;
     };
-    const result = await this.databaseFunctionService.callFunction<Row>(
-      'con_ListarActividadesV2',
-      [
-        idJornada ?? null,
-        idTrabajador ?? null,
-        idProyecto ?? null,
-        idEstadoActividad ?? null,
-        limit,
-        offset,
-      ],
-    );
+    const result = await this.callPlanRows<Row>('con_ListarActividadesV3', [
+      idJornada ?? null,
+      idTrabajador ?? null,
+      idProyecto ?? null,
+      idEstadoActividad ?? null,
+      limit,
+      offset,
+    ]);
     if (!result?.length) {
       let diajornada: string | null = null;
       let horasesperadas: number | null = null;
@@ -748,7 +746,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     if (idActividad == null || idActividad < 1) return null;
     const result = await this.databaseFunctionService.callFunction<
       Record<string, unknown>
-    >('con_ObtenerActividadV2', [idActividad]);
+    >('con_ObtenerActividadV3', [idActividad]);
     const row = result?.[0];
     if (!row) return null;
     // El driver puede devolver la columna como diajornada, diaJornada o fechajornada (minúsculas)
@@ -797,28 +795,28 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   async crearActividad(
     params: CrearActividadParams,
   ): Promise<ActividadCreada | null> {
-    const rows =
-      await this.databaseFunctionService.callFunction<ActividadCreada>(
-        'con_CrearActividadV3',
-        [
-          params.idJornada,
-          params.idProyecto,
-          params.idTrabajador,
-          params.idCoordinador,
-          params.idTipoActividad,
-          params.nombreActividad ?? '',
-          params.descripcionDetallada ?? null,
-          params.horaInicio ?? null,
-          params.horaFin ?? null,
-          params.linkEvidencia ?? null,
-          params.idEstadoActividad ?? null,
-          params.idModalidad ?? null,
-          params.idUsuarioCreacion ?? null,
-          params.idEntregable ?? null,
-          params.incidenciaDetallada ?? null,
-          params.entregableCulminado ?? false,
-        ],
-      );
+    const rows = await this.callPlanRows<ActividadCreada>(
+      'con_CrearActividadV4',
+      [
+        params.idJornada,
+        params.idProyecto,
+        params.idTrabajador,
+        params.idCoordinador,
+        params.idTipoActividad,
+        params.nombreActividad ?? '',
+        params.descripcionDetallada ?? null,
+        params.horaInicio ?? null,
+        params.horaFin ?? null,
+        params.linkEvidencia ?? null,
+        params.idEstadoActividad ?? null,
+        params.idModalidad ?? null,
+        params.idUsuarioCreacion ?? null,
+        params.idEntregable ?? null,
+        params.incidenciaDetallada ?? null,
+        params.entregableCulminado ?? false,
+        params.idAsignacion ?? null,
+      ],
+    );
     return rows?.[0] ?? null;
   }
 
@@ -866,55 +864,57 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   async actualizarActividad(
     params: ActualizarActividadParams,
   ): Promise<ActividadCreada | null> {
-    const rows =
-      await this.databaseFunctionService.callFunction<ActividadCreada>(
-        'con_ActualizarActividadV3',
-        [
-          params.idActividad,
-          params.idProyecto,
-          params.idTrabajador,
-          params.idCoordinador,
-          params.idTipoActividad,
-          params.nombreActividad ?? '',
-          params.descripcionDetallada ?? null,
-          params.horaInicio ?? null,
-          params.horaFin ?? null,
-          params.linkEvidencia ?? null,
-          params.idModalidad ?? null,
-          params.idUsuarioModificacion ?? null,
-          params.corregirObservacion === true,
-          params.idEntregable ?? null,
-          params.incidenciaDetallada ?? null,
-          params.entregableCulminado ?? false,
-        ],
-      );
+    const rows = await this.callPlanRows<ActividadCreada>(
+      'con_ActualizarActividadV4',
+      [
+        params.idActividad,
+        params.idProyecto,
+        params.idTrabajador,
+        params.idCoordinador,
+        params.idTipoActividad,
+        params.nombreActividad ?? '',
+        params.descripcionDetallada ?? null,
+        params.horaInicio ?? null,
+        params.horaFin ?? null,
+        params.linkEvidencia ?? null,
+        params.idModalidad ?? null,
+        params.idUsuarioModificacion ?? null,
+        params.corregirObservacion === true,
+        params.idEntregable ?? null,
+        params.incidenciaDetallada ?? null,
+        params.entregableCulminado ?? false,
+        params.idAsignacion ?? null,
+      ],
+    );
     return rows?.[0] ?? null;
   }
 
   async validarActividad(
     params: ValidarActividadParams,
   ): Promise<ActividadCreada | null> {
-    const rows =
-      await this.databaseFunctionService.callFunction<ActividadCreada>(
-        'con_ValidarActividad',
-        [
-          params.idActividad,
-          params.idEstadoActividad,
-          params.comentarioValidacion ?? null,
-          params.idCoordinadorRevisor,
-          params.idUsuarioModificacion ?? null,
-          params.esAdminTotalValidacion === true,
-        ],
-      );
+    const rows = await this.callPlanRows<ActividadCreada>(
+      'con_ValidarActividadV2',
+      [
+        params.idActividad,
+        params.idEstadoActividad,
+        params.comentarioValidacion ?? null,
+        params.idCoordinadorRevisor,
+        params.idUsuarioModificacion ?? null,
+        params.esAdminTotalValidacion === true,
+      ],
+    );
     return rows?.[0] ?? null;
   }
 
-  async eliminarActividad(idActividad: number): Promise<boolean> {
+  async eliminarActividad(
+    idActividad: number,
+    idUsuario: number,
+  ): Promise<boolean> {
     if (idActividad == null || idActividad < 1) return false;
-    const row = await this.databaseFunctionService.callFunctionSingle<unknown>(
-      'con_EliminarActividadV2',
-      [idActividad],
-    );
+    const row = await this.callPlanSingle<unknown>('con_EliminarActividadV3', [
+      idActividad,
+      idUsuario,
+    ]);
     return getScalarBool(row);
   }
 
@@ -1461,6 +1461,16 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         );
         return { ...rest, evidencias };
       }),
+    );
+  }
+  private callPlanSingle<T>(name: string, params: unknown[]) {
+    return ejecutarPlanificacion(() =>
+      this.databaseFunctionService.callFunctionSingle<T>(name, params),
+    );
+  }
+  private callPlanRows<T>(name: string, params: unknown[]) {
+    return ejecutarPlanificacion(() =>
+      this.databaseFunctionService.callFunction<T>(name, params),
     );
   }
 }

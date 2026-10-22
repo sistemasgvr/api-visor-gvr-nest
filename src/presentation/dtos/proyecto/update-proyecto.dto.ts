@@ -100,4 +100,19 @@ export class UpdateProyectoDto {
   @IsOptional()
   @IsInt()
   idEstadoCotizacion?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  idCalendario?: number | null;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  revisionPlan?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  motivo?: string;
 }

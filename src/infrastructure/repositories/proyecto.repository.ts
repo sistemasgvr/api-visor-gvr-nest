@@ -1,3 +1,4 @@
+import { ejecutarPlanificacion } from './planificacion-errors';
 import { Injectable, Logger } from '@nestjs/common';
 import type {
   IProyectoRepository,
@@ -173,8 +174,8 @@ export class ProyectoRepository implements IProyectoRepository {
   }
 
   async obtenerProyectoPorId(idProyecto: number): Promise<any> {
-    const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'pro_ObtenerProyectoPorId',
+    const result = await this.callPlanSingle<any>(
+      'pro_ObtenerProyectoPorIdV2',
       [idProyecto],
     );
     if (result?.coordinadores && Array.isArray(result.coordinadores)) {
@@ -192,64 +193,62 @@ export class ProyectoRepository implements IProyectoRepository {
   }
 
   async crearProyecto(data: CrearProyectoData): Promise<any> {
-    const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'pro_CrearProyecto',
-      [
-        data.nombreProyecto,
-        data.nroProyecto,
-        data.idTipoProyecto,
-        data.idPais,
-        data.direccion1 || null,
-        data.direccion2 || null,
-        data.ciudad || null,
-        data.provincia || null,
-        data.codigoPostal || null,
-        data.idZonaHoraria || null,
-        data.fechaInicio || null,
-        data.fechaFinalizacion || null,
-        data.valorProyecto || null,
-        data.idTipoMoneda || null,
-        data.diaValorizar ?? null,
-        data.idCliente ?? null,
-        data.observaciones || null,
-        data.idModalidad ?? null,
-        data.idEstadoProyecto ?? null,
-        data.idEstadoCotizacion ?? null,
-        data.idUsuarioCreacion,
-      ],
-    );
+    const result = await this.callPlanSingle<any>('pro_CrearProyectoV2', [
+      data.nombreProyecto,
+      data.nroProyecto,
+      data.idTipoProyecto,
+      data.idPais,
+      data.direccion1 || null,
+      data.direccion2 || null,
+      data.ciudad || null,
+      data.provincia || null,
+      data.codigoPostal || null,
+      data.idZonaHoraria || null,
+      data.fechaInicio || null,
+      data.fechaFinalizacion || null,
+      data.valorProyecto || null,
+      data.idTipoMoneda || null,
+      data.diaValorizar ?? null,
+      data.idCliente ?? null,
+      data.observaciones || null,
+      data.idModalidad ?? null,
+      data.idEstadoProyecto ?? null,
+      data.idEstadoCotizacion ?? null,
+      data.idUsuarioCreacion,
+      data.idCalendario ?? null,
+    ]);
 
     return result;
   }
 
   async editarProyecto(data: EditarProyectoData): Promise<any> {
-    const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'pro_EditarProyecto',
-      [
-        data.idProyecto,
-        data.nombreProyecto,
-        data.nroProyecto,
-        data.idTipoProyecto,
-        data.idPais,
-        data.direccion1 || null,
-        data.direccion2 || null,
-        data.ciudad || null,
-        data.provincia || null,
-        data.codigoPostal || null,
-        data.idZonaHoraria || null,
-        data.fechaInicio || null,
-        data.fechaFinalizacion || null,
-        data.valorProyecto || null,
-        data.idTipoMoneda || null,
-        data.diaValorizar ?? null,
-        data.idCliente ?? null,
-        data.observaciones || null,
-        data.idModalidad ?? null,
-        data.idEstadoProyecto ?? null,
-        data.idEstadoCotizacion ?? null,
-        data.idUsuarioModificacion,
-      ],
-    );
+    const result = await this.callPlanSingle<any>('pro_EditarProyectoV2', [
+      data.idProyecto,
+      data.nombreProyecto,
+      data.nroProyecto,
+      data.idTipoProyecto,
+      data.idPais,
+      data.direccion1 || null,
+      data.direccion2 || null,
+      data.ciudad || null,
+      data.provincia || null,
+      data.codigoPostal || null,
+      data.idZonaHoraria || null,
+      data.fechaInicio || null,
+      data.fechaFinalizacion || null,
+      data.valorProyecto || null,
+      data.idTipoMoneda || null,
+      data.diaValorizar ?? null,
+      data.idCliente ?? null,
+      data.observaciones || null,
+      data.idModalidad ?? null,
+      data.idEstadoProyecto ?? null,
+      data.idEstadoCotizacion ?? null,
+      data.idUsuarioModificacion,
+      data.idCalendario ?? null,
+      data.revisionPlan ?? null,
+      data.motivo ?? null,
+    ]);
 
     return result;
   }
@@ -258,10 +257,10 @@ export class ProyectoRepository implements IProyectoRepository {
     idProyecto: number,
     idUsuarioModificacion: number,
   ): Promise<any> {
-    const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'pro_EliminarProyecto',
-      [idProyecto, idUsuarioModificacion],
-    );
+    const result = await this.callPlanSingle<any>('pro_EliminarProyectoV2', [
+      idProyecto,
+      idUsuarioModificacion,
+    ]);
 
     return result;
   }
@@ -555,19 +554,19 @@ export class ProyectoRepository implements IProyectoRepository {
     ) {
       responsables = [data.idTrabajadorResponsable];
     }
-    const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'pro_CrearEntregableV2',
-      [
-        idProyecto,
-        data.nombre,
-        data.descripcion ?? null,
-        data.idEstado ?? ID_ESTADO_ENTREGABLE_PROCESO,
-        data.fechaEstimada ?? null,
-        data.fechaEntrega ?? null,
-        idUsuarioCreacion,
-        responsables,
-      ],
-    );
+    const result = await this.callPlanSingle<any>('pro_CrearEntregableV3', [
+      idProyecto,
+      data.nombre,
+      data.descripcion ?? null,
+      data.idEstado ?? ID_ESTADO_ENTREGABLE_PROCESO,
+      data.fechaEstimada ?? null,
+      data.fechaEntrega ?? null,
+      idUsuarioCreacion,
+      responsables,
+      data.revisionPlan ?? null,
+      data.motivo ?? null,
+      data.orden ?? null,
+    ]);
     return result;
   }
 
@@ -588,8 +587,8 @@ export class ProyectoRepository implements IProyectoRepository {
           ? [data.idTrabajadorResponsable]
           : [];
     }
-    const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'pro_ActualizarEntregableV2',
+    const result = await this.callPlanSingle<any>(
+      'pro_ActualizarEntregableV3',
       [
         idEntregable,
         data.nombre,
@@ -599,6 +598,9 @@ export class ProyectoRepository implements IProyectoRepository {
         data.fechaEntrega ?? null,
         idUsuarioModificacion,
         responsables,
+        data.revisionPlan ?? null,
+        data.motivo ?? null,
+        data.orden ?? null,
       ],
     );
     return result;
@@ -607,11 +609,15 @@ export class ProyectoRepository implements IProyectoRepository {
   async eliminarEntregableProyecto(
     idEntregable: number,
     idUsuarioModificacion: number,
+    revisionPlan?: number,
+    motivo?: string,
   ): Promise<{ success: boolean; message: string }> {
-    const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'pro_EliminarEntregable',
-      [idEntregable, idUsuarioModificacion],
-    );
+    const result = await this.callPlanSingle<any>('pro_EliminarEntregableV2', [
+      idEntregable,
+      idUsuarioModificacion,
+      revisionPlan ?? null,
+      motivo ?? null,
+    ]);
     return result;
   }
 
@@ -739,5 +745,14 @@ export class ProyectoRepository implements IProyectoRepository {
     );
     const nombre = rows?.[0]?.nombre?.trim();
     return nombre ? nombre : null;
+  }
+  /**
+   * Las versiones pro_* conservan el contrato success/message: un success=false se devuelve
+   * tal cual y el caso de uso lo responde como antes. Solo traduce errores que SQL no capturó.
+   */
+  private callPlanSingle<T>(name: string, params: unknown[]) {
+    return ejecutarPlanificacion(() =>
+      this.databaseFunctionService.callFunctionSingle<T>(name, params),
+    );
   }
 }

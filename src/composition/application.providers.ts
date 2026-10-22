@@ -1,3 +1,29 @@
+import { ObtenerPlanUseCase } from '../application/use-cases/planificacion/proyectos/obtener-plan.use-case';
+import { CrearPlanUseCase } from '../application/use-cases/planificacion/proyectos/crear-plan.use-case';
+import { ObtenerCronogramaUseCase } from '../application/use-cases/planificacion/proyectos/obtener-cronograma.use-case';
+import { ActualizarReglasUseCase } from '../application/use-cases/planificacion/proyectos/actualizar-reglas.use-case';
+import { CrearActividadPlanUseCase } from '../application/use-cases/planificacion/proyectos/crear-actividad.use-case';
+import { ObtenerActividadPlanUseCase } from '../application/use-cases/planificacion/proyectos/obtener-actividad.use-case';
+import { EditarActividadUseCase } from '../application/use-cases/planificacion/proyectos/editar-actividad.use-case';
+import { EliminarActividadPlanUseCase } from '../application/use-cases/planificacion/proyectos/eliminar-actividad.use-case';
+import { GuardarAsignacionesUseCase } from '../application/use-cases/planificacion/proyectos/guardar-asignaciones.use-case';
+import { GuardarDependenciasUseCase } from '../application/use-cases/planificacion/proyectos/guardar-dependencias.use-case';
+import { ReordenarUseCase } from '../application/use-cases/planificacion/proyectos/reordenar.use-case';
+import { PrevisualizarUseCase } from '../application/use-cases/planificacion/proyectos/previsualizar.use-case';
+import { PublicarUseCase } from '../application/use-cases/planificacion/proyectos/publicar.use-case';
+import { LineaBaseUseCase } from '../application/use-cases/planificacion/proyectos/linea-base.use-case';
+import { ReprogramarUseCase } from '../application/use-cases/planificacion/proyectos/reprogramar.use-case';
+import { EstadoActividadUseCase } from '../application/use-cases/planificacion/proyectos/estado-actividad.use-case';
+import { EstadoPlanUseCase } from '../application/use-cases/planificacion/proyectos/estado-plan.use-case';
+import { HistorialUseCase } from '../application/use-cases/planificacion/proyectos/historial.use-case';
+import { AmpliacionesUseCase } from '../application/use-cases/planificacion/proyectos/ampliaciones.use-case';
+import { ResolverAmpliacionUseCase } from '../application/use-cases/planificacion/proyectos/resolver-ampliacion.use-case';
+import { MisAsignacionesUseCase } from '../application/use-cases/planificacion/proyectos/mis-asignaciones.use-case';
+import { EstadoParteUseCase } from '../application/use-cases/planificacion/proyectos/estado-parte.use-case';
+import { SolicitarAmpliacionUseCase } from '../application/use-cases/planificacion/proyectos/solicitar-ampliacion.use-case';
+import { MisAmpliacionesUseCase } from '../application/use-cases/planificacion/proyectos/mis-ampliaciones.use-case';
+import { PLANIFICACION_REPOSITORY } from '../domain/repositories/planificacion.repository.interface';
+import { PlanificacionAccessService } from '../application/services/planificacion-access.service';
 import { ListarCalendariosPublicadosUseCase } from '../application/use-cases/trabajador/listar-calendarios-publicados.use-case';
 import { AUTHORIZATION_POLICIES } from '../application/ports/authorization.port';
 import { GRANULAR_PERMISSIONS } from '../application/ports/granular-permissions.port';
@@ -518,6 +544,34 @@ import { ActivityDocumentsAdapter } from '../infrastructure/word/activity-docume
 
 /** Ensamblaje de dependencias fuera de aplicación; los casos de uso son clases TypeScript puras. */
 const dependencies = new Map<Type<any>, InjectionToken[]>([
+  [
+    PlanificacionAccessService,
+    [PLANIFICACION_REPOSITORY, AuthorizationService],
+  ],
+  [ObtenerPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [CrearPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [ObtenerCronogramaUseCase, [PLANIFICACION_REPOSITORY]],
+  [ActualizarReglasUseCase, [PLANIFICACION_REPOSITORY]],
+  [CrearActividadPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [ObtenerActividadPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [EditarActividadUseCase, [PLANIFICACION_REPOSITORY]],
+  [EliminarActividadPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [GuardarAsignacionesUseCase, [PLANIFICACION_REPOSITORY]],
+  [GuardarDependenciasUseCase, [PLANIFICACION_REPOSITORY]],
+  [ReordenarUseCase, [PLANIFICACION_REPOSITORY]],
+  [PrevisualizarUseCase, [PLANIFICACION_REPOSITORY]],
+  [PublicarUseCase, [PLANIFICACION_REPOSITORY]],
+  [LineaBaseUseCase, [PLANIFICACION_REPOSITORY]],
+  [ReprogramarUseCase, [PLANIFICACION_REPOSITORY]],
+  [EstadoActividadUseCase, [PLANIFICACION_REPOSITORY]],
+  [EstadoPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [HistorialUseCase, [PLANIFICACION_REPOSITORY]],
+  [AmpliacionesUseCase, [PLANIFICACION_REPOSITORY]],
+  [ResolverAmpliacionUseCase, [PLANIFICACION_REPOSITORY]],
+  [MisAsignacionesUseCase, [PLANIFICACION_REPOSITORY]],
+  [EstadoParteUseCase, [PLANIFICACION_REPOSITORY, PlanificacionAccessService]],
+  [SolicitarAmpliacionUseCase, [PLANIFICACION_REPOSITORY]],
+  [MisAmpliacionesUseCase, [PLANIFICACION_REPOSITORY]],
   [AuthorizationService, [GRANULAR_PERMISSIONS, AUTHORIZATION_POLICIES]],
   [GranularPermissionsService, [GRANULAR_PERMISSIONS, AuthorizationService]],
   [IssueAccessService, [AuthorizationService]],
@@ -903,19 +957,32 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
   [ActualizarDocumentoProyectoUseCase, [PROYECTO_REPOSITORY]],
   [
     ActualizarEntregableProyectoUseCase,
-    [PROYECTO_REPOSITORY, BroadcastService, NestLoggerFactory],
+    [
+      PROYECTO_REPOSITORY,
+      BroadcastService,
+      NestLoggerFactory,
+      PlanificacionAccessService,
+    ],
   ],
   [ActualizarNivelAccesoProyectoUseCase, [PROYECTO_REPOSITORY]],
   [AsignarAccesoProyectoUseCase, [PROYECTO_REPOSITORY]],
   [CrearDocumentoProyectoUseCase, [PROYECTO_REPOSITORY]],
   [
     CrearEntregableProyectoUseCase,
-    [PROYECTO_REPOSITORY, BroadcastService, NestLoggerFactory],
+    [
+      PROYECTO_REPOSITORY,
+      BroadcastService,
+      NestLoggerFactory,
+      PlanificacionAccessService,
+    ],
   ],
   [CrearProyectoUseCase, [PROYECTO_REPOSITORY]],
-  [EditarProyectoUseCase, [PROYECTO_REPOSITORY]],
+  [EditarProyectoUseCase, [PROYECTO_REPOSITORY, PlanificacionAccessService]],
   [EliminarDocumentoProyectoUseCase, [PROYECTO_REPOSITORY]],
-  [EliminarEntregableProyectoUseCase, [PROYECTO_REPOSITORY]],
+  [
+    EliminarEntregableProyectoUseCase,
+    [PROYECTO_REPOSITORY, PlanificacionAccessService],
+  ],
   [EliminarProyectoUseCase, [PROYECTO_REPOSITORY]],
   [GuardarCoordinadoresProyectoUseCase, [PROYECTO_REPOSITORY]],
   [ListarCoordinadoresProyectoUseCase, [PROYECTO_REPOSITORY]],

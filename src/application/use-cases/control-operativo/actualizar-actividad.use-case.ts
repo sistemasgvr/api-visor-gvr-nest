@@ -104,7 +104,7 @@ export class ActualizarActividadUseCase {
     }
 
     if (
-      params.entregableCulminado === true &&
+      data.entregableculminado === true &&
       data.identregable != null &&
       Number(data.identregable) > 0
     ) {

@@ -1,3 +1,4 @@
+import { PlanificacionAccessService } from '../../services/planificacion-access.service';
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
 import {
   ForbiddenError,
@@ -7,18 +8,28 @@ import {
 import { puedeGestionarEntregable } from './entregable-acceso.helper';
 
 export class EliminarEntregableProyectoUseCase {
-  constructor(private readonly proyectoRepository: IProyectoRepository) {}
+  constructor(
+    private readonly proyectoRepository: IProyectoRepository,
+    private readonly planificacion: PlanificacionAccessService,
+  ) {}
 
   async execute(
     idEntregable: number,
     idUsuarioModificacion: number,
     accesoTotal = false,
+    revisionPlan?: number,
+    motivo?: string,
   ) {
     const actual =
       await this.proyectoRepository.obtenerEntregablePorId(idEntregable);
     if (!actual) {
       throw new NotFoundError('El entregable no existe o ya fue eliminado');
     }
+
+    await this.planificacion.editarProyectoConPlan(
+      idUsuarioModificacion,
+      Number(actual.idproyecto),
+    );
 
     const puede = await puedeGestionarEntregable(this.proyectoRepository, {
       entregable: actual,
@@ -34,6 +45,8 @@ export class EliminarEntregableProyectoUseCase {
     const resultado = await this.proyectoRepository.eliminarEntregableProyecto(
       idEntregable,
       idUsuarioModificacion,
+      revisionPlan,
+      motivo,
     );
 
     if (!resultado?.success) {

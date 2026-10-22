@@ -100,4 +100,9 @@ export class CreateProyectoDto {
   @IsOptional()
   @IsInt()
   idEstadoCotizacion?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  idCalendario?: number | null;
 }
