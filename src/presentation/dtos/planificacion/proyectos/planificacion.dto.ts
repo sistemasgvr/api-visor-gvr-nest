@@ -68,6 +68,17 @@ export class AsignacionParamsDto {
 
   idAsignacion!: number;
 }
+export class TrabajadorParamsDto {
+  static readonly schema: z.ZodType<TrabajadorParamsDto> =
+    defineZodDto<TrabajadorParamsDto>('TrabajadorParamsDto', {
+      idTrabajador: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+    });
+
+  idTrabajador!: number;
+}
 export class CrearPlanDto {
   static readonly schema: z.ZodType<CrearPlanDto> = defineZodDto<CrearPlanDto>(
     'CrearPlanDto',
@@ -277,6 +288,18 @@ export class CrearDatosActividadDto {
           .meta({ format: 'date-time' }),
         when: (_o, v) => v !== undefined && v !== null,
       },
+      dependencias: {
+        schema: z
+          .array(z.lazy(() => DependenciaPlanDto.schema))
+          .max(200)
+          .refine(
+            (values) =>
+              new Set(values.map((v) => v.idpredecesora)).size ===
+              values.length,
+            { message: 'No se permiten predecesoras repetidas' },
+          ),
+        when: (_o, v) => v !== undefined,
+      },
       asignaciones: {
         schema: z
           .array(z.lazy(() => PersonaPlanDto.schema))
@@ -310,6 +333,8 @@ export class CrearDatosActividadDto {
   fechanofinalizarantes?: string | null;
 
   fechalimite?: string | null;
+
+  dependencias?: DependenciaPlanDto[];
 
   asignaciones?: PersonaPlanDto[];
 }
@@ -380,6 +405,18 @@ export class EditarDatosActividadDto {
           .meta({ format: 'date-time' }),
         when: (_o, v) => v !== undefined && v !== null,
       },
+      dependencias: {
+        schema: z
+          .array(z.lazy(() => DependenciaPlanDto.schema))
+          .max(200)
+          .refine(
+            (values) =>
+              new Set(values.map((v) => v.idpredecesora)).size ===
+              values.length,
+            { message: 'No se permiten predecesoras repetidas' },
+          ),
+        when: (_o, v) => v !== undefined,
+      },
       asignaciones: {
         schema: z
           .array(z.lazy(() => PersonaPlanDto.schema))
@@ -413,6 +450,8 @@ export class EditarDatosActividadDto {
   fechanofinalizarantes?: string | null;
 
   fechalimite?: string | null;
+
+  dependencias?: DependenciaPlanDto[];
 
   asignaciones?: PersonaPlanDto[];
 }
@@ -548,10 +587,32 @@ export class DependenciasPlanDto extends RevisionPlanDto {
 
   dependencias!: DependenciaPlanDto[];
 }
+export class MovimientoActividadOrdenDto {
+  static readonly schema: z.ZodType<MovimientoActividadOrdenDto> =
+    defineZodDto<MovimientoActividadOrdenDto>('MovimientoActividadOrdenDto', {
+      idactividad: { schema: z.number().int().min(1).max(2147483647) },
+      identregable: { schema: z.number().int().min(1).max(2147483647) },
+      revision: { schema: z.number().int().min(1).max(2147483647) },
+    });
+  idactividad!: number;
+  identregable!: number;
+  revision!: number;
+}
 export class OrdenPlanDto extends RevisionPlanDto {
   static readonly schema: z.ZodType<OrdenPlanDto> = defineZodDto<OrdenPlanDto>(
     'OrdenPlanDto',
     {
+      movimientos: {
+        schema: z
+          .array(MovimientoActividadOrdenDto.schema)
+          .max(2000)
+          .refine(
+            (values) =>
+              new Set(values.map((v) => v.idactividad)).size === values.length,
+            { message: 'Actividad repetida' },
+          )
+          .optional(),
+      },
       entregables: {
         schema: z
           .array(z.number().int().min(1))
@@ -582,6 +643,7 @@ export class OrdenPlanDto extends RevisionPlanDto {
     () => mappedDto(RevisionPlanDto.schema),
   );
 
+  movimientos?: MovimientoActividadOrdenDto[];
   entregables!: number[];
 
   actividades!: number[];
@@ -712,6 +774,10 @@ export class CambiosDto {
   static readonly schema: z.ZodType<CambiosDto> = defineZodDto<CambiosDto>(
     'CambiosDto',
     {
+      nuevaActividad: {
+        schema: z.lazy(() => CrearDatosActividadDto.schema),
+        when: (_o, v) => v !== undefined,
+      },
       idactividad: {
         schema: z.number().int().max(2147483647).min(1),
         when: (_o, v) => v !== undefined,
@@ -810,6 +876,8 @@ export class CambiosDto {
       },
     },
   );
+
+  nuevaActividad?: CrearDatosActividadDto;
 
   idactividad?: number;
 

@@ -13,6 +13,7 @@ export class UpdateEntregableProyectoDto {
   static readonly schema: z.ZodType<UpdateEntregableProyectoDto> =
     defineZodDto<UpdateEntregableProyectoDto>('UpdateEntregableProyectoDto', {
       nombre: { schema: z.string().max(255), example: 'Entrega fase 1 (rev.)' },
+      color: { schema: z.string().regex(/^#[0-9a-fA-F]{6}$/), optional: true },
       descripcion: {
         schema: z.string().max(1000),
         optional: true,
@@ -68,6 +69,8 @@ export class UpdateEntregableProyectoDto {
 
   @ApiProperty({ example: 'Entrega fase 1 (rev.)', maxLength: 255 })
   nombre: string;
+
+  color?: string | null;
 
   @ApiPropertyOptional({ example: 'Descripción actualizada', maxLength: 1000 })
   descripcion?: string;

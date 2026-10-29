@@ -17,4 +17,5 @@ export class CreateEntregableProyectoDto {
   revisionPlan?: number;
   motivo?: string;
   orden?: number;
+  color?: string;
 }

@@ -68,7 +68,7 @@ describe('OpenAPI completo de toda la API', () => {
         ),
       ),
     );
-    expect(operations.length).toBe(501);
+    expect(operations.length).toBe(508);
     for (const [, operation] of operations) {
       const op = operation as {
         summary?: string;

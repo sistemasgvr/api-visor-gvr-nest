@@ -126,6 +126,7 @@ export interface CrearEntregableProyectoData {
   revisionPlan?: number;
   motivo?: string;
   orden?: number;
+  color?: string;
   idProyecto: number;
   nombre: string;
   descripcion?: string;
@@ -142,6 +143,7 @@ export interface CrearEntregableProyectoData {
 }
 
 export interface ActualizarEntregableProyectoData {
+  color?: string | null;
   revisionPlan?: number;
   motivo?: string;
   orden?: number;

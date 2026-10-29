@@ -1,3 +1,5 @@
+import { ConflictError } from '../../application/errors/application.error';
+import { ejecutarPlanificacion } from './planificacion-errors';
 import { Injectable, Logger } from '@nestjs/common';
 import type {
   ITrabajadorRepository,
@@ -111,8 +113,47 @@ export class TrabajadorRepository implements ITrabajadorRepository {
     };
   }
 
-  async listarCalendariosPublicados(): Promise<{ id: number; nombre: string; numeroversion: number }[]> {
-    return this.databaseFunctionService.callFunction('tra_ListarCalendariosPublicados');
+  async asignarCalendario(
+    actor: number,
+    idTrabajador: number,
+    idCalendario: number,
+    anterior: number | null,
+  ) {
+    return ejecutarPlanificacion(async () => {
+      try {
+        const row = await this.databaseFunctionService.callFunctionSingle<{
+          tra_AsignarCalendario: {
+            id: number;
+            idcalendario: number;
+            nombrecalendario: string;
+          };
+        }>('tra_AsignarCalendario', [
+          actor,
+          idTrabajador,
+          idCalendario,
+          anterior,
+        ]);
+        if (!row?.tra_AsignarCalendario)
+          throw new Error('Respuesta de asignación ausente');
+        return row.tra_AsignarCalendario;
+      } catch (error) {
+        const code =
+          (error as { code?: string; driverError?: { code?: string } })
+            ?.driverError?.code ?? (error as { code?: string })?.code;
+        if (code === '40001')
+          throw new ConflictError(
+            'El calendario del colaborador cambió; actualice los datos antes de asignarlo.',
+          );
+        throw error;
+      }
+    });
+  }
+  async listarCalendariosPublicados(): Promise<
+    { id: number; nombre: string; numeroversion: number }[]
+  > {
+    return this.databaseFunctionService.callFunction(
+      'tra_ListarCalendariosPublicados',
+    );
   }
 
   async listarTrabajadoresAdministrativos(): Promise<any[]> {

@@ -1,5 +1,115 @@
 {
   "operations": {
+    "PlanificacionEstadosController_resumen": {
+      "controller": "PlanificacionEstadosController",
+      "method": "resumen",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EstadoPlanProyecto"
+            }
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/EstadosPlanesQueryDto"
+          },
+          "required": true,
+          "source": "@Query() query: EstadosPlanesQueryDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireScopedPermission",
+          "codes": "proyectos.planificacion.ver"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion-estados.controller.ts",
+      "summary": "Avance, horas, fechas y semáforo de los planes de una página"
+    },
+    "PlanificacionEstadosController_estados": {
+      "controller": "PlanificacionEstadosController",
+      "method": "estados",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EstadoPlanProyecto"
+            }
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/EstadosPlanesQueryDto"
+          },
+          "required": true,
+          "source": "@Query() query: EstadosPlanesQueryDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireScopedPermission",
+          "codes": "proyectos.planificacion.ver"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion-estados.controller.ts",
+      "summary": "Estado de planificación de los proyectos de una página"
+    },
     "AuthorizationController_current": {
       "controller": "AuthorizationController",
       "method": "current",
@@ -555,6 +665,61 @@
       "source": "src/presentation/controllers/authorization.controller.ts",
       "summary": "navigation"
     },
+    "PlanificacionController_listarEquipo": {
+      "controller": "PlanificacionController",
+      "method": "listarEquipo",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiembroEquipoPlan"
+            }
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/ProyectoPlanParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: Dto.ProyectoPlanParamsDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireResourcePermission",
+          "codes": "proyectos.planificacion.ver"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion.controller.ts",
+      "summary": "listar Equipo"
+    },
     "PlanificacionController_obtenerPlan": {
       "controller": "PlanificacionController",
       "method": "obtenerPlan",
@@ -661,6 +826,66 @@
       ],
       "source": "src/presentation/controllers/planificacion.controller.ts",
       "summary": "crear Plan"
+    },
+    "PlanificacionController_obtenerCalendario": {
+      "controller": "PlanificacionController",
+      "method": "obtenerCalendario",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CalendarioPlan"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/PlanParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: Dto.PlanParamsDto"
+        },
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/CalendarioPlanQueryDto"
+          },
+          "required": true,
+          "source": "@Query() data: CalendarioPlanQueryDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireResourcePermission",
+          "codes": "proyectos.planificacion.ver"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion.controller.ts",
+      "summary": "obtener Calendario"
     },
     "PlanificacionController_obtenerCronograma": {
       "controller": "PlanificacionController",
@@ -7808,10 +8033,7 @@
         ],
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AsignacionColaboradorPlan"
-            }
+            "$ref": "#/components/schemas/AsignacionesColaborador"
           },
           "message": {
             "type": "string"
@@ -7848,6 +8070,66 @@
       ],
       "source": "src/presentation/controllers/planificacion-colaborador.controller.ts",
       "summary": "mis Asignaciones"
+    },
+    "PlanificacionColaboradorController_asignacionesTrabajador": {
+      "controller": "PlanificacionColaboradorController",
+      "method": "asignacionesTrabajador",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AsignacionesColaborador"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/TrabajadorParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: Dto.TrabajadorParamsDto"
+        },
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/MisAsignacionesDto"
+          },
+          "required": true,
+          "source": "@Query() data: Dto.MisAsignacionesDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireScopedPermission",
+          "codes": "control_operativo.actividades.ver"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion-colaborador.controller.ts",
+      "summary": "asignaciones Trabajador"
     },
     "PlanificacionColaboradorController_estadoParte": {
       "controller": "PlanificacionColaboradorController",
@@ -12648,6 +12930,79 @@
       "source": "src/presentation/controllers/empresa.controller.ts",
       "summary": "Eliminar empresa (baja lógica)"
     },
+    "TrabajadorController_asignarCalendario": {
+      "controller": "TrabajadorController",
+      "method": "asignarCalendario",
+      "verb": "patch",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number"
+              },
+              "idcalendario": {
+                "type": "number"
+              },
+              "nombrecalendario": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "idcalendario",
+              "nombrecalendario"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "example": "Calendario asignado al colaborador"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "name": "id",
+          "schema": {
+            "type": "number"
+          },
+          "required": true,
+          "source": "@Param('id', ParseIntPipe) id: number"
+        }
+      ],
+      "body": {
+        "$ref": "#/components/schemas/AsignarCalendarioTrabajadorDto"
+      },
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireGranularPermission",
+          "codes": "usuarios.trabajadores.editar"
+        }
+      ],
+      "source": "src/presentation/controllers/trabajador.controller.ts",
+      "summary": "asignar Calendario"
+    },
     "TrabajadorController_listarCalendariosPublicados": {
       "controller": "TrabajadorController",
       "method": "listarCalendariosPublicados",
@@ -14326,6 +14681,69 @@
       ],
       "source": "src/presentation/controllers/entregable.controller.ts",
       "summary": "Eliminar entregable (baja lógica)"
+    },
+    "ProyectoController_listarCalendariosPublicados": {
+      "controller": "ProyectoController",
+      "method": "listarCalendariosPublicados",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "number"
+                },
+                "nombre": {
+                  "type": "string"
+                },
+                "numeroversion": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "nombre",
+                "numeroversion"
+              ]
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Calendarios publicados obtenidos"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireScopedPermission",
+          "codes": "proyectos.proyectos.crear"
+        }
+      ],
+      "source": "src/presentation/controllers/proyecto.controller.ts",
+      "summary": "Calendarios publicados para asignar a proyectos"
     },
     "ProyectoController_listarEstadisticasProyectosPorEstado": {
       "controller": "ProyectoController",
@@ -41934,6 +42352,87 @@
     }
   },
   "schemas": {
+    "EstadoPlanProyecto": {
+      "type": "object",
+      "properties": {
+        "metricas": {
+          "type": "object",
+          "properties": {
+            "avancereal": {
+              "type": "number",
+              "nullable": true
+            },
+            "avanceplan": {
+              "type": "number",
+              "nullable": true
+            },
+            "minutosregistrados": {
+              "type": "number"
+            },
+            "minutosplanificados": {
+              "type": "number"
+            },
+            "fechafinplanificada": {
+              "type": "string",
+              "nullable": true
+            },
+            "desviodiashabiles": {
+              "type": "number",
+              "nullable": true
+            },
+            "semaforo": {
+              "type": "string",
+              "enum": [
+                "atrasado",
+                "alerta",
+                "enplazo",
+                "poriniciar",
+                "revision",
+                "culminado"
+              ],
+              "nullable": true
+            },
+            "aviso": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          "required": [
+            "avancereal",
+            "avanceplan",
+            "minutosregistrados",
+            "minutosplanificados",
+            "fechafinplanificada",
+            "desviodiashabiles",
+            "semaforo",
+            "aviso"
+          ]
+        },
+        "idproyecto": {
+          "type": "number"
+        },
+        "idplan": {
+          "type": "number"
+        },
+        "idestadoplan": {
+          "type": "number"
+        },
+        "revision": {
+          "type": "number"
+        },
+        "publicadoen": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": [
+        "idproyecto",
+        "idplan",
+        "idestadoplan",
+        "revision",
+        "publicadoen"
+      ]
+    },
     "AuthorizationSnapshot": {
       "type": "object",
       "properties": {
@@ -42233,6 +42732,40 @@
         "permisos"
       ]
     },
+    "MiembroEquipoPlan": {
+      "type": "object",
+      "properties": {
+        "idtrabajador": {
+          "type": "number"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "foto": {
+          "type": "string",
+          "nullable": true
+        },
+        "puesto": {
+          "type": "string",
+          "nullable": true
+        },
+        "idcalendario": {
+          "type": "number",
+          "nullable": true
+        },
+        "tienecalendariopublicado": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "idtrabajador",
+        "nombre",
+        "foto",
+        "puesto",
+        "idcalendario",
+        "tienecalendariopublicado"
+      ]
+    },
     "PlanProyectoDetalle": {
       "type": "object",
       "properties": {
@@ -42321,6 +42854,49 @@
         "idestadoplan",
         "idaprobador",
         "publicadoen"
+      ]
+    },
+    "CalendarioPlan": {
+      "type": "object",
+      "properties": {
+        "idcalendario": {
+          "type": "number"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "idversion": {
+          "type": "number"
+        },
+        "dias": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fecha": {
+                "type": "string"
+              },
+              "minutos": {
+                "type": "number"
+              },
+              "nombre": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "fecha",
+              "minutos",
+              "nombre"
+            ]
+          }
+        }
+      },
+      "required": [
+        "idcalendario",
+        "nombre",
+        "idversion",
+        "dias"
       ]
     },
     "CronogramaProyecto": {
@@ -45647,6 +46223,22 @@
     "FechaActividadPlan": {
       "type": "object",
       "properties": {
+        "duracionlaboral": {
+          "type": "object",
+          "properties": {
+            "dias": {
+              "type": "number"
+            },
+            "minutos": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "dias",
+            "minutos"
+          ],
+          "nullable": true
+        },
         "idactividad": {
           "type": "number"
         },
@@ -45906,20 +46498,125 @@
         "idestadosolicitud"
       ]
     },
+    "AsignacionesColaborador": {
+      "type": "object",
+      "properties": {
+        "planes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/PlanColaborador"
+          }
+        },
+        "asignaciones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/AsignacionColaboradorPlan"
+          }
+        }
+      },
+      "required": [
+        "planes",
+        "asignaciones"
+      ]
+    },
+    "PlanColaborador": {
+      "type": "object",
+      "properties": {
+        "idplan": {
+          "type": "number"
+        },
+        "idproyecto": {
+          "type": "number"
+        },
+        "nroproyecto": {
+          "type": "string",
+          "nullable": true
+        },
+        "nombreproyecto": {
+          "type": "string"
+        },
+        "idestadoplan": {
+          "type": "number"
+        },
+        "bloquearexceso": {
+          "type": "boolean"
+        },
+        "toleranciaporcentaje": {
+          "type": "number"
+        },
+        "alertaporcentaje": {
+          "type": "number"
+        },
+        "permitirnoplaneadas": {
+          "type": "boolean"
+        },
+        "idaprobador": {
+          "type": "number",
+          "nullable": true
+        },
+        "nombreaprobador": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": [
+        "idplan",
+        "idproyecto",
+        "nroproyecto",
+        "nombreproyecto",
+        "idestadoplan",
+        "bloquearexceso",
+        "toleranciaporcentaje",
+        "alertaporcentaje",
+        "permitirnoplaneadas",
+        "idaprobador",
+        "nombreaprobador"
+      ]
+    },
     "AsignacionColaboradorPlan": {
       "type": "object",
       "properties": {
+        "idproyecto": {
+          "type": "number"
+        },
         "nombre": {
           "type": "string"
         },
         "identregable": {
           "type": "number"
         },
+        "nombreentregable": {
+          "type": "string"
+        },
         "idplan": {
           "type": "number"
         },
+        "idestadoactividadplan": {
+          "type": "number"
+        },
+        "codigo": {
+          "type": "string",
+          "description": "Código EDT del cronograma: entregable.actividad."
+        },
         "fecha": {
           "type": "string"
+        },
+        "inicio": {
+          "type": "string",
+          "nullable": true,
+          "description": "Fechas calculadas de la actividad y de la parte; nulas si el plan no puede calcularse."
+        },
+        "fin": {
+          "type": "string",
+          "nullable": true
+        },
+        "iniciopersona": {
+          "type": "string",
+          "nullable": true
+        },
+        "finpersona": {
+          "type": "string",
+          "nullable": true
         },
         "saldo": {
           "$ref": "#/components/schemas/SaldoAsignacion"
@@ -45940,9 +46637,6 @@
           "type": "number"
         },
         "idestadoactividad": {
-          "type": "number"
-        },
-        "idproyecto": {
           "type": "number"
         },
         "estado": {
@@ -45968,10 +46662,18 @@
         }
       },
       "required": [
+        "idproyecto",
         "nombre",
         "identregable",
+        "nombreentregable",
         "idplan",
+        "idestadoactividadplan",
+        "codigo",
         "fecha",
+        "inicio",
+        "fin",
+        "iniciopersona",
+        "finpersona",
         "saldo",
         "id",
         "idactividad",
@@ -46688,15 +47390,15 @@
     "ResumenVersionCalendario": {
       "type": "object",
       "properties": {
+        "revision": {
+          "type": "number"
+        },
         "estado": {
           "type": "number",
           "enum": [
             0,
             1
           ]
-        },
-        "revision": {
-          "type": "number"
         },
         "id": {
           "type": "number"
@@ -46719,8 +47421,8 @@
         }
       },
       "required": [
-        "estado",
         "revision",
+        "estado",
         "id",
         "numero",
         "idestado",

@@ -1,6 +1,8 @@
 export class UpdateEntregableProyectoDto {
   nombre: string;
 
+  color?: string | null;
+
   descripcion?: string;
 
   idEstado?: number;

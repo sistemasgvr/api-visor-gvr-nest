@@ -41,7 +41,9 @@ export const operationNotes: Record<string, string> = {
   PlanificacionController_resolverAmpliacion:
     'Solo resuelve el aprobador actual del plan. Cero minutos aprobados significa rechazo; una aprobación parcial no puede superar lo solicitado. Resolver dos veces se rechaza y los minutos se suman una sola vez.',
   PlanificacionColaboradorController_misAsignaciones:
-    'Selector del registro diario. La persona se resuelve desde el JWT: no se acepta idtrabajador del cliente. `fecha` es obligatoria; `idProyecto` filtra opcionalmente. Incluye saldo y contexto de cada asignación.',
+    'Selector del registro diario. La persona se resuelve desde el JWT: no se acepta idtrabajador del cliente. `fecha` es obligatoria; `idProyecto` filtra opcionalmente. Devuelve `planes` (reglas de registro de los planes vigentes) y `asignaciones` (saldo, código EDT, proyecto y fechas calculadas de la actividad y de la parte).',
+  PlanificacionColaboradorController_asignacionesTrabajador:
+    'Mismo contrato que mis-asignaciones para la persona dueña de una jornada. Exige control_operativo.actividades.ver con esa persona dentro del alcance (todos, su equipo o él mismo). Solo lectura: culminar partes y solicitar ampliaciones siguen siendo propios.',
   PlanificacionColaboradorController_estadoParte:
     'Opera únicamente la asignación propia. El colaborador puede culminar su parte; reabrir una parte culminada exige además proyectos.planificacion.dar_conformidad en ese proyecto.',
   PlanificacionColaboradorController_solicitarAmpliacion:

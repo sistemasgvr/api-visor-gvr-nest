@@ -87,3 +87,7 @@ Se mantienen las decisiones pendientes de la sección 11 del PRD: las ampliacion
 
 
 Verificación posterior a las correcciones del usuario (2026-10-22): tipos, arquitectura, contratos, cobertura de autorización y build correctos; 233 pruebas unitarias, 108 HTTP y 44 comprobaciones PostgreSQL locales correctas. Se actualizó la prueba de eliminación de proyecto para comprobar `success=false` y que el proyecto siga activo. Los datos de prueba se revirtieron.
+
+## Minifases frontend O1/O2 (22/10/2026)
+
+Dos lecturas adicionales implementadas y aplicadas localmente: estados por lote y equipo del proyecto. Ahora son 26 endpoints de planificación y 53 funciones SQL de este conjunto. Regresión específica: 53 pruebas unitarias, 39 HTTP, 173 comprobaciones SQL embebidas y 53 PostgreSQL reales con ROLLBACK. Se alineó `pla_AutorizarOperacionPlan` con la fuente revisada para respetar la autorización de registros por terceros del guard de Control Operativo. [Evidencia y comandos](../../front-visor-gvr/docs/PLANIFICACION-FRONTEND.md#seguimiento-minifases).

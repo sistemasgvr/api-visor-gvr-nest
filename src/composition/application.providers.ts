@@ -1,3 +1,7 @@
+import { AsignarCalendarioTrabajadorUseCase } from '../application/use-cases/trabajador/asignar-calendario-trabajador.use-case';
+import { ObtenerCalendarioPlanUseCase } from '../application/use-cases/planificacion/proyectos/obtener-calendario-plan.use-case';
+import { ListarEquipoPlanUseCase } from '../application/use-cases/planificacion/proyectos/listar-equipo-plan.use-case';
+import { ListarEstadosPlanesUseCase } from '../application/use-cases/planificacion/proyectos/listar-estados-planes.use-case';
 import { ObtenerPlanUseCase } from '../application/use-cases/planificacion/proyectos/obtener-plan.use-case';
 import { CrearPlanUseCase } from '../application/use-cases/planificacion/proyectos/crear-plan.use-case';
 import { ObtenerCronogramaUseCase } from '../application/use-cases/planificacion/proyectos/obtener-cronograma.use-case';
@@ -548,6 +552,9 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
     PlanificacionAccessService,
     [PLANIFICACION_REPOSITORY, AuthorizationService],
   ],
+  [ObtenerCalendarioPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [ListarEquipoPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [ListarEstadosPlanesUseCase, [PLANIFICACION_REPOSITORY]],
   [ObtenerPlanUseCase, [PLANIFICACION_REPOSITORY]],
   [CrearPlanUseCase, [PLANIFICACION_REPOSITORY]],
   [ObtenerCronogramaUseCase, [PLANIFICACION_REPOSITORY]],
@@ -1018,6 +1025,7 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
     [TRABAJADOR_REPOSITORY, EnviarCorreoBienvenidaUseCase],
   ],
   [EditarTrabajadorUseCase, [TRABAJADOR_REPOSITORY]],
+  [AsignarCalendarioTrabajadorUseCase, [TRABAJADOR_REPOSITORY]],
   [EliminarContratoTrabajadorUseCase, [TRABAJADOR_REPOSITORY]],
   [EliminarTrabajadorUseCase, [TRABAJADOR_REPOSITORY]],
   [ListarAdministrativosUseCase, [TRABAJADOR_REPOSITORY]],

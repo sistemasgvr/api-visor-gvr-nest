@@ -1,3 +1,7 @@
+import { ObtenerCalendarioPlanUseCase } from '../../application/use-cases/planificacion/proyectos/obtener-calendario-plan.use-case';
+import { ListarEquipoPlanUseCase } from '../../application/use-cases/planificacion/proyectos/listar-equipo-plan.use-case';
+import { PlanificacionEstadosController } from '../../presentation/controllers/planificacion-estados.controller';
+import { ListarEstadosPlanesUseCase } from '../../application/use-cases/planificacion/proyectos/listar-estados-planes.use-case';
 import { AuthorizationModule } from './platform/authorization.module';
 import { Module } from '@nestjs/common';
 import { PLANIFICACION_REPOSITORY } from '../../domain/repositories/planificacion.repository.interface';
@@ -34,10 +38,17 @@ import { SolicitarAmpliacionUseCase } from '../../application/use-cases/planific
 import { MisAmpliacionesUseCase } from '../../application/use-cases/planificacion/proyectos/mis-ampliaciones.use-case';
 @Module({
   imports: [DatabaseModule, AuthenticationModule, AuthorizationModule],
-  controllers: [PlanificacionController, PlanificacionColaboradorController],
+  controllers: [
+    PlanificacionEstadosController,
+    PlanificacionController,
+    PlanificacionColaboradorController,
+  ],
   providers: [
     { provide: PLANIFICACION_REPOSITORY, useClass: PlanificacionRepository },
     applicationProvider(PlanificacionAccessService),
+    applicationProvider(ObtenerCalendarioPlanUseCase),
+    applicationProvider(ListarEquipoPlanUseCase),
+    applicationProvider(ListarEstadosPlanesUseCase),
     applicationProvider(ObtenerPlanUseCase),
     applicationProvider(CrearPlanUseCase),
     applicationProvider(ObtenerCronogramaUseCase),

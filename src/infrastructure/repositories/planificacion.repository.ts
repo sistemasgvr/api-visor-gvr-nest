@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { assignedGvrProjectIds } from '../auth/catalog-policies';
 import type * as Input from '../../domain/entities/planificacion-input.entity';
 import type {
+  CalendarioPlan,
+  MiembroEquipoPlan,
+  EstadoPlanProyecto,
   PlanificacionJson,
   CambioEstadoActividadPlan,
   CambioEstadoPlan,
   CambioEstadoPartePlan,
-  AsignacionColaboradorPlan,
+  AsignacionesColaborador,
   AsignacionContexto,
   ActividadPlan,
   ActividadPlanDetalle,
@@ -26,6 +30,38 @@ import { ejecutarPlanificacion } from './planificacion-errors';
 @Injectable()
 export class PlanificacionRepository implements IPlanificacionRepository {
   constructor(private readonly database: DatabaseFunctionService) {}
+  obtenerCalendarioPlan(
+    actor: number,
+    ctx: Input.ContextoPlan,
+    data: Input.CalendarioPlanInput,
+  ) {
+    return this.call<CalendarioPlan>('pla_ObtenerCalendarioPlan', [
+      actor,
+      ctx.idPlan,
+      data.desde,
+      data.hasta,
+    ]);
+  }
+  listarEquipoPlan(actor: number, idProyecto: number) {
+    return this.call<MiembroEquipoPlan[]>('pla_ListarEquipoPlan', [
+      actor,
+      idProyecto,
+    ]);
+  }
+  proyectosAsignados(actor: number) {
+    return ejecutarPlanificacion(() =>
+      assignedGvrProjectIds(this.database, actor),
+    );
+  }
+  listarEstadosPlanes(actor: number, ids: number[]) {
+    return this.call<EstadoPlanProyecto[]>('pla_ListarEstadoPlanes', [
+      actor,
+      ids,
+    ]);
+  }
+  listarResumenPlanes(actor: number, ids: number[]) {
+    return this.call<EstadoPlanProyecto[]>('pla_ListarResumenPlanes', [actor, ids]);
+  }
   obtenerPlan(actor: number, ctx: Input.ContextoPlan) {
     return this.call<PlanProyectoDetalle>('pla_ObtenerPlanProyecto', [
       actor,
@@ -146,12 +182,13 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     ctx: Input.ContextoPlan,
     data: Input.OrdenPlanInput,
   ) {
-    return this.call<boolean>('pla_ReordenarCronograma', [
+    return this.call<boolean>('pla_ReorganizarCronograma', [
       actor,
       ctx.idPlan,
       data.revisionPlan,
       data.entregables,
       data.actividades,
+      JSON.stringify(data.movimientos ?? []),
       data.motivo ?? null,
     ]);
   }
@@ -275,8 +312,8 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     trabajador: number,
     data: Input.MisAsignacionesInput,
   ) {
-    return this.call<AsignacionColaboradorPlan[]>(
-      'pla_ListarAsignacionesColaborador',
+    return this.call<AsignacionesColaborador>(
+      'pla_ListarAsignacionesColaboradorV2',
       [actor, trabajador, data.fecha, data.idProyecto ?? null],
     );
   }
@@ -375,13 +412,19 @@ export class PlanificacionRepository implements IPlanificacionRepository {
   }
   private validarRespuesta(name: string, value: unknown) {
     const listados = [
+      'pla_ListarResumenPlanes',
+      'pla_ListarEquipoPlan',
+      'pla_ListarEstadoPlanes',
       'pla_GuardarAsignacionesActividad',
       'pla_GuardarDependenciasActividad',
       'pla_ReprogramarActividad',
       'pla_ListarAmpliaciones',
-      'pla_ListarAsignacionesColaborador',
     ];
-    const booleanos = ['pla_EliminarActividad', 'pla_ReordenarCronograma'];
+    const booleanos = [
+      'pla_EliminarActividad',
+      'pla_ReordenarCronograma',
+      'pla_ReorganizarCronograma',
+    ];
     const objeto =
       value !== null && typeof value === 'object' && !Array.isArray(value);
     if (
@@ -397,6 +440,12 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     if (objeto) {
       const record = value as Record<string, unknown>;
       const campos: Record<string, string[]> = {
+        pla_ObtenerCalendarioPlan: [
+          'idcalendario',
+          'nombre',
+          'idversion',
+          'dias',
+        ],
         pla_ObtenerPlanProyecto: ['idproyecto', 'plan'],
         pla_ObtenerCronogramaProyecto: [
           'plan',

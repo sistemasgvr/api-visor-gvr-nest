@@ -1,3 +1,4 @@
+import { CreateEntregableProyectoDto } from '../../../presentation/dtos/proyecto/create-entregable-proyecto.dto';
 import { EditarProyectoUseCase } from './editar-proyecto.use-case';
 import { CrearEntregableProyectoUseCase } from './crear-entregable-proyecto.use-case';
 import { ActualizarEntregableProyectoUseCase } from './actualizar-entregable-proyecto.use-case';
@@ -116,5 +117,100 @@ describe('Permiso adicional al cambiar proyectos y entregables planificados', ()
     ).rejects.toBeInstanceOf(ForbiddenError);
     expect(access.editarProyectoConPlan).toHaveBeenCalledWith(23, 8);
     expect(repo.eliminarEntregableProyecto).not.toHaveBeenCalled();
+  });
+});
+
+describe('Color opcional al crear un entregable', () => {
+  it('acepta el contrato anterior y el color hexadecimal; rechaza formatos no válidos', () => {
+    const base = { idProyecto: 1, nombre: 'Arquitectura' };
+    expect(CreateEntregableProyectoDto.schema.safeParse(base).success).toBe(
+      true,
+    );
+    expect(
+      CreateEntregableProyectoDto.schema.safeParse({
+        ...base,
+        color: '#A1b2C3',
+        revisionPlan: 2,
+      }).success,
+    ).toBe(true);
+    for (const color of ['red', '#fff', '#12345g', ''])
+      expect(
+        CreateEntregableProyectoDto.schema.safeParse({ ...base, color })
+          .success,
+      ).toBe(false);
+  });
+});
+
+describe('Creación de grupos de planificación según permisos granulares', () => {
+  function setup(tienePlan: boolean) {
+    const repo = {
+      obtenerIdTrabajadorPorIdUsuario: jest.fn().mockResolvedValue(1),
+      trabajadorPerteneceAProyecto: jest.fn().mockResolvedValue(false),
+      esCoordinadorEnProyecto: jest.fn().mockResolvedValue(false),
+      crearEntregableProyecto: jest
+        .fn()
+        .mockResolvedValue({ success: true, id: 12 }),
+    };
+    const access = {
+      editarProyectoConPlan: jest.fn().mockResolvedValue(tienePlan),
+    };
+    const logger = {
+      create: () => ({
+        warn: jest.fn(),
+        log: jest.fn(),
+        error: jest.fn(),
+        debug: jest.fn(),
+      }),
+    };
+    const useCase = new CrearEntregableProyectoUseCase(
+      repo as unknown as IProyectoRepository,
+      {} as BroadcastPort,
+      logger as unknown as LoggerFactoryPort,
+      access as unknown as PlanificacionAccessService,
+    );
+    return { repo, access, useCase };
+  }
+  it('un actor autorizado con alcance todos crea un grupo sin autoasignarse ni notificar responsables', async () => {
+    const { repo, useCase } = setup(true);
+    await expect(
+      useCase.execute(
+        { idProyecto: 38, nombre: 'Grupo', color: '#465fff', revisionPlan: 1 },
+        23,
+        true,
+      ),
+    ).resolves.toEqual({ success: true, id: 12 });
+    expect(repo.crearEntregableProyecto).toHaveBeenCalledWith(
+      38,
+      expect.objectContaining({
+        idTrabajadoresResponsables: [],
+        idTrabajadorResponsable: null,
+      }),
+      23,
+    );
+    expect(repo.trabajadorPerteneceAProyecto).not.toHaveBeenCalled();
+  });
+  it('con alcance asignados sigue rechazando proyectos ajenos', async () => {
+    const { repo, useCase } = setup(true);
+    await expect(
+      useCase.execute({ idProyecto: 38, nombre: 'Grupo' }, 23, false),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+    expect(repo.crearEntregableProyecto).not.toHaveBeenCalled();
+  });
+  it('conserva la validación de responsables enviados explícitamente y del flujo sin plan', async () => {
+    for (const tienePlan of [true, false]) {
+      const { repo, useCase } = setup(tienePlan);
+      await expect(
+        useCase.execute(
+          {
+            idProyecto: 38,
+            nombre: 'Grupo',
+            ...(tienePlan ? { idTrabajadoresResponsables: [99] } : {}),
+          },
+          23,
+          true,
+        ),
+      ).rejects.toThrow('debe pertenecer al proyecto');
+      expect(repo.crearEntregableProyecto).not.toHaveBeenCalled();
+    }
   });
 });

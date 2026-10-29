@@ -554,7 +554,7 @@ export class ProyectoRepository implements IProyectoRepository {
     ) {
       responsables = [data.idTrabajadorResponsable];
     }
-    const result = await this.callPlanSingle<any>('pro_CrearEntregableV3', [
+    const result = await this.callPlanSingle<any>('pro_CrearEntregableV4', [
       idProyecto,
       data.nombre,
       data.descripcion ?? null,
@@ -566,6 +566,7 @@ export class ProyectoRepository implements IProyectoRepository {
       data.revisionPlan ?? null,
       data.motivo ?? null,
       data.orden ?? null,
+      data.color ?? null,
     ]);
     return result;
   }
@@ -588,7 +589,7 @@ export class ProyectoRepository implements IProyectoRepository {
           : [];
     }
     const result = await this.callPlanSingle<any>(
-      'pro_ActualizarEntregableV3',
+      'pro_ActualizarEntregableV4',
       [
         idEntregable,
         data.nombre,
@@ -601,6 +602,8 @@ export class ProyectoRepository implements IProyectoRepository {
         data.revisionPlan ?? null,
         data.motivo ?? null,
         data.orden ?? null,
+        data.color ?? null,
+        data.color !== undefined,
       ],
     );
     return result;

@@ -6,4 +6,12 @@ export class MisAsignacionesUseCase {
     const trabajador = await this.repository.obtenerTrabajador(actor);
     return this.repository.misAsignaciones(actor, trabajador, data);
   }
+  /** Asignaciones de otra persona; el alcance sobre ella lo valida el controlador. */
+  deTrabajador(
+    actor: number,
+    idTrabajador: number,
+    data: Input.MisAsignacionesInput,
+  ) {
+    return this.repository.misAsignaciones(actor, idTrabajador, data);
+  }
 }

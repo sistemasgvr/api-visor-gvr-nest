@@ -66,6 +66,11 @@ export class CreateEntregableProyectoDto {
       },
       revisionPlan: { schema: z.number().int().min(1), optional: true },
       motivo: { schema: z.string().max(1000), optional: true },
+      color: {
+        schema: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+        optional: true,
+        example: '#465fff',
+      },
       orden: { schema: z.number().int().min(0), optional: true },
     });
 
@@ -112,9 +117,23 @@ export class CreateEntregableProyectoDto {
   })
   idTrabajadorResponsable?: number;
 
+  @ApiPropertyOptional({
+    example: 3,
+    minimum: 1,
+    description:
+      'Revisión actual del plan (obligatoria si el proyecto tiene plan)',
+  })
   revisionPlan?: number;
 
+  @ApiPropertyOptional({
+    maxLength: 1000,
+    description: 'Motivo del cambio (obligatorio con el plan publicado)',
+  })
   motivo?: string;
 
+  @ApiPropertyOptional({ example: 0, minimum: 0 })
   orden?: number;
+
+  @ApiPropertyOptional({ example: '#465fff', pattern: '^#[0-9a-fA-F]{6}$' })
+  color?: string;
 }

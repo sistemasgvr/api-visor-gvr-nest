@@ -1,7 +1,7 @@
 # PRD — Backend de Planificación de proyectos
 
 Fecha: 22 de octubre de 2026.
-Estado: **backend implementado y verificado localmente el 2026-10-22**. Los 24 endpoints, la autorización y la integración con proyectos, entregables y Control Operativo están desarrollados. Las instrucciones siguientes conservan el contrato funcional y sirven para preparar otros entornos.
+Estado: **backend implementado y verificado localmente el 2026-10-22**. Los 24 endpoints originales, la autorización y la integración con proyectos, entregables y Control Operativo están desarrollados. Las instrucciones siguientes conservan el contrato funcional y sirven para preparar otros entornos.
 
 Resultado y comandos reproducibles: [PLANIFICACION-IMPLEMENTACION.md](PLANIFICACION-IMPLEMENTACION.md). Por autorización del usuario se aplicaron los seeds y las 51 funciones exclusivamente a `127.0.0.1:5434/gvr_produccion`. No se ejecutaron cambios en Supabase. Las pruebas funcionales locales revierten sus datos al terminar.
 
@@ -276,7 +276,8 @@ Controlador `/planificacion`. La propiedad de la asignación la garantiza SQL. E
 
 | # | Método y ruta | Permiso (guard) | Función SQL | Notas |
 | --- | --- | --- | --- | --- |
-| 21 | `GET /planificacion/mis-asignaciones?fecha=YYYY-MM-DD&idProyecto=` | `control_operativo.actividades.ver` | `pla_ListarAsignacionesColaborador(actor, idTrabajadorDelActor, fecha, idProyecto?)` | Selector del registro diario. Cada fila trae la asignación + `nombre`, `identregable`, `idplan`, `fecha` y `saldo` |
+| 21 | `GET /planificacion/mis-asignaciones?fecha=YYYY-MM-DD&idProyecto=` | `control_operativo.actividades.ver` | `pla_ListarAsignacionesColaboradorV2(actor, idTrabajadorDelActor, fecha, idProyecto?)` | Selector y panel del registro diario. Devuelve `{ planes, asignaciones }`: `planes` con reglas (`permitirnoplaneadas`, `bloquearexceso`, tolerancia, alerta, aprobador); cada asignación con `nombre`, `codigo` EDT, `identregable`, `nombreentregable`, `idplan`, `fecha`, `inicio`/`fin` de la actividad, `iniciopersona`/`finpersona` y `saldo`. La V1 se conserva sin consumidores |
+| 21b | `GET /planificacion/trabajadores/:idTrabajador/asignaciones?fecha=YYYY-MM-DD&idProyecto=` | `control_operativo.actividades.ver` + trabajador dentro del alcance (`ControlOperativoAccess`) | `pla_ListarAsignacionesColaboradorV2(actor, idTrabajador, fecha, idProyecto?)` | Mismo contrato, para la jornada de otra persona. Solo lectura |
 | 22 | `PATCH /planificacion/mis-asignaciones/:idAsignacion/estado` | `control_operativo.actividades.editar` | `pla_CambiarEstadoAsignacion(actor, idAsignacion, revision, idEstadoDestino, motivo)` | «Culminé mi parte». Si la parte está en 706, aplicar la regla de reapertura de la sección 3 |
 | 23 | `POST /planificacion/mis-asignaciones/:idAsignacion/ampliaciones` | `control_operativo.actividades.editar` | `pla_SolicitarAmpliacion(actor, idAsignacion, minutos, motivo)` | Una solicitud pendiente por asignación. 201 |
 | 24 | `GET /planificacion/mis-ampliaciones?idPlan=&offset=&limite=` | `control_operativo.actividades.ver` | `pla_ListarAmpliaciones(actor, idPlan, offset, limite)` | Si el usuario no es el aprobador, ve solo sus solicitudes |
@@ -395,7 +396,15 @@ npm run build
 2. **`proaccesoproyecto.idtrabajador` puede ser `NULL`** en accesos antiguos. `pla_GuardarAsignacionesActividad` valida el acceso por `idtrabajador` y fallaría con «Colaborador sin acceso al proyecto». Revisar los datos antes de habilitar:
    `SELECT count(*) FROM proaccesoproyecto WHERE estado = 1 AND idtrabajador IS NULL;`
 3. **Calendarios obligatorios:** publicar exige `proproyecto.idcalendario` con una versión publicada, y el calendario de cada persona asignada (`tratrabajador.idcalendario`). El front debe avisar antes de publicar.
-4. **Listado de proyectos con estado del plan:** ninguna función devuelve el estado del plan en `pro_ListarProyectos`. Por ahora, el detalle usa el endpoint 1. Para mostrarlo en el listado, crear una consulta liviana (por ejemplo `pla_ListarEstadoPlanes(int[])`) sin estadísticas.
+4. **Listado de proyectos con estado del plan (O1):** implementado y validado localmente el 2026-10-22: `GET /api/proyectos/planificacion/estados?ids=1,2,3` → `pla_ListarEstadoPlanes(integer, integer[])`. Exige `proyectos.planificacion.ver` y filtra proyectos con alcance `asignados`. Devuelve `[{ idproyecto, idplan, idestadoplan, revision, publicadoen }]`, sin filas para proyectos sin plan. Máximo 100 IDs por petición. La función SQL está aplicada y verificada en la base local `127.0.0.1:5434/gvr_produccion`. [Evidencia O1](../../front-visor-gvr/docs/PLANIFICACION-FRONTEND.md#seguimiento-minifases).
 5. **Bloqueo global:** `pg_advisory_xact_lock(20261021,1)` serializa todas las escrituras de planificación y del registro diario en proyectos planificados. Es suficiente para el volumen actual; medirlo si crece.
 6. **Confianza en `p_es_admin_total`:** `con_ValidarActividadV2` ya no lo recalcula. El backend debe derivarlo siempre del alcance concedido, nunca de la petición.
 7. **Despliegue en Supabase:** contrastar firmas y colisiones antes de aplicar; seguir el orden de 13.2 del modelo; aplicar seeds, funciones, backend y front en la misma ventana. Nada de esto se ha ejecutado en producción.
+
+## Lectura operativa O2 — equipo del proyecto (22/10/2026)
+
+Implementado y aplicado localmente `GET /api/proyectos/:id/planificacion/equipo` → `pla_ListarEquipoPlan(integer, integer)`. Exige `proyectos.planificacion.ver` sobre el proyecto; no requiere plan existente ni permisos de accesos. Devuelve trabajadores activos con acceso por `idtrabajador` o coordinadores, sin duplicados, con nombre, foto, puesto, calendario y marca de calendario publicado. [Contrato y evidencia](../../front-visor-gvr/docs/PLANIFICACION-FRONTEND.md#seguimiento-minifases).
+
+## Resumen de listado — 27/10/2026
+
+`GET /api/proyectos/planificacion/resumen?ids=38,39` usa EstadosPlanesQueryDto y el mismo permiso `proyectos.planificacion.ver`, con alcances todos/asignados y filtro antes de SQL. Devuelve las filas de estado del lote junto con `metricas`: avancereal, avanceplan, minutosregistrados, minutosplanificados, fechafinplanificada, desviodiashabiles, semaforo y aviso. `pla_ListarResumenPlanes(actor, int[])` reutiliza el motor y el consumo existentes, sin escribir datos. La ruta estados conserva su contrato y coste para los consumidores que solo requieren el estado. Aplicación y regresión de la función restringidas por script a 127.0.0.1:5434/gvr_produccion. Fórmulas y evidencia en el seguimiento de PLANIFICACION-FRONTEND.md; no se incluyen costos ni otros indicadores de la fase final.

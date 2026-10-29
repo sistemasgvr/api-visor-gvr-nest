@@ -36,7 +36,7 @@ export class CrearEntregableProyectoUseCase {
     idUsuarioCreacion: number,
     accesoTotal = false,
   ) {
-    await this.planificacion.editarProyectoConPlan(
+    const tienePlan = await this.planificacion.editarProyectoConPlan(
       idUsuarioCreacion,
       data.idProyecto,
     );
@@ -69,8 +69,9 @@ export class CrearEntregableProyectoUseCase {
       );
     }
 
-    // Sin responsable indicado, quien crea queda como responsable.
-    if (idsResponsables.length === 0) {
+    // Un entregable del plan es un grupo y puede crearse sin responsables.
+    // El flujo operativo anterior conserva su asignación predeterminada.
+    if (idsResponsables.length === 0 && !tienePlan) {
       if (idTrabajadorActor == null) {
         throw new InvalidInputError(
           'Debe indicar al menos un trabajador responsable del entregable',

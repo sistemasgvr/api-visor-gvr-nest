@@ -1,3 +1,7 @@
+export interface CalendarioPlanInput {
+  desde: string;
+  hasta: string;
+}
 export interface ContextoPlan {
   id: number;
   idPlan?: number;
@@ -45,6 +49,7 @@ export interface DatosActividadPlan {
   fechanoiniciarantes?: string | null;
   fechanofinalizarantes?: string | null;
   fechalimite?: string | null;
+  dependencias?: DependenciaPlan[];
   asignaciones?: PersonaPlan[];
 }
 export interface CrearActividadPlanInput extends RevisionPlanInput {
@@ -61,10 +66,19 @@ export interface DependenciasPlanInput extends RevisionPlanInput {
   dependencias: DependenciaPlan[];
 }
 export interface OrdenPlanInput extends RevisionPlanInput {
+  movimientos?: {
+    idactividad: number;
+    identregable: number;
+    revision: number;
+  }[];
   entregables: number[];
   actividades: number[];
 }
 export interface CambiosCronograma {
+  nuevaActividad?: DatosActividadPlan & {
+    identregable: number;
+    nombre: string;
+  };
   idactividad?: number;
   fechanoiniciarantes?: string | null;
   fechanofinalizarantes?: string | null;

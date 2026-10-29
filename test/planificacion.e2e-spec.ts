@@ -1,13 +1,17 @@
+import { DocumentAccessService } from '../src/application/services/document-access.service';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ApplicationRuntimeModule } from '../src/composition/modules/platform/application-runtime.module';
+import { CrearTrabajadorUseCase } from '../src/application/use-cases/trabajador/crear-trabajador.use-case';
 import { ZodValidationPipe } from '../src/presentation/validation/zod-validation.pipe';
 import { ArgumentsHost, Catch, type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import request from 'supertest';
 import type { Server } from 'node:http';
 import type { Response } from 'express';
-import { PlanificacionModule } from '../src/composition/modules/planificacion.module';
+import { ProyectoModule } from '../src/composition/modules/proyecto.module';
 import { GRANULAR_PERMISSIONS } from '../src/application/ports/granular-permissions.port';
 import { DatabaseFunctionService } from '../src/infrastructure/database/database-function.service';
 import { ApplicationFailure } from '../src/application/errors/application.error';
@@ -39,8 +43,16 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
     });
   beforeAll(async () => {
     const module = await Test.createTestingModule({
-      imports: [PlanificacionModule],
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
+        ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+        ApplicationRuntimeModule,
+        ProyectoModule,
+      ],
     })
+      .useMocker((token) => (token === DocumentAccessService ? {} : undefined))
+      .overrideProvider(CrearTrabajadorUseCase)
+      .useValue({ execute: jest.fn() })
       .overrideProvider(ConfigService)
       .useValue(
         new ConfigService({
@@ -66,7 +78,11 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
     app.useGlobalFilters(new FailureFilter());
     app.useGlobalPipes(new ZodValidationPipe());
     await app.init();
-    token = module.get(JwtService).sign({ sub: 23, roles: [], permisos: [] });
+    token = new JwtService({ secret: 'planning-http-only' }).sign({
+      sub: 23,
+      roles: [],
+      permisos: [],
+    });
   });
   afterAll(async () => {
     await app?.close();
@@ -84,6 +100,353 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
     database.callFunctionSingle.mockResolvedValue({
       pla_CrearPlanProyecto: { id: 2, revision: 1 },
     });
+  });
+  const calendarioPlan = base + '/2/calendario';
+  const rango = '?desde=2026-10-19&hasta=2026-10-25';
+  it('O4 exige JWT y permiso ver planificación', async () => {
+    await request(app.getHttpServer() as Server)
+      .get(calendarioPlan + rango)
+      .expect(401);
+    grant('configuracion.calendarios.ver', 'global');
+    await request(app.getHttpServer() as Server)
+      .get(calendarioPlan + rango)
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it.each(['todos', 'asignados'])(
+    'O4 consulta con planificación.ver (%s) sin permisos de configuración',
+    async (scope) => {
+      grant('proyectos.planificacion.ver', scope);
+      const result = {
+        idcalendario: 6,
+        nombre: 'Laboral',
+        idversion: 3,
+        dias: [{ fecha: '2026-10-19', minutos: 0, nombre: 'Feriado' }],
+      };
+      database.callFunctionSingle.mockResolvedValue({
+        pla_ObtenerCalendarioPlan: result,
+      });
+      const res = await request(app.getHttpServer() as Server)
+        .get(calendarioPlan + rango)
+        .auth(token, { type: 'bearer' })
+        .expect(200);
+      expect((res.body as { data: unknown }).data).toEqual(result);
+      expect(database.callFunctionSingle).toHaveBeenCalledWith(
+        'pla_ObtenerCalendarioPlan',
+        [23, 2, '2026-10-19', '2026-10-25'],
+      );
+    },
+  );
+  it('O4 devuelve 404 para un plan de otro proyecto', async () => {
+    grant('proyectos.planificacion.ver');
+    database.executeQuery.mockImplementation((sql: string) =>
+      Promise.resolve(
+        sql.includes('AS exists') ? [{ exists: true, assigned: true }] : [],
+      ),
+    );
+    await request(app.getHttpServer() as Server)
+      .get(calendarioPlan + rango)
+      .auth(token, { type: 'bearer' })
+      .expect(404);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it('O4 deniega proyectos ajenos con alcance asignados', async () => {
+    grant('proyectos.planificacion.ver', 'asignados');
+    database.executeQuery.mockResolvedValue([
+      { exists: true, assigned: false },
+    ]);
+    await request(app.getHttpServer() as Server)
+      .get(calendarioPlan + rango)
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it.each([
+    '',
+    '?desde=2026-10-19',
+    '?desde=2026-10-20&hasta=2026-10-19',
+    '?desde=2026-01-01&hasta=2027-01-02',
+    '?desde=2026-02-30&hasta=2026-03-01',
+    '?desde=2026-10-19&hasta=2026-10-20&idversion=99',
+  ])('O4 rechaza query inválida %s', async (query) => {
+    grant('proyectos.planificacion.ver');
+    await request(app.getHttpServer() as Server)
+      .get(calendarioPlan + query)
+      .auth(token, { type: 'bearer' })
+      .expect(400);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it('O4 admite exactamente 366 días inclusivos', async () => {
+    grant('proyectos.planificacion.ver');
+    database.callFunctionSingle.mockResolvedValue({
+      pla_ObtenerCalendarioPlan: {
+        idcalendario: 6,
+        nombre: 'Laboral',
+        idversion: 3,
+        dias: [],
+      },
+    });
+    await request(app.getHttpServer() as Server)
+      .get(calendarioPlan + '?desde=2026-01-01&hasta=2027-01-01')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+  });
+  it('O4 muestra error de negocio si falta calendario publicado', async () => {
+    grant('proyectos.planificacion.ver');
+    database.callFunctionSingle.mockRejectedValue({
+      code: 'P0001',
+      message: 'Calendario sin versión publicada',
+    });
+    await request(app.getHttpServer() as Server)
+      .get(calendarioPlan + rango)
+      .auth(token, { type: 'bearer' })
+      .expect(422);
+  });
+  const calendarios = '/api/proyectos/calendarios-publicados';
+  it('O3 exige JWT', async () => {
+    await request(app.getHttpServer() as Server)
+      .get(calendarios)
+      .expect(401);
+    expect(database.callFunction).not.toHaveBeenCalled();
+  });
+  it.each([
+    ['proyectos.proyectos.crear', 'global'],
+    ['proyectos.proyectos.editar', 'todos'],
+    ['proyectos.proyectos.editar', 'asignados'],
+    ['proyectos.planificacion.editar', 'todos'],
+    ['proyectos.planificacion.editar', 'asignados'],
+  ])('O3 permite consultar con %s (%s)', async (code, scope) => {
+    grant(code, scope);
+    const rows = [{ id: 6, nombre: 'Laboral', numeroversion: 2 }];
+    database.callFunction.mockResolvedValue(rows);
+    const res = await request(app.getHttpServer() as Server)
+      .get(calendarios)
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect((res.body as { data: unknown }).data).toEqual(rows);
+    expect(database.callFunction).toHaveBeenCalledWith(
+      'tra_ListarCalendariosPublicados',
+    );
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+    expect(database.executeQuery).not.toHaveBeenCalled();
+  });
+  it.each([
+    'proyectos.proyectos.ver',
+    'proyectos.planificacion.ver',
+    'usuarios.trabajadores.editar',
+  ])('O3 no concede acceso solo por %s', async (code) => {
+    grant(code, 'todos');
+    await request(app.getHttpServer() as Server)
+      .get(calendarios)
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunction).not.toHaveBeenCalled();
+  });
+  it('O3 rechaza sesión sin concesiones vigentes aunque el JWT declare permisos', async () => {
+    permissions.readCurrent.mockResolvedValue({ active: true, grants: [] });
+    const forged = new JwtService({ secret: 'planning-http-only' }).sign({
+      sub: 23,
+      roles: [{ id: 1 }],
+      permisos: ['proyectos.proyectos.crear'],
+    });
+    await request(app.getHttpServer() as Server)
+      .get(calendarios)
+      .auth(forged, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunction).not.toHaveBeenCalled();
+  });
+  it('O3 responde vacío cuando no hay calendarios publicados', async () => {
+    grant('proyectos.planificacion.editar');
+    database.callFunction.mockResolvedValue([]);
+    const res = await request(app.getHttpServer() as Server)
+      .get(calendarios)
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect((res.body as { data: unknown }).data).toEqual([]);
+  });
+  it('O3 conserva el mismo contrato y datos de la ruta de Trabajadores', async () => {
+    permissions.readCurrent.mockResolvedValue({
+      active: true,
+      grants: [
+        { code: 'proyectos.planificacion.editar', scopes: ['asignados'] },
+        { code: 'usuarios.trabajadores.crear', scopes: ['global'] },
+      ],
+    });
+    database.callFunction.mockResolvedValue([
+      { id: 6, nombre: 'Laboral', numeroversion: 2 },
+    ]);
+    const proyectos = await request(app.getHttpServer() as Server)
+      .get(calendarios)
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    const trabajadores = await request(app.getHttpServer() as Server)
+      .get('/api/trabajadores/calendarios-publicados')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect(proyectos.body).toEqual(trabajadores.body);
+    expect(database.callFunction).toHaveBeenCalledTimes(2);
+  });
+  it('O2 exige JWT y permiso de planificación sobre el proyecto', async () => {
+    await request(app.getHttpServer() as Server)
+      .get(base + '/equipo')
+      .expect(401);
+    grant('proyectos.accesos.ver');
+    await request(app.getHttpServer() as Server)
+      .get(base + '/equipo')
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it.each(['todos', 'asignados'])(
+    'O2 permite ver equipo con planificación.ver (%s), sin accesos.ver',
+    async (scope) => {
+      grant('proyectos.planificacion.ver', scope);
+      const rows = [
+        {
+          idtrabajador: 4,
+          nombre: 'Persona',
+          foto: null,
+          puesto: null,
+          idcalendario: null,
+          tienecalendariopublicado: false,
+        },
+      ];
+      database.callFunctionSingle.mockResolvedValue({
+        pla_ListarEquipoPlan: rows,
+      });
+      const res = await request(app.getHttpServer() as Server)
+        .get(base + '/equipo')
+        .auth(token, { type: 'bearer' })
+        .expect(200);
+      expect((res.body as { data: unknown }).data).toEqual(rows);
+      expect(database.callFunctionSingle).toHaveBeenCalledWith(
+        'pla_ListarEquipoPlan',
+        [23, 8],
+      );
+    },
+  );
+  it('O2 deniega un proyecto ajeno con alcance asignados', async () => {
+    grant('proyectos.planificacion.ver', 'asignados');
+    database.executeQuery.mockResolvedValue([
+      { exists: true, assigned: false },
+    ]);
+    await request(app.getHttpServer() as Server)
+      .get(base + '/equipo')
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it('O2 deniega proyectos inexistentes o inactivos desde el guard', async () => {
+    grant('proyectos.planificacion.ver');
+    database.executeQuery.mockResolvedValue([
+      { exists: false, assigned: false },
+    ]);
+    await request(app.getHttpServer() as Server)
+      .get(base + '/equipo')
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it('O2 devuelve vacío para un proyecto activo sin equipo', async () => {
+    grant('proyectos.planificacion.ver');
+    database.callFunctionSingle.mockResolvedValue({ pla_ListarEquipoPlan: [] });
+    const res = await request(app.getHttpServer() as Server)
+      .get(base + '/equipo')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect((res.body as { data: unknown }).data).toEqual([]);
+  });
+  const estados = '/api/proyectos/planificacion/estados';
+  it('resumen exige JWT, permiso y devuelve las métricas del lote autorizado', async () => {
+    const url = '/api/proyectos/planificacion/resumen?ids=8,9,8';
+    await request(app.getHttpServer() as Server).get(url).expect(401);
+    permissions.readCurrent.mockResolvedValue({ active: true, grants: [] });
+    await request(app.getHttpServer() as Server).get(url).auth(token, { type: 'bearer' }).expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+    grant('proyectos.planificacion.ver', 'asignados');
+    database.executeQuery.mockResolvedValue([{ id: 8 }]);
+    const rows = [{ idproyecto: 8, metricas: { avancereal: 0, minutosplanificados: 2400 } }];
+    database.callFunctionSingle.mockResolvedValue({ pla_ListarResumenPlanes: rows });
+    const result = await request(app.getHttpServer() as Server).get(url).auth(token, { type: 'bearer' }).expect(200);
+    expect(result.body.data).toEqual(rows);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith('pla_ListarResumenPlanes', [23, [8]]);
+  });
+  it('O1 exige JWT y permiso de planificación', async () => {
+    await request(app.getHttpServer() as Server)
+      .get(estados + '?ids=8')
+      .expect(401);
+    permissions.readCurrent.mockResolvedValue({ active: true, grants: [] });
+    await request(app.getHttpServer() as Server)
+      .get(estados + '?ids=8')
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it('O1 devuelve el lote sin requerir permisos de ver proyectos', async () => {
+    grant('proyectos.planificacion.ver');
+    const rows = [
+      {
+        idproyecto: 8,
+        idplan: 2,
+        idestadoplan: 700,
+        revision: 1,
+        publicadoen: null,
+      },
+    ];
+    database.callFunctionSingle.mockResolvedValue({
+      pla_ListarEstadoPlanes: rows,
+    });
+    const res = await request(app.getHttpServer() as Server)
+      .get(estados + '?ids=8,9,8')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect((res.body as { data: unknown }).data).toEqual(rows);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_ListarEstadoPlanes',
+      [23, [8, 9]],
+    );
+  });
+  it('O1 filtra asignados en el servidor', async () => {
+    grant('proyectos.planificacion.ver', 'asignados');
+    database.executeQuery.mockResolvedValue([{ id: 8 }]);
+    database.callFunctionSingle.mockResolvedValue({
+      pla_ListarEstadoPlanes: [],
+    });
+    await request(app.getHttpServer() as Server)
+      .get(estados + '?ids=8,9')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_ListarEstadoPlanes',
+      [23, [8]],
+    );
+  });
+  it('O1 responde vacío si todos los IDs son ajenos', async () => {
+    grant('proyectos.planificacion.ver', 'asignados');
+    database.executeQuery.mockResolvedValue([]);
+    const res = await request(app.getHttpServer() as Server)
+      .get(estados + '?ids=9')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect((res.body as { data: unknown }).data).toEqual([]);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it.each([
+    '',
+    '?ids=',
+    '?ids=0',
+    '?ids=8,,9',
+    '?ids=2147483648',
+    '?ids=8&ids=9',
+    '?ids=8&actor=1',
+  ])('O1 rechaza query inválida %s', async (query) => {
+    grant('proyectos.planificacion.ver');
+    await request(app.getHttpServer() as Server)
+      .get(estados + query)
+      .auth(token, { type: 'bearer' })
+      .expect(400);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
   });
   it('401 sin JWT y 403 sin permiso aunque el token afirme un rol', async () => {
     await request(app.getHttpServer() as Server)
@@ -267,16 +630,39 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
     grant('control_operativo.actividades.ver', 'propios');
     database.executeQuery.mockResolvedValue([{ id: 7 }]);
     database.callFunctionSingle.mockResolvedValue({
-      pla_ListarAsignacionesColaborador: [],
+      pla_ListarAsignacionesColaboradorV2: { planes: [], asignaciones: [] },
     });
     await request(app.getHttpServer() as Server)
       .get('/api/planificacion/mis-asignaciones?fecha=2026-10-22')
       .auth(token, { type: 'bearer' })
       .expect(200);
     expect(database.callFunctionSingle).toHaveBeenCalledWith(
-      'pla_ListarAsignacionesColaborador',
+      'pla_ListarAsignacionesColaboradorV2',
       [23, 7, '2026-10-22', null],
     );
+  });
+  it('consulta las asignaciones de otra persona con alcance todos', async () => {
+    grant('control_operativo.actividades.ver', 'todos');
+    database.callFunctionSingle.mockResolvedValue({
+      pla_ListarAsignacionesColaboradorV2: { planes: [], asignaciones: [] },
+    });
+    await request(app.getHttpServer() as Server)
+      .get('/api/planificacion/trabajadores/9/asignaciones?fecha=2026-10-22')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_ListarAsignacionesColaboradorV2',
+      [23, 9, '2026-10-22', null],
+    );
+  });
+  it('rechaza las asignaciones de otra persona fuera del alcance', async () => {
+    grant('control_operativo.actividades.ver', 'propios');
+    database.executeQuery.mockResolvedValue([{ id: 7 }]);
+    await request(app.getHttpServer() as Server)
+      .get('/api/planificacion/trabajadores/9/asignaciones?fecha=2026-10-22')
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
   });
   it('no admite idtrabajador en el selector', async () => {
     grant('control_operativo.actividades.ver', 'propios');

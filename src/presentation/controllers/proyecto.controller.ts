@@ -17,6 +17,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import type { Request } from 'express';
+import { ListarCalendariosPublicadosUseCase } from '../../application/use-cases/trabajador/listar-calendarios-publicados.use-case';
 import { ListarProyectosUseCase } from '../../application/use-cases/proyecto/listar-proyectos.use-case';
 import { ObtenerProyectoUseCase } from '../../application/use-cases/proyecto/obtener-proyecto.use-case';
 import { CrearProyectoUseCase } from '../../application/use-cases/proyecto/crear-proyecto.use-case';
@@ -64,6 +65,7 @@ const proyecto = (codes: string | string[], param = 'id') =>
 @UseGuards(JwtAuthGuard)
 export class ProyectoController {
   constructor(
+    private readonly listarCalendariosPublicadosUseCase: ListarCalendariosPublicadosUseCase,
     private readonly listarProyectosUseCase: ListarProyectosUseCase,
     private readonly obtenerProyectoUseCase: ObtenerProyectoUseCase,
     private readonly crearProyectoUseCase: CrearProyectoUseCase,
@@ -84,6 +86,21 @@ export class ProyectoController {
     private readonly jwtService: JwtService,
     private readonly authorization: AuthorizationService,
   ) {}
+
+  @Get('calendarios-publicados')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Calendarios publicados para asignar a proyectos' })
+  @RequireScopedPermission(
+    'proyectos.proyectos.crear',
+    'proyectos.proyectos.editar',
+    'proyectos.planificacion.editar',
+  )
+  async listarCalendariosPublicados() {
+    return ApiResponseDto.success(
+      await this.listarCalendariosPublicadosUseCase.execute(),
+      'Calendarios publicados obtenidos',
+    );
+  }
 
   @ApiOperation({
     summary: 'Estadísticas de proyectos agrupadas por estado',

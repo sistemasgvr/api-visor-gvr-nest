@@ -1,10 +1,13 @@
 import type * as Input from '../entities/planificacion-input.entity';
 import type {
+  CalendarioPlan,
+  MiembroEquipoPlan,
+  EstadoPlanProyecto,
   PlanificacionJson,
   CambioEstadoActividadPlan,
   CambioEstadoPlan,
   CambioEstadoPartePlan,
-  AsignacionColaboradorPlan,
+  AsignacionesColaborador,
   AsignacionContexto,
   ActividadPlan,
   ActividadPlanDetalle,
@@ -20,6 +23,21 @@ import type {
 } from '../entities/planificacion.entity';
 export const PLANIFICACION_REPOSITORY = 'PLANIFICACION_REPOSITORY';
 export interface IPlanificacionRepository {
+  obtenerCalendarioPlan(
+    actor: number,
+    ctx: Input.ContextoPlan,
+    data: Input.CalendarioPlanInput,
+  ): Promise<CalendarioPlan>;
+  listarEquipoPlan(
+    actor: number,
+    idProyecto: number,
+  ): Promise<MiembroEquipoPlan[]>;
+  proyectosAsignados(actor: number): Promise<number[]>;
+  listarResumenPlanes(actor: number, ids: number[]): Promise<EstadoPlanProyecto[]>;
+  listarEstadosPlanes(
+    actor: number,
+    ids: number[],
+  ): Promise<EstadoPlanProyecto[]>;
   comprobarPertenencia(ctx: Input.ContextoPlan): Promise<void>;
   obtenerTrabajador(actor: number): Promise<number>;
   obtenerAsignacionPropia(
@@ -128,7 +146,7 @@ export interface IPlanificacionRepository {
     actor: number,
     trabajador: number,
     data: Input.MisAsignacionesInput,
-  ): Promise<AsignacionColaboradorPlan[]>;
+  ): Promise<AsignacionesColaborador>;
   estadoParte(
     actor: number,
     idAsignacion: number,

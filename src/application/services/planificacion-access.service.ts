@@ -20,8 +20,9 @@ export class PlanificacionAccessService {
       );
   }
   async editarProyectoConPlan(actor: number, idProyecto: number) {
-    if (await this.repository.tienePlan(idProyecto))
-      await this.exigir(actor, idProyecto, 'editar');
+    const tienePlan = await this.repository.tienePlan(idProyecto);
+    if (tienePlan) await this.exigir(actor, idProyecto, 'editar');
+    return tienePlan;
   }
   async reabrirParte(actor: number, idAsignacion: number, destino: number) {
     const parte = await this.repository.obtenerAsignacionPropia(

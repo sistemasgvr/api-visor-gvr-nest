@@ -130,6 +130,8 @@ export interface EditarTrabajadorData {
 }
 
 export interface ITrabajadorRepository {
+ asignarCalendario(actor: number, idTrabajador: number, idCalendario: number, anterior: number | null): Promise<{ id: number; idcalendario: number; nombrecalendario: string }>;
+
   listarTrabajadores(
     params: ListarTrabajadoresParams,
   ): Promise<ListarTrabajadoresResponse>;

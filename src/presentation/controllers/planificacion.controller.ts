@@ -18,6 +18,9 @@ import { GVR_PROJECT_RESOURCE } from '../../infrastructure/auth/catalog-policies
 import { ActorId } from '../http/granted-scopes.decorator';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import * as Dto from '../dtos/planificacion/proyectos/planificacion.dto';
+import { CalendarioPlanQueryDto } from '../dtos/planificacion/proyectos/calendario-plan-query.dto';
+import { ObtenerCalendarioPlanUseCase } from '../../application/use-cases/planificacion/proyectos/obtener-calendario-plan.use-case';
+import { ListarEquipoPlanUseCase } from '../../application/use-cases/planificacion/proyectos/listar-equipo-plan.use-case';
 import { ObtenerPlanUseCase } from '../../application/use-cases/planificacion/proyectos/obtener-plan.use-case';
 import { CrearPlanUseCase } from '../../application/use-cases/planificacion/proyectos/crear-plan.use-case';
 import { ObtenerCronogramaUseCase } from '../../application/use-cases/planificacion/proyectos/obtener-cronograma.use-case';
@@ -44,6 +47,8 @@ import { ResolverAmpliacionUseCase } from '../../application/use-cases/planifica
 @UseGuards(JwtAuthGuard)
 export class PlanificacionController {
   constructor(
+    private readonly obtenerCalendarioPlanUseCase: ObtenerCalendarioPlanUseCase,
+    private readonly listarEquipoPlanUseCase: ListarEquipoPlanUseCase,
     private readonly obtenerPlanUseCase: ObtenerPlanUseCase,
     private readonly crearPlanUseCase: CrearPlanUseCase,
     private readonly obtenerCronogramaUseCase: ObtenerCronogramaUseCase,
@@ -65,6 +70,21 @@ export class PlanificacionController {
     private readonly ampliacionesUseCase: AmpliacionesUseCase,
     private readonly resolverAmpliacionUseCase: ResolverAmpliacionUseCase,
   ) {}
+  @Get('equipo')
+  @HttpCode(200)
+  @RequireResourcePermission(
+    'proyectos.planificacion.ver',
+    GVR_PROJECT_RESOURCE,
+    'id',
+  )
+  async listarEquipo(
+    @ActorId() actor: number,
+    @Param() params: Dto.ProyectoPlanParamsDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.listarEquipoPlanUseCase.execute(actor, params),
+    );
+  }
   @Get('')
   @HttpCode(200)
   @RequireResourcePermission(
@@ -94,6 +114,22 @@ export class PlanificacionController {
   ) {
     return ApiResponseDto.created(
       await this.crearPlanUseCase.execute(actor, params, data),
+    );
+  }
+  @Get(':idPlan/calendario')
+  @HttpCode(200)
+  @RequireResourcePermission(
+    'proyectos.planificacion.ver',
+    GVR_PROJECT_RESOURCE,
+    'id',
+  )
+  async obtenerCalendario(
+    @ActorId() actor: number,
+    @Param() params: Dto.PlanParamsDto,
+    @Query() data: CalendarioPlanQueryDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.obtenerCalendarioPlanUseCase.execute(actor, params, data),
     );
   }
   @Get(':idPlan/cronograma')

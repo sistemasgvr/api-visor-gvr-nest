@@ -21,6 +21,7 @@ import { MisAsignacionesUseCase } from '../../application/use-cases/planificacio
 import { EstadoParteUseCase } from '../../application/use-cases/planificacion/proyectos/estado-parte.use-case';
 import { SolicitarAmpliacionUseCase } from '../../application/use-cases/planificacion/proyectos/solicitar-ampliacion.use-case';
 import { MisAmpliacionesUseCase } from '../../application/use-cases/planificacion/proyectos/mis-ampliaciones.use-case';
+import { ControlOperativoAccess } from '../../infrastructure/auth/control-operativo-access.service';
 @ApiTags('planificacion-proyectos')
 @ApiBearerAuth('access-token')
 @Controller('planificacion')
@@ -31,6 +32,7 @@ export class PlanificacionColaboradorController {
     private readonly estadoParteUseCase: EstadoParteUseCase,
     private readonly solicitarAmpliacionUseCase: SolicitarAmpliacionUseCase,
     private readonly misAmpliacionesUseCase: MisAmpliacionesUseCase,
+    private readonly access: ControlOperativoAccess,
   ) {}
   @Get('mis-asignaciones')
   @HttpCode(200)
@@ -41,6 +43,27 @@ export class PlanificacionColaboradorController {
   ) {
     return ApiResponseDto.success(
       await this.misAsignacionesUseCase.execute(actor, data),
+    );
+  }
+  @Get('trabajadores/:idTrabajador/asignaciones')
+  @HttpCode(200)
+  @RequireScopedPermission('control_operativo.actividades.ver')
+  async asignacionesTrabajador(
+    @ActorId() actor: number,
+    @Param() params: Dto.TrabajadorParamsDto,
+    @Query() data: Dto.MisAsignacionesDto,
+  ) {
+    await this.access.exigirTrabajador(
+      actor,
+      'control_operativo.actividades.ver',
+      params.idTrabajador,
+    );
+    return ApiResponseDto.success(
+      await this.misAsignacionesUseCase.deTrabajador(
+        actor,
+        params.idTrabajador,
+        data,
+      ),
     );
   }
   @Patch('mis-asignaciones/:idAsignacion/estado')

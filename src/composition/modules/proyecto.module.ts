@@ -1,3 +1,4 @@
+import { TrabajadorModule } from './trabajador.module';
 import { PlanificacionModule } from './planificacion.module';
 import { Module } from '@nestjs/common';
 import { ActualizarDocumentoProyectoUseCase } from '../../application/use-cases/proyecto/actualizar-documento-proyecto.use-case';
@@ -35,6 +36,7 @@ import { StorageModule } from './platform/storage.module';
 
 @Module({
   imports: [
+    TrabajadorModule,
     PlanificacionModule,
     DatabaseModule,
     BroadcastModule,
