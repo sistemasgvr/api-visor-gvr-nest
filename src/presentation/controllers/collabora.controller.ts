@@ -30,6 +30,10 @@ import { RefrescarToken3LeggedUseCase } from '../../application/use-cases/acc/re
 import { AccToken } from '../../domain/entities/acc-token.entity';
 import { DocumentAccessService } from '../../application/services/document-access.service';
 import {
+  ApplicationFailure,
+  ForbiddenError,
+} from '../../application/errors/application.error';
+import {
   ContextualAuthorization,
   AuthenticatedAccess,
 } from '../../infrastructure/auth/granular-permission.guard';
@@ -128,13 +132,22 @@ export class CollaboraController {
         };
       }
 
-      // Abrir en Collabora exige el nivel documental del archivo (editar si se pide edición).
-      await this.documentAccess.assertItem(
+      // El nivel documental decide el modo; abrir el visor no exige poder editar.
+      const access = await this.documentAccess.forItem(
         userId,
         projectId,
         itemId,
-        permission === 'edit' ? 'edit' : 'view',
       );
+      if (!access.capabilities.view) {
+        throw new ForbiddenError({
+          message: 'Tu nivel en esta carpeta no permite abrir el documento',
+          code: 'DOCUMENT_LEVEL_DENIED',
+        });
+      }
+      const wopiPermission =
+        permission?.toLowerCase() === 'view' || !access.capabilities.edit
+          ? 'view'
+          : 'edit';
 
       const accToken =
         await this.accRepository.obtenerToken3LeggedPorUsuario(userId);
@@ -203,11 +216,6 @@ export class CollaboraController {
         );
       }
 
-      const wopiPermission =
-        permission && String(permission).toLowerCase() === 'view'
-          ? 'view'
-          : 'edit';
-
       const userSessionToken = this.documentTokenService.createUserSessionToken(
         userId,
         projectId,
@@ -241,6 +249,7 @@ export class CollaboraController {
         message: 'Configuración de Collabora generada exitosamente',
       };
     } catch (error) {
+      if (error instanceof ApplicationFailure) throw error;
       this.logger.error('Error al generar configuración de Collabora', error);
       return {
         status: 500,

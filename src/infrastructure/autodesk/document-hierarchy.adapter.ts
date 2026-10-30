@@ -17,14 +17,22 @@ export class DocumentHierarchyAdapter implements DocumentHierarchy {
   async parentOfItem(projectId: string, itemId: string) {
     const token = await this.token();
     return this.idOf(
-      await this.autodesk.obtenerItemPadre(token, projectId, itemId),
+      await this.autodesk.obtenerItemPadre(
+        token,
+        this.projectId(projectId),
+        itemId,
+      ),
     );
   }
 
   async parentOfFolder(projectId: string, folderId: string) {
     const token = await this.token();
     return this.idOf(
-      await this.autodesk.obtenerCarpetaPadre(token, projectId, folderId),
+      await this.autodesk.obtenerCarpetaPadre(
+        token,
+        this.projectId(projectId),
+        folderId,
+      ),
     );
   }
 
@@ -33,6 +41,10 @@ export class DocumentHierarchyAdapter implements DocumentHierarchy {
     if (!token || this.autodesk.esTokenExpirado(token.expiraEn))
       throw new Error('Integración con Autodesk no disponible');
     return token.tokenAcceso;
+  }
+
+  private projectId(projectId: string) {
+    return projectId.startsWith('b.') ? projectId : `b.${projectId}`;
   }
 
   private idOf(response: unknown): string | null {
