@@ -114,6 +114,11 @@ export interface PaginacionPlanInput {
   offset?: number;
   limite?: number;
 }
+export interface BandejaAmpliacionesInput extends PaginacionPlanInput {
+  estado?: 'pendientes' | 'aprobadas' | 'rechazadas' | 'todas';
+  busqueda?: string;
+  idActividad?: number;
+}
 export interface HistorialPlanInput extends PaginacionPlanInput {
   tipo: 'cambios' | 'movimientos' | 'lineasbase' | 'detallelineabase';
   idLineaBase?: number;
@@ -121,6 +126,19 @@ export interface HistorialPlanInput extends PaginacionPlanInput {
 export interface ResolverAmpliacionInput {
   minutosAprobados: number;
   resolucion: string;
+  fechaReanudacion?: string;
+  revisionPlan?: number;
+  huella?: string;
+}
+export interface PrevisualizarAmpliacionInput {
+  minutosAprobados: number;
+  fechaReanudacion: string;
+}
+export interface ReprogramarSaldoAmpliacionInput {
+  resolucion: string;
+  fechaReanudacion: string;
+  revisionPlan: number;
+  huella: string;
 }
 export interface MisAsignacionesInput {
   fecha: string;

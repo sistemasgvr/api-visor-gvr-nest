@@ -30,7 +30,14 @@ export interface EstadoPlanProyecto {
     minutosplanificados: number;
     fechafinplanificada: string | null;
     desviodiashabiles: number | null;
-    semaforo: 'atrasado' | 'alerta' | 'enplazo' | 'poriniciar' | 'revision' | 'culminado' | null;
+    semaforo:
+      | 'atrasado'
+      | 'alerta'
+      | 'enplazo'
+      | 'poriniciar'
+      | 'revision'
+      | 'culminado'
+      | null;
     aviso: string | null;
   };
   idproyecto: number;
@@ -67,6 +74,8 @@ export interface ActividadPlan {
   eshito: boolean;
   revision: number;
   idestadoactividad: number;
+  /** Minutos registrados por todas sus partes (solo en la lectura del cronograma). */
+  minutosconsumidos?: number;
 }
 export interface SaldoAsignacion {
   minutosautorizados: number;
@@ -93,6 +102,12 @@ export interface DependenciaActividadPlan {
   desfasedias: number;
 }
 export interface FechaAsignacionPlan {
+  periodosregistro?: { inicio: string; fin: string }[];
+  tramos?: { inicio: string; fin: string }[];
+  fechareanudacion?: string | null;
+  iniciopendiente?: string | null;
+  finpendiente?: string | null;
+  minutospendientes?: number;
   idasignacion: number;
   idtrabajador: number;
   minutos: number;
@@ -142,6 +157,69 @@ export interface AmpliacionPlan {
   minutosaprobados: number | null;
   idestadosolicitud: number;
 }
+export interface BandejaAmpliaciones {
+  fechahoy: string;
+  total: number;
+  pendientes: number;
+  pendientesporactividad: { idactividad: number; cantidad: number }[];
+  esaprobador: boolean;
+  puederesolver: boolean;
+  nombreaprobador: string | null;
+  revisionplan: number;
+  solicitudes: (AmpliacionPlan & {
+    idactividad: number;
+    nombreactividad: string;
+    nombreentregable: string;
+    nombresolicitante: string;
+    nombrerevisor: string | null;
+    motivo: string;
+    resolucion: string | null;
+    solicitadaen: string;
+    resueltaen: string | null;
+    minutosasignados: number;
+    minutosconsumidos: number;
+    minutossaldo: number;
+    puedeaprobar: boolean;
+    puederechazar: boolean;
+    puedereprogramar: boolean;
+    fechareanudacion: string | null;
+    fechareanudacionvigente: string | null;
+  })[];
+}
+export interface PrevisualizacionReanudacion {
+  revisionplan: number;
+  huella: string;
+  fechareanudacion: string;
+  fechahoy: string;
+  minutosconsumidos: number;
+  minutospendientes: number;
+  inicioefectivo: string | null;
+  finefectivo: string | null;
+  afectaotrosproyectos: boolean;
+  reprogramacion: boolean;
+  afectadas: {
+    idactividad: number;
+    nombre: string;
+    inicioanterior: string | null;
+    finanterior: string | null;
+    inicio: string | null;
+    fin: string | null;
+    superafinproyecto: boolean | null;
+    superafechalimite: boolean | null;
+    /** Actividad de la solicitud; las demás cambian por dependencias o capacidad compartida. */
+    solicitada: boolean;
+    /** Partes cuyas fechas cambian, aunque la actividad conserve su intervalo global. */
+    partes: {
+      idasignacion: number;
+      idtrabajador: number;
+      nombre: string | null;
+      inicioanterior: string | null;
+      finanterior: string | null;
+      inicio: string | null;
+      fin: string | null;
+    }[];
+  }[];
+}
 
 export interface CambioEstadoActividadPlan {
   idactividad: number;
@@ -160,6 +238,10 @@ export interface CambioEstadoPartePlan {
   idestadoactividad: number;
 }
 export interface AsignacionColaboradorPlan extends AsignacionPlan {
+  periodosregistro?: { inicio: string; fin: string }[] | null;
+  iniciopendiente?: string | null;
+  finpendiente?: string | null;
+  fechareanudacion?: string | null;
   idproyecto: number;
   nombre: string;
   identregable: number;

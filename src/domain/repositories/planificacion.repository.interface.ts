@@ -33,7 +33,10 @@ export interface IPlanificacionRepository {
     idProyecto: number,
   ): Promise<MiembroEquipoPlan[]>;
   proyectosAsignados(actor: number): Promise<number[]>;
-  listarResumenPlanes(actor: number, ids: number[]): Promise<EstadoPlanProyecto[]>;
+  listarResumenPlanes(
+    actor: number,
+    ids: number[],
+  ): Promise<EstadoPlanProyecto[]>;
   listarEstadosPlanes(
     actor: number,
     ids: number[],
@@ -132,11 +135,28 @@ export interface IPlanificacionRepository {
     ctx: Input.ContextoPlan,
     data: Input.HistorialPlanInput,
   ): Promise<PlanificacionJson>;
+  bandejaAmpliaciones(
+    actor: number,
+    ctx: Input.ContextoPlan,
+    data: Input.BandejaAmpliacionesInput,
+  ): Promise<import('../entities/planificacion.entity').BandejaAmpliaciones>;
   ampliaciones(
     actor: number,
     ctx: Input.ContextoPlan,
     data: Input.PaginacionPlanInput,
   ): Promise<AmpliacionPlan[]>;
+  previsualizarAmpliacion(
+    actor: number,
+    ctx: Input.ContextoPlan,
+    data: Input.PrevisualizarAmpliacionInput,
+  ): Promise<
+    import('../entities/planificacion.entity').PrevisualizacionReanudacion
+  >;
+  reprogramarSaldoAmpliacion(
+    actor: number,
+    ctx: Input.ContextoPlan,
+    data: Input.ReprogramarSaldoAmpliacionInput,
+  ): Promise<import('../entities/planificacion.entity').AmpliacionPlan>;
   resolverAmpliacion(
     actor: number,
     ctx: Input.ContextoPlan,

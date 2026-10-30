@@ -4,6 +4,41 @@ import { defineZodDto, mappedDto, isoDate } from '../../../validation/zod-dto';
 const trim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() : value;
 
+export class BandejaAmpliacionesDto {
+  static readonly schema: z.ZodType<BandejaAmpliacionesDto> =
+    defineZodDto<BandejaAmpliacionesDto>('BandejaAmpliacionesDto', {
+      estado: {
+        schema: z.enum(['pendientes', 'aprobadas', 'rechazadas', 'todas']),
+        when: (_o, v) => v !== undefined,
+      },
+      busqueda: {
+        schema: z.string().max(120),
+        transforms: [trim],
+        when: (_o, v) => v !== undefined,
+      },
+      idActividad: {
+        schema: z.number().int().min(1).max(2147483647),
+        coerce: 'number',
+        when: (_o, v) => v !== undefined,
+      },
+      offset: {
+        schema: z.number().int().min(0).max(2147483647),
+        coerce: 'number',
+        when: (_o, v) => v !== undefined,
+      },
+      limite: {
+        schema: z.number().int().min(1).max(100),
+        coerce: 'number',
+        when: (_o, v) => v !== undefined,
+      },
+    });
+  estado?: 'pendientes' | 'aprobadas' | 'rechazadas' | 'todas';
+  busqueda?: string;
+  idActividad?: number;
+  offset?: number;
+  limite?: number;
+}
+
 export class ProyectoPlanParamsDto {
   static readonly schema: z.ZodType<ProyectoPlanParamsDto> =
     defineZodDto<ProyectoPlanParamsDto>('ProyectoPlanParamsDto', {
@@ -1090,10 +1125,70 @@ export class ResolverAmpliacionDto {
         coerce: 'number',
       },
       resolucion: { schema: z.string().min(1).max(1000), transforms: [trim] },
+      fechaReanudacion: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((v) => isoDate(v, true), 'Fecha inválida'),
+        when: (o, v) => Number(o.minutosAprobados) > 0 || v !== undefined,
+      },
+      revisionPlan: {
+        schema: z.number().int().min(1).max(2147483647),
+        coerce: 'number',
+        when: (o, v) => Number(o.minutosAprobados) > 0 || v !== undefined,
+      },
+      huella: {
+        schema: z.string().regex(/^[a-f0-9]{32}$/),
+        when: (o, v) => Number(o.minutosAprobados) > 0 || v !== undefined,
+      },
     });
 
   minutosAprobados!: number;
 
+  resolucion!: string;
+  fechaReanudacion?: string;
+  revisionPlan?: number;
+  huella?: string;
+}
+export class PrevisualizarAmpliacionDto {
+  static readonly schema: z.ZodType<PrevisualizarAmpliacionDto> =
+    defineZodDto<PrevisualizarAmpliacionDto>('PrevisualizarAmpliacionDto', {
+      minutosAprobados: {
+        schema: z.number().int().min(0).max(2147483647),
+        coerce: 'number',
+      },
+      fechaReanudacion: {
+        schema: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .refine((v) => isoDate(v, true), 'Fecha inválida'),
+      },
+    });
+  minutosAprobados!: number;
+  fechaReanudacion!: string;
+}
+export class ReprogramarSaldoAmpliacionDto {
+  static readonly schema: z.ZodType<ReprogramarSaldoAmpliacionDto> =
+    defineZodDto<ReprogramarSaldoAmpliacionDto>(
+      'ReprogramarSaldoAmpliacionDto',
+      {
+        fechaReanudacion: {
+          schema: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .refine((v) => isoDate(v, true), 'Fecha inválida'),
+        },
+        revisionPlan: {
+          schema: z.number().int().min(1).max(2147483647),
+          coerce: 'number',
+        },
+        huella: { schema: z.string().regex(/^[a-f0-9]{32}$/) },
+        resolucion: { schema: z.string().min(1).max(1000), transforms: [trim] },
+      },
+    );
+  fechaReanudacion!: string;
+  revisionPlan!: number;
+  huella!: string;
   resolucion!: string;
 }
 export class MisAsignacionesDto {

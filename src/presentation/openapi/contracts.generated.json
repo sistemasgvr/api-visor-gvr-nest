@@ -7901,6 +7901,66 @@
       "source": "src/presentation/controllers/planificacion.controller.ts",
       "summary": "historial"
     },
+    "PlanificacionController_bandejaAmpliaciones": {
+      "controller": "PlanificacionController",
+      "method": "bandejaAmpliaciones",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BandejaAmpliaciones"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/PlanParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: Dto.PlanParamsDto"
+        },
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/BandejaAmpliacionesDto"
+          },
+          "required": true,
+          "source": "@Query() data: Dto.BandejaAmpliacionesDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireResourcePermission",
+          "codes": "proyectos.planificacion.ver"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion.controller.ts",
+      "summary": "bandeja Ampliaciones"
+    },
     "PlanificacionController_ampliaciones": {
       "controller": "PlanificacionController",
       "method": "ampliaciones",
@@ -7963,6 +8023,116 @@
       ],
       "source": "src/presentation/controllers/planificacion.controller.ts",
       "summary": "ampliaciones"
+    },
+    "PlanificacionController_previsualizarAmpliacion": {
+      "controller": "PlanificacionController",
+      "method": "previsualizarAmpliacion",
+      "verb": "post",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PrevisualizacionReanudacion"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/AmpliacionPlanParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: Dto.AmpliacionPlanParamsDto"
+        }
+      ],
+      "body": {
+        "$ref": "#/components/schemas/PrevisualizarAmpliacionDto"
+      },
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireResourcePermission",
+          "codes": "proyectos.planificacion.ver"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion.controller.ts",
+      "summary": "previsualizar Ampliacion"
+    },
+    "PlanificacionController_reprogramarSaldoAmpliacion": {
+      "controller": "PlanificacionController",
+      "method": "reprogramarSaldoAmpliacion",
+      "verb": "patch",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AmpliacionPlan"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/AmpliacionPlanParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: Dto.AmpliacionPlanParamsDto"
+        }
+      ],
+      "body": {
+        "$ref": "#/components/schemas/ReprogramarSaldoAmpliacionDto"
+      },
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireResourcePermission",
+          "codes": "proyectos.planificacion.ver"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion.controller.ts",
+      "summary": "reprogramar Saldo Ampliacion"
     },
     "PlanificacionController_resolverAmpliacion": {
       "controller": "PlanificacionController",
@@ -46024,6 +46194,10 @@
         "idestadoactividad": {
           "type": "number"
         },
+        "minutosconsumidos": {
+          "type": "number",
+          "description": "Minutos registrados por todas sus partes (solo en la lectura del cronograma)."
+        },
         "orden": {
           "type": "number"
         },
@@ -46280,6 +46454,57 @@
     "FechaAsignacionPlan": {
       "type": "object",
       "properties": {
+        "periodosregistro": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "inicio": {
+                "type": "string"
+              },
+              "fin": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "inicio",
+              "fin"
+            ]
+          }
+        },
+        "tramos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "inicio": {
+                "type": "string"
+              },
+              "fin": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "inicio",
+              "fin"
+            ]
+          }
+        },
+        "fechareanudacion": {
+          "type": "string",
+          "nullable": true
+        },
+        "iniciopendiente": {
+          "type": "string",
+          "nullable": true
+        },
+        "finpendiente": {
+          "type": "string",
+          "nullable": true
+        },
+        "minutospendientes": {
+          "type": "number"
+        },
         "idasignacion": {
           "type": "number"
         },
@@ -46426,6 +46651,166 @@
         "idestadoplan"
       ]
     },
+    "BandejaAmpliaciones": {
+      "type": "object",
+      "properties": {
+        "fechahoy": {
+          "type": "string"
+        },
+        "total": {
+          "type": "number"
+        },
+        "pendientes": {
+          "type": "number"
+        },
+        "pendientesporactividad": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "idactividad": {
+                "type": "number"
+              },
+              "cantidad": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "idactividad",
+              "cantidad"
+            ]
+          }
+        },
+        "esaprobador": {
+          "type": "boolean"
+        },
+        "puederesolver": {
+          "type": "boolean"
+        },
+        "nombreaprobador": {
+          "type": "string",
+          "nullable": true
+        },
+        "revisionplan": {
+          "type": "number"
+        },
+        "solicitudes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number"
+              },
+              "idasignacion": {
+                "type": "number"
+              },
+              "minutossolicitados": {
+                "type": "number"
+              },
+              "minutosaprobados": {
+                "type": "number",
+                "nullable": true
+              },
+              "idestadosolicitud": {
+                "type": "number"
+              },
+              "idactividad": {
+                "type": "number"
+              },
+              "nombreactividad": {
+                "type": "string"
+              },
+              "nombreentregable": {
+                "type": "string"
+              },
+              "nombresolicitante": {
+                "type": "string"
+              },
+              "nombrerevisor": {
+                "type": "string",
+                "nullable": true
+              },
+              "motivo": {
+                "type": "string"
+              },
+              "resolucion": {
+                "type": "string",
+                "nullable": true
+              },
+              "solicitadaen": {
+                "type": "string"
+              },
+              "resueltaen": {
+                "type": "string",
+                "nullable": true
+              },
+              "minutosasignados": {
+                "type": "number"
+              },
+              "minutosconsumidos": {
+                "type": "number"
+              },
+              "minutossaldo": {
+                "type": "number"
+              },
+              "puedeaprobar": {
+                "type": "boolean"
+              },
+              "puederechazar": {
+                "type": "boolean"
+              },
+              "puedereprogramar": {
+                "type": "boolean"
+              },
+              "fechareanudacion": {
+                "type": "string",
+                "nullable": true
+              },
+              "fechareanudacionvigente": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "id",
+              "idasignacion",
+              "minutossolicitados",
+              "minutosaprobados",
+              "idestadosolicitud",
+              "idactividad",
+              "nombreactividad",
+              "nombreentregable",
+              "nombresolicitante",
+              "nombrerevisor",
+              "motivo",
+              "resolucion",
+              "solicitadaen",
+              "resueltaen",
+              "minutosasignados",
+              "minutosconsumidos",
+              "minutossaldo",
+              "puedeaprobar",
+              "puederechazar",
+              "puedereprogramar",
+              "fechareanudacion",
+              "fechareanudacionvigente"
+            ]
+          }
+        }
+      },
+      "required": [
+        "fechahoy",
+        "total",
+        "pendientes",
+        "pendientesporactividad",
+        "esaprobador",
+        "puederesolver",
+        "nombreaprobador",
+        "revisionplan",
+        "solicitudes"
+      ]
+    },
     "AmpliacionPlan": {
       "type": "object",
       "properties": {
@@ -46496,6 +46881,154 @@
         "minutossolicitados",
         "minutosaprobados",
         "idestadosolicitud"
+      ]
+    },
+    "PrevisualizacionReanudacion": {
+      "type": "object",
+      "properties": {
+        "revisionplan": {
+          "type": "number"
+        },
+        "huella": {
+          "type": "string"
+        },
+        "fechareanudacion": {
+          "type": "string"
+        },
+        "fechahoy": {
+          "type": "string"
+        },
+        "minutosconsumidos": {
+          "type": "number"
+        },
+        "minutospendientes": {
+          "type": "number"
+        },
+        "inicioefectivo": {
+          "type": "string",
+          "nullable": true
+        },
+        "finefectivo": {
+          "type": "string",
+          "nullable": true
+        },
+        "afectaotrosproyectos": {
+          "type": "boolean"
+        },
+        "reprogramacion": {
+          "type": "boolean"
+        },
+        "afectadas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "idactividad": {
+                "type": "number"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "inicioanterior": {
+                "type": "string",
+                "nullable": true
+              },
+              "finanterior": {
+                "type": "string",
+                "nullable": true
+              },
+              "inicio": {
+                "type": "string",
+                "nullable": true
+              },
+              "fin": {
+                "type": "string",
+                "nullable": true
+              },
+              "superafinproyecto": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "superafechalimite": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "solicitada": {
+                "type": "boolean",
+                "description": "Actividad de la solicitud; las demás cambian por dependencias o capacidad compartida."
+              },
+              "partes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "idasignacion": {
+                      "type": "number"
+                    },
+                    "idtrabajador": {
+                      "type": "number"
+                    },
+                    "nombre": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "inicioanterior": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "finanterior": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "inicio": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "fin": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "idasignacion",
+                    "idtrabajador",
+                    "nombre",
+                    "inicioanterior",
+                    "finanterior",
+                    "inicio",
+                    "fin"
+                  ]
+                },
+                "description": "Partes cuyas fechas cambian, aunque la actividad conserve su intervalo global."
+              }
+            },
+            "required": [
+              "idactividad",
+              "nombre",
+              "inicioanterior",
+              "finanterior",
+              "inicio",
+              "fin",
+              "superafinproyecto",
+              "superafechalimite",
+              "solicitada",
+              "partes"
+            ]
+          }
+        }
+      },
+      "required": [
+        "revisionplan",
+        "huella",
+        "fechareanudacion",
+        "fechahoy",
+        "minutosconsumidos",
+        "minutospendientes",
+        "inicioefectivo",
+        "finefectivo",
+        "afectaotrosproyectos",
+        "reprogramacion",
+        "afectadas"
       ]
     },
     "AsignacionesColaborador": {
@@ -46576,6 +47109,37 @@
     "AsignacionColaboradorPlan": {
       "type": "object",
       "properties": {
+        "periodosregistro": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "inicio": {
+                "type": "string"
+              },
+              "fin": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "inicio",
+              "fin"
+            ]
+          },
+          "nullable": true
+        },
+        "iniciopendiente": {
+          "type": "string",
+          "nullable": true
+        },
+        "finpendiente": {
+          "type": "string",
+          "nullable": true
+        },
+        "fechareanudacion": {
+          "type": "string",
+          "nullable": true
+        },
         "idproyecto": {
           "type": "number"
         },

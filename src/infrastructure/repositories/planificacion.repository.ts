@@ -1,3 +1,4 @@
+import { PLANIFICACION_SQL_VERSIONES } from './planificacion-versiones';
 import { Injectable } from '@nestjs/common';
 import { assignedGvrProjectIds } from '../auth/catalog-policies';
 import type * as Input from '../../domain/entities/planificacion-input.entity';
@@ -14,6 +15,7 @@ import type {
   ActividadPlan,
   ActividadPlanDetalle,
   AmpliacionPlan,
+  BandejaAmpliaciones,
   CronogramaProyecto,
   PlanProyecto,
   PlanProyectoDetalle,
@@ -60,7 +62,10 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     ]);
   }
   listarResumenPlanes(actor: number, ids: number[]) {
-    return this.call<EstadoPlanProyecto[]>('pla_ListarResumenPlanes', [actor, ids]);
+    return this.call<EstadoPlanProyecto[]>('pla_ListarResumenPlanes', [
+      actor,
+      ids,
+    ]);
   }
   obtenerPlan(actor: number, ctx: Input.ContextoPlan) {
     return this.call<PlanProyectoDetalle>('pla_ObtenerPlanProyecto', [
@@ -283,6 +288,22 @@ export class PlanificacionRepository implements IPlanificacionRepository {
       data.idLineaBase ?? null,
     ]);
   }
+  bandejaAmpliaciones(
+    actor: number,
+    ctx: Input.ContextoPlan,
+    data: Input.BandejaAmpliacionesInput,
+  ) {
+    return this.call<BandejaAmpliaciones>('pla_ObtenerBandejaAmpliaciones', [
+      actor,
+      ctx.idPlan,
+      ctx.id,
+      data.estado ?? 'pendientes',
+      data.idActividad ?? null,
+      data.busqueda ?? '',
+      data.limite ?? 20,
+      data.offset ?? 0,
+    ]);
+  }
   ampliaciones(
     actor: number,
     ctx: Input.ContextoPlan,
@@ -295,6 +316,36 @@ export class PlanificacionRepository implements IPlanificacionRepository {
       data.limite ?? 50,
     ]);
   }
+  previsualizarAmpliacion(
+    actor: number,
+    ctx: Input.ContextoPlan,
+    data: Input.PrevisualizarAmpliacionInput,
+  ) {
+    return this.call<
+      import('../../domain/entities/planificacion.entity').PrevisualizacionReanudacion
+    >('pla_PrevisualizarReanudacionAmpliacion', [
+      actor,
+      ctx.idAmpliacion,
+      data.minutosAprobados,
+      data.fechaReanudacion,
+    ]);
+  }
+  reprogramarSaldoAmpliacion(
+    actor: number,
+    ctx: Input.ContextoPlan,
+    data: Input.ReprogramarSaldoAmpliacionInput,
+  ) {
+    return this.call<AmpliacionPlan>('pla_ResolverAmpliacion', [
+      actor,
+      ctx.idAmpliacion,
+      0,
+      data.resolucion,
+      data.fechaReanudacion,
+      data.revisionPlan,
+      data.huella,
+      true,
+    ]);
+  }
   resolverAmpliacion(
     actor: number,
     ctx: Input.ContextoPlan,
@@ -305,6 +356,10 @@ export class PlanificacionRepository implements IPlanificacionRepository {
       ctx.idAmpliacion,
       data.minutosAprobados,
       data.resolucion,
+      data.fechaReanudacion ?? null,
+      data.revisionPlan ?? null,
+      data.huella ?? null,
+      false,
     ]);
   }
   misAsignaciones(
@@ -400,10 +455,11 @@ export class PlanificacionRepository implements IPlanificacionRepository {
   }
   private async call<T>(name: string, params: unknown[]): Promise<T> {
     return ejecutarPlanificacion(async () => {
+      const sqlName = PLANIFICACION_SQL_VERSIONES[name] ?? name;
       const row = await this.database.callFunctionSingle<
         Record<string, unknown>
-      >(name, params);
-      const value = row?.[name];
+      >(sqlName, params);
+      const value = row?.[sqlName];
       if (value == null) throw new Error('Respuesta de planificación ausente');
       this.validarRespuesta(name, value);
       // Copia JSON explícita: sin prototipos, filas del driver ni fechas convertidas a Date.

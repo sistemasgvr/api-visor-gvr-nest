@@ -386,6 +386,22 @@ export class PlanificacionController {
       await this.historialUseCase.execute(actor, params, data),
     );
   }
+  @Get(':idPlan/revision-ampliaciones')
+  @HttpCode(200)
+  @RequireResourcePermission(
+    'proyectos.planificacion.ver',
+    GVR_PROJECT_RESOURCE,
+    'id',
+  )
+  async bandejaAmpliaciones(
+    @ActorId() actor: number,
+    @Param() params: Dto.PlanParamsDto,
+    @Query() data: Dto.BandejaAmpliacionesDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.ampliacionesUseCase.bandeja(actor, params, data),
+    );
+  }
   @Get(':idPlan/ampliaciones')
   @HttpCode(200)
   @RequireResourcePermission(
@@ -400,6 +416,38 @@ export class PlanificacionController {
   ) {
     return ApiResponseDto.success(
       await this.ampliacionesUseCase.execute(actor, params, data),
+    );
+  }
+  @Post(':idPlan/ampliaciones/:idAmpliacion/previsualizar')
+  @HttpCode(200)
+  @RequireResourcePermission(
+    'proyectos.planificacion.ver',
+    GVR_PROJECT_RESOURCE,
+    'id',
+  )
+  async previsualizarAmpliacion(
+    @ActorId() actor: number,
+    @Param() params: Dto.AmpliacionPlanParamsDto,
+    @Body() data: Dto.PrevisualizarAmpliacionDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.resolverAmpliacionUseCase.previsualizar(actor, params, data),
+    );
+  }
+  @Patch(':idPlan/ampliaciones/:idAmpliacion/reprogramar')
+  @HttpCode(200)
+  @RequireResourcePermission(
+    'proyectos.planificacion.ver',
+    GVR_PROJECT_RESOURCE,
+    'id',
+  )
+  async reprogramarSaldoAmpliacion(
+    @ActorId() actor: number,
+    @Param() params: Dto.AmpliacionPlanParamsDto,
+    @Body() data: Dto.ReprogramarSaldoAmpliacionDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.resolverAmpliacionUseCase.reprogramar(actor, params, data),
     );
   }
   @Patch(':idPlan/ampliaciones/:idAmpliacion')

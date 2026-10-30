@@ -102,6 +102,162 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
     });
   });
   const calendarioPlan = base + '/2/calendario';
+  const revisionAmpliaciones = base + '/2/revision-ampliaciones';
+  const previsualizarAmpliacion = base + '/2/ampliaciones/7/previsualizar';
+  it('previsualización de reanudación exige JWT y alcance de planificación', async () => {
+    await request(app.getHttpServer() as Server)
+      .post(previsualizarAmpliacion)
+      .send({ minutosAprobados: 120, fechaReanudacion: '2026-10-30' })
+      .expect(401);
+    grant('control_operativo.actividades.ver');
+    await request(app.getHttpServer() as Server)
+      .post(previsualizarAmpliacion)
+      .auth(token, { type: 'bearer' })
+      .send({ minutosAprobados: 120, fechaReanudacion: '2026-10-30' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it('envía fecha y horas de previsualización al servidor con actor de JWT', async () => {
+    grant('proyectos.planificacion.ver');
+    const result = {
+      huella: 'a'.repeat(32),
+      revisionplan: 3,
+      inicioefectivo: '2026-10-30',
+      finefectivo: '2026-10-30',
+    };
+    database.callFunctionSingle.mockResolvedValue({
+      pla_PrevisualizarReanudacionAmpliacion: result,
+    });
+    const response = await request(app.getHttpServer() as Server)
+      .post(previsualizarAmpliacion)
+      .auth(token, { type: 'bearer' })
+      .send({ minutosAprobados: 120, fechaReanudacion: '2026-10-30' })
+      .expect(200);
+    expect(response.body.data).toEqual(result);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_PrevisualizarReanudacionAmpliacion',
+      [23, 7, 120, '2026-10-30'],
+    );
+  });
+  it('aprobar envía la revisión y huella que garantizan la programación revisada', async () => {
+    grant('proyectos.planificacion.ver');
+    database.callFunctionSingle.mockResolvedValue({
+      pla_ResolverAmpliacionV2: { id: 7, minutosaprobados: 120 },
+    });
+    await request(app.getHttpServer() as Server)
+      .patch(base + '/2/ampliaciones/7')
+      .auth(token, { type: 'bearer' })
+      .send({
+        minutosAprobados: 120,
+        resolucion: 'Aprobar',
+        fechaReanudacion: '2026-10-30',
+        revisionPlan: 3,
+        huella: 'a'.repeat(32),
+      })
+      .expect(200);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_ResolverAmpliacionV2',
+      [23, 7, 120, 'Aprobar', '2026-10-30', 3, 'a'.repeat(32), false],
+    );
+  });
+  it('reprogramar saldo ya aprobado nunca incrementa horas de nuevo', async () => {
+    grant('proyectos.planificacion.ver');
+    database.callFunctionSingle.mockResolvedValue({
+      pla_ResolverAmpliacionV2: { id: 7, minutosaprobados: 120 },
+    });
+    await request(app.getHttpServer() as Server)
+      .patch(base + '/2/ampliaciones/7/reprogramar')
+      .auth(token, { type: 'bearer' })
+      .send({
+        resolucion: 'Solo saldo',
+        fechaReanudacion: '2026-10-30',
+        revisionPlan: 3,
+        huella: 'a'.repeat(32),
+      })
+      .expect(200);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_ResolverAmpliacionV2',
+      [23, 7, 0, 'Solo saldo', '2026-10-30', 3, 'a'.repeat(32), true],
+    );
+  });
+  it.each([
+    { minutosAprobados: 120, resolucion: 'Sin previsualizar' },
+    {
+      minutosAprobados: 120,
+      resolucion: 'Inválida',
+      fechaReanudacion: '2026-02-30',
+      revisionPlan: 3,
+      huella: 'a'.repeat(32),
+    },
+  ])('rechaza aprobación inválida %j antes de SQL', async (body) => {
+    grant('proyectos.planificacion.ver');
+    await request(app.getHttpServer() as Server)
+      .patch(base + '/2/ampliaciones/7')
+      .auth(token, { type: 'bearer' })
+      .send(body)
+      .expect(400);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it('la bandeja exige sesión y permiso ver planificación', async () => {
+    await request(app.getHttpServer() as Server)
+      .get(revisionAmpliaciones)
+      .expect(401);
+    grant('control_operativo.actividades.ver');
+    await request(app.getHttpServer() as Server)
+      .get(revisionAmpliaciones)
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it.each(['todos', 'asignados'])(
+    'consulta la bandeja autorizada (%s), con filtros validados',
+    async (scope) => {
+      grant('proyectos.planificacion.ver', scope);
+      const result = {
+        total: 0,
+        solicitudes: [],
+        pendientes: 0,
+        esaprobador: false,
+      };
+      database.callFunctionSingle.mockResolvedValue({
+        pla_ObtenerBandejaAmpliacionesV2: result,
+      });
+      const res = await request(app.getHttpServer() as Server)
+        .get(
+          revisionAmpliaciones +
+            '?estado=todas&busqueda=Diseño&idActividad=7&offset=10&limite=10',
+        )
+        .auth(token, { type: 'bearer' })
+        .expect(200);
+      expect(res.body.data).toEqual(result);
+      expect(database.callFunctionSingle).toHaveBeenCalledWith(
+        'pla_ObtenerBandejaAmpliacionesV2',
+        [23, 2, 8, 'todas', 7, 'Diseño', 10, 10],
+      );
+    },
+  );
+  it('deniega bandeja de un proyecto ajeno con alcance asignados', async () => {
+    grant('proyectos.planificacion.ver', 'asignados');
+    database.executeQuery.mockResolvedValue([
+      { exists: true, assigned: false },
+    ]);
+    await request(app.getHttpServer() as Server)
+      .get(revisionAmpliaciones)
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it.each(['?estado=otro', '?limite=101', '?offset=-1', '?idActividad=0'])(
+    'rechaza filtros de bandeja %s',
+    async (query) => {
+      grant('proyectos.planificacion.ver');
+      await request(app.getHttpServer() as Server)
+        .get(revisionAmpliaciones + query)
+        .auth(token, { type: 'bearer' })
+        .expect(400);
+      expect(database.callFunctionSingle).not.toHaveBeenCalled();
+    },
+  );
   const rango = '?desde=2026-10-19&hasta=2026-10-25';
   it('O4 exige JWT y permiso ver planificación', async () => {
     await request(app.getHttpServer() as Server)
@@ -360,17 +516,32 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
   const estados = '/api/proyectos/planificacion/estados';
   it('resumen exige JWT, permiso y devuelve las métricas del lote autorizado', async () => {
     const url = '/api/proyectos/planificacion/resumen?ids=8,9,8';
-    await request(app.getHttpServer() as Server).get(url).expect(401);
+    await request(app.getHttpServer() as Server)
+      .get(url)
+      .expect(401);
     permissions.readCurrent.mockResolvedValue({ active: true, grants: [] });
-    await request(app.getHttpServer() as Server).get(url).auth(token, { type: 'bearer' }).expect(403);
+    await request(app.getHttpServer() as Server)
+      .get(url)
+      .auth(token, { type: 'bearer' })
+      .expect(403);
     expect(database.callFunctionSingle).not.toHaveBeenCalled();
     grant('proyectos.planificacion.ver', 'asignados');
     database.executeQuery.mockResolvedValue([{ id: 8 }]);
-    const rows = [{ idproyecto: 8, metricas: { avancereal: 0, minutosplanificados: 2400 } }];
-    database.callFunctionSingle.mockResolvedValue({ pla_ListarResumenPlanes: rows });
-    const result = await request(app.getHttpServer() as Server).get(url).auth(token, { type: 'bearer' }).expect(200);
+    const rows = [
+      { idproyecto: 8, metricas: { avancereal: 0, minutosplanificados: 2400 } },
+    ];
+    database.callFunctionSingle.mockResolvedValue({
+      pla_ListarResumenPlanesV2: rows,
+    });
+    const result = await request(app.getHttpServer() as Server)
+      .get(url)
+      .auth(token, { type: 'bearer' })
+      .expect(200);
     expect(result.body.data).toEqual(rows);
-    expect(database.callFunctionSingle).toHaveBeenCalledWith('pla_ListarResumenPlanes', [23, [8]]);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_ListarResumenPlanesV2',
+      [23, [8]],
+    );
   });
   it('O1 exige JWT y permiso de planificación', async () => {
     await request(app.getHttpServer() as Server)
@@ -522,7 +693,7 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
   });
   it('crea actividad y reparto con JSONB en una sola llamada', async () => {
     database.callFunctionSingle.mockResolvedValue({
-      pla_GuardarActividad: { id: 3, revision: 1 },
+      pla_GuardarActividadV2: { id: 3, revision: 1 },
     });
     await request(app.getHttpServer() as Server)
       .post(base + '/2/actividades')
@@ -538,7 +709,7 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
       })
       .expect(201);
     expect(database.callFunctionSingle).toHaveBeenCalledWith(
-      'pla_GuardarActividad',
+      'pla_GuardarActividadV2',
       [
         23,
         2,
@@ -630,28 +801,28 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
     grant('control_operativo.actividades.ver', 'propios');
     database.executeQuery.mockResolvedValue([{ id: 7 }]);
     database.callFunctionSingle.mockResolvedValue({
-      pla_ListarAsignacionesColaboradorV2: { planes: [], asignaciones: [] },
+      pla_ListarAsignacionesColaboradorV3: { planes: [], asignaciones: [] },
     });
     await request(app.getHttpServer() as Server)
       .get('/api/planificacion/mis-asignaciones?fecha=2026-10-22')
       .auth(token, { type: 'bearer' })
       .expect(200);
     expect(database.callFunctionSingle).toHaveBeenCalledWith(
-      'pla_ListarAsignacionesColaboradorV2',
+      'pla_ListarAsignacionesColaboradorV3',
       [23, 7, '2026-10-22', null],
     );
   });
   it('consulta las asignaciones de otra persona con alcance todos', async () => {
     grant('control_operativo.actividades.ver', 'todos');
     database.callFunctionSingle.mockResolvedValue({
-      pla_ListarAsignacionesColaboradorV2: { planes: [], asignaciones: [] },
+      pla_ListarAsignacionesColaboradorV3: { planes: [], asignaciones: [] },
     });
     await request(app.getHttpServer() as Server)
       .get('/api/planificacion/trabajadores/9/asignaciones?fecha=2026-10-22')
       .auth(token, { type: 'bearer' })
       .expect(200);
     expect(database.callFunctionSingle).toHaveBeenCalledWith(
-      'pla_ListarAsignacionesColaboradorV2',
+      'pla_ListarAsignacionesColaboradorV3',
       [23, 9, '2026-10-22', null],
     );
   });

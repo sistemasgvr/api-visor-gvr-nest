@@ -1,3 +1,4 @@
+import { PLANIFICACION_SQL_VERSIONES } from './planificacion-versiones';
 import { ejecutarPlanificacion } from './planificacion-errors';
 import { Injectable, Logger } from '@nestjs/common';
 import type {
@@ -755,7 +756,10 @@ export class ProyectoRepository implements IProyectoRepository {
    */
   private callPlanSingle<T>(name: string, params: unknown[]) {
     return ejecutarPlanificacion(() =>
-      this.databaseFunctionService.callFunctionSingle<T>(name, params),
+      this.databaseFunctionService.callFunctionSingle<T>(
+        PLANIFICACION_SQL_VERSIONES[name] ?? name,
+        params,
+      ),
     );
   }
 }
