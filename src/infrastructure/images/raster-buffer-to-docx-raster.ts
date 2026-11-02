@@ -56,7 +56,7 @@ export async function rasterBufferDocxDisplayTransformation(
 }
 
 /**
- * Convierte con sharp (WebP, PNG, JPEG, etc.) a PNG o JPEG compatible con Word/docx.
+ * Convierte con sharp (SVG, WebP, PNG, JPEG, etc.) a PNG o JPEG compatible con Word/docx.
  * Canal alfa → PNG; si no → JPEG.
  */
 export async function rasterBufferToDocxRaster(
@@ -78,7 +78,7 @@ export async function rasterBufferToDocxRaster(
     };
     const meta = await sharp(buffer, sharpOpts).metadata();
     if (!meta.format) return null;
-    if (meta.format === 'svg' || meta.format === 'pdf') return null;
+    if (meta.format === 'pdf') return null;
 
     const pipeline = sharp(buffer, sharpOpts).rotate().resize({
       width: maxEdgePx,
