@@ -19,6 +19,9 @@ import { ObtenerCantidadTrabajadoresPorProyectoUseCase } from '../../application
 import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from '../../application/use-cases/dashboard/obtener-horas-esperadas-vs-registradas-mes.use-case';
 import { ObtenerProyectosConProgresoUseCase } from '../../application/use-cases/dashboard/obtener-proyectos-con-progreso.use-case';
 import { ObtenerTopTrabajadoresHorasMesUseCase } from '../../application/use-cases/dashboard/obtener-top-trabajadores-horas-mes.use-case';
+import { ObtenerActividadesPorValidarPorCoordinadorUseCase } from '../../application/use-cases/dashboard/obtener-actividades-por-validar-por-coordinador.use-case';
+import { ObtenerTopTrabajadoresJornadasCerradasUseCase } from '../../application/use-cases/dashboard/obtener-top-trabajadores-jornadas-cerradas.use-case';
+import { ObtenerTopCoordinadoresActividadesValidadasUseCase } from '../../application/use-cases/dashboard/obtener-top-coordinadores-actividades-validadas.use-case';
 
 @Module({
   imports: [DatabaseModule, AuthenticationModule],
@@ -39,6 +42,9 @@ import { ObtenerTopTrabajadoresHorasMesUseCase } from '../../application/use-cas
     applicationProvider(ObtenerCantidadTrabajadoresConectadoSemanaUseCase),
     applicationProvider(ObtenerHorasEsperadasVsRegistradasMesUseCase),
     applicationProvider(ObtenerProyectosConProgresoUseCase),
+    applicationProvider(ObtenerActividadesPorValidarPorCoordinadorUseCase),
+    applicationProvider(ObtenerTopTrabajadoresJornadasCerradasUseCase),
+    applicationProvider(ObtenerTopCoordinadoresActividadesValidadasUseCase),
   ],
 })
 export class DashboardModule {}

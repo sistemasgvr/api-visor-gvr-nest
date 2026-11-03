@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   IDashboardRepository,
+  DashboardRangoFechas,
   DashboardCantidadProyectosVigentes,
   DashboardCantidadTrabajadoresActivos,
   DashboardCantidadActividadesPendientes,
@@ -12,8 +13,36 @@ import {
   DashboardCantidadTrabajadoresConectadoSemana,
   DashboardHorasEsperadasVsRegistradasMes,
   DashboardProyectosConProgreso,
+  DashboardActividadesPorValidarPorCoordinador,
+  DashboardTopTrabajadoresJornadasCerradas,
+  DashboardTopCoordinadoresActividadesValidadas,
 } from '../../domain/repositories/dashboard.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
+
+/**
+ * Parámetros de rango para las funciones `dash_*` parametrizadas.
+ * Las funciones reciben `(p_fecha_inicio date, p_fecha_fin date)` y, con NULL,
+ * aplican su periodo por defecto; por eso un rango ausente se envía como null.
+ */
+const parametrosRango = (
+  rango?: DashboardRangoFechas,
+): [string | null, string | null] => [
+  rango?.fechaInicio ?? null,
+  rango?.fechaFin ?? null,
+];
+
+/**
+ * Normaliza a `YYYY-MM-DD` la columna `fecha`, que el driver entrega como `Date`
+ * o como cadena según el tipo declarado por la función.
+ */
+const aFechaIso = (valor: unknown): string => {
+  if (valor instanceof Date) {
+    const mes = String(valor.getMonth() + 1).padStart(2, '0');
+    const dia = String(valor.getDate()).padStart(2, '0');
+    return `${valor.getFullYear()}-${mes}-${dia}`;
+  }
+  return typeof valor === 'string' ? valor.slice(0, 10) : '';
+};
 
 @Injectable()
 export class DashboardRepository implements IDashboardRepository {
@@ -37,10 +66,12 @@ export class DashboardRepository implements IDashboardRepository {
     return { cantidad: Number(result?.dash_CantidadTrabajadoresActivos) };
   }
 
-  async cantidadActividadesPendientes(): Promise<DashboardCantidadActividadesPendientes> {
+  async cantidadActividadesPendientes(
+    rango?: DashboardRangoFechas,
+  ): Promise<DashboardCantidadActividadesPendientes> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
       'dash_CantidadActividadesPendientes',
-      [],
+      parametrosRango(rango),
     );
     return {
       dash_CantidadActividadesPendientes:
@@ -48,10 +79,12 @@ export class DashboardRepository implements IDashboardRepository {
     };
   }
 
-  async cantidadActividadesObservadas(): Promise<DashboardCantidadActividadesObservadas> {
+  async cantidadActividadesObservadas(
+    rango?: DashboardRangoFechas,
+  ): Promise<DashboardCantidadActividadesObservadas> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
       'dash_CantidadActividadesObservadas',
-      [],
+      parametrosRango(rango),
     );
     return {
       dash_CantidadActividadesObservadas:
@@ -59,10 +92,12 @@ export class DashboardRepository implements IDashboardRepository {
     };
   }
 
-  async cantidadActividadesRechazadas(): Promise<DashboardCantidadActividadesRechazadas> {
+  async cantidadActividadesRechazadas(
+    rango?: DashboardRangoFechas,
+  ): Promise<DashboardCantidadActividadesRechazadas> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
       'dash_CantidadActividadesRechazadas',
-      [],
+      parametrosRango(rango),
     );
     return {
       dash_CantidadActividadesRechazadas:
@@ -85,24 +120,27 @@ export class DashboardRepository implements IDashboardRepository {
     }));
   }
 
-  async cantidadJornadasCompletasSemana(): Promise<
-    DashboardCantidadJornadasCompletasSemana[]
-  > {
+  async cantidadJornadasCompletasSemana(
+    rango?: DashboardRangoFechas,
+  ): Promise<DashboardCantidadJornadasCompletasSemana[]> {
     const result = await this.databaseFunctionService.callFunction<any>(
       'dash_CantidadJornadasCompletasSemana',
-      [],
+      parametrosRango(rango),
     );
     if (!Array.isArray(result)) return [];
     return result.map((row) => ({
+      fecha: aFechaIso(row.fecha),
       dia: row.dia,
       cantidad: Number(row.cantidad),
     }));
   }
 
-  async topTrabajadoresHorasMes(): Promise<DashboardTopTrabajadoresHorasMes[]> {
+  async topTrabajadoresHorasMes(
+    rango?: DashboardRangoFechas,
+  ): Promise<DashboardTopTrabajadoresHorasMes[]> {
     const result = await this.databaseFunctionService.callFunction<any>(
       'dash_TopTrabajadoresHorasMes',
-      [],
+      parametrosRango(rango),
     );
     if (!Array.isArray(result)) return [];
     return result.map((row) => ({
@@ -113,29 +151,31 @@ export class DashboardRepository implements IDashboardRepository {
     }));
   }
 
-  async cantidadTrabajadoresConectadoSemana(): Promise<
-    DashboardCantidadTrabajadoresConectadoSemana[]
-  > {
+  async cantidadTrabajadoresConectadoSemana(
+    rango?: DashboardRangoFechas,
+  ): Promise<DashboardCantidadTrabajadoresConectadoSemana[]> {
     const result = await this.databaseFunctionService.callFunction<any>(
       'dash_CantidadTrabajadoresConectadoSemana',
-      [],
+      parametrosRango(rango),
     );
     if (!Array.isArray(result)) return [];
     return result.map((row) => ({
+      fecha: aFechaIso(row.fecha),
       dia: row.dia,
       cantidad: Number(row.cantidad),
     }));
   }
 
-  async horasEsperadasVsRegistradasMes(): Promise<
-    DashboardHorasEsperadasVsRegistradasMes[]
-  > {
+  async horasEsperadasVsRegistradasMes(
+    rango?: DashboardRangoFechas,
+  ): Promise<DashboardHorasEsperadasVsRegistradasMes[]> {
     const result = await this.databaseFunctionService.callFunction<any>(
       'dash_HorasEsperadasVsRegistradasMes',
-      [],
+      parametrosRango(rango),
     );
     if (!Array.isArray(result)) return [];
     return result.map((row) => ({
+      fecha: aFechaIso(row.fecha),
       dia: Number(row.dia),
       horasEsperadas: Number(row.horasEsperadas),
       horasRegistradas: Number(row.horasRegistradas),
@@ -155,6 +195,54 @@ export class DashboardRepository implements IDashboardRepository {
       tipoProyecto: row.tipoProyecto,
       estadoProyecto: row.estadoProyecto,
       progresoPorcentaje: Math.trunc(Number(row.progresoPorcentaje)),
+    }));
+  }
+
+  async actividadesPorValidarPorCoordinador(
+    rango?: DashboardRangoFechas,
+  ): Promise<DashboardActividadesPorValidarPorCoordinador[]> {
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'dash_ActividadesPorValidarPorCoordinador',
+      parametrosRango(rango),
+    );
+    if (!Array.isArray(result)) return [];
+    return result.map((row) => ({
+      idCoordinador: Number(row.idCoordinador),
+      nombreCoordinador: row.nombreCoordinador,
+      correoCoordinador: row.correoCoordinador ?? null,
+      actividadesPorValidar: Number(row.actividadesPorValidar),
+    }));
+  }
+
+  async topTrabajadoresJornadasCerradas(
+    rango?: DashboardRangoFechas,
+  ): Promise<DashboardTopTrabajadoresJornadasCerradas[]> {
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'dash_TopTrabajadoresJornadasCerradas',
+      parametrosRango(rango),
+    );
+    if (!Array.isArray(result)) return [];
+    return result.map((row) => ({
+      idTrabajador: Number(row.idTrabajador),
+      nombreTrabajador: row.nombreTrabajador,
+      jornadasCerradas: Number(row.jornadasCerradas),
+    }));
+  }
+
+  async topCoordinadoresActividadesValidadas(
+    rango?: DashboardRangoFechas,
+  ): Promise<DashboardTopCoordinadoresActividadesValidadas[]> {
+    const result = await this.databaseFunctionService.callFunction<any>(
+      'dash_TopCoordinadoresActividadesValidadas',
+      parametrosRango(rango),
+    );
+    if (!Array.isArray(result)) return [];
+    return result.map((row) => ({
+      idCoordinador: Number(row.idCoordinador),
+      nombreCoordinador: row.nombreCoordinador,
+      actividadesValidadas: Number(row.actividadesValidadas),
+      actividadesTotales: Number(row.actividadesTotales),
+      porcentajeValidadas: Number(row.porcentajeValidadas),
     }));
   }
 }

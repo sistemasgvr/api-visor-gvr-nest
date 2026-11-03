@@ -243,6 +243,7 @@ import { ListarTrabajadoresSinJornadaHoyUseCase } from '../application/use-cases
 import { ListarValorizacionUseCase } from '../application/use-cases/control-operativo/listar-valorizacion.use-case';
 import { ObtenerActividadUseCase } from '../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ValidarActividadUseCase } from '../application/use-cases/control-operativo/validar-actividad.use-case';
+import { ObtenerActividadesPorValidarPorCoordinadorUseCase } from '../application/use-cases/dashboard/obtener-actividades-por-validar-por-coordinador.use-case';
 import { ObtenerCantidadActividadesObservadasUseCase } from '../application/use-cases/dashboard/obtener-cantidad-actividades-observadas.use-case';
 import { ObtenerCantidadActividadesPendientesUseCase } from '../application/use-cases/dashboard/obtener-cantidad-actividades-pendientes.use-case';
 import { ObtenerCantidadActividadesRechazadasUseCase } from '../application/use-cases/dashboard/obtener-cantidad-actividades-rechazadas.use-case';
@@ -253,7 +254,9 @@ import { ObtenerCantidadTrabajadoresConectadoSemanaUseCase } from '../applicatio
 import { ObtenerCantidadTrabajadoresPorProyectoUseCase } from '../application/use-cases/dashboard/obtener-cantidad-trabajadores-por-proyecto.use-case';
 import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from '../application/use-cases/dashboard/obtener-horas-esperadas-vs-registradas-mes.use-case';
 import { ObtenerProyectosConProgresoUseCase } from '../application/use-cases/dashboard/obtener-proyectos-con-progreso.use-case';
+import { ObtenerTopCoordinadoresActividadesValidadasUseCase } from '../application/use-cases/dashboard/obtener-top-coordinadores-actividades-validadas.use-case';
 import { ObtenerTopTrabajadoresHorasMesUseCase } from '../application/use-cases/dashboard/obtener-top-trabajadores-horas-mes.use-case';
+import { ObtenerTopTrabajadoresJornadasCerradasUseCase } from '../application/use-cases/dashboard/obtener-top-trabajadores-jornadas-cerradas.use-case';
 import { CrearBucketUseCase } from '../application/use-cases/data-management/buckets/crear-bucket.use-case';
 import { EliminarBucketUseCase } from '../application/use-cases/data-management/buckets/eliminar-bucket.use-case';
 import { ObtenerBucketsUseCase } from '../application/use-cases/data-management/buckets/obtener-buckets.use-case';
@@ -687,6 +690,7 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
     ValidarActividadUseCase,
     [CONTROL_OPERATIVO_REPOSITORY, BroadcastService, NestLoggerFactory],
   ],
+  [ObtenerActividadesPorValidarPorCoordinadorUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerCantidadActividadesObservadasUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerCantidadActividadesPendientesUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerCantidadActividadesRechazadasUseCase, [DASHBOARD_REPOSITORY]],
@@ -697,7 +701,9 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
   [ObtenerCantidadTrabajadoresPorProyectoUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerHorasEsperadasVsRegistradasMesUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerProyectosConProgresoUseCase, [DASHBOARD_REPOSITORY]],
+  [ObtenerTopCoordinadoresActividadesValidadasUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerTopTrabajadoresHorasMesUseCase, [DASHBOARD_REPOSITORY]],
+  [ObtenerTopTrabajadoresJornadasCerradasUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerHubsUseCase, [AutodeskApiService, ACC_REPOSITORY]],
   [ObtenerItemPorIdUseCase, [AutodeskApiService, ACC_REPOSITORY]],
   [ObtenerItemsUseCase, [AutodeskApiService, ACC_REPOSITORY]],

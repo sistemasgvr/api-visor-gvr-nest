@@ -87,6 +87,9 @@ export const GLOBAL_ACTIONS: Record<string, readonly string[]> = {
     'ver_estadisticas_usuarios',
     'ver_sin_actividades',
     'ver_sin_jornada',
+    'ver_actividades_por_validar',
+    'ver_jornadas_cerradas',
+    'ver_coordinadores_validadas',
   ],
   'proyectos.proyectos': ['crear', 'exportar_excel'],
   'seguridad.auditoria': [
