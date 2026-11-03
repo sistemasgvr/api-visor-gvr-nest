@@ -1,4 +1,3 @@
-import { PLANIFICACION_SQL_VERSIONES } from './planificacion-versiones';
 import { ejecutarPlanificacion } from './planificacion-errors';
 import { Injectable, Logger } from '@nestjs/common';
 import type {
@@ -555,7 +554,7 @@ export class ProyectoRepository implements IProyectoRepository {
     ) {
       responsables = [data.idTrabajadorResponsable];
     }
-    const result = await this.callPlanSingle<any>('pro_CrearEntregableV4', [
+    const result = await this.callPlanSingle<any>('pro_CrearEntregableV3', [
       idProyecto,
       data.nombre,
       data.descripcion ?? null,
@@ -590,7 +589,7 @@ export class ProyectoRepository implements IProyectoRepository {
           : [];
     }
     const result = await this.callPlanSingle<any>(
-      'pro_ActualizarEntregableV4',
+      'pro_ActualizarEntregableV3',
       [
         idEntregable,
         data.nombre,
@@ -757,7 +756,7 @@ export class ProyectoRepository implements IProyectoRepository {
   private callPlanSingle<T>(name: string, params: unknown[]) {
     return ejecutarPlanificacion(() =>
       this.databaseFunctionService.callFunctionSingle<T>(
-        PLANIFICACION_SQL_VERSIONES[name] ?? name,
+        name,
         params,
       ),
     );

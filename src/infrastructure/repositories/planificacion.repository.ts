@@ -1,4 +1,3 @@
-import { PLANIFICACION_SQL_VERSIONES } from './planificacion-versiones';
 import { Injectable } from '@nestjs/common';
 import { assignedGvrProjectIds } from '../auth/catalog-policies';
 import type * as Input from '../../domain/entities/planificacion-input.entity';
@@ -368,7 +367,7 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     data: Input.MisAsignacionesInput,
   ) {
     return this.call<AsignacionesColaborador>(
-      'pla_ListarAsignacionesColaboradorV2',
+      'pla_ListarAsignacionesColaborador',
       [actor, trabajador, data.fecha, data.idProyecto ?? null],
     );
   }
@@ -455,11 +454,10 @@ export class PlanificacionRepository implements IPlanificacionRepository {
   }
   private async call<T>(name: string, params: unknown[]): Promise<T> {
     return ejecutarPlanificacion(async () => {
-      const sqlName = PLANIFICACION_SQL_VERSIONES[name] ?? name;
       const row = await this.database.callFunctionSingle<
         Record<string, unknown>
-      >(sqlName, params);
-      const value = row?.[sqlName];
+      >(name, params);
+      const value = row?.[name];
       if (value == null) throw new Error('Respuesta de planificación ausente');
       this.validarRespuesta(name, value);
       // Copia JSON explícita: sin prototipos, filas del driver ni fechas convertidas a Date.

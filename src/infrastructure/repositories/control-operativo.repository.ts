@@ -796,7 +796,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     params: CrearActividadParams,
   ): Promise<ActividadCreada | null> {
     const rows = await this.callPlanRows<ActividadCreada>(
-      'con_CrearActividadV5',
+      'con_CrearActividadV4',
       [
         params.idJornada,
         params.idProyecto,
@@ -865,7 +865,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     params: ActualizarActividadParams,
   ): Promise<ActividadCreada | null> {
     const rows = await this.callPlanRows<ActividadCreada>(
-      'con_ActualizarActividadV5',
+      'con_ActualizarActividadV4',
       [
         params.idActividad,
         params.idProyecto,

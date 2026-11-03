@@ -19,7 +19,7 @@ describe('Planificación: contratos SQL y aislamiento de errores', () => {
   it('envía filtros de bandeja a la nueva función, sin alterar el listado anterior', async () => {
     const result = { total: 0, solicitudes: [], pendientes: 0 };
     database.callFunctionSingle.mockResolvedValue({
-      pla_ObtenerBandejaAmpliacionesV2: result,
+      pla_ObtenerBandejaAmpliaciones: result,
     });
     expect(
       await repository.bandejaAmpliaciones(
@@ -35,7 +35,7 @@ describe('Planificación: contratos SQL y aislamiento de errores', () => {
       ),
     ).toEqual(result);
     expect(database.callFunctionSingle).toHaveBeenCalledWith(
-      'pla_ObtenerBandejaAmpliacionesV2',
+      'pla_ObtenerBandejaAmpliaciones',
       [23, 2, 8, 'todas', 7, 'Diseño', 10, 10],
     );
   });
@@ -189,7 +189,7 @@ describe('Planificación: contratos SQL y aislamiento de errores', () => {
   });
   it('serializa alta y reparto en una única llamada sin transformar las fechas', async () => {
     database.callFunctionSingle.mockResolvedValue({
-      pla_GuardarActividadV2: { id: 9, fechanoiniciarantes: '2026-11-01' },
+      pla_GuardarActividad: { id: 9, fechanoiniciarantes: '2026-11-01' },
     });
     const datos = {
       identregable: 7,
@@ -207,13 +207,13 @@ describe('Planificación: contratos SQL y aislamiento de errores', () => {
     ).toMatchObject({ fechanoiniciarantes: '2026-11-01' });
     expect(database.callFunctionSingle).toHaveBeenCalledTimes(1);
     expect(database.callFunctionSingle).toHaveBeenCalledWith(
-      'pla_GuardarActividadV2',
+      'pla_GuardarActividad',
       [23, 2, 4, JSON.stringify(datos), null, null, null],
     );
   });
   it('acepta booleanos false y arreglos sin confundirlos con respuesta ausente', async () => {
     database.callFunctionSingle
-      .mockResolvedValueOnce({ pla_ReorganizarCronogramaV2: false })
+      .mockResolvedValueOnce({ pla_ReorganizarCronograma: false })
       .mockResolvedValueOnce({ pla_ListarAmpliaciones: [] });
     expect(
       await repository.reordenar(
@@ -223,7 +223,7 @@ describe('Planificación: contratos SQL y aislamiento de errores', () => {
       ),
     ).toBe(false);
     expect(database.callFunctionSingle).toHaveBeenCalledWith(
-      'pla_ReorganizarCronogramaV2',
+      'pla_ReorganizarCronograma',
       [23, 2, 3, [8], [9], '[]', null],
     );
     expect(await repository.ampliaciones(23, { id: 1, idPlan: 2 }, {})).toEqual(
