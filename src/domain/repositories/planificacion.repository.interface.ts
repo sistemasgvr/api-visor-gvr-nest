@@ -36,7 +36,7 @@ export interface IPlanificacionRepository {
   listarAprobadoresPlan(
     actor: number,
     idProyecto: number,
-    permisoAdministracion: string,
+    permisoAprobacion: string,
   ): Promise<AprobadorPlan[]>;
   proyectosAsignados(actor: number): Promise<number[]>;
   listarResumenPlanes(

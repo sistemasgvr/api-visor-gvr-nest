@@ -1,5 +1,6 @@
 import type { IPlanificacionRepository } from '../../../../domain/repositories/planificacion.repository.interface';
 import type * as Input from '../../../inputs/planificacion/proyectos/planificacion.input';
+import { exigirAprobadorDelPlan } from './aprobadores-plan';
 export class LineaBaseUseCase {
   constructor(private readonly repository: IPlanificacionRepository) {}
   async execute(
@@ -8,6 +9,7 @@ export class LineaBaseUseCase {
     data: Input.LineaBaseInput,
   ) {
     await this.repository.comprobarPertenencia(ctx);
+    await exigirAprobadorDelPlan(this.repository, actor, ctx);
     return this.repository.lineaBase(actor, ctx, data);
   }
 }

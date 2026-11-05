@@ -203,6 +203,7 @@ export const GVR_PROJECT_ACTIONS: Record<string, readonly string[]> = {
     'publicar',
     'reprogramar',
     'dar_conformidad',
+    'aprobar_ampliaciones',
   ],
   'proyectos.proyectos': ['ver', 'editar', 'eliminar', 'configurar'],
   'proyectos.accesos': ['ver', 'asignar', 'cambiar_nivel', 'retirar'],
@@ -245,7 +246,14 @@ export function gvrProjectPolicies(
       };
     },
   };
-  return new Map(codesOf(GVR_PROJECT_ACTIONS).map((code) => [code, policy]));
+  return new Map(
+    codesOf(GVR_PROJECT_ACTIONS).map((code) => [
+      code,
+      code === 'proyectos.planificacion.aprobar_ampliaciones'
+        ? { ...policy, allowedScopes: ['todos'] }
+        : policy,
+    ]),
+  );
 }
 
 /** IDs de proyectos de empresa asignados a la persona (para filtrar listados con «asignados»). */

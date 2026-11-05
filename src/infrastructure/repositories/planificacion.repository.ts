@@ -53,12 +53,12 @@ export class PlanificacionRepository implements IPlanificacionRepository {
   listarAprobadoresPlan(
     actor: number,
     idProyecto: number,
-    permisoAdministracion: string,
+    permisoAprobacion: string,
   ) {
     return this.call<AprobadorPlan[]>('pla_ListarAprobadoresPlan', [
       actor,
       idProyecto,
-      permisoAdministracion,
+      permisoAprobacion,
     ]);
   }
   proyectosAsignados(actor: number) {
