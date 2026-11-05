@@ -60,7 +60,7 @@ export class CreateProyectoDto {
       idCliente: { schema: z.number().int(), optional: true },
       observaciones: { schema: z.string(), optional: true },
       idModalidad: { schema: z.number().int(), optional: true },
-      idEstadoProyecto: { schema: z.number().int(), optional: true },
+      idEstadoProyecto: { schema: z.number().int().min(1) },
       idEstadoCotizacion: { schema: z.number().int(), optional: true },
       idCalendario: { schema: z.number().int().min(1), optional: true },
     });
@@ -101,7 +101,7 @@ export class CreateProyectoDto {
 
   idModalidad?: number;
 
-  idEstadoProyecto?: number;
+  idEstadoProyecto: number;
 
   idEstadoCotizacion?: number;
 

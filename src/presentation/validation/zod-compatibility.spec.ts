@@ -11,7 +11,7 @@ const baseline = JSON.parse(
   readFileSync('test/fixtures/validation-before-zod.json', 'utf8'),
 ) as Baseline;
 describe('Compatibilidad de validación en la migración completa a Zod', () => {
-  it('conserva 16 562 decisiones históricas y endurece solo los 25 casos mal tipados registrados', () => {
+  it('conserva 16 562 decisiones históricas y endurece solo los 25 casos mal tipados y los obligatorios registrados', () => {
     const unexpected: string[] = [];
     const stricter = new Set(baseline.intentionallyStricter);
     let checked = 0;

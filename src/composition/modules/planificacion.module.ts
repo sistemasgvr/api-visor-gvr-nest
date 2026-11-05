@@ -1,5 +1,6 @@
 import { ObtenerCalendarioPlanUseCase } from '../../application/use-cases/planificacion/proyectos/obtener-calendario-plan.use-case';
 import { ListarEquipoPlanUseCase } from '../../application/use-cases/planificacion/proyectos/listar-equipo-plan.use-case';
+import { ListarAprobadoresPlanUseCase } from '../../application/use-cases/planificacion/proyectos/listar-aprobadores-plan.use-case';
 import { PlanificacionEstadosController } from '../../presentation/controllers/planificacion-estados.controller';
 import { ListarEstadosPlanesUseCase } from '../../application/use-cases/planificacion/proyectos/listar-estados-planes.use-case';
 import { AuthorizationModule } from './platform/authorization.module';
@@ -48,6 +49,7 @@ import { MisAmpliacionesUseCase } from '../../application/use-cases/planificacio
     applicationProvider(PlanificacionAccessService),
     applicationProvider(ObtenerCalendarioPlanUseCase),
     applicationProvider(ListarEquipoPlanUseCase),
+    applicationProvider(ListarAprobadoresPlanUseCase),
     applicationProvider(ListarEstadosPlanesUseCase),
     applicationProvider(ObtenerPlanUseCase),
     applicationProvider(CrearPlanUseCase),

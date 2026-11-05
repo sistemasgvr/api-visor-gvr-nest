@@ -1,6 +1,7 @@
 import { AsignarCalendarioTrabajadorUseCase } from '../application/use-cases/trabajador/asignar-calendario-trabajador.use-case';
 import { ObtenerCalendarioPlanUseCase } from '../application/use-cases/planificacion/proyectos/obtener-calendario-plan.use-case';
 import { ListarEquipoPlanUseCase } from '../application/use-cases/planificacion/proyectos/listar-equipo-plan.use-case';
+import { ListarAprobadoresPlanUseCase } from '../application/use-cases/planificacion/proyectos/listar-aprobadores-plan.use-case';
 import { ListarEstadosPlanesUseCase } from '../application/use-cases/planificacion/proyectos/listar-estados-planes.use-case';
 import { ObtenerPlanUseCase } from '../application/use-cases/planificacion/proyectos/obtener-plan.use-case';
 import { CrearPlanUseCase } from '../application/use-cases/planificacion/proyectos/crear-plan.use-case';
@@ -554,6 +555,7 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
   ],
   [ObtenerCalendarioPlanUseCase, [PLANIFICACION_REPOSITORY]],
   [ListarEquipoPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [ListarAprobadoresPlanUseCase, [PLANIFICACION_REPOSITORY]],
   [ListarEstadosPlanesUseCase, [PLANIFICACION_REPOSITORY]],
   [ObtenerPlanUseCase, [PLANIFICACION_REPOSITORY]],
   [CrearPlanUseCase, [PLANIFICACION_REPOSITORY]],

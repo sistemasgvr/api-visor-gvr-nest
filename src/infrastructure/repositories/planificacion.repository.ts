@@ -3,6 +3,7 @@ import { assignedGvrProjectIds } from '../auth/catalog-policies';
 import type * as Input from '../../domain/entities/planificacion-input.entity';
 import type {
   CalendarioPlan,
+  AprobadorPlan,
   MiembroEquipoPlan,
   EstadoPlanProyecto,
   PlanificacionJson,
@@ -49,6 +50,17 @@ export class PlanificacionRepository implements IPlanificacionRepository {
       idProyecto,
     ]);
   }
+  listarAprobadoresPlan(
+    actor: number,
+    idProyecto: number,
+    permisoAdministracion: string,
+  ) {
+    return this.call<AprobadorPlan[]>('pla_ListarAprobadoresPlan', [
+      actor,
+      idProyecto,
+      permisoAdministracion,
+    ]);
+  }
   proyectosAsignados(actor: number) {
     return ejecutarPlanificacion(() =>
       assignedGvrProjectIds(this.database, actor),
@@ -80,7 +92,9 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     return this.call<PlanProyecto>('pla_CrearPlanProyecto', [
       actor,
       ctx.id,
-      data.idaprobador ?? null,
+      data.idaprobador,
+      data.idcalendario,
+      data.idmodalidad,
     ]);
   }
   obtenerCronograma(actor: number, ctx: Input.ContextoPlan) {
@@ -468,6 +482,7 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     const listados = [
       'pla_ListarResumenPlanes',
       'pla_ListarEquipoPlan',
+      'pla_ListarAprobadoresPlan',
       'pla_ListarEstadoPlanes',
       'pla_GuardarAsignacionesActividad',
       'pla_GuardarDependenciasActividad',

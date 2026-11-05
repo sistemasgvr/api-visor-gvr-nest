@@ -2443,6 +2443,18 @@
     }
   },
   "intentionallyStricter": [
+    "CreateProyectoDto:idEstadoProyecto:ausente",
+    "CreateProyectoDto:idEstadoProyecto:cero",
+    "CreateProyectoDto:idEstadoProyecto:negativo",
+    "CreateProyectoDto:idEstadoProyecto:null",
+    "CreateTrabajadorDto:idCalendario:ausente",
+    "CreateTrabajadorDto:idCalendario:null",
+    "CreateTrabajadorDto:idModalidad:ausente",
+    "CreateTrabajadorDto:idModalidad:cero",
+    "CreateTrabajadorDto:idModalidad:negativo",
+    "CreateTrabajadorDto:idModalidad:null",
+    "CrearPlanDto:idaprobador:ausente",
+    "ReglasDto:idaprobador:null",
     "acc_issues_CrearIncidenciaDto:pushpinPosition:arreglo",
     "acc_issues_CrearIncidenciaDto:viewerState:arreglo",
     "ActualizarProyectoDto:projectValue:arreglo",

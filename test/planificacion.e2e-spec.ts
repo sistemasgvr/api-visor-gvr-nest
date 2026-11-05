@@ -669,9 +669,13 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
     expect(database.callFunctionSingle).not.toHaveBeenCalled();
   });
   it.each([
-    { idaprobador: 0 },
-    { idaprobador: 2, actor: 999 },
-    { idaprobador: null },
+    { idaprobador: 0, idcalendario: 2, idmodalidad: 385 },
+    { idaprobador: 2, idcalendario: 2, idmodalidad: 385, actor: 999 },
+    { idaprobador: null, idcalendario: 2, idmodalidad: 385 },
+    { idcalendario: 2, idmodalidad: 385 },
+    { idaprobador: 2, idmodalidad: 385 },
+    { idaprobador: 2, idcalendario: 2 },
+    {},
   ])('400 con cuerpo inválido o actor inyectado: %j', async (body) => {
     await request(app.getHttpServer() as Server)
       .post(base)
@@ -680,16 +684,104 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
       .expect(400);
     expect(database.callFunctionSingle).not.toHaveBeenCalled();
   });
-  it('crea con actor del JWT y devuelve 201', async () => {
+  const planCompleto = { idaprobador: 4, idcalendario: 2, idmodalidad: 385 };
+  const candidatos = (...ids: number[]) =>
+    database.callFunctionSingle.mockImplementation((name: string) =>
+      Promise.resolve(
+        name === 'pla_ListarAprobadoresPlan'
+          ? {
+              pla_ListarAprobadoresPlan: ids.map((idtrabajador) => ({
+                idtrabajador,
+                nombre: 'Persona',
+                foto: null,
+                puesto: null,
+                escoordinador: false,
+              })),
+            }
+          : { [name]: { id: 2, revision: 1 } },
+      ),
+    );
+  it('crea con actor del JWT, calendario y modalidad, y devuelve 201', async () => {
+    candidatos(4);
     await request(app.getHttpServer() as Server)
       .post(base)
       .auth(token, { type: 'bearer' })
-      .send({ idaprobador: 4 })
+      .send(planCompleto)
       .expect(201);
     expect(database.callFunctionSingle).toHaveBeenCalledWith(
       'pla_CrearPlanProyecto',
-      [23, 8, 4],
+      [23, 8, 4, 2, 385],
     );
+  });
+  it('no crea el plan si el aprobador no es coordinador ni administración', async () => {
+    candidatos(5);
+    await request(app.getHttpServer() as Server)
+      .post(base)
+      .auth(token, { type: 'bearer' })
+      .send(planCompleto)
+      .expect(400);
+    expect(database.callFunctionSingle).not.toHaveBeenCalledWith(
+      'pla_CrearPlanProyecto',
+      expect.anything(),
+    );
+  });
+  it('lista aprobadores con el permiso de administración decidido en el backend', async () => {
+    grant('proyectos.planificacion.ver');
+    candidatos(4);
+    const res = await request(app.getHttpServer() as Server)
+      .get(base + '/aprobadores')
+      .auth(token, { type: 'bearer' })
+      .expect(200);
+    expect((res.body as { data: unknown[] }).data).toHaveLength(1);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_ListarAprobadoresPlan',
+      [23, 8, 'proyectos.planificacion.configurar'],
+    );
+  });
+  const reglas = base + '/2/reglas';
+  it('configura calendario y modalidad de un plan existente', async () => {
+    grant('proyectos.planificacion.configurar');
+    candidatos();
+    await request(app.getHttpServer() as Server)
+      .put(reglas)
+      .auth(token, { type: 'bearer' })
+      .send({ revisionPlan: 3, reglas: { idcalendario: 2, idmodalidad: 385 } })
+      .expect(200);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_ActualizarReglasPlan',
+      [23, 2, 3, JSON.stringify({ idcalendario: 2, idmodalidad: 385 }), null],
+    );
+    expect(database.callFunctionSingle).not.toHaveBeenCalledWith(
+      'pla_ListarAprobadoresPlan',
+      expect.anything(),
+    );
+  });
+  it('rechaza como aprobador a quien no es coordinador ni administración', async () => {
+    grant('proyectos.planificacion.configurar');
+    candidatos(5);
+    await request(app.getHttpServer() as Server)
+      .put(reglas)
+      .auth(token, { type: 'bearer' })
+      .send({ revisionPlan: 3, reglas: { idaprobador: 4 } })
+      .expect(400);
+    expect(database.callFunctionSingle).not.toHaveBeenCalledWith(
+      'pla_ActualizarReglasPlan',
+      expect.anything(),
+    );
+  });
+  it.each([
+    { idaprobador: null },
+    { idcalendario: null },
+    { idmodalidad: null },
+    { idcalendario: 0 },
+  ])('no permite quitar datos obligatorios del plan: %j', async (body) => {
+    grant('proyectos.planificacion.configurar');
+    await request(app.getHttpServer() as Server)
+      .put(reglas)
+      .auth(token, { type: 'bearer' })
+      .send({ revisionPlan: 3, reglas: body })
+      .expect(400);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
   });
   it('crea actividad y reparto con JSONB en una sola llamada', async () => {
     database.callFunctionSingle.mockResolvedValue({
@@ -782,7 +874,7 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
     const response = await request(app.getHttpServer() as Server)
       .post(base)
       .auth(token, { type: 'bearer' })
-      .send({})
+      .send(planCompleto)
       .expect(status);
     if (code === 'P0001')
       expect((response.body as { message: string }).message).toBe(

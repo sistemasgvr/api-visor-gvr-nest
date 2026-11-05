@@ -9,7 +9,9 @@ export interface ContextoPlan {
   idAmpliacion?: number;
 }
 export interface CrearPlanInput {
-  idaprobador?: number;
+  idaprobador: number;
+  idcalendario: number;
+  idmodalidad: number;
 }
 export interface RevisionPlanInput {
   revisionPlan: number;
@@ -22,7 +24,9 @@ export interface MotivoPlanInput extends RevisionPlanInput {
   motivo: string;
 }
 export interface ReglasPlan {
-  idaprobador?: number | null;
+  idaprobador?: number;
+  idcalendario?: number;
+  idmodalidad?: number;
   bloquearexceso?: boolean;
   toleranciaporcentaje?: number;
   alertaporcentaje?: number;

@@ -55,7 +55,17 @@ describe('Calendario del colaborador', () => {
     );
   });
 
-  for (const Dto of [CreateTrabajadorDto, UpdateTrabajadorDto]) {
+  it('CreateTrabajadorDto: exige el calendario', () => {
+    for (const value of [null, undefined, 0, -1, 1.5, 'abc']) {
+      expect(
+        dtoDefinition(CreateTrabajadorDto.schema).fields.idCalendario.schema.safeParse(
+          value,
+        ).success,
+      ).toBe(false);
+    }
+  });
+
+  for (const Dto of [UpdateTrabajadorDto]) {
     it(`${Dto.name}: acepta null y rechaza identificadores inválidos`, async () => {
       for (const value of [null, undefined, 2]) {
         const parsed = dtoDefinition(Dto.schema)

@@ -720,6 +720,61 @@
       "source": "src/presentation/controllers/planificacion.controller.ts",
       "summary": "listar Equipo"
     },
+    "PlanificacionController_listarAprobadores": {
+      "controller": "PlanificacionController",
+      "method": "listarAprobadores",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AprobadorPlan"
+            }
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/ProyectoPlanParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: Dto.ProyectoPlanParamsDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireResourcePermission",
+          "codes": "proyectos.planificacion.ver"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion.controller.ts",
+      "summary": "listar Aprobadores"
+    },
     "PlanificacionController_obtenerPlan": {
       "controller": "PlanificacionController",
       "method": "obtenerPlan",
@@ -42934,6 +42989,35 @@
         "puesto",
         "idcalendario",
         "tienecalendariopublicado"
+      ]
+    },
+    "AprobadorPlan": {
+      "type": "object",
+      "properties": {
+        "idtrabajador": {
+          "type": "number"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "foto": {
+          "type": "string",
+          "nullable": true
+        },
+        "puesto": {
+          "type": "string",
+          "nullable": true
+        },
+        "escoordinador": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "idtrabajador",
+        "nombre",
+        "foto",
+        "puesto",
+        "escoordinador"
       ]
     },
     "PlanProyectoDetalle": {

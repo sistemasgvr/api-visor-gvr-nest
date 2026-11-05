@@ -94,6 +94,7 @@ export class ProyectoController {
     'proyectos.proyectos.crear',
     'proyectos.proyectos.editar',
     'proyectos.planificacion.editar',
+    'proyectos.planificacion.configurar',
   )
   async listarCalendariosPublicados() {
     return ApiResponseDto.success(

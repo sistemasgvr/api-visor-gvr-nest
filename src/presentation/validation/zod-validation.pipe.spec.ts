@@ -107,7 +107,7 @@ describe('Validación HTTP Zod en español', () => {
       }).success,
     ).toBe(false);
   });
-  it('exige idLineaBase solo en el detalle y diferencia null de omisión', () => {
+  it('exige idLineaBase solo en el detalle y no admite null en las reglas', () => {
     expect(
       HistorialPlanDto.schema.safeParse({ tipo: 'detallelineabase' }).success,
     ).toBe(false);
@@ -119,7 +119,7 @@ describe('Validación HTTP Zod en español', () => {
         revisionPlan: 1,
         reglas: { idaprobador: null },
       }).success,
-    ).toBe(true);
+    ).toBe(false);
     expect(
       ReglasPlanDto.schema.safeParse({
         revisionPlan: 1,

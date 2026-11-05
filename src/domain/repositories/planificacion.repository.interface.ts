@@ -1,6 +1,7 @@
 import type * as Input from '../entities/planificacion-input.entity';
 import type {
   CalendarioPlan,
+  AprobadorPlan,
   MiembroEquipoPlan,
   EstadoPlanProyecto,
   PlanificacionJson,
@@ -32,6 +33,11 @@ export interface IPlanificacionRepository {
     actor: number,
     idProyecto: number,
   ): Promise<MiembroEquipoPlan[]>;
+  listarAprobadoresPlan(
+    actor: number,
+    idProyecto: number,
+    permisoAdministracion: string,
+  ): Promise<AprobadorPlan[]>;
   proyectosAsignados(actor: number): Promise<number[]>;
   listarResumenPlanes(
     actor: number,

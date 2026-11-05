@@ -14,6 +14,13 @@ export interface CalendarioPlan {
   idversion: number;
   dias: { fecha: string; minutos: number; nombre: string | null }[];
 }
+export interface AprobadorPlan {
+  idtrabajador: number;
+  nombre: string;
+  foto: string | null;
+  puesto: string | null;
+  escoordinador: boolean;
+}
 export interface MiembroEquipoPlan {
   idtrabajador: number;
   nombre: string;

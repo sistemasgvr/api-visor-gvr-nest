@@ -21,6 +21,7 @@ import * as Dto from '../dtos/planificacion/proyectos/planificacion.dto';
 import { CalendarioPlanQueryDto } from '../dtos/planificacion/proyectos/calendario-plan-query.dto';
 import { ObtenerCalendarioPlanUseCase } from '../../application/use-cases/planificacion/proyectos/obtener-calendario-plan.use-case';
 import { ListarEquipoPlanUseCase } from '../../application/use-cases/planificacion/proyectos/listar-equipo-plan.use-case';
+import { ListarAprobadoresPlanUseCase } from '../../application/use-cases/planificacion/proyectos/listar-aprobadores-plan.use-case';
 import { ObtenerPlanUseCase } from '../../application/use-cases/planificacion/proyectos/obtener-plan.use-case';
 import { CrearPlanUseCase } from '../../application/use-cases/planificacion/proyectos/crear-plan.use-case';
 import { ObtenerCronogramaUseCase } from '../../application/use-cases/planificacion/proyectos/obtener-cronograma.use-case';
@@ -49,6 +50,7 @@ export class PlanificacionController {
   constructor(
     private readonly obtenerCalendarioPlanUseCase: ObtenerCalendarioPlanUseCase,
     private readonly listarEquipoPlanUseCase: ListarEquipoPlanUseCase,
+    private readonly listarAprobadoresPlanUseCase: ListarAprobadoresPlanUseCase,
     private readonly obtenerPlanUseCase: ObtenerPlanUseCase,
     private readonly crearPlanUseCase: CrearPlanUseCase,
     private readonly obtenerCronogramaUseCase: ObtenerCronogramaUseCase,
@@ -83,6 +85,21 @@ export class PlanificacionController {
   ) {
     return ApiResponseDto.success(
       await this.listarEquipoPlanUseCase.execute(actor, params),
+    );
+  }
+  @Get('aprobadores')
+  @HttpCode(200)
+  @RequireResourcePermission(
+    'proyectos.planificacion.ver',
+    GVR_PROJECT_RESOURCE,
+    'id',
+  )
+  async listarAprobadores(
+    @ActorId() actor: number,
+    @Param() params: Dto.ProyectoPlanParamsDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.listarAprobadoresPlanUseCase.execute(actor, params),
     );
   }
   @Get('')

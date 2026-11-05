@@ -97,12 +97,8 @@ export class CreateTrabajadorDto {
         optional: true,
         transforms: [({ value }) => (value === '' ? undefined : value)],
       },
-      idModalidad: { schema: z.number().int(), optional: true },
-      idCalendario: {
-        schema: z.number().int().min(1),
-        optional: true,
-        coerce: 'number',
-      },
+      idModalidad: { schema: z.number().int().min(1) },
+      idCalendario: { schema: z.number().int().min(1), coerce: 'number' },
       idPuestoTrabajo: { schema: z.number().int(), optional: true },
       adjuntos: { schema: z.array(z.unknown()), optional: true },
     });
@@ -144,8 +140,8 @@ export class CreateTrabajadorDto {
   fechaInicioContrato?: string;
 
   fechaFinContrato?: string;
-  idModalidad?: number;
-  idCalendario?: number | null;
+  idModalidad: number;
+  idCalendario: number;
   idPuestoTrabajo?: number;
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

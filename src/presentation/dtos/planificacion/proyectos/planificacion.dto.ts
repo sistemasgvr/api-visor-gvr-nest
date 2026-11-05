@@ -120,13 +120,24 @@ export class CrearPlanDto {
     {
       idaprobador: {
         schema: z.number().int().max(2147483647).min(1),
-        when: (_o, v) => v !== undefined,
+        coerce: 'number',
+      },
+      idcalendario: {
+        schema: z.number().int().max(2147483647).min(1),
+        coerce: 'number',
+      },
+      idmodalidad: {
+        schema: z.number().int().max(2147483647).min(1),
         coerce: 'number',
       },
     },
   );
 
-  idaprobador?: number;
+  idaprobador!: number;
+
+  idcalendario!: number;
+
+  idmodalidad!: number;
 }
 export class RevisionPlanDto {
   static readonly schema: z.ZodType<RevisionPlanDto> =
@@ -181,7 +192,15 @@ export class ReglasDto {
     {
       idaprobador: {
         schema: z.number().int().max(2147483647).min(1),
-        when: (_o, v) => v !== undefined && v !== null,
+        when: (_o, v) => v !== undefined,
+      },
+      idcalendario: {
+        schema: z.number().int().max(2147483647).min(1),
+        when: (_o, v) => v !== undefined,
+      },
+      idmodalidad: {
+        schema: z.number().int().max(2147483647).min(1),
+        when: (_o, v) => v !== undefined,
       },
       bloquearexceso: { schema: z.boolean(), when: (_o, v) => v !== undefined },
       permitirnoplaneadas: {
@@ -199,7 +218,11 @@ export class ReglasDto {
     },
   );
 
-  idaprobador?: number | null;
+  idaprobador?: number;
+
+  idcalendario?: number;
+
+  idmodalidad?: number;
 
   bloquearexceso?: boolean;
 

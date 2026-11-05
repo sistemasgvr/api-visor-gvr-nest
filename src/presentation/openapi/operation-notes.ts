@@ -3,11 +3,11 @@ export const operationNotes: Record<string, string> = {
   PlanificacionController_obtenerPlan:
     'Consulta la cabecera del proyecto. `data.plan = null` significa que el proyecto todavía no tiene planificación. Las fechas civiles se devuelven como texto, sin conversión de zona horaria.',
   PlanificacionController_crearPlan:
-    'Crea un único borrador activo por proyecto. La revisión inicial es 1. `idaprobador` identifica un trabajador, no un usuario. No publica el plan ni genera jornadas.',
+    'Crea un único borrador activo por proyecto y guarda en el proyecto el calendario y la modalidad en la misma transacción. Exige fecha de inicio del proyecto, calendario publicado y aprobador coordinador o de administración. La revisión inicial es 1. `idaprobador` identifica un trabajador, no un usuario. No publica el plan ni genera jornadas.',
   PlanificacionController_obtenerCronograma:
     'Devuelve plan, entregables, actividades, asignaciones, dependencias y fechas calculadas. Las fechas planificadas salen de `fechas`, no de la fecha administrativa del entregable. Consultar no guarda resultados ni consume horas.',
   PlanificacionController_actualizarReglas:
-    'Actualización parcial: las claves omitidas se conservan. `idaprobador: null` elimina el aprobador solo en borrador. Las demás reglas no admiten null. `revisionPlan` debe ser la vigente.',
+    'Actualización parcial: las claves omitidas se conservan. Admite también `idcalendario` e `idmodalidad`, que se guardan en el proyecto. Calendario, modalidad y aprobador se cambian pero no se quitan; ninguna regla admite null. `revisionPlan` debe ser la vigente.',
   PlanificacionController_crearActividad:
     '`datos` admite el reparto inicial en `asignaciones`: actividad y personas se guardan en una única transacción. El esfuerzo se expresa en minutos enteros. Un hito tiene cero esfuerzo y no admite personas.',
   PlanificacionController_obtenerActividad:

@@ -35,7 +35,7 @@ export class CreateProyectoDto {
 
   idModalidad?: number;
 
-  idEstadoProyecto?: number;
+  idEstadoProyecto: number;
 
   idEstadoCotizacion?: number;
   idCalendario?: number | null;
