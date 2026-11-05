@@ -1,3 +1,4 @@
+import { ZodValidationPipe } from '../validation/zod-validation.pipe';
 import {
   ForbiddenException,
   Controller,
@@ -15,7 +16,6 @@ import {
   UnauthorizedException,
   ParseIntPipe,
   UsePipes,
-  ValidationPipe,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -60,7 +60,7 @@ import { AuthorizationService } from '../../application/services/authorization.s
 @ApiBearerAuth('access-token')
 @Controller('novedades')
 @UseGuards(JwtAuthGuard)
-@UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+@UsePipes(new ZodValidationPipe())
 export class NovedadController {
   constructor(
     private readonly listarLanzamientosUseCase: ListarNovedadLanzamientosUseCase,

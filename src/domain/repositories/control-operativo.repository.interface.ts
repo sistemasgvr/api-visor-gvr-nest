@@ -110,6 +110,7 @@ export interface ActividadListItem {
   nombreactividad: string;
   descripciondetallada: string | null;
   incidenciadetallada?: string | null;
+  idasignacion?: number | null;
   identregable?: number | null;
   nombreentregable?: string | null;
   entregableculminado?: boolean;
@@ -255,6 +256,7 @@ export interface CrearActividadParams {
   idModalidad?: number | null;
   idUsuarioCreacion?: number | null;
   /** Entregable del proyecto (opcional). */
+  idAsignacion?: number | null;
   idEntregable?: number | null;
   incidenciaDetallada?: string | null;
   entregableCulminado?: boolean;
@@ -274,6 +276,7 @@ export interface ActividadCreada {
   horasdedicadas: number;
   idestadoactividad: number;
   idmodalidad?: number | null;
+  idasignacion?: number | null;
   identregable?: number | null;
   incidenciadetallada?: string | null;
   entregableculminado?: boolean;
@@ -306,6 +309,7 @@ export interface ActualizarActividadParams {
   idUsuarioModificacion?: number | null;
   /** Si true, la actividad debe estar en Observado y ser del mismo trabajador; al guardar pasa a Por aprobar. */
   corregirObservacion?: boolean;
+  idAsignacion?: number | null;
   idEntregable?: number | null;
   incidenciaDetallada?: string | null;
   entregableCulminado?: boolean;
@@ -338,6 +342,7 @@ export interface ActividadDetalle {
   nombreactividad: string;
   descripciondetallada: string | null;
   incidenciadetallada?: string | null;
+  idasignacion?: number | null;
   identregable?: number | null;
   nombreentregable?: string | null;
   entregableculminado?: boolean;
@@ -406,6 +411,7 @@ export interface ActividadInformeServicioLinea {
   /** Resumen «tipo (o nombre actividad) - proyecto» para viñetas / deduplicado. */
   linea: string;
   /** Entregable asociado (v2 reporte Word). */
+  idasignacion?: number | null;
   identregable?: number | null;
   nombreentregable?: string | null;
   entregableculminado?: boolean | null;
@@ -704,7 +710,7 @@ export interface IControlOperativoRepository {
   validarActividad(
     params: ValidarActividadParams,
   ): Promise<ActividadCreada | null>;
-  eliminarActividad(idActividad: number): Promise<boolean>;
+  eliminarActividad(idActividad: number, idUsuario: number): Promise<boolean>;
   ejecutarCronCierreJornadas(fecha: string): Promise<CronCierreJornadasResult>;
   /** Detecta actividades "Por Aprobar" (374) con más de 7 días desde su creación,
    *  marca la fecha de alerta (deduplicación) y devuelve los datos para notificar

@@ -1,9 +1,13 @@
+import { PlanificacionModule } from './composition/modules/planificacion.module';
 import { CalendariosModule } from './composition/modules/calendarios.module';
 import { AuthorizationModule } from './composition/modules/platform/authorization.module';
 import { DocumentAccessModule } from './composition/modules/platform/document-access.module';
 import { Module } from '@nestjs/common';
 import { ApplicationRuntimeModule } from './composition/modules/platform/application-runtime.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { LoggerModule } from 'nestjs-pino';
+import { createPinoHttpOptions } from './bootstrap/pino-logger.config';
+import type { EnvironmentVariables } from './config/env.validation';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { validate } from './config/env.validation';
 import { DatabaseModule } from './composition/modules/platform/database.module';
@@ -66,6 +70,16 @@ import { StorageModule } from './composition/modules/platform/storage.module';
       envFilePath: '.env',
       validate,
     }),
+    LoggerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<EnvironmentVariables, true>) => ({
+        pinoHttp: createPinoHttpOptions({
+          NODE_ENV: config.get('NODE_ENV', { infer: true }),
+          LOG_LEVEL: config.get('LOG_LEVEL', { infer: true }),
+          LOG_PRETTY: config.get('LOG_PRETTY', { infer: true }),
+        }),
+      }),
+    }),
     // Módulo de base de datos
     DatabaseModule,
     ApplicationRuntimeModule,
@@ -78,6 +92,7 @@ import { StorageModule } from './composition/modules/platform/storage.module';
     // Módulo de health check
     HealthModule,
     CalendariosModule,
+    PlanificacionModule,
     // Módulos de funcionalidad
     AuthModule,
     AccModule,

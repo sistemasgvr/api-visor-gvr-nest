@@ -1,23 +1,23 @@
-import { IsString, IsNotEmpty, IsOptional, IsInt } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class CrearRecursoDto {
-  @IsNotEmpty({ message: 'El external_id es requerido' })
-  @IsString()
+  static readonly schema: z.ZodType<CrearRecursoDto> =
+    defineZodDto<CrearRecursoDto>('CrearRecursoDto', {
+      external_id: { schema: z.string().min(1) },
+      resource_type: { schema: z.string().min(1) },
+      name: { schema: z.string().min(1) },
+      parent_id: { schema: z.number().int(), optional: true },
+      account_id: { schema: z.string(), optional: true },
+    });
+
   external_id: string;
 
-  @IsNotEmpty({ message: 'El resource_type es requerido' })
-  @IsString()
   resource_type: string;
 
-  @IsNotEmpty({ message: 'El name es requerido' })
-  @IsString()
   name: string;
 
-  @IsOptional()
-  @IsInt()
   parent_id?: number;
 
-  @IsOptional()
-  @IsString()
   account_id?: string;
 }

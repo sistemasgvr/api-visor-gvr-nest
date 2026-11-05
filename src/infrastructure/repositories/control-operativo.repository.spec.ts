@@ -136,11 +136,11 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
   it.each([true, false])(
     'lee correctamente el booleano %s de eliminación V2',
     async (value) => {
-      callFunctionSingle.mockResolvedValue({ con_EliminarActividadV2: value });
-      expect(await repository.eliminarActividad(30)).toBe(value);
+      callFunctionSingle.mockResolvedValue({ con_EliminarActividadV3: value });
+      expect(await repository.eliminarActividad(30, 23)).toBe(value);
       expect(callFunctionSingle).toHaveBeenCalledWith(
-        'con_EliminarActividadV2',
-        [30],
+        'con_EliminarActividadV3',
+        [30, 23],
       );
     },
   );
@@ -154,7 +154,7 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
       nombreActividad: 'Actividad',
     };
     await repository.crearActividad({ ...base, idJornada: 30 });
-    expect(callFunction).toHaveBeenLastCalledWith('con_CrearActividadV3', [
+    expect(callFunction).toHaveBeenLastCalledWith('con_CrearActividadV4', [
       30,
       1,
       101,
@@ -171,13 +171,14 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
       null,
       null,
       false,
+      null,
     ]);
     await repository.actualizarActividad({
       ...base,
       idActividad: 40,
       corregirObservacion: true,
     });
-    expect(callFunction).toHaveBeenLastCalledWith('con_ActualizarActividadV3', [
+    expect(callFunction).toHaveBeenLastCalledWith('con_ActualizarActividadV4', [
       40,
       1,
       101,
@@ -194,6 +195,7 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
       null,
       null,
       false,
+      null,
     ]);
   });
 

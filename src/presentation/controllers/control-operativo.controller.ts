@@ -1,3 +1,4 @@
+import { ApplicationFailure } from '../../application/errors/application.error';
 import {
   Controller,
   Get,
@@ -725,6 +726,9 @@ export class ControlOperativoController {
     @Body('idEntregable') idEntregable?: number,
     @Body('incidenciaDetallada') incidenciaDetallada?: string,
     @Body('entregableCulminado') entregableCulminado?: boolean,
+    @Body('idAsignacion', new ParseIntPipe({ optional: true }))
+    idAsignacion?: number,
+    @ActorId() actor?: number,
   ) {
     if (
       (await this.access.trabajadorDeJornada(Number(idJornada))) !==
@@ -736,6 +740,7 @@ export class ControlOperativoController {
     }
     const data = await this.crearActividadUseCase.execute({
       idJornada: Number(idJornada),
+      idUsuarioCreacion: actor,
       idProyecto: Number(idProyecto),
       idTrabajador: Number(idTrabajador),
       idCoordinador:
@@ -754,6 +759,7 @@ export class ControlOperativoController {
         idEntregable != null && idEntregable > 0 ? Number(idEntregable) : null,
       incidenciaDetallada: incidenciaDetallada?.trim() || null,
       entregableCulminado: entregableCulminado === true,
+      idAsignacion: idAsignacion ?? null,
     });
     if (!data) {
       return ApiResponseDto.badRequest('No se pudo crear la actividad');
@@ -1608,9 +1614,13 @@ export class ControlOperativoController {
     @Body('idEntregable') idEntregable?: number,
     @Body('incidenciaDetallada') incidenciaDetallada?: string,
     @Body('entregableCulminado') entregableCulminado?: boolean,
+    @Body('idAsignacion', new ParseIntPipe({ optional: true }))
+    idAsignacion?: number,
+    @ActorId() actor?: number,
   ) {
     const data = await this.actualizarActividadUseCase.execute({
       idActividad: id,
+      idUsuarioModificacion: actor,
       idProyecto: Number(idProyecto),
       idTrabajador: Number(idTrabajador),
       idCoordinador: Number(idCoordinador),
@@ -1626,6 +1636,7 @@ export class ControlOperativoController {
         idEntregable != null && idEntregable > 0 ? Number(idEntregable) : null,
       incidenciaDetallada: incidenciaDetallada?.trim() || null,
       entregableCulminado: entregableCulminado === true,
+      idAsignacion: idAsignacion ?? null,
     });
     if (!data) {
       return ApiResponseDto.badRequest('No se pudo actualizar la actividad');
@@ -1648,9 +1659,12 @@ export class ControlOperativoController {
     CONTROL_ACTIVITY_RESOURCE,
     'id',
   )
-  async eliminarActividad(@Param('id', ParseIntPipe) id: number) {
+  async eliminarActividad(
+    @Param('id', ParseIntPipe) id: number,
+    @ActorId() actor: number,
+  ) {
     try {
-      const ok = await this.eliminarActividadUseCase.execute(id);
+      const ok = await this.eliminarActividadUseCase.execute(id, actor);
       if (!ok) {
         return ApiResponseDto.badRequest(
           'No se puede eliminar la actividad. Solo se pueden eliminar actividades en estado "Por aprobar".',
@@ -1658,6 +1672,7 @@ export class ControlOperativoController {
       }
       return ApiResponseDto.success({ id }, 'Actividad eliminada exitosamente');
     } catch (error: any) {
+      if (error instanceof ApplicationFailure) throw error;
       const message = error?.message ?? 'No se pudo eliminar la actividad';
       return ApiResponseDto.badRequest(message);
     }

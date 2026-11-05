@@ -1,27 +1,36 @@
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto, isoDate } from '../../validation/zod-dto';
 
 export class CreateNovedadLanzamientoDto {
-  @IsNotEmpty({ message: 'El título es requerido' })
-  @IsString()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<CreateNovedadLanzamientoDto> =
+    defineZodDto<CreateNovedadLanzamientoDto>('CreateNovedadLanzamientoDto', {
+      titulo: { schema: z.string().min(1).max(255) },
+      fechaPublicacion: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+      },
+      fechaVigenciaHasta: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+      },
+      textoBotonCerrar: { schema: z.string().max(80), optional: true },
+    });
+
   titulo: string;
 
-  @IsOptional()
-  @IsDateString()
   fechaPublicacion?: string;
 
-  @IsOptional()
-  @IsDateString()
   fechaVigenciaHasta?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(80)
   textoBotonCerrar?: string;
 }

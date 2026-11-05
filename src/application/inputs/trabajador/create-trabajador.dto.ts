@@ -36,7 +36,8 @@ export class CreateTrabajadorDto {
   fechaInicioContrato?: string;
 
   fechaFinContrato?: string;
-  idModalidad?: number;
+  idModalidad: number;
+  idCalendario: number;
   idPuestoTrabajo?: number;
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

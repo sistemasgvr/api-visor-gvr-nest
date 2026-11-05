@@ -1,3 +1,4 @@
+import { PlanificacionAccessService } from '../../services/planificacion-access.service';
 import { ID_ESTADO_ENTREGABLE_CULMINADO } from '../../../domain/constants/estado-entregable.constants';
 import type {
   ActualizarEntregableProyectoData,
@@ -26,6 +27,7 @@ export class ActualizarEntregableProyectoUseCase {
     private readonly proyectoRepository: IProyectoRepository,
     private readonly broadcastService: BroadcastPort,
     private readonly loggerFactory: LoggerFactoryPort,
+    private readonly planificacion: PlanificacionAccessService,
   ) {}
 
   async execute(
@@ -39,6 +41,11 @@ export class ActualizarEntregableProyectoUseCase {
     if (!actual) {
       throw new NotFoundError('El entregable no existe o está inactivo');
     }
+
+    await this.planificacion.editarProyectoConPlan(
+      idUsuarioModificacion,
+      Number(actual.idproyecto),
+    );
 
     const puede = await puedeGestionarEntregable(this.proyectoRepository, {
       entregable: actual,

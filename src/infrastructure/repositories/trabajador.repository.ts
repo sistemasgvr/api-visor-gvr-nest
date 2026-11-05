@@ -1,3 +1,5 @@
+import { ConflictError } from '../../application/errors/application.error';
+import { ejecutarPlanificacion } from './planificacion-errors';
 import { Injectable, Logger } from '@nestjs/common';
 import type {
   ITrabajadorRepository,
@@ -109,6 +111,49 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         current_page: limit > 0 ? Math.floor(offset / limit) + 1 : 1,
       },
     };
+  }
+
+  async asignarCalendario(
+    actor: number,
+    idTrabajador: number,
+    idCalendario: number,
+    anterior: number | null,
+  ) {
+    return ejecutarPlanificacion(async () => {
+      try {
+        const row = await this.databaseFunctionService.callFunctionSingle<{
+          tra_AsignarCalendario: {
+            id: number;
+            idcalendario: number;
+            nombrecalendario: string;
+          };
+        }>('tra_AsignarCalendario', [
+          actor,
+          idTrabajador,
+          idCalendario,
+          anterior,
+        ]);
+        if (!row?.tra_AsignarCalendario)
+          throw new Error('Respuesta de asignación ausente');
+        return row.tra_AsignarCalendario;
+      } catch (error) {
+        const code =
+          (error as { code?: string; driverError?: { code?: string } })
+            ?.driverError?.code ?? (error as { code?: string })?.code;
+        if (code === '40001')
+          throw new ConflictError(
+            'El calendario del colaborador cambió; actualice los datos antes de asignarlo.',
+          );
+        throw error;
+      }
+    });
+  }
+  async listarCalendariosPublicados(): Promise<
+    { id: number; nombre: string; numeroversion: number }[]
+  > {
+    return this.databaseFunctionService.callFunction(
+      'tra_ListarCalendariosPublicados',
+    );
   }
 
   async listarTrabajadoresAdministrativos(): Promise<any[]> {
@@ -242,7 +287,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
   async obtenerTrabajadorPorId(idTrabajador: number): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'tra_ObtenerTrabajadorPorId',
+      'tra_ObtenerTrabajadorPorIdV2',
       [idTrabajador],
     );
 
@@ -337,7 +382,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
   async crearTrabajador(data: CrearTrabajadorData): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'tra_CrearTrabajador',
+      'tra_CrearTrabajadorV2',
       [
         data.nombres,
         data.apellidos,
@@ -373,6 +418,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         data.fechaFinContrato ?? null,
         data.idModalidad ?? null,
         data.idPuestoTrabajo ?? null,
+        data.idCalendario ?? null,
       ],
     );
 
@@ -381,7 +427,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
   async editarTrabajador(data: EditarTrabajadorData): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'tra_EditarTrabajador',
+      'tra_EditarTrabajadorV2',
       [
         data.idTrabajador,
         data.nombres,
@@ -418,6 +464,8 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         data.fechaFinContrato ?? null,
         data.idModalidad ?? null,
         data.idPuestoTrabajo ?? null,
+        data.idCalendario ?? null,
+        data.idCalendario !== undefined,
       ],
     );
 

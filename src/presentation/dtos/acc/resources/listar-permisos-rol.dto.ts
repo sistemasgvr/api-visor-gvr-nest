@@ -1,17 +1,24 @@
-import { IsOptional, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ListarPermisosRolDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(200)
+  static readonly schema: z.ZodType<ListarPermisosRolDto> =
+    defineZodDto<ListarPermisosRolDto>('ListarPermisosRolDto', {
+      limit: {
+        schema: z.number().int().min(1).max(200),
+        optional: true,
+        coerce: 'number',
+        defaultValue: 100,
+      },
+      offset: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+        defaultValue: 0,
+      },
+    });
+
   limit?: number = 100;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number = 0;
 }

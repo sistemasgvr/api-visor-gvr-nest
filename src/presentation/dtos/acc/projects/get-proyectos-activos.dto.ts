@@ -1,37 +1,39 @@
-import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class GetProyectosActivosDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<GetProyectosActivosDto> =
+    defineZodDto<GetProyectosActivosDto>('GetProyectosActivosDto', {
+      fields: { schema: z.string(), optional: true },
+      filter_type: { schema: z.string(), optional: true },
+      filter_name: { schema: z.string(), optional: true },
+      sort: { schema: z.string(), optional: true },
+      limit: {
+        schema: z.number().int().min(1).max(200),
+        optional: true,
+        coerce: 'number',
+        defaultValue: 20,
+      },
+      offset: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+        defaultValue: 0,
+      },
+      token: { schema: z.string(), optional: true },
+    });
+
   fields?: string;
 
-  @IsOptional()
-  @IsString()
   filter_type?: string;
 
-  @IsOptional()
-  @IsString()
   filter_name?: string;
 
-  @IsOptional()
-  @IsString()
   sort?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(200)
   limit?: number = 20;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number = 0;
 
-  @IsOptional()
-  @IsString()
   token?: string;
 }

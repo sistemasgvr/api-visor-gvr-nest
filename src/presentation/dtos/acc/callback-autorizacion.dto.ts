@@ -1,17 +1,20 @@
-import { IsString, IsOptional } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class CallbackAutorizacionDto {
-  @IsString()
+  static readonly schema: z.ZodType<CallbackAutorizacionDto> =
+    defineZodDto<CallbackAutorizacionDto>('CallbackAutorizacionDto', {
+      code: { schema: z.string() },
+      state: { schema: z.string() },
+      error: { schema: z.string(), optional: true },
+      error_description: { schema: z.string(), optional: true },
+    });
+
   code: string;
 
-  @IsString()
   state: string;
 
-  @IsOptional()
-  @IsString()
   error?: string;
 
-  @IsOptional()
-  @IsString()
   error_description?: string;
 }

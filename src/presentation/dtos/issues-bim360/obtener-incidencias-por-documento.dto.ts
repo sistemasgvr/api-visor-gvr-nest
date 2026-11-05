@@ -1,20 +1,28 @@
-import { IsString, IsOptional, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class ObtenerIncidenciasPorDocumentoDto {
-  @IsString()
+  static readonly schema: z.ZodType<ObtenerIncidenciasPorDocumentoDto> =
+    defineZodDto<ObtenerIncidenciasPorDocumentoDto>(
+      'issues-bim360_ObtenerIncidenciasPorDocumentoDto',
+      {
+        documentUrn: { schema: z.string() },
+        limit: {
+          schema: z.number().int().min(1).max(200),
+          optional: true,
+          coerce: 'number',
+        },
+        offset: {
+          schema: z.number().int().min(0),
+          optional: true,
+          coerce: 'number',
+        },
+      },
+    );
+
   documentUrn: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(200)
   limit?: number;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number;
 }

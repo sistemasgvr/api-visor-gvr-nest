@@ -1,22 +1,34 @@
-import { IsOptional, IsInt, IsString, IsIn, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ObtenerProyectosUsuarioDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(100)
+  static readonly schema: z.ZodType<ObtenerProyectosUsuarioDto> =
+    defineZodDto<ObtenerProyectosUsuarioDto>('ObtenerProyectosUsuarioDto', {
+      limit: {
+        schema: z.number().int().min(1).max(100),
+        optional: true,
+        coerce: 'number',
+      },
+      offset: {
+        schema: z.number().int().min(0),
+        optional: true,
+        coerce: 'number',
+      },
+      region: {
+        schema: z
+          .string()
+          .refine(
+            (value) => (['US', 'EMEA'] as readonly unknown[]).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['US', 'EMEA'] }),
+        optional: true,
+      },
+    });
+
   limit?: number;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number;
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['US', 'EMEA'])
   region?: string;
 }

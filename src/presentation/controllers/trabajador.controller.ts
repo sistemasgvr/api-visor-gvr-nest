@@ -1,3 +1,6 @@
+import { AsignarCalendarioTrabajadorUseCase } from '../../application/use-cases/trabajador/asignar-calendario-trabajador.use-case';
+import { AsignarCalendarioTrabajadorDto } from '../dtos/trabajador/asignar-calendario-trabajador.dto';
+import { ListarCalendariosPublicadosUseCase } from '../../application/use-cases/trabajador/listar-calendarios-publicados.use-case';
 import {
   Controller,
   Get,
@@ -69,6 +72,8 @@ const CAMPOS_CONTRATO = [
 @UseGuards(JwtAuthGuard)
 export class TrabajadorController {
   constructor(
+    private readonly asignarCalendarioTrabajadorUseCase: AsignarCalendarioTrabajadorUseCase,
+    private readonly listarCalendariosPublicadosUseCase: ListarCalendariosPublicadosUseCase,
     private readonly listarTrabajadoresUseCase: ListarTrabajadoresUseCase,
     private readonly listarAdministrativosUseCase: ListarAdministrativosUseCase,
     private readonly obtenerTrabajadorUseCase: ObtenerTrabajadorUseCase,
@@ -86,6 +91,32 @@ export class TrabajadorController {
     private readonly jwtService: JwtService,
     private readonly authorization: AuthorizationService,
   ) {}
+
+  @Patch(':id/calendario')
+  @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.trabajadores.editar')
+  async asignarCalendario(
+    @ActorId() actor: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() datos: AsignarCalendarioTrabajadorDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.asignarCalendarioTrabajadorUseCase.execute(actor, id, datos),
+      'Calendario asignado al colaborador',
+    );
+  }
+
+  @Get('calendarios-publicados')
+  @RequireScopedPermission(
+    'usuarios.trabajadores.crear',
+    'usuarios.trabajadores.editar',
+  )
+  async listarCalendariosPublicados() {
+    return ApiResponseDto.success(
+      await this.listarCalendariosPublicadosUseCase.execute(),
+      'Calendarios publicados obtenidos',
+    );
+  }
 
   /**
    * Listar trabajadores administrativos

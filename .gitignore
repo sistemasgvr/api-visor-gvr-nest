@@ -4,6 +4,9 @@
 /build
 /backups/
 
+# Local database backups
+/backups/
+
 # Logs
 logs
 *.log

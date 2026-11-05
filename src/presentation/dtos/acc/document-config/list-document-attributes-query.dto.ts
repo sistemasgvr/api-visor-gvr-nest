@@ -1,21 +1,28 @@
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ListDocumentAttributesQueryDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<ListDocumentAttributesQueryDto> =
+    defineZodDto<ListDocumentAttributesQueryDto>(
+      'ListDocumentAttributesQueryDto',
+      {
+        busqueda: { schema: z.string(), optional: true },
+        limit: {
+          schema: z.number().int().min(1).max(500),
+          optional: true,
+          coerce: 'number',
+        },
+        offset: {
+          schema: z.number().int().min(0),
+          optional: true,
+          coerce: 'number',
+        },
+      },
+    );
+
   busqueda?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(500)
   limit?: number;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
   offset?: number;
 }

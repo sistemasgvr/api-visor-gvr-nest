@@ -1,47 +1,76 @@
-import {
-  IsNotEmpty,
-  IsString,
-  IsOptional,
-  IsEmail,
-  IsIn,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ActivarServicioProyectoDto {
-  @IsNotEmpty({
-    message: 'El email del usuario administrador de ACC es requerido',
-  })
-  @IsEmail({}, { message: 'El email debe tener un formato válido' })
+  static readonly schema: z.ZodType<ActivarServicioProyectoDto> =
+    defineZodDto<ActivarServicioProyectoDto>('ActivarServicioProyectoDto', {
+      email: { schema: z.string().min(1).email() },
+      service: {
+        schema: z
+          .string()
+          .min(1)
+          .refine(
+            (value) =>
+              (
+                [
+                  'docs',
+                  'projectAdministration',
+                  'cost',
+                  'buildingConnected',
+                  'assets',
+                  'insight',
+                  'modelCoordination',
+                  'schedule',
+                  'quantification',
+                  'designCollaboration',
+                ] as readonly unknown[]
+              ).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({
+            enum: [
+              'docs',
+              'projectAdministration',
+              'cost',
+              'buildingConnected',
+              'assets',
+              'insight',
+              'modelCoordination',
+              'schedule',
+              'quantification',
+              'designCollaboration',
+            ],
+          }),
+      },
+      accessLevel: {
+        schema: z
+          .string()
+          .refine(
+            (value) =>
+              (['administrator', 'user'] as readonly unknown[]).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['administrator', 'user'] }),
+        optional: true,
+        defaultValue: 'administrator',
+      },
+      region: {
+        schema: z
+          .string()
+          .refine(
+            (value) => (['US', 'EMEA'] as readonly unknown[]).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['US', 'EMEA'] }),
+        optional: true,
+      },
+    });
+
   email: string;
 
-  @IsNotEmpty({ message: 'El servicio a activar es requerido' })
-  @IsString()
-  @IsIn(
-    [
-      'docs',
-      'projectAdministration',
-      'cost',
-      'buildingConnected',
-      'assets',
-      'insight',
-      'modelCoordination',
-      'schedule',
-      'quantification',
-      'designCollaboration',
-    ],
-    {
-      message:
-        'El servicio debe ser uno de los siguientes: docs, projectAdministration, cost, buildingConnected, assets, insight, modelCoordination, schedule, quantification, designCollaboration',
-    },
-  )
   service: string;
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['administrator', 'user'])
   accessLevel?: string = 'administrator';
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['US', 'EMEA'])
   region?: string;
 }

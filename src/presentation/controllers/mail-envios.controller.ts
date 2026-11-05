@@ -1,3 +1,4 @@
+import { ZodValidationPipe } from '../validation/zod-validation.pipe';
 import {
   Controller,
   Get,
@@ -8,7 +9,6 @@ import {
   HttpStatus,
   UseGuards,
   UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -34,7 +34,7 @@ import {
 @ApiBearerAuth('access-token')
 @Controller('mail/envios')
 @UseGuards(JwtAuthGuard)
-@UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+@UsePipes(new ZodValidationPipe())
 export class MailEnviosController {
   constructor(
     private readonly listarCoberturaUseCase: ListarCoberturaEnviosMailUseCase,

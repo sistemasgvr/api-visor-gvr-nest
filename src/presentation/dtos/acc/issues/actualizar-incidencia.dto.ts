@@ -1,65 +1,58 @@
-import {
-  IsOptional,
-  IsString,
-  IsNumber,
-  IsBoolean,
-  IsObject,
-  ValidateNested,
-} from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ActualizarIncidenciaDto {
-  @IsOptional()
-  @IsString()
+  static readonly schema: z.ZodType<ActualizarIncidenciaDto> =
+    defineZodDto<ActualizarIncidenciaDto>(
+      'acc_issues_ActualizarIncidenciaDto',
+      {
+        title: { schema: z.string(), optional: true },
+        description: { schema: z.string(), optional: true },
+        status: { schema: z.string(), optional: true },
+        issueSubtypeId: { schema: z.string(), optional: true },
+        dueDate: { schema: z.string(), optional: true },
+        assignedTo: { schema: z.string(), optional: true },
+        assignedToType: { schema: z.string(), optional: true },
+        rootCauseId: { schema: z.string(), optional: true },
+        startDate: { schema: z.string(), optional: true },
+        locationId: { schema: z.string(), optional: true },
+        locationDetails: { schema: z.string(), optional: true },
+        published: {
+          schema: z.boolean(),
+          optional: true,
+          transforms: [({ value }) => value === 'true' || value === true],
+        },
+        deleted: {
+          schema: z.boolean(),
+          optional: true,
+          transforms: [({ value }) => value === 'true' || value === true],
+        },
+      },
+    );
+
   title?: string;
 
-  @IsOptional()
-  @IsString()
   description?: string;
 
-  @IsOptional()
-  @IsString()
   status?: string;
 
-  @IsOptional()
-  @IsString()
   issueSubtypeId?: string;
 
-  @IsOptional()
-  @IsString()
   dueDate?: string;
 
-  @IsOptional()
-  @IsString()
   assignedTo?: string;
 
-  @IsOptional()
-  @IsString()
   assignedToType?: string;
 
-  @IsOptional()
-  @IsString()
   rootCauseId?: string;
 
-  @IsOptional()
-  @IsString()
   startDate?: string;
 
-  @IsOptional()
-  @IsString()
   locationId?: string;
 
-  @IsOptional()
-  @IsString()
   locationDetails?: string;
 
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
-  @IsBoolean()
   published?: boolean;
 
-  @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
-  @IsBoolean()
   deleted?: boolean;
 }

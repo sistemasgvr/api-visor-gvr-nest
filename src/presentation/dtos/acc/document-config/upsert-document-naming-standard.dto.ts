@@ -1,54 +1,44 @@
-import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  Min,
-  ValidateNested,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class NamingStandardPartDto {
-  @Type(() => Number)
-  @IsInt()
+  static readonly schema: z.ZodType<NamingStandardPartDto> =
+    defineZodDto<NamingStandardPartDto>('NamingStandardPartDto', {
+      attributeId: { schema: z.number().int(), coerce: 'number' },
+      orden: { schema: z.number().int().min(1), coerce: 'number' },
+    });
+
   attributeId: number;
 
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
   orden: number;
 }
 
 export class UpsertDocumentNamingStandardDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
+  static readonly schema: z.ZodType<UpsertDocumentNamingStandardDto> =
+    defineZodDto<UpsertDocumentNamingStandardDto>(
+      'UpsertDocumentNamingStandardDto',
+      {
+        id: { schema: z.number().int(), optional: true, coerce: 'number' },
+        codigo: { schema: z.string().min(1).max(100) },
+        nombre: { schema: z.string().min(1).max(255) },
+        descripcion: { schema: z.string(), optional: true },
+        separador: { schema: z.string().max(10), optional: true },
+        partes: {
+          schema: z.array(z.lazy(() => NamingStandardPartDto.schema)),
+          optional: true,
+        },
+      },
+    );
+
   id?: number;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
   codigo: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
   nombre: string;
 
-  @IsOptional()
-  @IsString()
   descripcion?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
   separador?: string;
 
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => NamingStandardPartDto)
   partes?: NamingStandardPartDto[];
 }

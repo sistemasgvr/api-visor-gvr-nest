@@ -1,160 +1,146 @@
-import {
-  IsBoolean,
-  IsInt,
-  IsNotEmpty,
-  IsObject,
-  IsOptional,
-  IsString,
-  MaxLength,
-  Min,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class CrearVisorMarcaRevisionDto {
-  @IsString()
-  @IsNotEmpty()
+  static readonly schema: z.ZodType<CrearVisorMarcaRevisionDto> =
+    defineZodDto<CrearVisorMarcaRevisionDto>('CrearVisorMarcaRevisionDto', {
+      documentUrn: { schema: z.string().min(1) },
+      itemId: { schema: z.string().min(1) },
+      tipoMarca: { schema: z.string().min(1).max(50) },
+      markupPayload: { schema: z.record(z.string(), z.unknown()) },
+      versionId: { schema: z.string(), optional: true },
+      nombreDocumento: { schema: z.string().max(500), optional: true },
+      viewableGuid: { schema: z.string(), optional: true },
+      viewableName: { schema: z.string().max(500), optional: true },
+      paginaNumero: { schema: z.number().int().min(1), optional: true },
+      is3D: { schema: z.boolean(), optional: true },
+      viewerState: {
+        schema: z.record(z.string(), z.unknown()),
+        optional: true,
+      },
+      idProyectoGvr: { schema: z.number().int().min(1), optional: true },
+      idRevisionArchivo: { schema: z.number().int().min(1), optional: true },
+      titulo: { schema: z.string().max(255), optional: true },
+      markupIdAps: { schema: z.string().max(255), optional: true },
+      layerName: { schema: z.string().max(255), optional: true },
+      estilos: { schema: z.record(z.string(), z.unknown()), optional: true },
+      boundingBox: {
+        schema: z.record(z.string(), z.unknown()),
+        optional: true,
+      },
+      miniaturaSvg: { schema: z.string(), optional: true },
+    });
+
   documentUrn: string;
 
-  @IsString()
-  @IsNotEmpty()
   itemId: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(50)
   tipoMarca: string;
 
-  @IsObject()
   markupPayload: Record<string, unknown>;
 
-  @IsOptional()
-  @IsString()
   versionId?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
   nombreDocumento?: string;
 
-  @IsOptional()
-  @IsString()
   viewableGuid?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
   viewableName?: string;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
   paginaNumero?: number;
 
-  @IsOptional()
-  @IsBoolean()
   is3D?: boolean;
 
-  @IsOptional()
-  @IsObject()
   viewerState?: Record<string, unknown>;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
   idProyectoGvr?: number;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
   idRevisionArchivo?: number;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   titulo?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   markupIdAps?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   layerName?: string;
 
-  @IsOptional()
-  @IsObject()
   estilos?: Record<string, unknown>;
 
-  @IsOptional()
-  @IsObject()
   boundingBox?: Record<string, unknown>;
 
-  @IsOptional()
-  @IsString()
   miniaturaSvg?: string;
 }
 
 export class ActualizarVisorMarcaRevisionDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<ActualizarVisorMarcaRevisionDto> =
+    defineZodDto<ActualizarVisorMarcaRevisionDto>(
+      'ActualizarVisorMarcaRevisionDto',
+      {
+        titulo: { schema: z.string().max(255), optional: true },
+        markupPayload: {
+          schema: z.record(z.string(), z.unknown()),
+          optional: true,
+        },
+        markupIdAps: { schema: z.string().max(255), optional: true },
+        estilos: { schema: z.record(z.string(), z.unknown()), optional: true },
+        boundingBox: {
+          schema: z.record(z.string(), z.unknown()),
+          optional: true,
+        },
+        miniaturaSvg: { schema: z.string(), optional: true },
+        viewerState: {
+          schema: z.record(z.string(), z.unknown()),
+          optional: true,
+        },
+        viewableGuid: { schema: z.string(), optional: true },
+        viewableName: { schema: z.string().max(500), optional: true },
+        paginaNumero: { schema: z.number().int().min(1), optional: true },
+      },
+    );
+
   titulo?: string;
 
-  @IsOptional()
-  @IsObject()
   markupPayload?: Record<string, unknown>;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   markupIdAps?: string;
 
-  @IsOptional()
-  @IsObject()
   estilos?: Record<string, unknown>;
 
-  @IsOptional()
-  @IsObject()
   boundingBox?: Record<string, unknown>;
 
-  @IsOptional()
-  @IsString()
   miniaturaSvg?: string;
 
-  @IsOptional()
-  @IsObject()
   viewerState?: Record<string, unknown>;
 
-  @IsOptional()
-  @IsString()
   viewableGuid?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
   viewableName?: string;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
   paginaNumero?: number;
 }
 
 export class DuplicarVisorMarcaRevisionDto {
-  @IsOptional()
-  @IsObject()
+  static readonly schema: z.ZodType<DuplicarVisorMarcaRevisionDto> =
+    defineZodDto<DuplicarVisorMarcaRevisionDto>(
+      'DuplicarVisorMarcaRevisionDto',
+      {
+        desplazamiento: {
+          schema: z.record(z.string(), z.unknown()),
+          optional: true,
+        },
+        titulo: { schema: z.string().max(255), optional: true },
+      },
+    );
+
   desplazamiento?: Record<string, unknown>;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   titulo?: string;
 }
 
 export class SincronizarMarkupIdApsDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<SincronizarMarkupIdApsDto> =
+    defineZodDto<SincronizarMarkupIdApsDto>('SincronizarMarkupIdApsDto', {
+      markupIdAps: { schema: z.string().min(1).max(255) },
+    });
+
   markupIdAps: string;
 }

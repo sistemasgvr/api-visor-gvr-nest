@@ -1,3 +1,4 @@
+import { ZodValidationPipe } from '../validation/zod-validation.pipe';
 import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 import {
   Controller,
@@ -16,7 +17,6 @@ import {
   BadRequestException,
   ParseIntPipe,
   UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { ListarMenusUseCase } from '../../application/use-cases/menu-gestion/listar-menus.use-case';

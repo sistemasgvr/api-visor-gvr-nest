@@ -30,6 +30,8 @@ jobs:
         run: npm run check:contracts
       - name: Authorization coverage (blocks incomplete authorization)
         run: npm run check:authorization-coverage
+      - name: OpenAPI contracts and Zod models
+        run: npm run check:openapi
       - name: E2E tests
         run: npm run test:e2e
       - name: Build
