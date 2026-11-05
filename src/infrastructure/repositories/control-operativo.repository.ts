@@ -202,7 +202,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     type Row = JornadaListItem & { total_count?: number };
     const result = await this.databaseFunctionService.callFunction<Row>(
-      'con_ListarJornadasTrabajadorV2',
+      'con_ListarJornadasTrabajadorV3',
       [idTrabajador, pFechaInicio, pFechaFin, limit, offset],
     );
 
@@ -292,7 +292,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   ): Promise<TrabajadorSinJornadaHoyItem[]> {
     const result =
       await this.databaseFunctionService.callFunction<TrabajadorSinJornadaHoyItem>(
-        'con_ListarTrabajadoresSinJornadaHoy',
+        'con_ListarTrabajadoresSinJornadaHoyV2',
         [fecha],
       );
     return Array.isArray(result) ? result : [];
@@ -303,7 +303,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   ): Promise<TrabajadorSinActividadesHoyItem[]> {
     const result =
       await this.databaseFunctionService.callFunction<TrabajadorSinActividadesHoyItem>(
-        'con_ListarTrabajadoresSinActividadesHoy',
+        'con_ListarTrabajadoresSinActividadesHoyV2',
         [fecha],
       );
     return Array.isArray(result) ? result : [];
@@ -312,7 +312,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   async contarTrabajadoresEsperadosJornadaHoy(fecha: string): Promise<number> {
     const row = await this.databaseFunctionService.callFunctionSingle<
       Record<string, unknown>
-    >('con_ContarTrabajadoresEsperadosJornadaHoy', [fecha]);
+    >('con_ContarTrabajadoresEsperadosJornadaHoyV2', [fecha]);
     return getScalarInt(row);
   }
 
@@ -350,7 +350,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     } = params;
     const row =
       await this.databaseFunctionService.callFunctionSingle<JornadaCreada>(
-        'con_CrearJornadaV2',
+        'con_CrearJornadaV3',
         [
           idTrabajador,
           fechaJornada,
@@ -938,7 +938,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     fecha: string,
   ): Promise<CronCierreJornadasResult> {
     const rows = await this.databaseFunctionService.callFunction<any>(
-      'con_CronCierreJornadasV2',
+      'con_CronCierreJornadasV3',
       [fecha],
     );
     const row = rows?.[0];
@@ -981,7 +981,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     try {
       const rows =
         await this.databaseFunctionService.callFunction<HabilitacionJornadasUsuario>(
-          'con_HabilitarJornadasUsuariosV2',
+          'con_HabilitarJornadasUsuariosV3',
           [
             params.idTrabajadores,
             params.fechaInicio,

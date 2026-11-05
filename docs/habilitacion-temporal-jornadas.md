@@ -45,7 +45,7 @@ Este cambio de backend no incluye el modal ni la selección en Usuarios.
 ## Vencimiento y cron
 
 El endpoint habitual `GET /control-operativo/cron/cierre-jornadas` usa ahora
-`con_CronCierreJornadasV2`. Respeta los permisos temporales aún vigentes y
+`con_CronCierreJornadasV3`. Respeta los permisos temporales aún vigentes y
 persiste el cierre de los vencidos.
 
 Para persistir el cierre más frecuentemente está disponible:
@@ -64,11 +64,11 @@ listado está vacío como si tiene filas, para evitar mostrar una apertura venci
 
 | Operación | Función |
 | --- | --- |
-| Listar jornadas | `con_ListarJornadasTrabajadorV2` |
-| Crear/reutilizar jornada | `con_CrearJornadaV2` |
+| Listar jornadas | `con_ListarJornadasTrabajadorV3` |
+| Crear/reutilizar jornada | `con_CrearJornadaV3` |
 | Cambiar estado | `con_ActualizarEstadoJornadaV2` |
-| Habilitar por usuarios | `con_HabilitarJornadasUsuariosV2` |
-| Cron habitual | `con_CronCierreJornadasV2` |
+| Habilitar por usuarios | `con_HabilitarJornadasUsuariosV3` |
+| Cron habitual | `con_CronCierreJornadasV3` |
 | Cerrar permisos vencidos | `con_CerrarHabilitacionesVencidasV2` |
 | Estado del detalle de actividades | `con_EstadoJornadaVigenteV2` |
 | Crear actividad | `con_CrearActividadV3` |
