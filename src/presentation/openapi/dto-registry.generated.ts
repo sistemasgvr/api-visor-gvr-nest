@@ -110,6 +110,7 @@ import '../dtos/control-operativo/actualizar-estado-jornada.dto';
 import '../dtos/control-operativo/agregar-evidencias-actividad.dto';
 import '../dtos/control-operativo/exportar-actividades-word-masivo.dto';
 import '../dtos/control-operativo/habilitar-jornadas-usuarios.dto';
+import '../dtos/dashboard/rango-fechas.dto';
 import '../dtos/data-management/buckets/crear-bucket.dto';
 import '../dtos/data-management/buckets/obtener-buckets.dto';
 import '../dtos/data-management/folders/actualizar-carpeta.dto';

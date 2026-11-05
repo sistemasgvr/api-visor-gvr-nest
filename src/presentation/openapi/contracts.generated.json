@@ -38161,6 +38161,71 @@
       "source": "src/presentation/controllers/collabora.controller.ts",
       "summary": "Comprobar conectividad con el servidor Collabora"
     },
+    "ControlOperativoController_listarCoordinadoresActividad": {
+      "controller": "ControlOperativoController",
+      "method": "listarCoordinadoresActividad",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "idtrabajador": {
+                  "type": "number"
+                },
+                "nombrecoordinador": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Coordinadores del proyecto"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "name": "id",
+          "schema": {
+            "type": "number"
+          },
+          "required": true,
+          "source": "@Param('id', ParseIntPipe) id: number"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireScopedPermission",
+          "codes": "control_operativo.actividades.crear"
+        }
+      ],
+      "source": "src/presentation/controllers/control-operativo.controller.ts",
+      "summary": "Coordinadores disponibles para registrar o editar actividades"
+    },
     "ControlOperativoController_cronCierreJornadas": {
       "controller": "ControlOperativoController",
       "method": "cronCierreJornadas",
@@ -41056,7 +41121,16 @@
           }
         }
       },
-      "params": [],
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RangoFechasDashboardDto"
+          },
+          "required": true,
+          "source": "@Query() rango: RangoFechasDashboardDto"
+        }
+      ],
       "file": false,
       "fileField": "file",
       "filesMultiple": false,
@@ -41101,7 +41175,16 @@
           }
         }
       },
-      "params": [],
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RangoFechasDashboardDto"
+          },
+          "required": true,
+          "source": "@Query() rango: RangoFechasDashboardDto"
+        }
+      ],
       "file": false,
       "fileField": "file",
       "filesMultiple": false,
@@ -41145,7 +41228,16 @@
           }
         }
       },
-      "params": [],
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RangoFechasDashboardDto"
+          },
+          "required": true,
+          "source": "@Query() rango: RangoFechasDashboardDto"
+        }
+      ],
       "file": false,
       "fileField": "file",
       "filesMultiple": false,
@@ -41240,7 +41332,16 @@
           }
         }
       },
-      "params": [],
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RangoFechasDashboardDto"
+          },
+          "required": true,
+          "source": "@Query() rango: RangoFechasDashboardDto"
+        }
+      ],
       "file": false,
       "fileField": "file",
       "filesMultiple": false,
@@ -41287,7 +41388,16 @@
           }
         }
       },
-      "params": [],
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RangoFechasDashboardDto"
+          },
+          "required": true,
+          "source": "@Query() rango: RangoFechasDashboardDto"
+        }
+      ],
       "file": false,
       "fileField": "file",
       "filesMultiple": false,
@@ -41334,7 +41444,16 @@
           }
         }
       },
-      "params": [],
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RangoFechasDashboardDto"
+          },
+          "required": true,
+          "source": "@Query() rango: RangoFechasDashboardDto"
+        }
+      ],
       "file": false,
       "fileField": "file",
       "filesMultiple": false,
@@ -41382,7 +41501,16 @@
           }
         }
       },
-      "params": [],
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RangoFechasDashboardDto"
+          },
+          "required": true,
+          "source": "@Query() rango: RangoFechasDashboardDto"
+        }
+      ],
       "file": false,
       "fileField": "file",
       "filesMultiple": false,
@@ -41445,6 +41573,177 @@
       "source": "src/presentation/controllers/dashboard.controller.ts",
       "summary": "Proyectos con avance de actividades",
       "description": "Para tarjetas de seguimiento."
+    },
+    "DashboardController_obtenerActividadesPorValidarPorCoordinador": {
+      "controller": "DashboardController",
+      "method": "obtenerActividadesPorValidarPorCoordinador",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardActividadesPorValidarPorCoordinador"
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Actividades por validar por coordinador"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RangoFechasDashboardDto"
+          },
+          "required": true,
+          "source": "@Query() rango: RangoFechasDashboardDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireScopedPermission",
+          "codes": "inicio.indicadores.ver_actividades_por_validar"
+        }
+      ],
+      "source": "src/presentation/controllers/dashboard.controller.ts",
+      "summary": "Actividades por validar agrupadas por coordinador",
+      "description": "Actividades en estado «Por aprobar» por coordinador asignado."
+    },
+    "DashboardController_obtenerTopTrabajadoresJornadasCerradas": {
+      "controller": "DashboardController",
+      "method": "obtenerTopTrabajadoresJornadasCerradas",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardTopTrabajadoresJornadasCerradas"
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Top de trabajadores con jornadas cerradas"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RangoFechasDashboardDto"
+          },
+          "required": true,
+          "source": "@Query() rango: RangoFechasDashboardDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireScopedPermission",
+          "codes": "inicio.indicadores.ver_jornadas_cerradas"
+        }
+      ],
+      "source": "src/presentation/controllers/dashboard.controller.ts",
+      "summary": "Top de trabajadores con jornadas cerradas",
+      "description": "Jornadas en estado «Incompleto» (cerradas sin actividades)."
+    },
+    "DashboardController_obtenerTopCoordinadoresActividadesValidadas": {
+      "controller": "DashboardController",
+      "method": "obtenerTopCoordinadoresActividadesValidadas",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardTopCoordinadoresActividadesValidadas"
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Top de coordinadores con actividades validadas"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RangoFechasDashboardDto"
+          },
+          "required": true,
+          "source": "@Query() rango: RangoFechasDashboardDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireScopedPermission",
+          "codes": "inicio.indicadores.ver_coordinadores_validadas"
+        }
+      ],
+      "source": "src/presentation/controllers/dashboard.controller.ts",
+      "summary": "Top de coordinadores con actividades validadas",
+      "description": "Actividades en estado «Aprobado por coordinador» (375)."
     },
     "DemoController_pdfDemo": {
       "controller": "DemoController",
@@ -51614,14 +51913,20 @@
     "DashboardCantidadJornadasCompletasSemana": {
       "type": "object",
       "properties": {
+        "fecha": {
+          "type": "string",
+          "description": "Fecha del punto (YYYY-MM-DD); permite ordenar rangos que cruzan meses."
+        },
         "dia": {
-          "type": "string"
+          "type": "string",
+          "description": "Etiqueta corta del día (Lun, Mar, …)."
         },
         "cantidad": {
           "type": "number"
         }
       },
       "required": [
+        "fecha",
         "dia",
         "cantidad"
       ]
@@ -51652,14 +51957,20 @@
     "DashboardCantidadTrabajadoresConectadoSemana": {
       "type": "object",
       "properties": {
+        "fecha": {
+          "type": "string",
+          "description": "Fecha del punto (YYYY-MM-DD); permite ordenar rangos que cruzan meses."
+        },
         "dia": {
-          "type": "string"
+          "type": "string",
+          "description": "Etiqueta corta del día (Lun, Mar, …)."
         },
         "cantidad": {
           "type": "number"
         }
       },
       "required": [
+        "fecha",
         "dia",
         "cantidad"
       ]
@@ -51667,6 +51978,10 @@
     "DashboardHorasEsperadasVsRegistradasMes": {
       "type": "object",
       "properties": {
+        "fecha": {
+          "type": "string",
+          "description": "Fecha del punto (YYYY-MM-DD); `dia` es ambiguo en rangos multi-mes."
+        },
         "dia": {
           "type": "number"
         },
@@ -51684,6 +51999,7 @@
         }
       },
       "required": [
+        "fecha",
         "dia",
         "horasEsperadas",
         "horasRegistradas",
@@ -51712,6 +52028,78 @@
         "tipoProyecto",
         "estadoProyecto",
         "progresoPorcentaje"
+      ]
+    },
+    "DashboardActividadesPorValidarPorCoordinador": {
+      "type": "object",
+      "properties": {
+        "idCoordinador": {
+          "type": "number"
+        },
+        "nombreCoordinador": {
+          "type": "string"
+        },
+        "correoCoordinador": {
+          "type": "string",
+          "nullable": true
+        },
+        "actividadesPorValidar": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "idCoordinador",
+        "nombreCoordinador",
+        "correoCoordinador",
+        "actividadesPorValidar"
+      ]
+    },
+    "DashboardTopTrabajadoresJornadasCerradas": {
+      "type": "object",
+      "properties": {
+        "idTrabajador": {
+          "type": "number"
+        },
+        "nombreTrabajador": {
+          "type": "string"
+        },
+        "jornadasCerradas": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "idTrabajador",
+        "nombreTrabajador",
+        "jornadasCerradas"
+      ]
+    },
+    "DashboardTopCoordinadoresActividadesValidadas": {
+      "type": "object",
+      "properties": {
+        "idCoordinador": {
+          "type": "number"
+        },
+        "nombreCoordinador": {
+          "type": "string"
+        },
+        "actividadesValidadas": {
+          "type": "number"
+        },
+        "actividadesTotales": {
+          "type": "number",
+          "description": "Actividades del coordinador en el periodo (estados 374, 375, 376 y 377)."
+        },
+        "porcentajeValidadas": {
+          "type": "number",
+          "description": "`actividadesValidadas` sobre `actividadesTotales`; 100 = nada sin resolver."
+        }
+      },
+      "required": [
+        "idCoordinador",
+        "nombreCoordinador",
+        "actividadesValidadas",
+        "actividadesTotales",
+        "porcentajeValidadas"
       ]
     },
     "EnviarCorreoBienvenidaDemoResult": {
