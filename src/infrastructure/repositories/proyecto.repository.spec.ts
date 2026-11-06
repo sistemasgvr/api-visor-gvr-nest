@@ -37,6 +37,18 @@ describe('Proyectos: contrato success/message de las versiones pro_*', () => {
     await expect(call()).resolves.toEqual(rechazo);
   });
 
+  it('eliminar entregable usa la versión con reglas de eliminación', async () => {
+    database.callFunctionSingle.mockResolvedValue({
+      success: true,
+      message: 'ok',
+    });
+    await repository.eliminarEntregableProyecto(3, 23, 2, 'Retirar');
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pro_EliminarEntregableV3',
+      [3, 23, 2, 'Retirar'],
+    );
+  });
+
   it('un error que SQL no capturó se sigue traduciendo', async () => {
     database.callFunctionSingle.mockRejectedValue({
       driverError: {

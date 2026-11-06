@@ -172,6 +172,21 @@ export class RevisionActividadDto extends RevisionPlanDto {
 
   revision!: number;
 }
+export class EliminarActividadPlanDto extends RevisionActividadDto {
+  static readonly schema: z.ZodType<EliminarActividadPlanDto> =
+    defineZodDto<EliminarActividadPlanDto>(
+      'EliminarActividadPlanDto',
+      {
+        dependencias: {
+          schema: z.enum(['reconectar', 'quitar']),
+          when: (_o, v) => v !== undefined,
+        },
+      },
+      () => mappedDto(RevisionActividadDto.schema),
+    );
+
+  dependencias?: 'reconectar' | 'quitar';
+}
 export class MotivoPlanDto {
   static readonly schema: z.ZodType<MotivoPlanDto> =
     defineZodDto<MotivoPlanDto>('MotivoPlanDto', {

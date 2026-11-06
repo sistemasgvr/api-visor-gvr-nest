@@ -227,6 +227,21 @@ export class PlanificacionController {
       await this.editarActividadUseCase.execute(actor, params, data),
     );
   }
+  @Get(':idPlan/actividades/:idActividad/eliminacion')
+  @HttpCode(200)
+  @RequireResourcePermission(
+    'proyectos.planificacion.editar',
+    GVR_PROJECT_RESOURCE,
+    'id',
+  )
+  async analizarEliminacionActividad(
+    @ActorId() actor: number,
+    @Param() params: Dto.ActividadPlanParamsDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.eliminarActividadUseCase.analizar(actor, params),
+    );
+  }
   @Delete(':idPlan/actividades/:idActividad')
   @HttpCode(200)
   @RequireResourcePermission(
@@ -237,7 +252,7 @@ export class PlanificacionController {
   async eliminarActividad(
     @ActorId() actor: number,
     @Param() params: Dto.ActividadPlanParamsDto,
-    @Query() data: Dto.RevisionActividadDto,
+    @Query() data: Dto.EliminarActividadPlanDto,
   ) {
     return ApiResponseDto.success(
       await this.eliminarActividadUseCase.execute(actor, params, data),

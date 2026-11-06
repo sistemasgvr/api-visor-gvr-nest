@@ -21,6 +21,9 @@ import type {
   AsignacionPlan,
   DependenciaActividadPlan,
   FechaActividadPlan,
+  AnalisisEliminacionActividad,
+  AnalisisEliminacionEntregable,
+  ResultadoEliminacionActividad,
 } from '../entities/planificacion.entity';
 export const PLANIFICACION_REPOSITORY = 'PLANIFICACION_REPOSITORY';
 export interface IPlanificacionRepository {
@@ -86,11 +89,21 @@ export interface IPlanificacionRepository {
     ctx: Input.ContextoPlan,
     data: Input.EditarActividadPlanInput,
   ): Promise<ActividadPlan>;
+  /** Reglas e impacto de eliminar; no escribe. */
+  analizarEliminacionActividad(
+    actor: number,
+    ctx: Input.ContextoPlan,
+  ): Promise<AnalisisEliminacionActividad>;
   eliminarActividad(
     actor: number,
     ctx: Input.ContextoPlan,
-    data: Input.RevisionActividadInput,
-  ): Promise<boolean>;
+    data: Input.EliminarActividadPlanInput,
+  ): Promise<ResultadoEliminacionActividad>;
+  /** Reglas de eliminar un entregable, con o sin plan; no escribe. */
+  analizarEliminacionEntregable(
+    actor: number,
+    idEntregable: number,
+  ): Promise<AnalisisEliminacionEntregable>;
   guardarAsignaciones(
     actor: number,
     ctx: Input.ContextoPlan,

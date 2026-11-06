@@ -996,7 +996,7 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
   [EliminarDocumentoProyectoUseCase, [PROYECTO_REPOSITORY]],
   [
     EliminarEntregableProyectoUseCase,
-    [PROYECTO_REPOSITORY, PlanificacionAccessService],
+    [PROYECTO_REPOSITORY, PlanificacionAccessService, PLANIFICACION_REPOSITORY],
   ],
   [EliminarProyectoUseCase, [PROYECTO_REPOSITORY]],
   [GuardarCoordinadoresProyectoUseCase, [PROYECTO_REPOSITORY]],

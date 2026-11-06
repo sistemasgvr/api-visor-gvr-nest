@@ -24,6 +24,9 @@ import type {
   AsignacionPlan,
   DependenciaActividadPlan,
   FechaActividadPlan,
+  AnalisisEliminacionActividad,
+  AnalisisEliminacionEntregable,
+  ResultadoEliminacionActividad,
 } from '../../domain/entities/planificacion.entity';
 import type { IPlanificacionRepository } from '../../domain/repositories/planificacion.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
@@ -152,18 +155,31 @@ export class PlanificacionRepository implements IPlanificacionRepository {
       data.motivo ?? null,
     ]);
   }
+  analizarEliminacionActividad(actor: number, ctx: Input.ContextoPlan) {
+    return this.call<AnalisisEliminacionActividad>(
+      'pla_AnalizarEliminacionActividad',
+      [actor, ctx.idActividad],
+    );
+  }
   eliminarActividad(
     actor: number,
     ctx: Input.ContextoPlan,
-    data: Input.RevisionActividadInput,
+    data: Input.EliminarActividadPlanInput,
   ) {
-    return this.call<boolean>('pla_EliminarActividad', [
+    return this.call<ResultadoEliminacionActividad>('pla_EliminarActividadV2', [
       actor,
       ctx.idActividad,
       data.revisionPlan,
       data.revision,
+      data.dependencias ?? null,
       data.motivo ?? null,
     ]);
+  }
+  analizarEliminacionEntregable(actor: number, idEntregable: number) {
+    return this.call<AnalisisEliminacionEntregable>(
+      'pla_AnalizarEliminacionEntregable',
+      [actor, idEntregable],
+    );
   }
   guardarAsignaciones(
     actor: number,
@@ -490,7 +506,6 @@ export class PlanificacionRepository implements IPlanificacionRepository {
       'pla_ListarAmpliaciones',
     ];
     const booleanos = [
-      'pla_EliminarActividad',
       'pla_ReordenarCronograma',
       'pla_ReorganizarCronograma',
     ];
@@ -525,6 +540,22 @@ export class PlanificacionRepository implements IPlanificacionRepository {
           'fechas',
         ],
         pla_ObtenerActividadPlan: ['actividad', 'asignaciones', 'dependencias'],
+        pla_AnalizarEliminacionActividad: [
+          'revision',
+          'revisionplan',
+          'permitido',
+          'bloqueos',
+          'avisos',
+          'sucesoras',
+          'reconexiones',
+        ],
+        pla_EliminarActividadV2: ['idactividad', 'revisionplan'],
+        pla_AnalizarEliminacionEntregable: [
+          'revisionplan',
+          'permitido',
+          'bloqueos',
+          'actividades',
+        ],
         pla_PrevisualizarCambioCronograma: [
           'revisionplan',
           'antes',

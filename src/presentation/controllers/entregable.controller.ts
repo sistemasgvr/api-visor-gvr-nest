@@ -321,6 +321,32 @@ export class EntregableController {
     return ApiResponseDto.success(data, 'Entregable actualizado exitosamente');
   }
 
+  @ApiOperation({
+    summary: 'Analizar la eliminación de un entregable',
+    description:
+      'Devuelve bloqueos (actividades activas, registros diarios, plan cerrado), la revisión vigente del plan y si se requiere motivo. No escribe.',
+  })
+  @ApiParam({ name: 'id', type: Number })
+  @Get(':id/eliminacion')
+  @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission('control_operativo.entregables.eliminar')
+  async analizarEliminacionEntregable(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: Request,
+    @GrantedScope('control_operativo.entregables.eliminar')
+    alcance: AuthorizationScope,
+  ) {
+    const token = this.extractTokenFromHeader(request);
+    if (!token) throw new UnauthorizedException('Token no proporcionado');
+    const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
+    const data = await this.eliminarEntregableProyectoUseCase.analizar(
+      id,
+      payload.sub,
+      alcance === 'todos',
+    );
+    return ApiResponseDto.success(data, 'Análisis de eliminación obtenido');
+  }
+
   @ApiOperation({ summary: 'Eliminar entregable (baja lógica)' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, type: EntregableMutationResultDto })

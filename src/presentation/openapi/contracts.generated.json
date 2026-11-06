@@ -1211,6 +1211,58 @@
       "source": "src/presentation/controllers/planificacion.controller.ts",
       "summary": "editar Actividad"
     },
+    "PlanificacionController_analizarEliminacionActividad": {
+      "controller": "PlanificacionController",
+      "method": "analizarEliminacionActividad",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AnalisisEliminacionActividad"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/ActividadPlanParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: Dto.ActividadPlanParamsDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireResourcePermission",
+          "codes": "proyectos.planificacion.editar"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion.controller.ts",
+      "summary": "analizar Eliminacion Actividad"
+    },
     "PlanificacionController_eliminarActividad": {
       "controller": "PlanificacionController",
       "method": "eliminarActividad",
@@ -1225,7 +1277,7 @@
         ],
         "properties": {
           "data": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/ResultadoEliminacionActividad"
           },
           "message": {
             "type": "string"
@@ -1251,10 +1303,10 @@
         {
           "kind": "Query",
           "schema": {
-            "$ref": "#/components/schemas/RevisionActividadDto"
+            "$ref": "#/components/schemas/EliminarActividadPlanDto"
           },
           "required": true,
-          "source": "@Query() data: Dto.RevisionActividadDto"
+          "source": "@Query() data: Dto.EliminarActividadPlanDto"
         }
       ],
       "file": false,
@@ -14832,6 +14884,61 @@
       ],
       "source": "src/presentation/controllers/entregable.controller.ts",
       "summary": "Actualizar entregable"
+    },
+    "EntregableController_analizarEliminacionEntregable": {
+      "controller": "EntregableController",
+      "method": "analizarEliminacionEntregable",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AnalisisEliminacionEntregable"
+          },
+          "message": {
+            "type": "string",
+            "example": "Análisis de eliminación obtenido"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "name": "id",
+          "schema": {
+            "type": "number"
+          },
+          "required": true,
+          "source": "@Param('id', ParseIntPipe) id: number"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireScopedPermission",
+          "codes": "control_operativo.entregables.eliminar"
+        }
+      ],
+      "source": "src/presentation/controllers/entregable.controller.ts",
+      "summary": "Analizar la eliminación de un entregable",
+      "description": "Devuelve bloqueos (actividades activas, registros diarios, plan cerrado), la revisión vigente del plan y si se requiere motivo. No escribe."
     },
     "EntregableController_eliminarEntregable": {
       "controller": "EntregableController",
@@ -46941,6 +47048,219 @@
         "dependencias"
       ]
     },
+    "AnalisisEliminacionActividad": {
+      "type": "object",
+      "properties": {
+        "idactividad": {
+          "type": "number"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "identregable": {
+          "type": "number"
+        },
+        "eshito": {
+          "type": "boolean"
+        },
+        "revision": {
+          "type": "number"
+        },
+        "idplan": {
+          "type": "number"
+        },
+        "revisionplan": {
+          "type": "number"
+        },
+        "publicado": {
+          "type": "boolean"
+        },
+        "requieremotivo": {
+          "type": "boolean"
+        },
+        "permitido": {
+          "type": "boolean"
+        },
+        "bloqueos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ReglaEliminacionPlan"
+          }
+        },
+        "avisos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ReglaEliminacionPlan"
+          }
+        },
+        "predecesoras": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/VinculoEliminacionActividad"
+          }
+        },
+        "sucesoras": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "desfasedias": {
+                "type": "number"
+              },
+              "culminada": {
+                "type": "boolean"
+              },
+              "otraspredecesoras": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "id",
+              "nombre",
+              "desfasedias",
+              "culminada",
+              "otraspredecesoras"
+            ]
+          }
+        },
+        "reconexiones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "idpredecesora": {
+                "type": "number"
+              },
+              "predecesora": {
+                "type": "string"
+              },
+              "idsucesora": {
+                "type": "number"
+              },
+              "sucesora": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "idpredecesora",
+              "predecesora",
+              "idsucesora",
+              "sucesora"
+            ]
+          },
+          "description": "Vínculos nuevos que crea la opción «reconectar»; excluye los existentes."
+        },
+        "asignados": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "idtrabajador": {
+                "type": "number"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "minutosasignados": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "idtrabajador",
+              "nombre",
+              "minutosasignados"
+            ]
+          }
+        }
+      },
+      "required": [
+        "idactividad",
+        "nombre",
+        "identregable",
+        "eshito",
+        "revision",
+        "idplan",
+        "revisionplan",
+        "publicado",
+        "requieremotivo",
+        "permitido",
+        "bloqueos",
+        "avisos",
+        "predecesoras",
+        "sucesoras",
+        "reconexiones",
+        "asignados"
+      ]
+    },
+    "ReglaEliminacionPlan": {
+      "type": "object",
+      "properties": {
+        "codigo": {
+          "type": "string"
+        },
+        "mensaje": {
+          "type": "string"
+        },
+        "cantidad": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "codigo",
+        "mensaje"
+      ]
+    },
+    "VinculoEliminacionActividad": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "desfasedias": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "nombre",
+        "desfasedias"
+      ]
+    },
+    "ResultadoEliminacionActividad": {
+      "type": "object",
+      "properties": {
+        "idactividad": {
+          "type": "number"
+        },
+        "revisionplan": {
+          "type": "number"
+        },
+        "dependenciasretiradas": {
+          "type": "number"
+        },
+        "dependenciascreadas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/DependenciaActividadPlan"
+          }
+        }
+      },
+      "required": [
+        "idactividad",
+        "revisionplan",
+        "dependenciasretiradas",
+        "dependenciascreadas"
+      ]
+    },
     "PrevisualizacionCronograma": {
       "type": "object",
       "properties": {
@@ -49224,6 +49544,88 @@
       "required": [
         "success",
         "message"
+      ]
+    },
+    "AnalisisEliminacionEntregable": {
+      "type": "object",
+      "properties": {
+        "identregable": {
+          "type": "number"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "idproyecto": {
+          "type": "number"
+        },
+        "idplan": {
+          "type": "number",
+          "nullable": true
+        },
+        "revisionplan": {
+          "type": "number",
+          "nullable": true
+        },
+        "publicado": {
+          "type": "boolean"
+        },
+        "requieremotivo": {
+          "type": "boolean"
+        },
+        "permitido": {
+          "type": "boolean"
+        },
+        "bloqueos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ReglaEliminacionPlan"
+          }
+        },
+        "avisos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/ReglaEliminacionPlan"
+          }
+        },
+        "actividades": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "idestadoactividad": {
+                "type": "number"
+              },
+              "estado": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "nombre",
+              "idestadoactividad",
+              "estado"
+            ]
+          }
+        }
+      },
+      "required": [
+        "identregable",
+        "nombre",
+        "idproyecto",
+        "idplan",
+        "revisionplan",
+        "publicado",
+        "requieremotivo",
+        "permitido",
+        "bloqueos",
+        "avisos",
+        "actividades"
       ]
     },
     "ProyectoPorEstadoItem": {

@@ -157,6 +157,68 @@ export interface ResultadoLineaBase {
   idlineabase: number;
   revisionplan: number;
 }
+/** Regla que impide (bloqueo) o advierte (aviso) una eliminación. */
+export interface ReglaEliminacionPlan {
+  codigo: string;
+  mensaje: string;
+  cantidad?: number;
+}
+export interface VinculoEliminacionActividad {
+  id: number;
+  nombre: string;
+  desfasedias: number;
+}
+export interface AnalisisEliminacionActividad {
+  idactividad: number;
+  nombre: string;
+  identregable: number;
+  eshito: boolean;
+  revision: number;
+  idplan: number;
+  revisionplan: number;
+  publicado: boolean;
+  requieremotivo: boolean;
+  permitido: boolean;
+  bloqueos: ReglaEliminacionPlan[];
+  avisos: ReglaEliminacionPlan[];
+  predecesoras: VinculoEliminacionActividad[];
+  sucesoras: (VinculoEliminacionActividad & {
+    culminada: boolean;
+    otraspredecesoras: number;
+  })[];
+  /** Vínculos nuevos que crea la opción «reconectar»; excluye los existentes. */
+  reconexiones: {
+    idpredecesora: number;
+    predecesora: string;
+    idsucesora: number;
+    sucesora: string;
+  }[];
+  asignados: { idtrabajador: number; nombre: string; minutosasignados: number }[];
+}
+export interface ResultadoEliminacionActividad {
+  idactividad: number;
+  revisionplan: number;
+  dependenciasretiradas: number;
+  dependenciascreadas: DependenciaActividadPlan[];
+}
+export interface AnalisisEliminacionEntregable {
+  identregable: number;
+  nombre: string;
+  idproyecto: number;
+  idplan: number | null;
+  revisionplan: number | null;
+  publicado: boolean;
+  requieremotivo: boolean;
+  permitido: boolean;
+  bloqueos: ReglaEliminacionPlan[];
+  avisos: ReglaEliminacionPlan[];
+  actividades: {
+    id: number;
+    nombre: string;
+    idestadoactividad: number;
+    estado: string;
+  }[];
+}
 export interface AmpliacionPlan {
   id: number;
   idasignacion: number;

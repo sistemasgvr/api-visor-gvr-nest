@@ -14,8 +14,10 @@ export const operationNotes: Record<string, string> = {
     'Incluye el reparto y el saldo por persona. El saldo puede ser negativo cuando hay exceso. Por aprobar, Aprobado y Observado consumen minutos; Rechazado no consume.',
   PlanificacionController_editarActividad:
     'Envía solo las propiedades de `datos` que cambian, más la revisión del plan y de la actividad. Tras publicar, aumentar esfuerzo requiere ampliación y cambiar restricciones de fecha requiere reprogramación.',
+  PlanificacionController_analizarEliminacionActividad:
+    'Vista previa sin escritura. `bloqueos` impiden eliminar: plan cerrado, actividad o parte iniciada, registros diarios, ampliaciones pendientes o única actividad de un plan publicado. `avisos` se confirman. `sucesoras` y `reconexiones` describen el efecto de `dependencias=reconectar|quitar`. Devuelve las revisiones que debe usar la eliminación.',
   PlanificacionController_eliminarActividad:
-    'Revisión y motivo se envían en la query. Una actividad con ejecución, solicitudes o dependencias no puede darse de baja. El resultado de la operación es booleano.',
+    'Revisión, motivo y `dependencias` se envían en la query. `dependencias` es obligatorio si otras actividades dependen de esta: `reconectar` enlaza sus predecesoras con sus sucesoras (desfase 0, sin duplicar vínculos ni tocar sucesoras culminadas); `quitar` solo retira los vínculos. Repite las reglas del análisis con el plan bloqueado; en un plan publicado exige motivo y deja una entrada en la bitácora.',
   PlanificacionController_guardarAsignaciones:
     'La lista reemplaza el reparto completo. Las personas omitidas se retiran conservando su fila e historial. Volver a asignarlas reactiva el mismo ID. Los minutos deben incluir el consumo anterior.',
   PlanificacionController_guardarDependencias:

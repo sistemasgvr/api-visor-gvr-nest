@@ -133,7 +133,7 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
       .auth(token, { type: 'bearer' })
       .send({ minutosAprobados: 120, fechaReanudacion: '2026-10-30' })
       .expect(200);
-    expect(response.body.data).toEqual(result);
+    expect((response.body as { data: unknown }).data).toEqual(result);
     expect(database.callFunctionSingle).toHaveBeenCalledWith(
       'pla_PrevisualizarReanudacionAmpliacion',
       [23, 7, 120, '2026-10-30'],
@@ -229,7 +229,7 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
         )
         .auth(token, { type: 'bearer' })
         .expect(200);
-      expect(res.body.data).toEqual(result);
+      expect((res.body as { data: unknown }).data).toEqual(result);
       expect(database.callFunctionSingle).toHaveBeenCalledWith(
         'pla_ObtenerBandejaAmpliaciones',
         [23, 2, 8, 'todas', 7, 'Diseño', 10, 10],
@@ -537,7 +537,7 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
       .get(url)
       .auth(token, { type: 'bearer' })
       .expect(200);
-    expect(result.body.data).toEqual(rows);
+    expect((result.body as { data: unknown }).data).toEqual(rows);
     expect(database.callFunctionSingle).toHaveBeenCalledWith(
       'pla_ListarResumenPlanes',
       [23, [8]],
@@ -978,6 +978,49 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
     database.executeQuery.mockResolvedValue([{ id: 7 }]);
     await request(app.getHttpServer() as Server)
       .get('/api/planificacion/trabajadores/9/asignaciones?fecha=2026-10-22')
+      .auth(token, { type: 'bearer' })
+      .expect(403);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it.each(['reconectar', 'quitar'])(
+    'elimina una actividad enviando el modo %s a SQL V2',
+    async (dependencias) => {
+      database.callFunctionSingle.mockResolvedValue({
+        pla_EliminarActividadV2: {
+          idactividad: 3,
+          revisionplan: 5,
+          dependenciasretiradas: 2,
+          dependenciascreadas: [],
+        },
+      });
+      await request(app.getHttpServer() as Server)
+        .delete(base + '/2/actividades/3')
+        .auth(token, { type: 'bearer' })
+        .query({
+          revisionPlan: 4,
+          revision: 2,
+          dependencias,
+          motivo: 'Cambio de alcance',
+        })
+        .expect(200);
+      expect(database.callFunctionSingle).toHaveBeenCalledWith(
+        'pla_EliminarActividadV2',
+        [23, 3, 4, 2, dependencias, 'Cambio de alcance'],
+      );
+    },
+  );
+  it('rechaza un modo de eliminación inválido antes de llamar a SQL', async () => {
+    await request(app.getHttpServer() as Server)
+      .delete(base + '/2/actividades/3')
+      .auth(token, { type: 'bearer' })
+      .query({ revisionPlan: 4, revision: 2, dependencias: 'borrar' })
+      .expect(400);
+    expect(database.callFunctionSingle).not.toHaveBeenCalled();
+  });
+  it('exige permiso de edición para analizar la eliminación', async () => {
+    grant('proyectos.planificacion.ver');
+    await request(app.getHttpServer() as Server)
+      .get(base + '/2/actividades/3/eliminacion')
       .auth(token, { type: 'bearer' })
       .expect(403);
     expect(database.callFunctionSingle).not.toHaveBeenCalled();

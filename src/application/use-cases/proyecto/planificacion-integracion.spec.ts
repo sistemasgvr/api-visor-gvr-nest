@@ -5,6 +5,7 @@ import { ActualizarEntregableProyectoUseCase } from './actualizar-entregable-pro
 import { EliminarEntregableProyectoUseCase } from './eliminar-entregable-proyecto.use-case';
 import { PlanificacionAccessService } from '../../services/planificacion-access.service';
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
+import type { IPlanificacionRepository } from '../../../domain/repositories/planificacion.repository.interface';
 import type { LoggerFactoryPort } from '../../ports/runtime.port';
 import type { BroadcastPort } from '../../ports/broadcast.port';
 import { ForbiddenError } from '../../errors/application.error';
@@ -105,18 +106,54 @@ describe('Permiso adicional al cambiar proyectos y entregables planificados', ()
     expect(access.editarProyectoConPlan).toHaveBeenCalledWith(23, 8);
     expect(repo.actualizarEntregableProyecto).not.toHaveBeenCalled();
   });
+  const plan = { analizarEliminacionEntregable: jest.fn() };
+  const planRepository = plan as unknown as IPlanificacionRepository;
   it('eliminar entregable exige el permiso antes de la baja', async () => {
     await expect(
-      new EliminarEntregableProyectoUseCase(repository, planning).execute(
-        3,
-        23,
-        true,
-        2,
-        'Retirar',
-      ),
+      new EliminarEntregableProyectoUseCase(
+        repository,
+        planning,
+        planRepository,
+      ).execute(3, 23, true, 2, 'Retirar'),
     ).rejects.toBeInstanceOf(ForbiddenError);
     expect(access.editarProyectoConPlan).toHaveBeenCalledWith(23, 8);
     expect(repo.eliminarEntregableProyecto).not.toHaveBeenCalled();
+  });
+  it('analizar la eliminación exige los mismos permisos que eliminar', async () => {
+    await expect(
+      new EliminarEntregableProyectoUseCase(
+        repository,
+        planning,
+        planRepository,
+      ).analizar(3, 23, true),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+    expect(plan.analizarEliminacionEntregable).not.toHaveBeenCalled();
+  });
+  it('analizar devuelve las reglas de SQL cuando el actor puede eliminar', async () => {
+    access.editarProyectoConPlan.mockResolvedValue(true);
+    const analisis = { permitido: false, bloqueos: [{ codigo: 'registros' }] };
+    plan.analizarEliminacionEntregable.mockResolvedValue(analisis);
+    await expect(
+      new EliminarEntregableProyectoUseCase(
+        repository,
+        planning,
+        planRepository,
+      ).analizar(3, 23, true),
+    ).resolves.toBe(analisis);
+    expect(plan.analizarEliminacionEntregable).toHaveBeenCalledWith(23, 3);
+  });
+  it('sin alcance total, analizar rechaza a quien no gestiona el entregable', async () => {
+    access.editarProyectoConPlan.mockResolvedValue(false);
+    (repo as Record<string, jest.Mock>).obtenerIdTrabajadorPorIdUsuario =
+      jest.fn().mockResolvedValue(null);
+    await expect(
+      new EliminarEntregableProyectoUseCase(
+        repository,
+        planning,
+        planRepository,
+      ).analizar(3, 23, false),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+    expect(plan.analizarEliminacionEntregable).not.toHaveBeenCalled();
   });
 });
 

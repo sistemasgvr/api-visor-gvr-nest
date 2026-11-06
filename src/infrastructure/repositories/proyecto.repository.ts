@@ -615,7 +615,7 @@ export class ProyectoRepository implements IProyectoRepository {
     revisionPlan?: number,
     motivo?: string,
   ): Promise<{ success: boolean; message: string }> {
-    const result = await this.callPlanSingle<any>('pro_EliminarEntregableV2', [
+    const result = await this.callPlanSingle<any>('pro_EliminarEntregableV3', [
       idEntregable,
       idUsuarioModificacion,
       revisionPlan ?? null,

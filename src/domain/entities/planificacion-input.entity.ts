@@ -20,6 +20,11 @@ export interface RevisionPlanInput {
 export interface RevisionActividadInput extends RevisionPlanInput {
   revision: number;
 }
+export type ModoDependenciasEliminacion = 'reconectar' | 'quitar';
+export interface EliminarActividadPlanInput extends RevisionActividadInput {
+  /** Obligatorio cuando otras actividades dependen de la que se elimina. */
+  dependencias?: ModoDependenciasEliminacion;
+}
 export interface MotivoPlanInput extends RevisionPlanInput {
   motivo: string;
 }
