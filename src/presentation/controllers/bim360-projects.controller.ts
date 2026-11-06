@@ -32,6 +32,10 @@ import {
 } from '../dtos/bim360/projects';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  RequireGranularPermission,
+  RequireProjectPermission,
+} from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('bim360')
 @ApiBearerAuth('access-token')
@@ -57,6 +61,7 @@ export class Bim360ProjectsController {
   @ApiOperation({ summary: 'Listar proyectos BIM 360 (API legacy)' })
   @Get(':accountId/legacy')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.cuentas.ver')
   async obtenerProyectosLegacy(
     @Param('accountId') accountId: string,
     @Query() dto: ObtenerProyectosLegacyDto,
@@ -85,6 +90,7 @@ export class Bim360ProjectsController {
   })
   @Get(':accountId/new')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.cuentas.ver')
   async obtenerProyectosNew(
     @Param('accountId') accountId: string,
     @Query() dto: ObtenerProyectosNewDto,
@@ -111,6 +117,7 @@ export class Bim360ProjectsController {
   @ApiOperation({ summary: 'Obtener proyecto por ID (legacy)' })
   @Get(':accountId/:projectId/legacy')
   @HttpCode(HttpStatus.OK)
+  @RequireProjectPermission('gestion_bim.proyectos.ver')
   async obtenerProyectoPorIdLegacy(
     @Param('accountId') accountId: string,
     @Param('projectId') projectId: string,
@@ -142,6 +149,7 @@ export class Bim360ProjectsController {
   @ApiOperation({ summary: 'Obtener proyecto por ID (API nueva)' })
   @Get(':accountId/:projectId/new')
   @HttpCode(HttpStatus.OK)
+  @RequireProjectPermission('gestion_bim.proyectos.ver')
   async obtenerProyectoPorIdNew(
     @Param('accountId') accountId: string,
     @Param('projectId') projectId: string,
@@ -175,6 +183,7 @@ export class Bim360ProjectsController {
   })
   @Get(':accountId/:projectId/issue-container-id')
   @HttpCode(HttpStatus.OK)
+  @RequireProjectPermission('gestion_bim.proyectos.ver')
   async obtenerIssueContainerId(
     @Param('accountId') accountId: string,
     @Param('projectId') projectId: string,
@@ -204,6 +213,7 @@ export class Bim360ProjectsController {
   @ApiOperation({ summary: 'Actualizar imagen/portada del proyecto BIM 360' })
   @Patch(':accountId/:projectId/image')
   @HttpCode(HttpStatus.OK)
+  @RequireProjectPermission('gestion_bim.proyectos.editar_imagen')
   async actualizarImagenProyecto(
     @Param('accountId') accountId: string,
     @Param('projectId') projectId: string,
@@ -234,6 +244,7 @@ export class Bim360ProjectsController {
   @ApiOperation({ summary: 'Crear proyecto BIM 360' })
   @Post(':accountId')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.proyectos.crear')
   async crearProyecto(
     @Param('accountId') accountId: string,
     @Body() dto: CrearProyectoBim360Dto,
@@ -259,6 +270,7 @@ export class Bim360ProjectsController {
   @ApiOperation({ summary: 'Actualizar proyecto BIM 360' })
   @Patch(':accountId/:projectId')
   @HttpCode(HttpStatus.OK)
+  @RequireProjectPermission('gestion_bim.proyectos.editar')
   async actualizarProyecto(
     @Param('accountId') accountId: string,
     @Param('projectId') projectId: string,

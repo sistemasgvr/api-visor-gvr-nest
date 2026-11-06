@@ -10,6 +10,7 @@ import { AUDITORIA_REPOSITORY } from '../../domain/repositories/auditoria.reposi
 import { AuditoriaRepository } from '../../infrastructure/repositories/auditoria.repository';
 import { AuditoriaController } from '../../presentation/controllers/auditoria.controller';
 import { DatabaseModule } from './platform/database.module';
+import { applicationProvider } from '../application.providers';
 
 import { applicationProvider } from '../application.providers';
 

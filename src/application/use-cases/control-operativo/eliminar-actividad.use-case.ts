@@ -5,7 +5,10 @@ export class EliminarActividadUseCase {
     private readonly controlOperativoRepository: IControlOperativoRepository,
   ) {}
 
-  async execute(idActividad: number): Promise<boolean> {
-    return this.controlOperativoRepository.eliminarActividad(idActividad);
+  async execute(idActividad: number, idUsuario: number): Promise<boolean> {
+    return this.controlOperativoRepository.eliminarActividad(
+      idActividad,
+      idUsuario,
+    );
   }
 }

@@ -26,6 +26,10 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
+import {
+  RequireGranularPermission,
+  RequireScopedPermission,
+} from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('empresas')
 @ApiBearerAuth('access-token')
@@ -51,6 +55,15 @@ export class EmpresaController {
   })
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission(
+    'empresas.empresas.ver',
+    'proyectos.proyectos.ver',
+    'proyectos.proyectos.crear',
+    'proyectos.proyectos.editar',
+    'usuarios.trabajadores.ver',
+    'usuarios.trabajadores.crear',
+    'usuarios.trabajadores.editar',
+  )
   async listarEmpresas(
     @Req() request: Request,
     @Query('busqueda') busqueda?: string,
@@ -82,6 +95,7 @@ export class EmpresaController {
   @ApiOperation({ summary: 'Obtener empresa por id' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('empresas.empresas.ver')
   async obtenerEmpresa(@Param('id', ParseIntPipe) id: number) {
     const data = await this.obtenerEmpresaUseCase.execute(id);
 
@@ -95,6 +109,7 @@ export class EmpresaController {
   @ApiOperation({ summary: 'Crear empresa' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('empresas.empresas.crear')
   async crearEmpresa(
     @Body() createDto: CreateEmpresaDto,
     @Req() request: Request,
@@ -122,6 +137,7 @@ export class EmpresaController {
   @ApiOperation({ summary: 'Actualizar empresa' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('empresas.empresas.editar')
   async editarEmpresa(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateEmpresaDto,
@@ -151,6 +167,7 @@ export class EmpresaController {
   @ApiOperation({ summary: 'Eliminar empresa (baja lógica)' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('empresas.empresas.eliminar')
   async eliminarEmpresa(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,

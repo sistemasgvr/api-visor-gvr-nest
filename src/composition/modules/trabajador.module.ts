@@ -1,3 +1,5 @@
+import { AsignarCalendarioTrabajadorUseCase } from '../../application/use-cases/trabajador/asignar-calendario-trabajador.use-case';
+import { ListarCalendariosPublicadosUseCase } from '../../application/use-cases/trabajador/listar-calendarios-publicados.use-case';
 import { Module } from '@nestjs/common';
 import { ActivarTrabajadorUseCase } from '../../application/use-cases/trabajador/activar-trabajador.use-case';
 import { ActualizarContratoTrabajadorUseCase } from '../../application/use-cases/trabajador/actualizar-contrato-trabajador.use-case';
@@ -34,6 +36,7 @@ import { StorageModule } from './platform/storage.module';
     // Use cases
     applicationProvider(ListarTrabajadoresUseCase),
     applicationProvider(ListarAdministrativosUseCase),
+    applicationProvider(ListarCalendariosPublicadosUseCase),
     applicationProvider(ObtenerTrabajadorUseCase),
     applicationProvider(ObtenerFotoPerfilTrabajadorUseCase),
     applicationProvider(SubirFirmaTrabajadorUseCase),
@@ -41,6 +44,7 @@ import { StorageModule } from './platform/storage.module';
     WorkerSignatureStorageService,
     applicationProvider(CrearTrabajadorUseCase),
     applicationProvider(EditarTrabajadorUseCase),
+    applicationProvider(AsignarCalendarioTrabajadorUseCase),
     applicationProvider(ActualizarContratoTrabajadorUseCase),
     applicationProvider(CrearContratoTrabajadorUseCase),
     applicationProvider(EliminarContratoTrabajadorUseCase),
@@ -49,6 +53,6 @@ import { StorageModule } from './platform/storage.module';
     applicationProvider(ResetearContrasenaUseCase),
     // JWT Strategy
   ],
-  exports: [TRABAJADOR_REPOSITORY],
+  exports: [TRABAJADOR_REPOSITORY, ListarCalendariosPublicadosUseCase],
 })
 export class TrabajadorModule {}

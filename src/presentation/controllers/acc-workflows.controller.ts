@@ -13,6 +13,7 @@ import {
   Req,
   BadRequestException,
 } from '@nestjs/common';
+import { RequireDocumentProject } from '../../infrastructure/auth/document-access.guard';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
@@ -53,6 +54,7 @@ export class AccWorkflowsController {
    * GET /acc/projects/:projectId/workflows
    */
   @ApiOperation({ summary: 'Listar flujos de revisión del proyecto' })
+  @RequireDocumentProject('member')
   @Get()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -94,6 +96,7 @@ export class AccWorkflowsController {
    * (Ruta más específica antes que :workflowId)
    */
   @ApiOperation({ summary: 'Obtener candidatos configurados para un workflow' })
+  @RequireDocumentProject('member')
   @Get(':workflowId/candidatos')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -124,6 +127,7 @@ export class AccWorkflowsController {
   @ApiOperation({
     summary: 'Cambiar estado del flujo (activo/borrador)',
   })
+  @RequireDocumentProject('admin')
   @Patch(':workflowId/status')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -155,6 +159,7 @@ export class AccWorkflowsController {
    * Actualización completa (flujos GVR numéricos)
    */
   @ApiOperation({ summary: 'Reemplazar definición completa del flujo GVR' })
+  @RequireDocumentProject('admin')
   @Put(':workflowId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -196,6 +201,7 @@ export class AccWorkflowsController {
    * GVR (id numérico) desde BD; si no, Autodesk.
    */
   @ApiOperation({ summary: 'Obtener detalle de workflow por ID' })
+  @RequireDocumentProject('member')
   @Get(':workflowId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -225,6 +231,7 @@ export class AccWorkflowsController {
    * POST /acc/projects/:projectId/workflows
    */
   @ApiOperation({ summary: 'Crear flujo de revisión GVR' })
+  @RequireDocumentProject('admin')
   @Post()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -261,6 +268,7 @@ export class AccWorkflowsController {
    * POST /acc/projects/:projectId/workflows/:workflowId/candidatos
    */
   @ApiOperation({ summary: 'Guardar candidatos de un workflow de revisión' })
+  @RequireDocumentProject('admin')
   @Post(':workflowId/candidatos')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

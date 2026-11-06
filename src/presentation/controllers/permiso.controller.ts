@@ -1,3 +1,4 @@
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 import {
   Controller,
   Get,
@@ -47,6 +48,7 @@ export class PermisoController {
   })
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.catalogo_permisos.ver')
   async listarPermisos(
     @Query('busqueda') busqueda?: string,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
@@ -63,6 +65,7 @@ export class PermisoController {
   @ApiOperation({ summary: 'Obtener permiso por id' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.catalogo_permisos.ver')
   async obtenerPermiso(@Param('id', ParseIntPipe) id: number) {
     const data = await this.obtenerPermisoUseCase.execute(id);
     return ApiResponseDto.success(data, 'Permiso obtenido exitosamente');
@@ -71,6 +74,7 @@ export class PermisoController {
   @ApiOperation({ summary: 'Crear permiso' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('seguridad.catalogo_permisos.crear')
   async crearPermiso(
     @Body() createDto: CreatePermisoDto,
     @Req() request: Request,
@@ -87,6 +91,7 @@ export class PermisoController {
   @ApiOperation({ summary: 'Actualizar permiso' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.catalogo_permisos.editar')
   async editarPermiso(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdatePermisoDto,
@@ -108,6 +113,7 @@ export class PermisoController {
   @ApiOperation({ summary: 'Eliminar permiso' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.catalogo_permisos.eliminar')
   async eliminarPermiso(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,

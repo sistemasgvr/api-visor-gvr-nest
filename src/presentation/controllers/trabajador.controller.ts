@@ -1,3 +1,6 @@
+import { AsignarCalendarioTrabajadorUseCase } from '../../application/use-cases/trabajador/asignar-calendario-trabajador.use-case';
+import { AsignarCalendarioTrabajadorDto } from '../dtos/trabajador/asignar-calendario-trabajador.dto';
+import { ListarCalendariosPublicadosUseCase } from '../../application/use-cases/trabajador/listar-calendarios-publicados.use-case';
 import {
   Controller,
   Get,
@@ -13,6 +16,7 @@ import {
   UseGuards,
   UnauthorizedException,
   BadRequestException,
+  ForbiddenException,
   ParseIntPipe,
   Patch,
   UploadedFile,
@@ -42,6 +46,25 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
+import {
+  RequireGranularPermission,
+  RequireScopedPermission,
+  RequireSelfPermission,
+} from '../../infrastructure/auth/granular-permission.guard';
+import { AuthorizationService } from '../../application/services/authorization.service';
+import { ActorId } from '../http/granted-scopes.decorator';
+
+/** Campos del contrato vigente incluidos en la ficha del trabajador. */
+const CAMPOS_CONTRATO = [
+  'contratos',
+  'idtipocontrato',
+  'idduracioncontrato',
+  'nombretipocontrato',
+  'nombreduracioncontrato',
+  'remuneracion',
+  'fechainiciocontrato',
+  'fechafincontrato',
+] as const;
 
 @ApiTags('trabajadores')
 @ApiBearerAuth('access-token')
@@ -49,6 +72,8 @@ import { JwtService } from '@nestjs/jwt';
 @UseGuards(JwtAuthGuard)
 export class TrabajadorController {
   constructor(
+    private readonly asignarCalendarioTrabajadorUseCase: AsignarCalendarioTrabajadorUseCase,
+    private readonly listarCalendariosPublicadosUseCase: ListarCalendariosPublicadosUseCase,
     private readonly listarTrabajadoresUseCase: ListarTrabajadoresUseCase,
     private readonly listarAdministrativosUseCase: ListarAdministrativosUseCase,
     private readonly obtenerTrabajadorUseCase: ObtenerTrabajadorUseCase,
@@ -64,7 +89,34 @@ export class TrabajadorController {
     private readonly activarTrabajadorUseCase: ActivarTrabajadorUseCase,
     private readonly resetearContrasenaUseCase: ResetearContrasenaUseCase,
     private readonly jwtService: JwtService,
+    private readonly authorization: AuthorizationService,
   ) {}
+
+  @Patch(':id/calendario')
+  @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.trabajadores.editar')
+  async asignarCalendario(
+    @ActorId() actor: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() datos: AsignarCalendarioTrabajadorDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.asignarCalendarioTrabajadorUseCase.execute(actor, id, datos),
+      'Calendario asignado al colaborador',
+    );
+  }
+
+  @Get('calendarios-publicados')
+  @RequireScopedPermission(
+    'usuarios.trabajadores.crear',
+    'usuarios.trabajadores.editar',
+  )
+  async listarCalendariosPublicados() {
+    return ApiResponseDto.success(
+      await this.listarCalendariosPublicadosUseCase.execute(),
+      'Calendarios publicados obtenidos',
+    );
+  }
 
   /**
    * Listar trabajadores administrativos
@@ -77,6 +129,11 @@ export class TrabajadorController {
   })
   @Get('administradores')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission(
+    'usuarios.trabajadores.ver',
+    'usuarios.trabajadores.crear',
+    'usuarios.trabajadores.editar',
+  )
   async listarAdministrativos() {
     const data = await this.listarAdministrativosUseCase.execute();
 
@@ -97,6 +154,7 @@ export class TrabajadorController {
   })
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.trabajadores.ver')
   async listarTrabajadores(
     @Req() request: Request,
     @Query('idEmpresa', new ParseIntPipe({ optional: true }))
@@ -124,6 +182,17 @@ export class TrabajadorController {
       idRol,
       estado,
     });
+    // La foto de otras personas sólo con «Datos del trabajador: ver foto».
+    if (
+      !(
+        await this.authorization.scopesFor(
+          idUsuario,
+          'usuarios.trabajadores.ver_foto',
+        )
+      ).length
+    )
+      for (const fila of (data.data ?? []) as Record<string, unknown>[])
+        fila.fotoperfil = null;
 
     return ApiResponseDto.success(data, 'Trabajadores obtenidos exitosamente');
   }
@@ -140,6 +209,7 @@ export class TrabajadorController {
   @Patch('mi-firma')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('firma'))
+  @RequireSelfPermission('inicio.perfil.editar_firma')
   async subirMiFirma(
     @Req() request: Request,
     @UploadedFile() file: Express.Multer.File,
@@ -168,7 +238,15 @@ export class TrabajadorController {
   })
   @Get(':id/foto-perfil')
   @HttpCode(HttpStatus.OK)
-  async obtenerFotoPerfilTrabajador(@Param('id', ParseIntPipe) id: number) {
+  @RequireScopedPermission(
+    'usuarios.trabajadores.ver_foto',
+    'inicio.perfil.ver',
+  )
+  async obtenerFotoPerfilTrabajador(
+    @Param('id', ParseIntPipe) id: number,
+    @ActorId() actor: number,
+  ) {
+    await this.exigirPropioO(actor, id, 'usuarios.trabajadores.ver_foto');
     const data = await this.obtenerFotoPerfilTrabajadorUseCase.execute(id);
 
     return ApiResponseDto.success(
@@ -188,7 +266,15 @@ export class TrabajadorController {
   })
   @Get(':id/firma')
   @HttpCode(HttpStatus.OK)
-  async obtenerFirmaTrabajador(@Param('id', ParseIntPipe) id: number) {
+  @RequireScopedPermission(
+    'usuarios.trabajadores.ver_firma',
+    'inicio.perfil.ver',
+  )
+  async obtenerFirmaTrabajador(
+    @Param('id', ParseIntPipe) id: number,
+    @ActorId() actor: number,
+  ) {
+    await this.exigirPropioO(actor, id, 'usuarios.trabajadores.ver_firma');
     const data = await this.obtenerFirmaTrabajadorUseCase.execute(id);
 
     return ApiResponseDto.success(
@@ -208,8 +294,25 @@ export class TrabajadorController {
   })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  async obtenerTrabajador(@Param('id', ParseIntPipe) id: number) {
-    const data = await this.obtenerTrabajadorUseCase.execute(id);
+  @RequireGranularPermission('usuarios.trabajadores.ver')
+  async obtenerTrabajador(
+    @Param('id', ParseIntPipe) id: number,
+    @ActorId() actor: number,
+  ) {
+    const data = (await this.obtenerTrabajadorUseCase.execute(id)) as Record<
+      string,
+      unknown
+    >;
+    if (
+      !(await this.authorization.scopesFor(actor, 'usuarios.contratos.ver'))
+        .length
+    )
+      for (const campo of CAMPOS_CONTRATO) delete data[campo];
+    if (
+      !(await this.authorization.scopesFor(actor, 'usuarios.roles_usuario.ver'))
+        .length
+    )
+      delete data.roles;
 
     return ApiResponseDto.success(data, 'Trabajador obtenido exitosamente');
   }
@@ -225,6 +328,7 @@ export class TrabajadorController {
   })
   @Put(':id/contratos/:idContrato')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.contratos.editar')
   async actualizarContratoTrabajador(
     @Param('id', ParseIntPipe) idTrabajador: number,
     @Param('idContrato', ParseIntPipe) idContrato: number,
@@ -257,6 +361,7 @@ export class TrabajadorController {
   })
   @Post(':id/contratos')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('usuarios.contratos.crear')
   async crearContratoTrabajador(
     @Param('id', ParseIntPipe) idTrabajador: number,
     @Body() dto: CreateContratoTrabajadorDto,
@@ -286,6 +391,7 @@ export class TrabajadorController {
   })
   @Delete(':id/contratos/:idContrato')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.contratos.eliminar')
   async eliminarContratoTrabajador(
     @Param('id', ParseIntPipe) idTrabajador: number,
     @Param('idContrato', ParseIntPipe) idContrato: number,
@@ -315,6 +421,7 @@ export class TrabajadorController {
   })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('usuarios.trabajadores.crear')
   async crearTrabajador(
     @Body() createDto: CreateTrabajadorDto,
     @Req() request: Request,
@@ -342,6 +449,7 @@ export class TrabajadorController {
   @ApiOperation({ summary: 'Actualizar trabajador' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.trabajadores.editar')
   async editarTrabajador(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateTrabajadorDto,
@@ -374,6 +482,7 @@ export class TrabajadorController {
   })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.trabajadores.desactivar')
   async eliminarTrabajador(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,
@@ -405,6 +514,7 @@ export class TrabajadorController {
   })
   @Post(':id/activar')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.trabajadores.activar')
   async activarTrabajador(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,
@@ -436,6 +546,7 @@ export class TrabajadorController {
   })
   @Post(':id/resetear-contrasena')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('usuarios.credenciales.restablecer_contrasena')
   async resetearContrasena(
     @Param('id', ParseIntPipe) id: number,
     @Req() request: Request,
@@ -457,6 +568,23 @@ export class TrabajadorController {
   }
 
   // Helper method
+  /** Permite la consulta si es el trabajador del propio usuario o si tiene el permiso indicado. */
+  private async exigirPropioO(
+    actor: number,
+    idTrabajador: number,
+    codigo: string,
+  ): Promise<void> {
+    if ((await this.authorization.scopesFor(actor, codigo)).length) return;
+    const trabajador = (await this.obtenerTrabajadorUseCase.execute(
+      idTrabajador,
+    )) as { idusuario?: number | null };
+    if (Number(trabajador?.idusuario) === actor) return;
+    throw new ForbiddenException({
+      message: 'No tienes permiso para realizar esta acción',
+      code: 'GRANULAR_PERMISSION_DENIED',
+    });
+  }
+
   private extractTokenFromHeader(request: Request): string | undefined {
     const authHeader = request.headers.authorization;
     if (!authHeader) {

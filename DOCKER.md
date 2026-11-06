@@ -44,10 +44,12 @@ docker push tu-usuario/api-visor-gvr-nest:latest
 # Construir con versión
 docker build -t tu-usuario/api-visor-gvr-nest:1.0.0 .
 docker build -t tu-usuario/api-visor-gvr-nest:latest .
+docker build -t sistemasgvr/visor-gvr:latest .
 
 # Subir ambas
 docker push tu-usuario/api-visor-gvr-nest:1.0.0
 docker push tu-usuario/api-visor-gvr-nest:latest
+docker push sistemasgvr/visor-gvr:latest
 ```
 
 ## 🎯 Desplegar en Easy Panel

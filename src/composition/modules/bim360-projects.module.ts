@@ -12,6 +12,7 @@ import {
 import { HttpClientService } from '../../infrastructure/http/http-client.service';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { Bim360ProjectsController } from '../../presentation/controllers/bim360-projects.controller';
+import { applicationProvider } from '../application.providers';
 
 import { applicationProvider } from '../application.providers';
 

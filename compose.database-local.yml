@@ -1,0 +1,50 @@
+name: gvr-local
+
+services:
+  database:
+    image: postgres:17.6
+    container_name: gvr-postgres-local
+    restart: unless-stopped
+    env_file:
+      - .env.database-local
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - database-data-postgres17:/var/lib/postgresql/data
+      - database-extensions:/opt/gvr-extensions:ro
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        cp /opt/gvr-extensions/supabase_vault.so /usr/lib/postgresql/17/lib/
+        cp /opt/gvr-extensions/supabase_vault*.sql /opt/gvr-extensions/supabase_vault.control /usr/share/postgresql/17/extension/
+        cp /opt/gvr-extensions/libsodium.so.23.3.0 /usr/lib/x86_64-linux-gnu/libsodium.so.23
+        exec /usr/local/bin/docker-entrypoint.sh "$$@"
+      - --
+    networks:
+      - database-isolated
+      - database-host
+    command:
+      - postgres
+      - -c
+      - timezone=America/Lima
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+networks:
+  database-isolated:
+    driver: bridge
+    name: gvr-local-database-internal
+    internal: true
+  database-host:
+    driver: bridge
+    name: gvr-local-database-host
+
+volumes:
+  database-data-postgres17:
+  database-extensions:

@@ -1,3 +1,49 @@
+import { AsignarCalendarioTrabajadorUseCase } from '../application/use-cases/trabajador/asignar-calendario-trabajador.use-case';
+import { ObtenerCalendarioPlanUseCase } from '../application/use-cases/planificacion/proyectos/obtener-calendario-plan.use-case';
+import { ListarEquipoPlanUseCase } from '../application/use-cases/planificacion/proyectos/listar-equipo-plan.use-case';
+import { ListarAprobadoresPlanUseCase } from '../application/use-cases/planificacion/proyectos/listar-aprobadores-plan.use-case';
+import { ListarEstadosPlanesUseCase } from '../application/use-cases/planificacion/proyectos/listar-estados-planes.use-case';
+import { ObtenerPlanUseCase } from '../application/use-cases/planificacion/proyectos/obtener-plan.use-case';
+import { CrearPlanUseCase } from '../application/use-cases/planificacion/proyectos/crear-plan.use-case';
+import { ObtenerCronogramaUseCase } from '../application/use-cases/planificacion/proyectos/obtener-cronograma.use-case';
+import { ActualizarReglasUseCase } from '../application/use-cases/planificacion/proyectos/actualizar-reglas.use-case';
+import { CrearActividadPlanUseCase } from '../application/use-cases/planificacion/proyectos/crear-actividad.use-case';
+import { ObtenerActividadPlanUseCase } from '../application/use-cases/planificacion/proyectos/obtener-actividad.use-case';
+import { EditarActividadUseCase } from '../application/use-cases/planificacion/proyectos/editar-actividad.use-case';
+import { EliminarActividadPlanUseCase } from '../application/use-cases/planificacion/proyectos/eliminar-actividad.use-case';
+import { GuardarAsignacionesUseCase } from '../application/use-cases/planificacion/proyectos/guardar-asignaciones.use-case';
+import { GuardarDependenciasUseCase } from '../application/use-cases/planificacion/proyectos/guardar-dependencias.use-case';
+import { ReordenarUseCase } from '../application/use-cases/planificacion/proyectos/reordenar.use-case';
+import { PrevisualizarUseCase } from '../application/use-cases/planificacion/proyectos/previsualizar.use-case';
+import { PublicarUseCase } from '../application/use-cases/planificacion/proyectos/publicar.use-case';
+import { LineaBaseUseCase } from '../application/use-cases/planificacion/proyectos/linea-base.use-case';
+import { ReprogramarUseCase } from '../application/use-cases/planificacion/proyectos/reprogramar.use-case';
+import { EstadoActividadUseCase } from '../application/use-cases/planificacion/proyectos/estado-actividad.use-case';
+import { EstadoPlanUseCase } from '../application/use-cases/planificacion/proyectos/estado-plan.use-case';
+import { HistorialUseCase } from '../application/use-cases/planificacion/proyectos/historial.use-case';
+import { AmpliacionesUseCase } from '../application/use-cases/planificacion/proyectos/ampliaciones.use-case';
+import { ResolverAmpliacionUseCase } from '../application/use-cases/planificacion/proyectos/resolver-ampliacion.use-case';
+import { MisAsignacionesUseCase } from '../application/use-cases/planificacion/proyectos/mis-asignaciones.use-case';
+import { EstadoParteUseCase } from '../application/use-cases/planificacion/proyectos/estado-parte.use-case';
+import { SolicitarAmpliacionUseCase } from '../application/use-cases/planificacion/proyectos/solicitar-ampliacion.use-case';
+import { MisAmpliacionesUseCase } from '../application/use-cases/planificacion/proyectos/mis-ampliaciones.use-case';
+import { PLANIFICACION_REPOSITORY } from '../domain/repositories/planificacion.repository.interface';
+import { PlanificacionAccessService } from '../application/services/planificacion-access.service';
+import { ListarCalendariosPublicadosUseCase } from '../application/use-cases/trabajador/listar-calendarios-publicados.use-case';
+import { AUTHORIZATION_POLICIES } from '../application/ports/authorization.port';
+import { GRANULAR_PERMISSIONS } from '../application/ports/granular-permissions.port';
+import { AuthorizationService } from '../application/services/authorization.service';
+import { GranularPermissionsService } from '../application/services/granular-permissions.service';
+import { DocumentAccessService } from '../application/services/document-access.service';
+import { IssueAccessService } from '../application/services/issue-access.service';
+import {
+  DOCUMENT_ACCESS_READER,
+  DOCUMENT_HIERARCHY,
+} from '../application/ports/document-access.port';
+import { ListarFeriadosUseCase } from '../application/use-cases/planificacion/calendarios/listar-feriados.use-case';
+import { ObtenerFeriadoUseCase } from '../application/use-cases/planificacion/calendarios/obtener-feriado.use-case';
+import { GuardarFeriadoUseCase } from '../application/use-cases/planificacion/calendarios/guardar-feriado.use-case';
+import { EliminarFeriadoUseCase } from '../application/use-cases/planificacion/calendarios/eliminar-feriado.use-case';
 import { CALENDARIOS_REPOSITORY } from '../domain/repositories/calendarios.repository.interface';
 import { ListarCalendariosUseCase } from '../application/use-cases/planificacion/calendarios/listar-calendarios.use-case';
 import { ObtenerCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/obtener-calendario.use-case';
@@ -229,6 +275,7 @@ import { ListarTrabajadoresSinJornadaHoyUseCase } from '../application/use-cases
 import { ListarValorizacionUseCase } from '../application/use-cases/control-operativo/listar-valorizacion.use-case';
 import { ObtenerActividadUseCase } from '../application/use-cases/control-operativo/obtener-actividad.use-case';
 import { ValidarActividadUseCase } from '../application/use-cases/control-operativo/validar-actividad.use-case';
+import { ObtenerActividadesPorValidarPorCoordinadorUseCase } from '../application/use-cases/dashboard/obtener-actividades-por-validar-por-coordinador.use-case';
 import { ObtenerCantidadActividadesObservadasUseCase } from '../application/use-cases/dashboard/obtener-cantidad-actividades-observadas.use-case';
 import { ObtenerCantidadActividadesPendientesUseCase } from '../application/use-cases/dashboard/obtener-cantidad-actividades-pendientes.use-case';
 import { ObtenerCantidadActividadesRechazadasUseCase } from '../application/use-cases/dashboard/obtener-cantidad-actividades-rechazadas.use-case';
@@ -239,7 +286,9 @@ import { ObtenerCantidadTrabajadoresConectadoSemanaUseCase } from '../applicatio
 import { ObtenerCantidadTrabajadoresPorProyectoUseCase } from '../application/use-cases/dashboard/obtener-cantidad-trabajadores-por-proyecto.use-case';
 import { ObtenerHorasEsperadasVsRegistradasMesUseCase } from '../application/use-cases/dashboard/obtener-horas-esperadas-vs-registradas-mes.use-case';
 import { ObtenerProyectosConProgresoUseCase } from '../application/use-cases/dashboard/obtener-proyectos-con-progreso.use-case';
+import { ObtenerTopCoordinadoresActividadesValidadasUseCase } from '../application/use-cases/dashboard/obtener-top-coordinadores-actividades-validadas.use-case';
 import { ObtenerTopTrabajadoresHorasMesUseCase } from '../application/use-cases/dashboard/obtener-top-trabajadores-horas-mes.use-case';
+import { ObtenerTopTrabajadoresJornadasCerradasUseCase } from '../application/use-cases/dashboard/obtener-top-trabajadores-jornadas-cerradas.use-case';
 import { CrearBucketUseCase } from '../application/use-cases/data-management/buckets/crear-bucket.use-case';
 import { EliminarBucketUseCase } from '../application/use-cases/data-management/buckets/eliminar-bucket.use-case';
 import { ObtenerBucketsUseCase } from '../application/use-cases/data-management/buckets/obtener-buckets.use-case';
@@ -503,6 +552,49 @@ import { ActivityDocumentsAdapter } from '../infrastructure/word/activity-docume
 
 /** Ensamblaje de dependencias fuera de aplicación; los casos de uso son clases TypeScript puras. */
 const dependencies = new Map<Type<any>, InjectionToken[]>([
+  [
+    PlanificacionAccessService,
+    [PLANIFICACION_REPOSITORY, AuthorizationService],
+  ],
+  [ObtenerCalendarioPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [ListarEquipoPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [ListarAprobadoresPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [ListarEstadosPlanesUseCase, [PLANIFICACION_REPOSITORY]],
+  [ObtenerPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [CrearPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [ObtenerCronogramaUseCase, [PLANIFICACION_REPOSITORY]],
+  [ActualizarReglasUseCase, [PLANIFICACION_REPOSITORY]],
+  [CrearActividadPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [ObtenerActividadPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [EditarActividadUseCase, [PLANIFICACION_REPOSITORY]],
+  [EliminarActividadPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [GuardarAsignacionesUseCase, [PLANIFICACION_REPOSITORY]],
+  [GuardarDependenciasUseCase, [PLANIFICACION_REPOSITORY]],
+  [ReordenarUseCase, [PLANIFICACION_REPOSITORY]],
+  [PrevisualizarUseCase, [PLANIFICACION_REPOSITORY]],
+  [PublicarUseCase, [PLANIFICACION_REPOSITORY]],
+  [LineaBaseUseCase, [PLANIFICACION_REPOSITORY]],
+  [ReprogramarUseCase, [PLANIFICACION_REPOSITORY]],
+  [EstadoActividadUseCase, [PLANIFICACION_REPOSITORY]],
+  [EstadoPlanUseCase, [PLANIFICACION_REPOSITORY]],
+  [HistorialUseCase, [PLANIFICACION_REPOSITORY]],
+  [AmpliacionesUseCase, [PLANIFICACION_REPOSITORY]],
+  [ResolverAmpliacionUseCase, [PLANIFICACION_REPOSITORY]],
+  [MisAsignacionesUseCase, [PLANIFICACION_REPOSITORY]],
+  [EstadoParteUseCase, [PLANIFICACION_REPOSITORY, PlanificacionAccessService]],
+  [SolicitarAmpliacionUseCase, [PLANIFICACION_REPOSITORY]],
+  [MisAmpliacionesUseCase, [PLANIFICACION_REPOSITORY]],
+  [AuthorizationService, [GRANULAR_PERMISSIONS, AUTHORIZATION_POLICIES]],
+  [GranularPermissionsService, [GRANULAR_PERMISSIONS, AuthorizationService]],
+  [IssueAccessService, [AuthorizationService]],
+  [
+    DocumentAccessService,
+    [DOCUMENT_ACCESS_READER, DOCUMENT_HIERARCHY, AuthorizationService],
+  ],
+  [ListarFeriadosUseCase, [CALENDARIOS_REPOSITORY]],
+  [ObtenerFeriadoUseCase, [CALENDARIOS_REPOSITORY]],
+  [GuardarFeriadoUseCase, [CALENDARIOS_REPOSITORY]],
+  [EliminarFeriadoUseCase, [CALENDARIOS_REPOSITORY]],
   [ListarCalendariosUseCase, [CALENDARIOS_REPOSITORY]],
   [ObtenerCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
   [CrearCalendarioUseCase, [CALENDARIOS_REPOSITORY]],
@@ -632,56 +724,37 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
     [CONTROL_OPERATIVO_REPOSITORY, ActivityDocumentsAdapter],
   ],
   [ListarActividadesObservadasSubsanarUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
-  [
-    ListarActividadesValidacionUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
-  ],
+  [ListarActividadesValidacionUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [ListarActividadesUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
-  [ListarDesempenoUseCase, [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY]],
+  [ListarDesempenoUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [ListarJornadasTrabajadorUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
-  [
-    ListarLideresEquipoReporteGeneralUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
-  ],
+  [ListarLideresEquipoReporteGeneralUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [ListarObservacionesActividadUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [ListarProyectosAccesoTrabajadorUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [ListarProyectosParaValidacionUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
-  [
-    ListarReporteGeneralUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
-  ],
+  [ListarReporteGeneralUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [
     ListarReporteHorasMesProyectoTrabajadorUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
+    [CONTROL_OPERATIVO_REPOSITORY],
   ],
   [
     ListarReporteHorasRangoDetalleProyectoUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
+    [CONTROL_OPERATIVO_REPOSITORY],
   ],
   [ListarTrabajadoresParaFiltroUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [
     ListarTrabajadoresPorProyectoUseCase,
     [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
   ],
-  [
-    ListarTrabajadoresSinActividadesHoyUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
-  ],
-  [
-    ListarTrabajadoresSinJornadaHoyUseCase,
-    [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY],
-  ],
-  [ListarValorizacionUseCase, [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY]],
-  [ObtenerActividadUseCase, [CONTROL_OPERATIVO_REPOSITORY, AUTH_REPOSITORY]],
+  [ListarTrabajadoresSinActividadesHoyUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
+  [ListarTrabajadoresSinJornadaHoyUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
+  [ListarValorizacionUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
+  [ObtenerActividadUseCase, [CONTROL_OPERATIVO_REPOSITORY]],
   [
     ValidarActividadUseCase,
-    [
-      CONTROL_OPERATIVO_REPOSITORY,
-      AUTH_REPOSITORY,
-      BroadcastService,
-      NestLoggerFactory,
-    ],
+    [CONTROL_OPERATIVO_REPOSITORY, BroadcastService, NestLoggerFactory],
   ],
+  [ObtenerActividadesPorValidarPorCoordinadorUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerCantidadActividadesObservadasUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerCantidadActividadesPendientesUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerCantidadActividadesRechazadasUseCase, [DASHBOARD_REPOSITORY]],
@@ -692,7 +765,9 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
   [ObtenerCantidadTrabajadoresPorProyectoUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerHorasEsperadasVsRegistradasMesUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerProyectosConProgresoUseCase, [DASHBOARD_REPOSITORY]],
+  [ObtenerTopCoordinadoresActividadesValidadasUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerTopTrabajadoresHorasMesUseCase, [DASHBOARD_REPOSITORY]],
+  [ObtenerTopTrabajadoresJornadasCerradasUseCase, [DASHBOARD_REPOSITORY]],
   [ObtenerHubsUseCase, [AutodeskApiService, ACC_REPOSITORY]],
   [ObtenerItemPorIdUseCase, [AutodeskApiService, ACC_REPOSITORY]],
   [ObtenerItemsUseCase, [AutodeskApiService, ACC_REPOSITORY]],
@@ -897,19 +972,32 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
   [ActualizarDocumentoProyectoUseCase, [PROYECTO_REPOSITORY]],
   [
     ActualizarEntregableProyectoUseCase,
-    [PROYECTO_REPOSITORY, BroadcastService, NestLoggerFactory],
+    [
+      PROYECTO_REPOSITORY,
+      BroadcastService,
+      NestLoggerFactory,
+      PlanificacionAccessService,
+    ],
   ],
   [ActualizarNivelAccesoProyectoUseCase, [PROYECTO_REPOSITORY]],
   [AsignarAccesoProyectoUseCase, [PROYECTO_REPOSITORY]],
   [CrearDocumentoProyectoUseCase, [PROYECTO_REPOSITORY]],
   [
     CrearEntregableProyectoUseCase,
-    [PROYECTO_REPOSITORY, BroadcastService, NestLoggerFactory],
+    [
+      PROYECTO_REPOSITORY,
+      BroadcastService,
+      NestLoggerFactory,
+      PlanificacionAccessService,
+    ],
   ],
   [CrearProyectoUseCase, [PROYECTO_REPOSITORY]],
-  [EditarProyectoUseCase, [PROYECTO_REPOSITORY]],
+  [EditarProyectoUseCase, [PROYECTO_REPOSITORY, PlanificacionAccessService]],
   [EliminarDocumentoProyectoUseCase, [PROYECTO_REPOSITORY]],
-  [EliminarEntregableProyectoUseCase, [PROYECTO_REPOSITORY]],
+  [
+    EliminarEntregableProyectoUseCase,
+    [PROYECTO_REPOSITORY, PlanificacionAccessService, PLANIFICACION_REPOSITORY],
+  ],
   [EliminarProyectoUseCase, [PROYECTO_REPOSITORY]],
   [GuardarCoordinadoresProyectoUseCase, [PROYECTO_REPOSITORY]],
   [ListarCoordinadoresProyectoUseCase, [PROYECTO_REPOSITORY]],
@@ -945,9 +1033,11 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
     [TRABAJADOR_REPOSITORY, EnviarCorreoBienvenidaUseCase],
   ],
   [EditarTrabajadorUseCase, [TRABAJADOR_REPOSITORY]],
+  [AsignarCalendarioTrabajadorUseCase, [TRABAJADOR_REPOSITORY]],
   [EliminarContratoTrabajadorUseCase, [TRABAJADOR_REPOSITORY]],
   [EliminarTrabajadorUseCase, [TRABAJADOR_REPOSITORY]],
   [ListarAdministrativosUseCase, [TRABAJADOR_REPOSITORY]],
+  [ListarCalendariosPublicadosUseCase, [TRABAJADOR_REPOSITORY]],
   [ListarTrabajadoresUseCase, [TRABAJADOR_REPOSITORY]],
   [ObtenerFirmaTrabajadorUseCase, [TRABAJADOR_REPOSITORY, MinioStorageService]],
   [

@@ -23,6 +23,7 @@ import {
   ObtenerEstadisticasDto,
 } from '../dtos/auditoria';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('auditoria')
 @ApiBearerAuth('access-token')
@@ -49,6 +50,7 @@ export class AuditoriaController {
   })
   @Get('estadisticas')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.auditoria.ver_estadisticas')
   async obtenerEstadisticas(@Query() dto: ObtenerEstadisticasDto) {
     const resultado = await this.obtenerEstadisticasUseCase.execute(dto);
     return ApiResponseDto.success(
@@ -69,6 +71,7 @@ export class AuditoriaController {
   })
   @Get('entidad/:entidad/:id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.auditoria.ver_historial_entidad')
   async obtenerHistorialEntidad(
     @Param('entidad') entidad: string,
     @Param('id') id: string,
@@ -95,6 +98,7 @@ export class AuditoriaController {
   })
   @Get('usuario/:id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.auditoria.ver_historial_usuario')
   async obtenerHistorialUsuario(
     @Param('id') id: string,
     @Query() dto: ObtenerHistorialUsuarioDto,
@@ -125,6 +129,7 @@ export class AuditoriaController {
   })
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.auditoria.ver')
   async listarAuditorias(@Query() dto: ListarAuditoriasDto) {
     const resultado = await this.listarAuditoriasUseCase.execute(dto);
     return ApiResponseDto.paginated(
@@ -141,6 +146,7 @@ export class AuditoriaController {
   @ApiOperation({ summary: 'Detalle de un registro de auditoría por id' })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('seguridad.auditoria.ver')
   async obtenerAuditoriaPorId(@Param('id') id: string) {
     const idNumero = parseInt(id, 10);
     if (isNaN(idNumero)) {

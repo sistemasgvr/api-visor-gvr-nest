@@ -18,11 +18,14 @@ import {
 import type { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import { DocumentTokenService } from '../../infrastructure/services/document-token.service';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { ACC_REPOSITORY } from '../../domain/repositories/acc.repository.interface';
 import type { IAccRepository } from '../../domain/repositories/acc.repository.interface';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ContextualAuthorization } from '../../infrastructure/auth/granular-permission.guard';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('office-document')
 @Controller('office-documents')
@@ -30,6 +33,7 @@ export class OfficeDocumentController {
   private readonly logger = new Logger(OfficeDocumentController.name);
 
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly documentTokenService: DocumentTokenService,
     private readonly autodeskApiService: AutodeskApiService,
     private readonly configService: ConfigService,
@@ -47,6 +51,7 @@ export class OfficeDocumentController {
   })
   @Post('generate-token/:projectId/:itemId')
   @UseGuards(JwtAuthGuard)
+  @DocumentLevelAccess()
   async generateToken(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -57,6 +62,8 @@ export class OfficeDocumentController {
     if (!user?.sub) {
       throw new UnauthorizedException('Usuario no autenticado');
     }
+    // El token abre el archivo en Office Online: exige poder verlo en Docs.
+    await this.documentAccess.assertItem(user.sub, projectId, itemId, 'view');
 
     // Obtener información del archivo para el nombre
     const accToken = await this.accRepository.obtenerToken3LeggedPorUsuario(
@@ -102,6 +109,9 @@ export class OfficeDocumentController {
    * OPTIONS /api/office-documents/view/:token
    */
   @Options('view/:token')
+  @ContextualAuthorization(
+    'Token opaco temporal emitido tras validar el nivel documental',
+  )
   async viewDocumentOptions(@Res() res: Response) {
     this.logger.log('OPTIONS request recibido para view document');
     res.set({
@@ -118,6 +128,9 @@ export class OfficeDocumentController {
    * HEAD /api/office-documents/view/:token
    */
   @Head('view/:token')
+  @ContextualAuthorization(
+    'Token opaco temporal emitido tras validar el nivel documental',
+  )
   async viewDocumentHead(@Param('token') token: string, @Res() res: Response) {
     this.logger.log(
       `HEAD request recibido para token: ${token.substring(0, 8)}...`,
@@ -151,6 +164,9 @@ export class OfficeDocumentController {
     security: [],
   })
   @Get('view/:token')
+  @ContextualAuthorization(
+    'Token opaco temporal emitido tras validar el nivel documental',
+  )
   async viewDocument(@Param('token') token: string, @Res() res: Response) {
     this.logger.log(
       `GET request recibido para token: ${token.substring(0, 8)}...`,
@@ -264,6 +280,9 @@ export class OfficeDocumentController {
     security: [],
   })
   @Get('view/:token/info')
+  @ContextualAuthorization(
+    'Token opaco temporal emitido tras validar el nivel documental',
+  )
   async documentInfo(@Param('token') token: string) {
     const tokenData = this.documentTokenService.validateToken(token);
 

@@ -1,125 +1,125 @@
-import {
-  IsOptional,
-  IsString,
-  IsIn,
-  IsDateString,
-  MaxLength,
-  IsUUID,
-  IsNumber,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto, isoDate } from '../../../validation/zod-dto';
 
 class ProjectValueDto {
-  @IsOptional()
-  @IsNumber()
+  static readonly schema: z.ZodType<ProjectValueDto> =
+    defineZodDto<ProjectValueDto>(
+      'acc_projects_ProjectValueDto_actualizar_proyecto',
+      {
+        value: { schema: z.number(), optional: true },
+        currency: { schema: z.string().max(3), optional: true },
+      },
+    );
+
   value?: number;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(3)
   currency?: string;
 }
 
 export class ActualizarProyectoDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<ActualizarProyectoDto> =
+    defineZodDto<ActualizarProyectoDto>('ActualizarProyectoDto', {
+      name: { schema: z.string().max(255), optional: true },
+      startDate: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+      },
+      endDate: {
+        schema: z
+          .string()
+          .refine((value) => isoDate(value, false), {
+            message: 'Debe ser una fecha ISO válida',
+          })
+          .meta({ format: 'date-time' }),
+        optional: true,
+      },
+      type: { schema: z.string().max(255), optional: true },
+      classification: {
+        schema: z
+          .string()
+          .refine(
+            (value) =>
+              (
+                [
+                  'production',
+                  'template',
+                  'component',
+                  'sample',
+                ] as readonly unknown[]
+              ).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['production', 'template', 'component', 'sample'] }),
+        optional: true,
+      },
+      jobNumber: { schema: z.string().max(100), optional: true },
+      addressLine1: { schema: z.string().max(255), optional: true },
+      addressLine2: { schema: z.string().max(255), optional: true },
+      city: { schema: z.string().max(255), optional: true },
+      stateOrProvince: { schema: z.string().max(255), optional: true },
+      postalCode: { schema: z.string().max(255), optional: true },
+      country: { schema: z.string().max(255), optional: true },
+      latitude: { schema: z.string().max(25), optional: true },
+      longitude: { schema: z.string().max(25), optional: true },
+      timezone: { schema: z.string(), optional: true },
+      constructionType: { schema: z.string(), optional: true },
+      deliveryMethod: { schema: z.string(), optional: true },
+      contractType: { schema: z.string(), optional: true },
+      currentPhase: { schema: z.string(), optional: true },
+      businessUnitId: { schema: z.string().uuid(), optional: true },
+      projectValue: {
+        schema: z.lazy(() => ProjectValueDto.schema),
+        optional: true,
+      },
+      token: { schema: z.string(), optional: true },
+    });
+
   name?: string;
 
-  @IsOptional()
-  @IsDateString()
   startDate?: string;
 
-  @IsOptional()
-  @IsDateString()
   endDate?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   type?: string;
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['production', 'template', 'component', 'sample'])
   classification?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
   jobNumber?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   addressLine1?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   addressLine2?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   city?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   stateOrProvince?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   postalCode?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   country?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(25)
   latitude?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(25)
   longitude?: string;
 
-  @IsOptional()
-  @IsString()
   timezone?: string;
 
-  @IsOptional()
-  @IsString()
   constructionType?: string;
 
-  @IsOptional()
-  @IsString()
   deliveryMethod?: string;
 
-  @IsOptional()
-  @IsString()
   contractType?: string;
 
-  @IsOptional()
-  @IsString()
   currentPhase?: string;
 
-  @IsOptional()
-  @IsUUID()
   businessUnitId?: string;
 
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => ProjectValueDto)
   projectValue?: ProjectValueDto;
 
-  @IsOptional()
-  @IsString()
   token?: string;
 }

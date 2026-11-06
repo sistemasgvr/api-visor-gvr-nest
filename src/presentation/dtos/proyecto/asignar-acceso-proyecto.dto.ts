@@ -1,10 +1,14 @@
-import { IsInt, IsOptional } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class AsignarAccesoProyectoDto {
-  @IsInt()
+  static readonly schema: z.ZodType<AsignarAccesoProyectoDto> =
+    defineZodDto<AsignarAccesoProyectoDto>('AsignarAccesoProyectoDto', {
+      idUsuario: { schema: z.number().int() },
+      idNivelAcceso: { schema: z.number().int(), optional: true },
+    });
+
   idUsuario: number;
 
-  @IsOptional()
-  @IsInt()
   idNivelAcceso?: number;
 }

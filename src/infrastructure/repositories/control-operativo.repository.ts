@@ -1,3 +1,4 @@
+import { ejecutarPlanificacion } from './planificacion-errors';
 import { Injectable, Inject } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -201,7 +202,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
     type Row = JornadaListItem & { total_count?: number };
     const result = await this.databaseFunctionService.callFunction<Row>(
-      'con_ListarJornadasTrabajadorV2',
+      'con_ListarJornadasTrabajadorV3',
       [idTrabajador, pFechaInicio, pFechaFin, limit, offset],
     );
 
@@ -226,12 +227,16 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   }
 
   async listarTrabajadoresParaFiltro(
-    idTrabajador: number,
+    idUsuario: number,
+    alcances: readonly string[],
   ): Promise<TrabajadorParaFiltro[]> {
+    // Misma regla de equipo que la política (con_EquipoTrabajador) vía la función SQL.
     const result =
-      await this.databaseFunctionService.callFunction<TrabajadorParaFiltro>(
-        'tra_ListarTrabajadoresParaFiltro',
-        [idTrabajador],
+      await this.databaseFunctionService.executeQuery<TrabajadorParaFiltro>(
+        `SELECT f.* FROM public.tratrabajador actor,
+           public."tra_ListarTrabajadoresParaFiltro"(actor.id, $2::text[]) f
+         WHERE actor.idusuario = $1 AND actor.estado = 1`,
+        [idUsuario, [...alcances]],
       );
     return result ?? [];
   }
@@ -239,11 +244,12 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   async listarProyectosAccesoTrabajador(
     idTrabajador: number,
     soloVigentes = false,
+    verTodos = false,
   ): Promise<ProyectoAccesoTrabajador[]> {
     const result =
       await this.databaseFunctionService.callFunction<ProyectoAccesoTrabajador>(
         'pro_ListarProyectosAccesoTrabajador',
-        [idTrabajador, soloVigentes],
+        [idTrabajador, soloVigentes, verTodos],
       );
     if (Array.isArray(result)) return result;
     if (result != null && typeof result === 'object')
@@ -253,11 +259,12 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
 
   async listarProyectosParaValidacion(
     idTrabajador: number,
+    verTodos = false,
   ): Promise<ProyectoAccesoTrabajador[]> {
     const result =
       await this.databaseFunctionService.callFunction<ProyectoAccesoTrabajador>(
         'pro_ListarProyectosParaValidacion',
-        [idTrabajador],
+        [idTrabajador, verTodos],
       );
     if (Array.isArray(result)) return result;
     if (result != null && typeof result === 'object')
@@ -285,7 +292,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   ): Promise<TrabajadorSinJornadaHoyItem[]> {
     const result =
       await this.databaseFunctionService.callFunction<TrabajadorSinJornadaHoyItem>(
-        'con_ListarTrabajadoresSinJornadaHoy',
+        'con_ListarTrabajadoresSinJornadaHoyV2',
         [fecha],
       );
     return Array.isArray(result) ? result : [];
@@ -296,7 +303,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   ): Promise<TrabajadorSinActividadesHoyItem[]> {
     const result =
       await this.databaseFunctionService.callFunction<TrabajadorSinActividadesHoyItem>(
-        'con_ListarTrabajadoresSinActividadesHoy',
+        'con_ListarTrabajadoresSinActividadesHoyV2',
         [fecha],
       );
     return Array.isArray(result) ? result : [];
@@ -305,7 +312,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   async contarTrabajadoresEsperadosJornadaHoy(fecha: string): Promise<number> {
     const row = await this.databaseFunctionService.callFunctionSingle<
       Record<string, unknown>
-    >('con_ContarTrabajadoresEsperadosJornadaHoy', [fecha]);
+    >('con_ContarTrabajadoresEsperadosJornadaHoyV2', [fecha]);
     return getScalarInt(row);
   }
 
@@ -343,7 +350,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     } = params;
     const row =
       await this.databaseFunctionService.callFunctionSingle<JornadaCreada>(
-        'con_CrearJornadaV2',
+        'con_CrearJornadaV3',
         [
           idTrabajador,
           fechaJornada,
@@ -374,17 +381,14 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
       idestadojornada?: number | null;
       estadojornada?: string | null;
     };
-    const result = await this.databaseFunctionService.callFunction<Row>(
-      'con_ListarActividadesV2',
-      [
-        idJornada ?? null,
-        idTrabajador ?? null,
-        idProyecto ?? null,
-        idEstadoActividad ?? null,
-        limit,
-        offset,
-      ],
-    );
+    const result = await this.callPlanRows<Row>('con_ListarActividadesV3', [
+      idJornada ?? null,
+      idTrabajador ?? null,
+      idProyecto ?? null,
+      idEstadoActividad ?? null,
+      limit,
+      offset,
+    ]);
     if (!result?.length) {
       let diajornada: string | null = null;
       let horasesperadas: number | null = null;
@@ -742,7 +746,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     if (idActividad == null || idActividad < 1) return null;
     const result = await this.databaseFunctionService.callFunction<
       Record<string, unknown>
-    >('con_ObtenerActividadV2', [idActividad]);
+    >('con_ObtenerActividadV3', [idActividad]);
     const row = result?.[0];
     if (!row) return null;
     // El driver puede devolver la columna como diajornada, diaJornada o fechajornada (minúsculas)
@@ -791,28 +795,28 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   async crearActividad(
     params: CrearActividadParams,
   ): Promise<ActividadCreada | null> {
-    const rows =
-      await this.databaseFunctionService.callFunction<ActividadCreada>(
-        'con_CrearActividadV3',
-        [
-          params.idJornada,
-          params.idProyecto,
-          params.idTrabajador,
-          params.idCoordinador,
-          params.idTipoActividad,
-          params.nombreActividad ?? '',
-          params.descripcionDetallada ?? null,
-          params.horaInicio ?? null,
-          params.horaFin ?? null,
-          params.linkEvidencia ?? null,
-          params.idEstadoActividad ?? null,
-          params.idModalidad ?? null,
-          params.idUsuarioCreacion ?? null,
-          params.idEntregable ?? null,
-          params.incidenciaDetallada ?? null,
-          params.entregableCulminado ?? false,
-        ],
-      );
+    const rows = await this.callPlanRows<ActividadCreada>(
+      'con_CrearActividadV4',
+      [
+        params.idJornada,
+        params.idProyecto,
+        params.idTrabajador,
+        params.idCoordinador,
+        params.idTipoActividad,
+        params.nombreActividad ?? '',
+        params.descripcionDetallada ?? null,
+        params.horaInicio ?? null,
+        params.horaFin ?? null,
+        params.linkEvidencia ?? null,
+        params.idEstadoActividad ?? null,
+        params.idModalidad ?? null,
+        params.idUsuarioCreacion ?? null,
+        params.idEntregable ?? null,
+        params.incidenciaDetallada ?? null,
+        params.entregableCulminado ?? false,
+        params.idAsignacion ?? null,
+      ],
+    );
     return rows?.[0] ?? null;
   }
 
@@ -860,55 +864,57 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   async actualizarActividad(
     params: ActualizarActividadParams,
   ): Promise<ActividadCreada | null> {
-    const rows =
-      await this.databaseFunctionService.callFunction<ActividadCreada>(
-        'con_ActualizarActividadV3',
-        [
-          params.idActividad,
-          params.idProyecto,
-          params.idTrabajador,
-          params.idCoordinador,
-          params.idTipoActividad,
-          params.nombreActividad ?? '',
-          params.descripcionDetallada ?? null,
-          params.horaInicio ?? null,
-          params.horaFin ?? null,
-          params.linkEvidencia ?? null,
-          params.idModalidad ?? null,
-          params.idUsuarioModificacion ?? null,
-          params.corregirObservacion === true,
-          params.idEntregable ?? null,
-          params.incidenciaDetallada ?? null,
-          params.entregableCulminado ?? false,
-        ],
-      );
+    const rows = await this.callPlanRows<ActividadCreada>(
+      'con_ActualizarActividadV4',
+      [
+        params.idActividad,
+        params.idProyecto,
+        params.idTrabajador,
+        params.idCoordinador,
+        params.idTipoActividad,
+        params.nombreActividad ?? '',
+        params.descripcionDetallada ?? null,
+        params.horaInicio ?? null,
+        params.horaFin ?? null,
+        params.linkEvidencia ?? null,
+        params.idModalidad ?? null,
+        params.idUsuarioModificacion ?? null,
+        params.corregirObservacion === true,
+        params.idEntregable ?? null,
+        params.incidenciaDetallada ?? null,
+        params.entregableCulminado ?? false,
+        params.idAsignacion ?? null,
+      ],
+    );
     return rows?.[0] ?? null;
   }
 
   async validarActividad(
     params: ValidarActividadParams,
   ): Promise<ActividadCreada | null> {
-    const rows =
-      await this.databaseFunctionService.callFunction<ActividadCreada>(
-        'con_ValidarActividad',
-        [
-          params.idActividad,
-          params.idEstadoActividad,
-          params.comentarioValidacion ?? null,
-          params.idCoordinadorRevisor,
-          params.idUsuarioModificacion ?? null,
-          params.esAdminTotalValidacion === true,
-        ],
-      );
+    const rows = await this.callPlanRows<ActividadCreada>(
+      'con_ValidarActividadV2',
+      [
+        params.idActividad,
+        params.idEstadoActividad,
+        params.comentarioValidacion ?? null,
+        params.idCoordinadorRevisor,
+        params.idUsuarioModificacion ?? null,
+        params.esAdminTotalValidacion === true,
+      ],
+    );
     return rows?.[0] ?? null;
   }
 
-  async eliminarActividad(idActividad: number): Promise<boolean> {
+  async eliminarActividad(
+    idActividad: number,
+    idUsuario: number,
+  ): Promise<boolean> {
     if (idActividad == null || idActividad < 1) return false;
-    const row = await this.databaseFunctionService.callFunctionSingle<unknown>(
-      'con_EliminarActividadV2',
-      [idActividad],
-    );
+    const row = await this.callPlanSingle<unknown>('con_EliminarActividadV3', [
+      idActividad,
+      idUsuario,
+    ]);
     return getScalarBool(row);
   }
 
@@ -932,7 +938,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     fecha: string,
   ): Promise<CronCierreJornadasResult> {
     const rows = await this.databaseFunctionService.callFunction<any>(
-      'con_CronCierreJornadasV2',
+      'con_CronCierreJornadasV3',
       [fecha],
     );
     const row = rows?.[0];
@@ -975,7 +981,7 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
     try {
       const rows =
         await this.databaseFunctionService.callFunction<HabilitacionJornadasUsuario>(
-          'con_HabilitarJornadasUsuariosV2',
+          'con_HabilitarJornadasUsuariosV3',
           [
             params.idTrabajadores,
             params.fechaInicio,
@@ -1455,6 +1461,16 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
         );
         return { ...rest, evidencias };
       }),
+    );
+  }
+  private callPlanSingle<T>(name: string, params: unknown[]) {
+    return ejecutarPlanificacion(() =>
+      this.databaseFunctionService.callFunctionSingle<T>(name, params),
+    );
+  }
+  private callPlanRows<T>(name: string, params: unknown[]) {
+    return ejecutarPlanificacion(() =>
+      this.databaseFunctionService.callFunction<T>(name, params),
     );
   }
 }

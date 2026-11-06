@@ -11,6 +11,7 @@ import { AccRepository } from '../../infrastructure/repositories/acc.repository'
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { DataManagementBucketsController } from '../../presentation/controllers/data-management-buckets.controller';
 import { DatabaseModule } from './platform/database.module';
+import { applicationProvider } from '../application.providers';
 
 import { applicationProvider } from '../application.providers';
 

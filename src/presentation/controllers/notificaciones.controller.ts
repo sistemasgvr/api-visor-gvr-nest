@@ -17,6 +17,7 @@ import { MarcarNotificacionesEntregadasUseCase } from '../../application/use-cas
 import { EliminarNotificacionUseCase } from '../../application/use-cases/notificaciones/eliminar-notificacion.use-case';
 import { EliminarTodasNotificacionesUseCase } from '../../application/use-cases/notificaciones/eliminar-todas-notificaciones.use-case';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RequireSelfPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('notificaciones')
 @ApiBearerAuth('access-token')
@@ -38,6 +39,7 @@ export class NotificacionesController {
     description: 'Opcional filtro `tipo`.',
   })
   @Get('pendientes')
+  @RequireSelfPermission('comunicaciones.notificaciones.ver')
   async obtenerPendientes(@Request() req: any, @Query('tipo') tipo?: string) {
     const raw = req.user?.sub ?? req.user?.id ?? req.user?.idusuario;
     const userId = typeof raw === 'number' ? raw : Number(raw);
@@ -65,6 +67,7 @@ export class NotificacionesController {
     description: 'Tras mostrarlas en UI (badge/campana).',
   })
   @Post('marcar-entregadas')
+  @RequireSelfPermission('comunicaciones.notificaciones.marcar_entregadas')
   async marcarEntregadas(@Request() req: any) {
     const raw = req.user?.sub ?? req.user?.id ?? req.user?.idusuario;
     const userId = typeof raw === 'number' ? raw : Number(raw);
@@ -91,6 +94,7 @@ export class NotificacionesController {
     description: 'Incluye entregadas y pendientes con estado activo.',
   })
   @Get()
+  @RequireSelfPermission('comunicaciones.notificaciones.ver')
   async listar(@Request() req: any, @Query('tipo') tipo?: string) {
     const raw = req.user?.sub ?? req.user?.id ?? req.user?.idusuario;
     const userId = typeof raw === 'number' ? raw : Number(raw);
@@ -114,6 +118,7 @@ export class NotificacionesController {
   /** Soft delete de una notificación. id en URL es el id de BD (sin prefijo notif-). */
   @ApiOperation({ summary: 'Eliminar una notificación (soft delete)' })
   @Delete(':id')
+  @RequireSelfPermission('comunicaciones.notificaciones.eliminar')
   async eliminar(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
     const raw = req.user?.sub ?? req.user?.id ?? req.user?.idusuario;
     const userId = typeof raw === 'number' ? raw : Number(raw);
@@ -131,6 +136,7 @@ export class NotificacionesController {
   /** Soft delete de todas las notificaciones del usuario */
   @ApiOperation({ summary: 'Eliminar todas las notificaciones del usuario' })
   @Delete()
+  @RequireSelfPermission('comunicaciones.notificaciones.eliminar_todas')
   async eliminarTodas(@Request() req: any) {
     const raw = req.user?.sub ?? req.user?.id ?? req.user?.idusuario;
     const userId = typeof raw === 'number' ? raw : Number(raw);

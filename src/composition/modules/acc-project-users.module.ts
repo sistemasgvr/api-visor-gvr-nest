@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { applicationProvider } from '../application.providers';
 import {
   ActualizarUsuarioProyectoUseCase,
   AgregarUsuarioProyectoUseCase,

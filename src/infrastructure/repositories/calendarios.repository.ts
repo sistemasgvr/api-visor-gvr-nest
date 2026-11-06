@@ -4,6 +4,7 @@ import type {
   CrearCalendarioData,
   GuardarExcepcionCalendarioData,
   GuardarSemanaCalendarioData,
+  GuardarFeriadoData,
   ICalendariosRepository,
   ListarCalendariosParams,
 } from '../../domain/repositories/calendarios.repository.interface';
@@ -22,10 +23,55 @@ import {
   NotFoundError,
 } from '../../application/errors/application.error';
 import { DatabaseFunctionService } from '../database/database-function.service';
+import type {
+  FeriadoDetalle,
+  FeriadoListado,
+  FeriadoMutacion,
+} from '../../domain/entities/feriado.entity';
 
 @Injectable()
 export class CalendariosRepository implements ICalendariosRepository {
   constructor(private readonly database: DatabaseFunctionService) {}
+
+  listarFeriados(idUsuario: number, params: ListarCalendariosParams) {
+    return this.call<FeriadoListado>('pla_ListarFeriados', [
+      idUsuario,
+      params.busqueda ?? '',
+      params.estado ?? null,
+      params.limit ?? 12,
+      params.offset ?? 0,
+    ]);
+  }
+  obtenerFeriado(idUsuario: number, idFeriado: number) {
+    return this.call<FeriadoDetalle>('pla_ObtenerFeriado', [
+      idUsuario,
+      idFeriado,
+    ]);
+  }
+  guardarFeriado(
+    idUsuario: number,
+    data: GuardarFeriadoData,
+    idFeriado?: number,
+  ) {
+    return this.call<FeriadoMutacion>('pla_GuardarFeriado', [
+      idUsuario,
+      data.fecha,
+      data.nombre.trim(),
+      data.idtipo,
+      data.minutosefectivos,
+      data.activo ?? true,
+      data.idcalendarios,
+      idFeriado ?? null,
+      data.revision ?? null,
+    ]);
+  }
+  eliminarFeriado(idUsuario: number, idFeriado: number, revision: number) {
+    return this.call<FeriadoMutacion>('pla_EliminarFeriado', [
+      idUsuario,
+      idFeriado,
+      revision,
+    ]);
+  }
 
   listar(idUsuario: number, params: ListarCalendariosParams) {
     return this.call<CalendarioListado>('pla_ListarCalendarios', [
@@ -168,7 +214,11 @@ export class CalendariosRepository implements ICalendariosRepository {
       if (error instanceof ApplicationFailure) throw error;
       const source =
         error && typeof error === 'object'
-          ? (error as { code?: string; driverError?: { code?: string } })
+          ? (error as {
+              code?: string;
+              message?: string;
+              driverError?: { code?: string; message?: string };
+            })
           : {};
       const code = source.driverError?.code ?? source.code;
       if (code === '42501')
@@ -181,20 +231,31 @@ export class CalendariosRepository implements ICalendariosRepository {
         throw new NotFoundError({
           code: 'CALENDARIOS_NO_ENCONTRADO',
           message:
-            'El calendario, la versión o la excepción indicada no existe',
+            'El calendario, la versión, el feriado o la excepción indicada no existe',
         });
       if (code === '23505')
         throw new ConflictError({
           code: 'CALENDARIOS_DUPLICADO',
           message:
-            'Ya existe un calendario con ese nombre o una excepción para esa fecha',
+            'Ya existe un calendario con ese nombre, un feriado idéntico o una excepción para esa fecha en uno de los calendarios',
         });
       if (code === '40001' || code === '40P01')
         throw new ConflictError({
           code: 'CALENDARIOS_REVISION_OBSOLETA',
           message:
-            'La configuración cambió; vuelva a cargar el calendario antes de guardar',
+            'La configuración cambió; vuelva a cargar el calendario o feriado antes de guardar',
         });
+      if (
+        code === '55000' &&
+        (source.driverError?.message ?? source.message) ===
+          'Este feriado se gestiona desde el registro central de feriados'
+      ) {
+        throw new ConflictError({
+          code: 'CALENDARIOS_FERIADO_CENTRALIZADO',
+          message:
+            'Este feriado se gestiona desde el registro central de feriados',
+        });
+      }
       if (code === '55000')
         throw new ConflictError({
           code: 'CALENDARIOS_ESTADO_INCOMPATIBLE',

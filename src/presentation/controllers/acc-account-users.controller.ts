@@ -33,6 +33,7 @@ import {
   ObtenerProyectosUsuarioDto,
 } from '../dtos/acc/account-users';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('acc')
 @ApiBearerAuth('access-token')
@@ -58,6 +59,7 @@ export class AccAccountUsersController {
   @ApiOperation({ summary: 'Crear usuario en la cuenta BIM 360/ACC' })
   @Post(':accountId')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.usuarios_cuenta_acc.crear')
   async crearUsuario(
     @Param('accountId') accountId: string,
     @Body() dto: CrearUsuarioDto,
@@ -80,6 +82,7 @@ export class AccAccountUsersController {
   @ApiOperation({ summary: 'Importar varios usuarios en la cuenta' })
   @Post(':accountId/import')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.usuarios_cuenta_acc.importar')
   async importarUsuarios(
     @Param('accountId') accountId: string,
     @Body() dto: ImportarUsuariosDto,
@@ -105,6 +108,7 @@ export class AccAccountUsersController {
   @ApiOperation({ summary: 'Listar usuarios de la cuenta' })
   @Get(':accountId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.usuarios_cuenta_acc.ver')
   async obtenerUsuarios(
     @Param('accountId') accountId: string,
     @Query() dto: ObtenerUsuariosDto,
@@ -127,6 +131,7 @@ export class AccAccountUsersController {
   @ApiOperation({ summary: 'Buscar usuarios de la cuenta por criterios' })
   @Get(':accountId/search')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.usuarios_cuenta_acc.ver')
   async buscarUsuarios(
     @Param('accountId') accountId: string,
     @Query() dto: BuscarUsuariosDto,
@@ -149,6 +154,7 @@ export class AccAccountUsersController {
   @ApiOperation({ summary: 'Obtener un usuario de la cuenta por ID' })
   @Get(':accountId/:userId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.usuarios_cuenta_acc.ver')
   async obtenerUsuarioPorId(
     @Param('accountId') accountId: string,
     @Param('userId') userId: string,
@@ -179,6 +185,7 @@ export class AccAccountUsersController {
   @ApiOperation({ summary: 'Listar proyectos asignados a un usuario' })
   @Get(':accountId/:userId/projects')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.usuarios_cuenta_acc.ver')
   async obtenerProyectosUsuario(
     @Param('accountId') accountId: string,
     @Param('userId') userId: string,
@@ -211,6 +218,7 @@ export class AccAccountUsersController {
   })
   @Get(':accountId/:userId/products')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.usuarios_cuenta_acc.ver')
   async obtenerProductosUsuario(
     @Param('accountId') accountId: string,
     @Param('userId') userId: string,
@@ -241,6 +249,7 @@ export class AccAccountUsersController {
   @ApiOperation({ summary: 'Listar roles del usuario en la cuenta' })
   @Get(':accountId/:userId/roles')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.usuarios_cuenta_acc.ver')
   async obtenerRolesUsuario(
     @Param('accountId') accountId: string,
     @Param('userId') userId: string,
@@ -271,6 +280,7 @@ export class AccAccountUsersController {
   @ApiOperation({ summary: 'Actualizar datos de un usuario de la cuenta' })
   @Patch(':accountId/:userId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.usuarios_cuenta_acc.editar')
   async actualizarUsuario(
     @Param('accountId') accountId: string,
     @Param('userId') userId: string,

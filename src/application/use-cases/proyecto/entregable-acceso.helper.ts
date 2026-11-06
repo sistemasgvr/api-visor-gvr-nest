@@ -1,32 +1,8 @@
-import {
-  AuthRole,
-  ROL_ADMINISTRADOR_GVR,
-  ROL_ADMINISTRADOR_SISTEMAS,
-} from '../../../domain/constants/auth-role.constants';
 import type { IProyectoRepository } from '../../../domain/repositories/proyecto.repository.interface';
 
-/** Admins que pueden gestionar cualquier entregable. */
-export function esAdminGestionEntregables(rolesIds: number[]): boolean {
-  return (
-    rolesIds.includes(ROL_ADMINISTRADOR_SISTEMAS) ||
-    rolesIds.includes(ROL_ADMINISTRADOR_GVR)
-  );
-}
-
-export function esRolModeladorColaborador(rolesIds: number[]): boolean {
-  return (
-    rolesIds.includes(AuthRole.Modelador) ||
-    rolesIds.includes(AuthRole.DesarrolladorWeb)
-  );
-}
-
-export function esRolCoordinador(rolesIds: number[]): boolean {
-  return rolesIds.includes(AuthRole.Coordinador);
-}
-
 /**
- * Quién puede editar/eliminar:
- * creador, responsable asignado, coordinador del proyecto, Admin Sistemas / Admin GVR.
+ * Quién puede editar/eliminar: con alcance «todos» del permiso, cualquier entregable;
+ * con «asignados», el creador, un responsable o el coordinador del proyecto.
  */
 export async function puedeGestionarEntregable(
   repo: IProyectoRepository,
@@ -38,11 +14,11 @@ export async function puedeGestionarEntregable(
       responsables?: Array<{ idtrabajador?: number }>;
     };
     idUsuario: number;
-    rolesIds: number[];
+    accesoTotal: boolean;
   },
 ): Promise<boolean> {
-  const { entregable, idUsuario, rolesIds } = params;
-  if (esAdminGestionEntregables(rolesIds)) return true;
+  const { entregable, idUsuario, accesoTotal } = params;
+  if (accesoTotal) return true;
 
   if (
     entregable.idusuariocreacion != null &&
@@ -78,6 +54,20 @@ export async function puedeGestionarEntregable(
   }
 
   return false;
+}
+
+/** «asignados»: la persona participa en el proyecto (acceso, equipo o coordinación). */
+export async function participaEnProyecto(
+  repo: IProyectoRepository,
+  idProyecto: number,
+  idUsuario: number,
+): Promise<boolean> {
+  const idTrabajador = await repo.obtenerIdTrabajadorPorIdUsuario(idUsuario);
+  if (idTrabajador == null || !(idProyecto > 0)) return false;
+  return (
+    (await repo.trabajadorPerteneceAProyecto(idProyecto, idTrabajador)) ||
+    (await repo.esCoordinadorEnProyecto(idProyecto, idTrabajador))
+  );
 }
 
 export async function responsablePerteneceAlProyecto(

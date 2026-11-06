@@ -11,6 +11,7 @@ import type { Response } from 'express';
 import { GenerarPdfDemoUseCase } from '../../application/use-cases/pdf/generar-pdf-demo.use-case';
 import { EnviarCorreoBienvenidaDemoUseCase } from '../../application/use-cases/demo/enviar-correo-bienvenida-demo.use-case';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 /** Rutas de prueba / sandbox (sin auth). Ampliar aquí otros demos si hace falta. */
 @ApiTags('demo')
@@ -27,6 +28,7 @@ export class DemoController {
       'Demo: PDF desde plantilla HTML sample-report (Puppeteer + Handlebars)',
     security: [],
   })
+  @RequireGranularPermission('comunicaciones.plantillas_correo.previsualizar')
   async pdfDemo(
     @Query('titulo') titulo: string | undefined,
     @Res() res: Response,
@@ -50,6 +52,7 @@ export class DemoController {
       'Demo: correo de bienvenida al correo del trabajador (por id trabajador, sin auth)',
     security: [],
   })
+  @RequireGranularPermission('comunicaciones.plantillas_correo.previsualizar')
   async mailBienvenidaDemo(
     @Param('idTrabajador', ParseIntPipe) idTrabajador: number,
   ) {

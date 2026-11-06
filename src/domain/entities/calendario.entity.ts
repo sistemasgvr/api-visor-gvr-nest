@@ -47,6 +47,8 @@ export interface CalendarioDia
 export interface CalendarioExcepcion extends AuditoriaCalendario {
   id: number;
   idversion: number;
+  idferiado: number | null;
+  gestioncentralizada: boolean;
   fecha: string;
   nombre: string;
   idtipo: number;
@@ -105,7 +107,7 @@ export interface CalendarioDisponibilidad {
     origen: 'semanal_no_laborable' | 'semana' | 'feriado' | 'dia_especial';
     excepcion: Pick<
       CalendarioExcepcion,
-      'id' | 'nombre' | 'idtipo' | 'tipo'
+      'id' | 'idferiado' | 'nombre' | 'idtipo' | 'tipo'
     > | null;
   }>;
 }

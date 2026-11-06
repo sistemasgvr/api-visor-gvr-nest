@@ -96,168 +96,180 @@ export class ObtenerContenidoCarpetaUseCase {
         }
       }
 
-      const itemsEnriquecidos = await Promise.all(
-        items.map(async (item: any) => {
-          try {
-            const itemId = item.id;
-            const itemType = item.type;
+      // Una carpeta grande no debe encolar dos consultas simultáneas por cada
+      // elemento. Procesar lotes acotados conserva el orden y limita la presión
+      // sobre el pool compartido con el resto de la aplicación.
+      const itemsEnriquecidos: any[] = [];
+      const tamanoLote = 4;
+      for (let inicio = 0; inicio < items.length; inicio += tamanoLote) {
+        const lote = await Promise.all(
+          items.slice(inicio, inicio + tamanoLote).map(async (item: any) => {
+            try {
+              const itemId = item.id;
+              const itemType = item.type;
 
-            // Si es una carpeta y NO es administrador, filtrar por permisos
-            if (itemType === 'folders' && !esAdministrador) {
-              // Si no hay carpetas con acceso, no mostrar ninguna
-              if (carpetasConAcceso.size === 0) {
-                return null;
+              // Si es una carpeta y NO es administrador, filtrar por permisos
+              if (itemType === 'folders' && !esAdministrador) {
+                // Si no hay carpetas con acceso, no mostrar ninguna
+                if (carpetasConAcceso.size === 0) {
+                  return null;
+                }
+
+                // Verificar si la carpeta tiene acceso
+                if (!carpetasConAcceso.has(itemId)) {
+                  return null; // Filtrar esta carpeta
+                }
               }
 
-              // Verificar si la carpeta tiene acceso
-              if (!carpetasConAcceso.has(itemId)) {
-                return null; // Filtrar esta carpeta
-              }
-            }
-
-            // Buscar en auditoría según el tipo de item
-            if (itemType === 'items') {
-              // Para archivos, buscar creación
-              const registroCreacion =
-                await this.auditoriaRepository.obtenerAuditoriaPorMetadatos(
-                  'file',
-                  'FILE_UPLOAD',
-                  'accItemId',
-                  itemId,
-                );
-
-              let lastModifiedByReal: string | null = null;
-              let lastModifiedByRealId: number | null = null;
-              let lastModifiedByRealRole: string | null = null;
-              let lastModifiedByRealEmpresa: string | null = null;
-              try {
-                const auditoriasItem =
-                  await this.auditoriaRepository.obtenerAuditoriasPorItemId(
+              // Buscar en auditoría según el tipo de item
+              if (itemType === 'items') {
+                // Para archivos, buscar creación
+                const registroCreacion =
+                  await this.auditoriaRepository.obtenerAuditoriaPorMetadatos(
+                    'file',
+                    'FILE_UPLOAD',
+                    'accItemId',
                     itemId,
                   );
-                // FILE_UPDATE = actualización vía API (ej. renombrar); FILE_VERSION_SAVE = guardado desde visor Office/Collabora
-                const ultimaModificacion = auditoriasItem.find(
-                  (a: any) =>
-                    a.accion === 'FILE_UPDATE' ||
-                    a.accion === 'FILE_VERSION_SAVE',
-                );
-                if (ultimaModificacion) {
-                  if (ultimaModificacion.usuario)
-                    lastModifiedByReal = ultimaModificacion.usuario;
-                  if (ultimaModificacion.idusuario != null)
-                    lastModifiedByRealId = ultimaModificacion.idusuario;
-                  if (ultimaModificacion.rol)
-                    lastModifiedByRealRole = ultimaModificacion.rol;
-                  if (ultimaModificacion.empresa)
-                    lastModifiedByRealEmpresa = ultimaModificacion.empresa;
-                }
-                if (!lastModifiedByRealEmpresa && registroCreacion?.empresa) {
-                  lastModifiedByRealEmpresa = registroCreacion.empresa;
-                }
-              } catch {
-                if (registroCreacion?.empresa)
-                  lastModifiedByRealEmpresa = registroCreacion.empresa;
-              }
 
-              if (registroCreacion && registroCreacion.usuario) {
-                return {
-                  ...item,
-                  createdByReal: registroCreacion.usuario,
-                  createdByRealId: registroCreacion.idusuario,
-                  createdByRealRole: registroCreacion.rol || null,
-                  createdByRealEmpresa: registroCreacion.empresa || null,
-                  lastModifiedByReal: lastModifiedByReal ?? undefined,
-                  lastModifiedByRealId: lastModifiedByRealId ?? undefined,
-                  lastModifiedByRealRole: lastModifiedByRealRole ?? undefined,
-                  lastModifiedByRealEmpresa:
-                    lastModifiedByRealEmpresa ?? undefined,
-                };
-              }
-              if (lastModifiedByReal || lastModifiedByRealEmpresa) {
-                return {
-                  ...item,
-                  ...(lastModifiedByReal && { lastModifiedByReal }),
-                  ...(lastModifiedByRealId != null && { lastModifiedByRealId }),
-                  ...(lastModifiedByRealRole && { lastModifiedByRealRole }),
-                  ...(lastModifiedByRealEmpresa && {
-                    lastModifiedByRealEmpresa,
-                  }),
-                };
-              }
-            } else if (itemType === 'folders') {
-              // Para carpetas, buscar creación
-              const registroCreacion =
-                await this.auditoriaRepository.obtenerAuditoriaPorMetadatos(
-                  'folder',
-                  'FOLDER_CREATE',
-                  'accFolderId',
-                  itemId,
-                );
+                let lastModifiedByReal: string | null = null;
+                let lastModifiedByRealId: number | null = null;
+                let lastModifiedByRealRole: string | null = null;
+                let lastModifiedByRealEmpresa: string | null = null;
+                try {
+                  const auditoriasItem =
+                    await this.auditoriaRepository.obtenerAuditoriasPorItemId(
+                      itemId,
+                    );
+                  // FILE_UPDATE = actualización vía API (ej. renombrar); FILE_VERSION_SAVE = guardado desde visor Office/Collabora
+                  const ultimaModificacion = auditoriasItem.find(
+                    (a: any) =>
+                      a.accion === 'FILE_UPDATE' ||
+                      a.accion === 'FILE_VERSION_SAVE',
+                  );
+                  if (ultimaModificacion) {
+                    if (ultimaModificacion.usuario)
+                      lastModifiedByReal = ultimaModificacion.usuario;
+                    if (ultimaModificacion.idusuario != null)
+                      lastModifiedByRealId = ultimaModificacion.idusuario;
+                    if (ultimaModificacion.rol)
+                      lastModifiedByRealRole = ultimaModificacion.rol;
+                    if (ultimaModificacion.empresa)
+                      lastModifiedByRealEmpresa = ultimaModificacion.empresa;
+                  }
+                  if (!lastModifiedByRealEmpresa && registroCreacion?.empresa) {
+                    lastModifiedByRealEmpresa = registroCreacion.empresa;
+                  }
+                } catch {
+                  if (registroCreacion?.empresa)
+                    lastModifiedByRealEmpresa = registroCreacion.empresa;
+                }
 
-              let lastModifiedByReal: string | null = null;
-              let lastModifiedByRealId: number | null = null;
-              let lastModifiedByRealRole: string | null = null;
-              let lastModifiedByRealEmpresa: string | null = null;
-              try {
-                const auditoriasFolder =
-                  await this.auditoriaRepository.obtenerAuditoriasPorFolderId(
+                if (registroCreacion && registroCreacion.usuario) {
+                  return {
+                    ...item,
+                    createdByReal: registroCreacion.usuario,
+                    createdByRealId: registroCreacion.idusuario,
+                    createdByRealRole: registroCreacion.rol || null,
+                    createdByRealEmpresa: registroCreacion.empresa || null,
+                    lastModifiedByReal: lastModifiedByReal ?? undefined,
+                    lastModifiedByRealId: lastModifiedByRealId ?? undefined,
+                    lastModifiedByRealRole: lastModifiedByRealRole ?? undefined,
+                    lastModifiedByRealEmpresa:
+                      lastModifiedByRealEmpresa ?? undefined,
+                  };
+                }
+                if (lastModifiedByReal || lastModifiedByRealEmpresa) {
+                  return {
+                    ...item,
+                    ...(lastModifiedByReal && { lastModifiedByReal }),
+                    ...(lastModifiedByRealId != null && {
+                      lastModifiedByRealId,
+                    }),
+                    ...(lastModifiedByRealRole && { lastModifiedByRealRole }),
+                    ...(lastModifiedByRealEmpresa && {
+                      lastModifiedByRealEmpresa,
+                    }),
+                  };
+                }
+              } else if (itemType === 'folders') {
+                // Para carpetas, buscar creación
+                const registroCreacion =
+                  await this.auditoriaRepository.obtenerAuditoriaPorMetadatos(
+                    'folder',
+                    'FOLDER_CREATE',
+                    'accFolderId',
                     itemId,
                   );
-                const ultimaModificacion = auditoriasFolder.find(
-                  (a: any) => a.accion === 'FOLDER_UPDATE',
-                );
-                if (ultimaModificacion) {
-                  if (ultimaModificacion.usuario)
-                    lastModifiedByReal = ultimaModificacion.usuario;
-                  if (ultimaModificacion.idusuario != null)
-                    lastModifiedByRealId = ultimaModificacion.idusuario;
-                  if (ultimaModificacion.rol)
-                    lastModifiedByRealRole = ultimaModificacion.rol;
-                  if (ultimaModificacion.empresa)
-                    lastModifiedByRealEmpresa = ultimaModificacion.empresa;
+
+                let lastModifiedByReal: string | null = null;
+                let lastModifiedByRealId: number | null = null;
+                let lastModifiedByRealRole: string | null = null;
+                let lastModifiedByRealEmpresa: string | null = null;
+                try {
+                  const auditoriasFolder =
+                    await this.auditoriaRepository.obtenerAuditoriasPorFolderId(
+                      itemId,
+                    );
+                  const ultimaModificacion = auditoriasFolder.find(
+                    (a: any) => a.accion === 'FOLDER_UPDATE',
+                  );
+                  if (ultimaModificacion) {
+                    if (ultimaModificacion.usuario)
+                      lastModifiedByReal = ultimaModificacion.usuario;
+                    if (ultimaModificacion.idusuario != null)
+                      lastModifiedByRealId = ultimaModificacion.idusuario;
+                    if (ultimaModificacion.rol)
+                      lastModifiedByRealRole = ultimaModificacion.rol;
+                    if (ultimaModificacion.empresa)
+                      lastModifiedByRealEmpresa = ultimaModificacion.empresa;
+                  }
+                  if (!lastModifiedByRealEmpresa && registroCreacion?.empresa) {
+                    lastModifiedByRealEmpresa = registroCreacion.empresa;
+                  }
+                } catch {
+                  if (registroCreacion?.empresa)
+                    lastModifiedByRealEmpresa = registroCreacion.empresa;
                 }
-                if (!lastModifiedByRealEmpresa && registroCreacion?.empresa) {
-                  lastModifiedByRealEmpresa = registroCreacion.empresa;
+
+                if (registroCreacion && registroCreacion.usuario) {
+                  return {
+                    ...item,
+                    createdByReal: registroCreacion.usuario,
+                    createdByRealId: registroCreacion.idusuario,
+                    createdByRealRole: registroCreacion.rol || null,
+                    createdByRealEmpresa: registroCreacion.empresa || null,
+                    lastModifiedByReal: lastModifiedByReal ?? undefined,
+                    lastModifiedByRealId: lastModifiedByRealId ?? undefined,
+                    lastModifiedByRealRole: lastModifiedByRealRole ?? undefined,
+                    lastModifiedByRealEmpresa:
+                      lastModifiedByRealEmpresa ?? undefined,
+                  };
                 }
-              } catch {
-                if (registroCreacion?.empresa)
-                  lastModifiedByRealEmpresa = registroCreacion.empresa;
+                if (lastModifiedByReal || lastModifiedByRealEmpresa) {
+                  return {
+                    ...item,
+                    ...(lastModifiedByReal && { lastModifiedByReal }),
+                    ...(lastModifiedByRealId != null && {
+                      lastModifiedByRealId,
+                    }),
+                    ...(lastModifiedByRealRole && { lastModifiedByRealRole }),
+                    ...(lastModifiedByRealEmpresa && {
+                      lastModifiedByRealEmpresa,
+                    }),
+                  };
+                }
               }
 
-              if (registroCreacion && registroCreacion.usuario) {
-                return {
-                  ...item,
-                  createdByReal: registroCreacion.usuario,
-                  createdByRealId: registroCreacion.idusuario,
-                  createdByRealRole: registroCreacion.rol || null,
-                  createdByRealEmpresa: registroCreacion.empresa || null,
-                  lastModifiedByReal: lastModifiedByReal ?? undefined,
-                  lastModifiedByRealId: lastModifiedByRealId ?? undefined,
-                  lastModifiedByRealRole: lastModifiedByRealRole ?? undefined,
-                  lastModifiedByRealEmpresa:
-                    lastModifiedByRealEmpresa ?? undefined,
-                };
-              }
-              if (lastModifiedByReal || lastModifiedByRealEmpresa) {
-                return {
-                  ...item,
-                  ...(lastModifiedByReal && { lastModifiedByReal }),
-                  ...(lastModifiedByRealId != null && { lastModifiedByRealId }),
-                  ...(lastModifiedByRealRole && { lastModifiedByRealRole }),
-                  ...(lastModifiedByRealEmpresa && {
-                    lastModifiedByRealEmpresa,
-                  }),
-                };
-              }
+              return item;
+            } catch (error) {
+              // Si falla la búsqueda, retornar item original
+              return item;
             }
-
-            return item;
-          } catch (error) {
-            // Si falla la búsqueda, retornar item original
-            return item;
-          }
-        }),
-      );
+          }),
+        );
+        itemsEnriquecidos.push(...lote);
+      }
 
       // Filtrar los null (carpetas sin acceso)
       const itemsFiltrados = itemsEnriquecidos.filter(

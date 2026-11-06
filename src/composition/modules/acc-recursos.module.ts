@@ -13,6 +13,7 @@ import { AccRecursosRepository } from '../../infrastructure/repositories/acc-rec
 import { AuditoriaRepository } from '../../infrastructure/repositories/auditoria.repository';
 import { AccRecursosController } from '../../presentation/controllers/acc-recursos.controller';
 import { DatabaseModule } from './platform/database.module';
+import { applicationProvider } from '../application.providers';
 
 import { applicationProvider } from '../application.providers';
 

@@ -1,45 +1,51 @@
-import {
-  IsNotEmpty,
-  IsArray,
-  IsEmail,
-  IsString,
-  IsOptional,
-  IsIn,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 class UsuarioImportDto {
-  @IsNotEmpty()
-  @IsEmail()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<UsuarioImportDto> =
+    defineZodDto<UsuarioImportDto>('UsuarioImportDto', {
+      email: { schema: z.string().min(1).email().max(255) },
+      company_id: { schema: z.string(), optional: true },
+      first_name: { schema: z.string().max(255), optional: true },
+      last_name: { schema: z.string().max(255), optional: true },
+    });
+
   email: string;
 
-  @IsOptional()
-  @IsString()
   company_id?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   first_name?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   last_name?: string;
 }
 
 export class ImportarUsuariosDto {
-  @IsNotEmpty({ message: 'Los usuarios son requeridos' })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => UsuarioImportDto)
+  static readonly schema: z.ZodType<ImportarUsuariosDto> =
+    defineZodDto<ImportarUsuariosDto>('ImportarUsuariosDto', {
+      users: {
+        schema: z
+          .array(z.lazy(() => UsuarioImportDto.schema))
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      region: {
+        schema: z
+          .string()
+          .refine(
+            (value) => (['US', 'EMEA'] as readonly unknown[]).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['US', 'EMEA'] }),
+        optional: true,
+      },
+    });
+
   users: UsuarioImportDto[];
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['US', 'EMEA'])
   region?: string;
 }

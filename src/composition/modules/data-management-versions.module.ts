@@ -17,6 +17,7 @@ import { HttpClientService } from '../../infrastructure/http/http-client.service
 import { AccRepository } from '../../infrastructure/repositories/acc.repository';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { DataManagementVersionsController } from '../../presentation/controllers/data-management-versions.controller';
+import { applicationProvider } from '../application.providers';
 
 import { applicationProvider } from '../application.providers';
 

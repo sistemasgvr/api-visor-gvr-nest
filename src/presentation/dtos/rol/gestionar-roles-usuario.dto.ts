@@ -1,8 +1,21 @@
-import { IsArray, IsInt, IsNotEmpty } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class GestionarRolesUsuarioDto {
-  @IsNotEmpty({ message: 'Los roles son requeridos' })
-  @IsArray()
-  @IsInt({ each: true, message: 'Cada rol debe ser un número entero' })
+  static readonly schema: z.ZodType<GestionarRolesUsuarioDto> =
+    defineZodDto<GestionarRolesUsuarioDto>('GestionarRolesUsuarioDto', {
+      rolesIds: {
+        schema: z
+          .array(z.number().int())
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+    });
+
   rolesIds: number[];
 }

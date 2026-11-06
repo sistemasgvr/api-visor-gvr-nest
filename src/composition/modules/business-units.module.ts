@@ -10,6 +10,7 @@ import {
 import { HttpClientService } from '../../infrastructure/http/http-client.service';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { BusinessUnitsController } from '../../presentation/controllers/business-units.controller';
+import { applicationProvider } from '../application.providers';
 
 import { applicationProvider } from '../application.providers';
 

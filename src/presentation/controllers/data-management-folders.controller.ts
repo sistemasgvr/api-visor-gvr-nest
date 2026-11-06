@@ -12,6 +12,7 @@ import {
   Query,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
@@ -62,13 +63,29 @@ import { CrearSubcarpetaDto } from '../dtos/data-management/folders/crear-subcar
 import { CrearReferenciaDto } from '../dtos/data-management/folders/crear-referencia.dto';
 import { ActualizarCarpetaDto } from '../dtos/data-management/folders/actualizar-carpeta.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { DocumentAccessService } from '../../application/services/document-access.service';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
 @Controller('data-management/folders')
 @UseGuards(JwtAuthGuard)
 export class DataManagementFoldersController {
+  private actor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
+  private requiredFolder(folderId: unknown): string {
+    if (typeof folderId !== 'string' || !folderId.trim())
+      throw new BadRequestException('Se requiere la carpeta de destino');
+    return folderId.trim();
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     // Group 1
     private readonly obtenerCarpetaPorIdUseCase: ObtenerCarpetaPorIdUseCase,
     private readonly obtenerContenidoCarpetaUseCase: ObtenerContenidoCarpetaUseCase,
@@ -102,6 +119,7 @@ export class DataManagementFoldersController {
   })
   @Post(':projectId/:folderId/export/file-registry/pdf')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async exportarRegistroArchivosPdf(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -109,6 +127,13 @@ export class DataManagementFoldersController {
     @Body() dto: ExportarRegistroArchivosPdfDto,
     @Res() res: Response,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'view',
+    );
     if (!projectId || !folderId) {
       throw new BadRequestException('projectId y folderId son requeridos');
     }
@@ -146,6 +171,7 @@ export class DataManagementFoldersController {
   })
   @Post(':projectId/:folderId/export/permissions/pdf')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async exportarPermisosCarpetaPdf(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -153,6 +179,13 @@ export class DataManagementFoldersController {
     @Body() dto: ExportarPermisosCarpetaPdfDto,
     @Res() res: Response,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'manage_permissions',
+    );
     if (!projectId || !folderId) {
       throw new BadRequestException('projectId y folderId son requeridos');
     }
@@ -190,12 +223,20 @@ export class DataManagementFoldersController {
   })
   @Get(':projectId/:folderId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerCarpetaPorId(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
     @Query() dto: ObtenerCarpetaPorIdDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerCarpetaPorIdUseCase.execute(
       user.sub,
@@ -220,11 +261,19 @@ export class DataManagementFoldersController {
   })
   @Delete(':projectId/:folderId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async eliminarCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'delete_folder',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -264,11 +313,19 @@ export class DataManagementFoldersController {
   })
   @Get(':projectId/:folderId/deleted-contents')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerElementosEliminados(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'edit',
+    );
     const user = request.user!;
     const userRole =
       user?.roles && Array.isArray(user.roles) && user.roles.length > 0
@@ -297,11 +354,19 @@ export class DataManagementFoldersController {
   })
   @Post(':projectId/:folderId/restore')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async restaurarCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'delete_folder',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -338,12 +403,20 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Listar contenido de la carpeta (items y refs)' })
   @Get(':projectId/:folderId/contents')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerContenidoCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
     @Query() queryParams: any, // Usar any en lugar de DTO para permitir cualquier parámetro
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'view',
+    );
     const user = request.user!;
     const userRole =
       user?.roles && Array.isArray(user.roles) && user.roles.length > 0
@@ -372,12 +445,20 @@ export class DataManagementFoldersController {
   })
   @Get(':projectId/:folderId/search-content')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async buscarEnContenidoCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
     @Query() dto: BuscarEnContenidoCarpetaDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.buscarEnContenidoCarpetaUseCase.execute(
       user.sub,
@@ -399,12 +480,20 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Obtener carpeta padre' })
   @Get(':projectId/:folderId/parent')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerCarpetaPadre(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
     @Query() dto: ObtenerCarpetaPadreDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerCarpetaPadreUseCase.execute(
       user.sub,
@@ -426,12 +515,20 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Referencias (refs) de la carpeta' })
   @Get(':projectId/:folderId/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerReferencias(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
     @Query() dto: ObtenerReferenciasDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerReferenciasUseCase.execute(
       user.sub,
@@ -453,12 +550,20 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Relaciones links declaradas sobre la carpeta' })
   @Get(':projectId/:folderId/relationships/links')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesLinks(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
     @Query() dto: ObtenerRelacionesLinksDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerRelacionesLinksUseCase.execute(
       user.sub,
@@ -480,12 +585,20 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Relaciones refs declaradas sobre la carpeta' })
   @Get(':projectId/:folderId/relationships/refs')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerRelacionesRefs(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
     @Query() dto: ObtenerRelacionesRefsDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.obtenerRelacionesRefsUseCase.execute(
       user.sub,
@@ -507,12 +620,20 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Búsqueda global APS dentro de carpeta base' })
   @Get(':projectId/:folderId/search')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async buscarEnCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
     @Query() dto: BuscarEnCarpetaDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'view',
+    );
     const user = request.user!;
     const resultado = await this.buscarEnCarpetaUseCase.execute(
       user.sub,
@@ -534,11 +655,19 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Crear carpeta de nivel alto en proyecto' })
   @Post(':projectId')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Body() dto: CrearCarpetaDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      this.requiredFolder(dto?.data?.relationships?.parent?.data?.id),
+      'create_folder',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -567,12 +696,20 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Crear subcarpeta bajo un folder padre' })
   @Post(':projectId/:parentFolderId/subfolders')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearSubcarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('parentFolderId') parentFolderId: string,
     @Body() dto: CrearSubcarpetaDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      parentFolderId,
+      'create_folder',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -602,12 +739,20 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Adjuntar ref de otro recurso a la carpeta' })
   @Post(':projectId/:folderId/relationships/refs')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async crearReferencia(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
     @Body() dto: CrearReferenciaDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'edit',
+    );
     const user = request.user!;
     const resultado = await this.crearReferenciaCarpetaUseCase.execute(
       user.sub,
@@ -629,12 +774,20 @@ export class DataManagementFoldersController {
   @ApiOperation({ summary: 'Actualizar nombre o metadatos de carpeta' })
   @Patch(':projectId/:folderId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async actualizarCarpeta(
     @Req() request: Request,
     @Param('projectId') projectId: string,
     @Param('folderId') folderId: string,
     @Body() dto: ActualizarCarpetaDto,
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      folderId,
+      'edit',
+    );
     const user = request.user!;
     const requestInfo = RequestInfoHelper.extract(request);
     const userRole =
@@ -668,12 +821,20 @@ export class DataManagementFoldersController {
   })
   @Post('sync/:hubId/:projectId')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async sincronizarCarpetasProyecto(
     @Req() request: Request,
     @Param('hubId') hubId: string,
     @Param('projectId') projectId: string,
     @Body() body?: { roles_ids?: number[] },
   ) {
+    // Nivel del proyecto/carpeta (useraccaccess); el rol sólo aporta el acceso total.
+    await this.documentAccess.assertFolder(
+      this.actor(request),
+      projectId,
+      null,
+      'manage_permissions',
+    );
     const user = request.user!;
     const rolesIds = body?.roles_ids;
     const resultado = await this.sincronizarCarpetasProyectoUseCase.execute(

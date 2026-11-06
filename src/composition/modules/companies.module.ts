@@ -15,6 +15,7 @@ import {
   CompaniesController,
   ProjectsCompaniesController,
 } from '../../presentation/controllers/companies.controller';
+import { applicationProvider } from '../application.providers';
 
 import { applicationProvider } from '../application.providers';
 

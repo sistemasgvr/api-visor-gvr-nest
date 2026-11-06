@@ -1,10 +1,14 @@
-import { IsString, IsOptional } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class CrearComentarioDto {
-  @IsString()
+  static readonly schema: z.ZodType<CrearComentarioDto> =
+    defineZodDto<CrearComentarioDto>('acc_issues_CrearComentarioDto', {
+      body: { schema: z.string() },
+      issueId: { schema: z.string(), optional: true },
+    });
+
   body: string;
 
-  @IsOptional()
-  @IsString()
   issueId?: string;
 }

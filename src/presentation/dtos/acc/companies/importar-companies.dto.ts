@@ -1,86 +1,78 @@
-import {
-  IsNotEmpty,
-  IsArray,
-  IsString,
-  IsOptional,
-  IsIn,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 class CompanyImportDto {
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(255)
-  name: string;
+  static readonly schema: z.ZodType<CompanyImportDto> =
+    defineZodDto<CompanyImportDto>('CompanyImportDto', {
+      name: { schema: z.string().min(1).max(255) },
+      trade: { schema: z.string().min(1) },
+      address_line_1: { schema: z.string().max(255), optional: true },
+      address_line_2: { schema: z.string().max(255), optional: true },
+      city: { schema: z.string().max(255), optional: true },
+      state_or_province: { schema: z.string().max(255), optional: true },
+      postal_code: { schema: z.string().max(255), optional: true },
+      country: { schema: z.string(), optional: true },
+      phone: { schema: z.string().max(255), optional: true },
+      website_url: { schema: z.string().max(255), optional: true },
+      description: { schema: z.string().max(255), optional: true },
+      erp_id: { schema: z.string(), optional: true },
+      tax_id: { schema: z.string(), optional: true },
+    });
 
-  @IsNotEmpty()
-  @IsString()
-  trade: string;
+  name!: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
+  trade!: string;
+
   address_line_1?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   address_line_2?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   city?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   state_or_province?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   postal_code?: string;
 
-  @IsOptional()
-  @IsString()
   country?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   phone?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   website_url?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
   description?: string;
 
-  @IsOptional()
-  @IsString()
   erp_id?: string;
 
-  @IsOptional()
-  @IsString()
   tax_id?: string;
 }
 
 export class ImportarCompaniesDto {
-  @IsNotEmpty({ message: 'Las compañías son requeridas' })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CompanyImportDto)
-  companies: CompanyImportDto[];
+  static readonly schema: z.ZodType<ImportarCompaniesDto> =
+    defineZodDto<ImportarCompaniesDto>('ImportarCompaniesDto', {
+      companies: {
+        schema: z
+          .array(z.lazy(() => CompanyImportDto.schema))
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+      region: {
+        schema: z
+          .string()
+          .refine(
+            (value) => (['US', 'EMEA'] as readonly unknown[]).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['US', 'EMEA'] }),
+        optional: true,
+      },
+    });
 
-  @IsOptional()
-  @IsString()
-  @IsIn(['US', 'EMEA'])
+  companies!: CompanyImportDto[];
+
   region?: string;
 }

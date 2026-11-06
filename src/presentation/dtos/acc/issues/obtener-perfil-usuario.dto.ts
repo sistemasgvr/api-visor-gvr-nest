@@ -1,6 +1,12 @@
-import { IsString } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class ObtenerPerfilUsuarioDto {
-  @IsString()
+  static readonly schema: z.ZodType<ObtenerPerfilUsuarioDto> =
+    defineZodDto<ObtenerPerfilUsuarioDto>(
+      'acc_issues_ObtenerPerfilUsuarioDto',
+      { projectId: { schema: z.string() } },
+    );
+
   projectId: string;
 }

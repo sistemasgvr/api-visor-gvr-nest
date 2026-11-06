@@ -1,9 +1,22 @@
-import { IsArray, IsInt, IsNotEmpty, ArrayMinSize } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class AsignarRolesMenuDto {
-  @IsNotEmpty({ message: 'Los roles son requeridos' })
-  @IsArray()
-  @ArrayMinSize(1, { message: 'Debe proporcionar al menos un rol' })
-  @IsInt({ each: true, message: 'Cada rol debe ser un número entero' })
+  static readonly schema: z.ZodType<AsignarRolesMenuDto> =
+    defineZodDto<AsignarRolesMenuDto>('AsignarRolesMenuDto', {
+      roles: {
+        schema: z
+          .array(z.number().int())
+          .min(1)
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+    });
+
   roles: number[];
 }

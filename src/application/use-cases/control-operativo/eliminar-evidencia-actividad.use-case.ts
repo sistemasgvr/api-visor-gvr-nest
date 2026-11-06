@@ -1,5 +1,5 @@
 import { type IControlOperativoRepository } from '../../../domain/repositories/control-operativo.repository.interface';
-import { ForbiddenError, NotFoundError } from '../../errors/application.error';
+import { NotFoundError } from '../../errors/application.error';
 import { MinioStoragePort } from '../../ports/minio-storage.port';
 
 export interface EliminarEvidenciaActividadInput {
@@ -21,23 +21,11 @@ export class EliminarEvidenciaActividadUseCase {
     if (input.idEvidencia == null || input.idEvidencia < 1) {
       throw new NotFoundError('Evidencia no encontrada');
     }
-    const idTrabajador =
-      await this.controlOperativoRepository.obtenerIdTrabajadorPorIdUsuario(
-        input.idUsuario,
-      );
-    if (idTrabajador == null) {
-      throw new ForbiddenError('Sin perfil de trabajador asociado al usuario');
-    }
     const actividad = await this.controlOperativoRepository.obtenerActividad(
       input.idActividad,
     );
     if (actividad == null) {
       throw new NotFoundError('Actividad no encontrada');
-    }
-    if (actividad.idtrabajador !== idTrabajador) {
-      throw new ForbiddenError(
-        'Solo puede eliminar evidencias de sus propias actividades',
-      );
     }
     const urlAlmacenada =
       await this.controlOperativoRepository.eliminarEvidenciaActividad({

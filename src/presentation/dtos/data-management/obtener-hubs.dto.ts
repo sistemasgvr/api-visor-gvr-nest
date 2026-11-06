@@ -1,8 +1,12 @@
-import { IsOptional, IsString, IsObject } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class ObtenerHubsDto {
-  @IsOptional()
-  @IsObject()
+  static readonly schema: z.ZodType<ObtenerHubsDto> =
+    defineZodDto<ObtenerHubsDto>('ObtenerHubsDto', {
+      filters: { schema: z.record(z.string(), z.unknown()), optional: true },
+    });
+
   filters?: {
     id?: string;
     name?: string;

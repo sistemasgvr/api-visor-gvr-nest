@@ -41,7 +41,7 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
     callFunction.mockResolvedValue(rows);
     expect(await repository.habilitarJornadasUsuarios(params)).toEqual(rows);
     expect(callFunction).toHaveBeenCalledWith(
-      'con_HabilitarJornadasUsuariosV2',
+      'con_HabilitarJornadasUsuariosV3',
       [[101, 102], '2026-10-12', '2026-10-16', 120, 7],
     );
   });
@@ -63,7 +63,7 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
       fechaFin: '2026-10-16',
     });
     expect(callFunction).toHaveBeenCalledWith(
-      'con_ListarJornadasTrabajadorV2',
+      'con_ListarJornadasTrabajadorV3',
       [101, '2026-10-12', '2026-10-16', 10, 0],
     );
     expect(result).toMatchObject({
@@ -81,7 +81,7 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
       fechaJornada: '2026-10-12',
     });
     expect(callFunctionSingle).toHaveBeenCalledWith(
-      'con_CrearJornadaV2',
+      'con_CrearJornadaV3',
       expect.any(Array),
     );
   });
@@ -136,11 +136,11 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
   it.each([true, false])(
     'lee correctamente el booleano %s de eliminación V2',
     async (value) => {
-      callFunctionSingle.mockResolvedValue({ con_EliminarActividadV2: value });
-      expect(await repository.eliminarActividad(30)).toBe(value);
+      callFunctionSingle.mockResolvedValue({ con_EliminarActividadV3: value });
+      expect(await repository.eliminarActividad(30, 23)).toBe(value);
       expect(callFunctionSingle).toHaveBeenCalledWith(
-        'con_EliminarActividadV2',
-        [30],
+        'con_EliminarActividadV3',
+        [30, 23],
       );
     },
   );
@@ -154,7 +154,7 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
       nombreActividad: 'Actividad',
     };
     await repository.crearActividad({ ...base, idJornada: 30 });
-    expect(callFunction).toHaveBeenLastCalledWith('con_CrearActividadV3', [
+    expect(callFunction).toHaveBeenLastCalledWith('con_CrearActividadV4', [
       30,
       1,
       101,
@@ -171,13 +171,14 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
       null,
       null,
       false,
+      null,
     ]);
     await repository.actualizarActividad({
       ...base,
       idActividad: 40,
       corregirObservacion: true,
     });
-    expect(callFunction).toHaveBeenLastCalledWith('con_ActualizarActividadV3', [
+    expect(callFunction).toHaveBeenLastCalledWith('con_ActualizarActividadV4', [
       40,
       1,
       101,
@@ -194,12 +195,13 @@ describe('Contrato PostgreSQL de jornadas versionadas', () => {
       null,
       null,
       false,
+      null,
     ]);
   });
 
   it('ejecuta el cron V2 y el cierre específico sin fecha simulada', async () => {
     await repository.ejecutarCronCierreJornadas('2026-10-16');
-    expect(callFunction).toHaveBeenCalledWith('con_CronCierreJornadasV2', [
+    expect(callFunction).toHaveBeenCalledWith('con_CronCierreJornadasV3', [
       '2026-10-16',
     ]);
     callFunctionSingle.mockResolvedValue({

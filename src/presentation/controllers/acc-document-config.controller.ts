@@ -13,6 +13,11 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import {
+  RequireDocumentProject,
+  DocumentLevelAccess,
+} from '../../infrastructure/auth/document-access.guard';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import type { Request } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
@@ -45,7 +50,15 @@ import { UpsertDocumentMetadataDto } from '../dtos/acc/document-config/upsert-do
 @Controller('acc/docs-config')
 @UseGuards(JwtAuthGuard)
 export class AccDocumentConfigController {
+  private documentActor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly listarDocumentAttributesUseCase: ListarDocumentAttributesUseCase,
     private readonly upsertDocumentAttributeUseCase: UpsertDocumentAttributeUseCase,
     private readonly listarDocumentNamingStandardsUseCase: ListarDocumentNamingStandardsUseCase,
@@ -61,6 +74,7 @@ export class AccDocumentConfigController {
     private readonly listarDocumentMetadataPorCarpetaUseCase: ListarDocumentMetadataPorCarpetaUseCase,
   ) {}
 
+  @RequireDocumentProject('member', 'projectExternalId')
   @Get(':projectExternalId/attributes')
   @ApiOperation({ summary: 'Listar atributos de documentos del proyecto' })
   async listarAttributes(
@@ -86,6 +100,7 @@ export class AccDocumentConfigController {
     );
   }
 
+  @RequireDocumentProject('admin', 'projectExternalId')
   @Post(':projectExternalId/attributes')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Crear o actualizar atributo de documento' })
@@ -114,6 +129,7 @@ export class AccDocumentConfigController {
     );
   }
 
+  @RequireDocumentProject('member', 'projectExternalId')
   @Get(':projectExternalId/naming-standards')
   @ApiOperation({ summary: 'Listar nomenclaturas del proyecto' })
   async listarNamingStandards(
@@ -129,6 +145,7 @@ export class AccDocumentConfigController {
     );
   }
 
+  @RequireDocumentProject('admin', 'projectExternalId')
   @Post(':projectExternalId/naming-standards')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Crear o actualizar nomenclatura' })
@@ -155,6 +172,7 @@ export class AccDocumentConfigController {
     );
   }
 
+  @RequireDocumentProject('admin', 'projectExternalId')
   @Post(':projectExternalId/naming-standards/from-template')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Crear nomenclatura desde plantilla (ISO 19650)' })
@@ -180,6 +198,7 @@ export class AccDocumentConfigController {
     );
   }
 
+  @RequireDocumentProject('member', 'projectExternalId')
   @Get(':projectExternalId/naming-templates/:templateCode/preview')
   @ApiOperation({
     summary: 'Obtener vista previa de plantilla de nomenclatura',
@@ -191,10 +210,18 @@ export class AccDocumentConfigController {
 
   @Get(':projectExternalId/folders/:folderExternalId/naming-rule')
   @ApiOperation({ summary: 'Obtener regla de nomenclatura de una carpeta' })
+  @DocumentLevelAccess()
   async obtenerFolderNamingRule(
+    @Req() request: Request,
     @Param('projectExternalId') projectExternalId: string,
     @Param('folderExternalId') folderExternalId: string,
   ) {
+    await this.documentAccess.assertFolder(
+      this.documentActor(request),
+      projectExternalId,
+      folderExternalId,
+      'view',
+    );
     const data = await this.obtenerFolderNamingRuleUseCase.execute(
       projectExternalId,
       folderExternalId,
@@ -205,6 +232,7 @@ export class AccDocumentConfigController {
     );
   }
 
+  @RequireDocumentProject('admin', 'projectExternalId')
   @Put(':projectExternalId/folders/:folderExternalId/naming-rule')
   @ApiOperation({ summary: 'Asignar nomenclatura a una carpeta' })
   async upsertFolderNamingRule(
@@ -227,6 +255,7 @@ export class AccDocumentConfigController {
     );
   }
 
+  @RequireDocumentProject('admin', 'projectExternalId')
   @Delete(':projectExternalId/folders/:folderExternalId/naming-rule')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -253,10 +282,18 @@ export class AccDocumentConfigController {
   @Post(':projectExternalId/generate-name')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Generar nombre de documento según nomenclatura' })
+  @DocumentLevelAccess()
   async generarNombre(
+    @Req() request: Request,
     @Param('projectExternalId') projectExternalId: string,
     @Body() dto: GenerarNombreDocumentoDto,
   ) {
+    await this.documentAccess.assertFolder(
+      this.documentActor(request),
+      projectExternalId,
+      dto?.folderExternalId,
+      'upload',
+    );
     const data = await this.generarNombreDocumentoUseCase.execute({
       projectExternalId,
       folderExternalId: dto.folderExternalId,
@@ -269,10 +306,18 @@ export class AccDocumentConfigController {
 
   @Get(':projectExternalId/folders/:folderExternalId/metadata')
   @ApiOperation({ summary: 'Listar metadatos GVR de archivos en una carpeta' })
+  @DocumentLevelAccess()
   async listarMetadataPorCarpeta(
+    @Req() request: Request,
     @Param('projectExternalId') projectExternalId: string,
     @Param('folderExternalId') folderExternalId: string,
   ) {
+    await this.documentAccess.assertFolder(
+      this.documentActor(request),
+      projectExternalId,
+      folderExternalId,
+      'view',
+    );
     const data = await this.listarDocumentMetadataPorCarpetaUseCase.execute(
       projectExternalId,
       folderExternalId,
@@ -285,10 +330,18 @@ export class AccDocumentConfigController {
 
   @Get(':projectExternalId/metadata/:itemExternalId')
   @ApiOperation({ summary: 'Obtener metadatos GVR de un documento' })
+  @DocumentLevelAccess()
   async obtenerMetadata(
+    @Req() request: Request,
     @Param('projectExternalId') projectExternalId: string,
     @Param('itemExternalId') itemExternalId: string,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectExternalId,
+      itemExternalId,
+      'view',
+    );
     const data = await this.obtenerDocumentMetadataUseCase.execute(
       projectExternalId,
       itemExternalId,
@@ -299,11 +352,18 @@ export class AccDocumentConfigController {
   @Post(':projectExternalId/metadata')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Guardar metadatos GVR tras subida a ACC' })
+  @DocumentLevelAccess()
   async upsertMetadata(
     @Param('projectExternalId') projectExternalId: string,
     @Body() dto: UpsertDocumentMetadataDto,
     @Req() req: Request,
   ) {
+    await this.documentAccess.assertFolder(
+      this.documentActor(req),
+      projectExternalId,
+      dto?.folderExternalId,
+      'upload',
+    );
     const userId = this.getUserId(req);
     const data = await this.upsertDocumentMetadataUseCase.execute({
       projectExternalId,

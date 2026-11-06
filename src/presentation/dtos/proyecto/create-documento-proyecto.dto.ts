@@ -1,15 +1,17 @@
-import { IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class CreateDocumentoProyectoDto {
-  @IsInt()
+  static readonly schema: z.ZodType<CreateDocumentoProyectoDto> =
+    defineZodDto<CreateDocumentoProyectoDto>('CreateDocumentoProyectoDto', {
+      idTipoDocumento: { schema: z.number().int() },
+      nombre: { schema: z.string().max(255) },
+      linkDocumento: { schema: z.string().max(1000), optional: true },
+    });
+
   idTipoDocumento: number;
 
-  @IsString()
-  @MaxLength(255)
   nombre: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(1000)
   linkDocumento?: string;
 }

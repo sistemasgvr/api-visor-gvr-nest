@@ -1,10 +1,16 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../validation/zod-dto';
 
 export class LoginDto {
-  @IsEmail()
+  static readonly schema: z.ZodType<LoginDto> = defineZodDto<LoginDto>(
+    'LoginDto',
+    {
+      correo: { schema: z.string().email() },
+      contrasena: { schema: z.string().min(6) },
+    },
+  );
+
   correo: string;
 
-  @IsString()
-  @MinLength(6)
   contrasena: string;
 }

@@ -13,6 +13,7 @@ import {
 import { HttpClientService } from '../../infrastructure/http/http-client.service';
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { AccAccountUsersController } from '../../presentation/controllers/acc-account-users.controller';
+import { applicationProvider } from '../application.providers';
 
 import { applicationProvider } from '../application.providers';
 

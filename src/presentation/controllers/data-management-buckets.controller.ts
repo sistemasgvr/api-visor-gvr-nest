@@ -27,6 +27,7 @@ import {
 } from '../dtos/data-management/buckets';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
@@ -47,6 +48,7 @@ export class DataManagementBucketsController {
   @ApiOperation({ summary: 'Listar buckets OSS del usuario' })
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.almacenamiento_acc.ver')
   async obtenerBuckets(
     @Req() request: Request,
     @Query() dto: ObtenerBucketsDto,
@@ -70,6 +72,7 @@ export class DataManagementBucketsController {
   @ApiOperation({ summary: 'Detalle y políticas de un bucket' })
   @Get(':bucketKey/details')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.almacenamiento_acc.ver')
   async obtenerDetallesBucket(
     @Req() request: Request,
     @Param('bucketKey') bucketKey: string,
@@ -99,6 +102,7 @@ export class DataManagementBucketsController {
   @ApiOperation({ summary: 'Crear bucket OSS' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.almacenamiento_acc.crear')
   async crearBucket(@Req() request: Request, @Body() dto: CrearBucketDto) {
     const user = request.user!;
     const resultado = await this.crearBucketUseCase.execute(user.sub, dto);
@@ -113,6 +117,7 @@ export class DataManagementBucketsController {
   @ApiOperation({ summary: 'Eliminar bucket (y objetos según política)' })
   @Delete(':bucketKey')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.almacenamiento_acc.eliminar')
   async eliminarBucket(
     @Req() request: Request,
     @Param('bucketKey') bucketKey: string,

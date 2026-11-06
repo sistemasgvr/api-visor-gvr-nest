@@ -13,10 +13,12 @@ import {
   UseGuards,
   Req,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import {
   ListarRecursosUseCase,
   ObtenerRecursoPorIdUseCase,
@@ -52,13 +54,26 @@ import {
 } from '../dtos/acc/resources';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  RequireGranularPermission,
+  AuthenticatedAccess,
+} from '../../infrastructure/auth/granular-permission.guard';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc')
 @ApiBearerAuth('access-token')
 @Controller('acc/resources')
 @UseGuards(JwtAuthGuard)
 export class AccResourcesController {
+  private actor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly listarRecursosUseCase: ListarRecursosUseCase,
     private readonly obtenerRecursoPorIdUseCase: ObtenerRecursoPorIdUseCase,
     private readonly crearRecursoUseCase: CrearRecursoUseCase,
@@ -90,6 +105,7 @@ export class AccResourcesController {
   })
   @Get('permission-levels')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess('Catálogo de niveles documentales (Ver … Administrar)')
   async listPermissionLevels() {
     const resultado = await this.listarNivelesPermisoUseCase.execute();
     return ApiResponseDto.success(
@@ -107,6 +123,7 @@ export class AccResourcesController {
   })
   @Get()
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc.ver')
   async index(@Query() dto: ListarRecursosDto) {
     const resultado = await this.listarRecursosUseCase.execute(dto);
     if (resultado.pagination) {
@@ -137,10 +154,13 @@ export class AccResourcesController {
   })
   @Get('roles/:roleId/permissions')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc.ver_permisos')
   async listRolePermissions(
+    @Req() request: Request,
     @Param('roleId') roleId: string,
     @Query() dto: ListarPermisosRolDto,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
     const roleIdNum = parseInt(roleId, 10);
     if (isNaN(roleIdNum)) {
       throw new BadRequestException('El ID del rol debe ser un número válido');
@@ -176,7 +196,12 @@ export class AccResourcesController {
   @ApiOperation({ summary: 'Roles con acceso efectivo a un recurso' })
   @Get(':resourceId/roles')
   @HttpCode(HttpStatus.OK)
-  async listResourceRoles(@Param('resourceId') resourceId: string) {
+  @RequireGranularPermission('gestion_bim.recursos_acc.ver_permisos')
+  async listResourceRoles(
+    @Req() request: Request,
+    @Param('resourceId') resourceId: string,
+  ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
     const resourceIdNum = parseInt(resourceId, 10);
     if (isNaN(resourceIdNum)) {
       throw new BadRequestException(
@@ -201,6 +226,7 @@ export class AccResourcesController {
   })
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc.ver')
   async show(@Param('id') id: string) {
     const resourceId = parseInt(id, 10);
     if (isNaN(resourceId)) {
@@ -223,7 +249,14 @@ export class AccResourcesController {
   })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async store(@Body() dto: CrearRecursoDto, @Req() request: Request) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertRegistration(this.actor(request), {
+      externalId: String(dto.external_id ?? ''),
+      type: String(dto.resource_type ?? ''),
+      parentId: (dto as { parent_id?: number }).parent_id,
+    });
     const user = request.user!;
     const userId = user?.sub || user?.id || 1;
 
@@ -241,11 +274,18 @@ export class AccResourcesController {
   @ApiOperation({ summary: 'Actualizar recurso (soft fields, path, etc.)' })
   @Put(':id')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async update(
     @Param('id') id: string,
     @Body() dto: ActualizarRecursoDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { resourceId: Number(id) },
+      'manage_permissions',
+    );
     const resourceId = parseInt(id, 10);
     if (isNaN(resourceId)) {
       throw new BadRequestException(
@@ -274,7 +314,14 @@ export class AccResourcesController {
   @ApiOperation({ summary: 'Borrado lógico de recurso enlazado ACC' })
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async destroy(@Param('id') id: string, @Req() request: Request) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { resourceId: Number(id) },
+      'manage_permissions',
+    );
     const resourceId = parseInt(id, 10);
     if (isNaN(resourceId)) {
       throw new BadRequestException(
@@ -302,10 +349,12 @@ export class AccResourcesController {
   @ApiOperation({ summary: 'Asignar recurso concreto a rol con nivel APS' })
   @Post('permissions')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.recursos_acc.asignar_permisos_rol')
   async assignPermission(
     @Body() dto: AsignarPermisoDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
     const user = request.user!;
     const userId = user?.sub || user?.id || 1;
 
@@ -323,7 +372,9 @@ export class AccResourcesController {
   @ApiOperation({ summary: 'Quitar vínculo recurso-rol' })
   @Delete('permissions/:id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc.asignar_permisos_rol')
   async removePermission(@Param('id') id: string, @Req() request: Request) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
     const permissionId = parseInt(id, 10);
     if (isNaN(permissionId)) {
       throw new BadRequestException(
@@ -353,11 +404,13 @@ export class AccResourcesController {
   })
   @Put('roles/:roleId/permissions/sync')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc.asignar_permisos_rol')
   async syncRolePermissions(
     @Param('roleId') roleId: string,
     @Body() dto: SincronizarPermisosRolDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
     const roleIdNum = parseInt(roleId, 10);
     if (isNaN(roleIdNum)) {
       throw new BadRequestException('El ID del rol debe ser un número válido');
@@ -391,7 +444,9 @@ export class AccResourcesController {
   })
   @Get('users/:userId/permissions')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc.ver_permisos')
   async listUserPermissions(
+    @Req() request: Request,
     @Param('userId') userId: string,
     @Query() dto: ListarPermisosUsuarioDto,
   ) {
@@ -435,10 +490,18 @@ export class AccResourcesController {
   })
   @Get(':resourceId/users/available')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async listAvailableUsersForResource(
+    @Req() request: Request,
     @Param('resourceId') resourceId: string,
     @Query() dto: ListarUsuariosDisponiblesRecursoDto,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { resourceId: Number(resourceId) },
+      'manage_permissions',
+    );
     const resourceIdNum = parseInt(resourceId, 10);
     if (isNaN(resourceIdNum)) {
       throw new BadRequestException(
@@ -477,7 +540,17 @@ export class AccResourcesController {
   @ApiOperation({ summary: 'Usuarios con permiso directo sobre el recurso' })
   @Get(':resourceId/users')
   @HttpCode(HttpStatus.OK)
-  async listResourceUsers(@Param('resourceId') resourceId: string) {
+  @DocumentLevelAccess()
+  async listResourceUsers(
+    @Req() request: Request,
+    @Param('resourceId') resourceId: string,
+  ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { resourceId: Number(resourceId) },
+      'view',
+    );
     const resourceIdNum = parseInt(resourceId, 10);
     if (isNaN(resourceIdNum)) {
       throw new BadRequestException(
@@ -502,10 +575,17 @@ export class AccResourcesController {
   })
   @Post('users/permissions')
   @HttpCode(HttpStatus.CREATED)
+  @DocumentLevelAccess()
   async assignUserPermission(
     @Body() dto: AsignarPermisoUsuarioDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { resourceId: Number(dto.resource_id) },
+      'manage_permissions',
+    );
     const user = request.user!;
     const userId = user?.sub || user?.id || 1;
 
@@ -528,11 +608,18 @@ export class AccResourcesController {
   })
   @Patch('users/permissions/:id/level')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async updateUserPermissionLevel(
     @Param('id') id: string,
     @Body() dto: ActualizarNivelPermisoUsuarioDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { assignmentId: Number(id) },
+      'manage_permissions',
+    );
     const permissionId = parseInt(id, 10);
     if (isNaN(permissionId)) {
       throw new BadRequestException(
@@ -561,7 +648,14 @@ export class AccResourcesController {
   @ApiOperation({ summary: 'Revocar permiso directo usuario-recurso' })
   @Delete('users/permissions/:id')
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async removeUserPermission(@Param('id') id: string, @Req() request: Request) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
+    await this.documentAccess.assertResource(
+      this.actor(request),
+      { assignmentId: Number(id) },
+      'manage_permissions',
+    );
     const permissionId = parseInt(id, 10);
     if (isNaN(permissionId)) {
       throw new BadRequestException(
@@ -592,11 +686,15 @@ export class AccResourcesController {
   })
   @Put('users/:userId/permissions/sync')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission(
+    'gestion_bim.recursos_acc.asignar_permisos_usuario',
+  )
   async syncUserPermissions(
     @Param('userId') userId: string,
     @Body() dto: SincronizarPermisosUsuarioDto,
     @Req() request: Request,
   ) {
+    // Gestionar accesos exige nivel «Administrar» en el recurso o acceso total.
     const userIdNum = parseInt(userId, 10);
     if (isNaN(userIdNum)) {
       throw new BadRequestException(

@@ -8,10 +8,15 @@ export class ListarProyectosParaValidacionUseCase {
     private readonly controlOperativoRepository: IControlOperativoRepository,
   ) {}
 
-  async execute(idTrabajador: number): Promise<ProyectoAccesoTrabajador[]> {
+  /** `verTodos`: `control_operativo.validacion.ver` con alcance «todos». */
+  async execute(
+    idTrabajador: number,
+    verTodos = false,
+  ): Promise<ProyectoAccesoTrabajador[]> {
     if (idTrabajador == null || idTrabajador < 1) return [];
     return this.controlOperativoRepository.listarProyectosParaValidacion(
       idTrabajador,
+      verTodos,
     );
   }
 }

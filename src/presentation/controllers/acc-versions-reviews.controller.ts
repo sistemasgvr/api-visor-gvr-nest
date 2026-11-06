@@ -8,7 +8,9 @@ import {
   UseGuards,
   Req,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { DocumentAccessService } from '../../application/services/document-access.service';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
@@ -19,12 +21,21 @@ import { ObtenerApprovalStatusesVersionUseCase } from '../../application/use-cas
 // DTOs
 import { ObtenerApprovalStatusesDto } from '../dtos/acc/reviews/obtener-approval-statuses.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { DocumentLevelAccess } from '../../infrastructure/auth/document-access.guard';
 
 @ApiTags('acc')
 @ApiBearerAuth('access-token')
 @Controller('acc/projects/:projectId/versions')
 export class AccVersionsReviewsController {
+  private documentActor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
     private readonly obtenerApprovalStatusesVersionUseCase: ObtenerApprovalStatusesVersionUseCase,
   ) {}
 
@@ -39,12 +50,19 @@ export class AccVersionsReviewsController {
   @Get(':versionId/approval-statuses')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @DocumentLevelAccess()
   async obtenerApprovalStatuses(
     @Param('projectId') projectId: string,
     @Param('versionId') versionId: string,
     @Query() dto: ObtenerApprovalStatusesDto,
     @Req() request: Request,
   ) {
+    await this.documentAccess.assertDocument(
+      this.documentActor(request),
+      projectId,
+      versionId,
+      'view',
+    );
     if (!projectId)
       throw new BadRequestException('El ID del proyecto es requerido');
     if (!versionId)

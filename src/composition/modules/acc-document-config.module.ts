@@ -18,6 +18,7 @@ import { ACC_DOCUMENT_CONFIG_REPOSITORY } from '../../domain/repositories/acc-do
 import { DatabaseFunctionService } from '../../infrastructure/database/database-function.service';
 import { AccDocumentConfigRepository } from '../../infrastructure/repositories/acc-document-config.repository';
 import { AccDocumentConfigController } from '../../presentation/controllers/acc-document-config.controller';
+import { applicationProvider } from '../application.providers';
 
 import { applicationProvider } from '../application.providers';
 

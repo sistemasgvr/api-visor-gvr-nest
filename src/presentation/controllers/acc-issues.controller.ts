@@ -15,10 +15,13 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import { RequireIssuePermission } from '../../infrastructure/auth/granular-permission.guard';
+import { IssueAccessService } from '../../application/services/issue-access.service';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { RequestInfoHelper } from '../http/request-info.helper';
 
@@ -67,6 +70,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 @Controller('acc/projects/:projectId')
 export class AccIssuesController {
   constructor(
+    private readonly issues: IssueAccessService,
     private readonly obtenerPerfilUsuarioUseCase: ObtenerPerfilUsuarioUseCase,
     private readonly obtenerTiposIncidenciasUseCase: ObtenerTiposIncidenciasUseCase,
     private readonly obtenerDefinicionesAtributosUseCase: ObtenerDefinicionesAtributosUseCase,
@@ -94,6 +98,7 @@ export class AccIssuesController {
    * GET /acc/projects/:projectId/users/me
    */
   @ApiOperation({ summary: 'Perfil Autodesk del usuario en el proyecto ACC' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('users/me')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -130,6 +135,7 @@ export class AccIssuesController {
     summary: 'Tipos de Issues ACC del proyecto',
     description: 'Soporta paginación Autodesk.',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issue-types')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -176,6 +182,7 @@ export class AccIssuesController {
   @ApiOperation({
     summary: 'Definiciones de atributos personalizados Issues ACC',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issue-attribute-definitions')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -222,6 +229,7 @@ export class AccIssuesController {
   @ApiOperation({
     summary: 'Mapeos entre claves BIM y Issues ACC personalizadas',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issue-attribute-mappings')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -266,6 +274,7 @@ export class AccIssuesController {
    * GET /acc/projects/:projectId/issue-root-cause-categories
    */
   @ApiOperation({ summary: 'Categorías causa raíz para Issues ACC' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issue-root-cause-categories')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -313,6 +322,7 @@ export class AccIssuesController {
     summary: 'Issues filtrados por modelo/viewable Autodesk',
     description: 'documentUrn obligatorio en query.',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issues/by-document')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -343,6 +353,13 @@ export class AccIssuesController {
       dto,
     );
 
+    if (Array.isArray(resultado?.data))
+      resultado.data = await this.issues.visible(
+        Number(userId),
+        projectId,
+        resultado.data,
+      );
+
     if (resultado.pagination && Object.keys(resultado.pagination).length > 0) {
       return ApiResponseDto.custom(
         resultado.data,
@@ -366,6 +383,7 @@ export class AccIssuesController {
     summary: 'Thumbnail APS generado desde snapshotUrn ACC',
     description: 'Consulta rápida de URL provisional.',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issues/thumbnail-url')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -415,6 +433,7 @@ export class AccIssuesController {
   @ApiOperation({
     summary: 'Lista principal de Issues ACC con filtros de tablero',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('issues')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -439,6 +458,13 @@ export class AccIssuesController {
       dto,
     );
 
+    const actor = Number(userId);
+    const lista = resultado?.data?.results ?? resultado?.results;
+    if (Array.isArray(lista)) {
+      const visibles = await this.issues.visible(actor, projectId, lista);
+      if (resultado?.data?.results) resultado.data.results = visibles;
+      else resultado.results = visibles;
+    }
     return ApiResponseDto.success(
       resultado,
       'Incidencias obtenidas exitosamente',
@@ -453,6 +479,7 @@ export class AccIssuesController {
     summary: 'Registrar issue nuevo en proyecto ACC',
     description: 'Enriquece con auditoría GVR (IP, rol, navegador).',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.crear')
   @Post('issues')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -507,6 +534,7 @@ export class AccIssuesController {
     description:
       'Incluye acciones realizadas dentro de Visor alineadas temporales APS.',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.ver', { issue: 'issueId' })
   @Get('issues/:issueId/activity')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -544,6 +572,7 @@ export class AccIssuesController {
    * GET /acc/projects/:projectId/issues/:issueId
    */
   @ApiOperation({ summary: 'Detalle granular de Issue ACC puntual' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver', { issue: 'issueId' })
   @Get('issues/:issueId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -583,6 +612,15 @@ export class AccIssuesController {
     description:
       'Mantiene trazabilidad quien modificó mediante JWT + cabeceras.',
   })
+  @RequireIssuePermission(
+    [
+      'gestion_bim.incidencias.editar',
+      'gestion_bim.incidencias.cambiar_estado',
+      'gestion_bim.incidencias.asignar',
+      'gestion_bim.incidencias.desasignar',
+    ],
+    { issue: 'issueId' },
+  )
   @Patch('issues/:issueId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -610,6 +648,7 @@ export class AccIssuesController {
     if (isNaN(userIdNumero) || userIdNumero <= 0) {
       throw new BadRequestException('User ID inválido');
     }
+    await this.issues.requireChanges(userIdNumero, projectId, issueId, dto);
 
     // Obtener el rol del usuario (primer rol si tiene múltiples)
     const userRole =
@@ -638,6 +677,7 @@ export class AccIssuesController {
    * GET /acc/projects/:projectId/issues/:issueId/comments
    */
   @ApiOperation({ summary: 'Comentarios Autodesk del issue solicitado' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver', { issue: 'issueId' })
   @Get('issues/:issueId/comments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -686,6 +726,9 @@ export class AccIssuesController {
   @ApiOperation({
     summary: 'Añadir nuevo comentario ACC',
     description: 'Fusiona información de auditoría GVR igual que PATCH issue.',
+  })
+  @RequireIssuePermission('gestion_bim.incidencias.comentar', {
+    issue: 'issueId',
   })
   @Post('issues/:issueId/comments')
   @UseGuards(JwtAuthGuard)
@@ -742,6 +785,7 @@ export class AccIssuesController {
     summary: 'Crear attachment multiparte para issue ACC',
     description: 'Se envía issueId dentro del multipart body.',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.adjuntar')
   @Post('attachments')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
@@ -774,6 +818,7 @@ export class AccIssuesController {
     if (isNaN(userIdNumero) || userIdNumero <= 0) {
       throw new BadRequestException('User ID inválido');
     }
+    await this.issues.require(userIdNumero, 'adjuntar', projectId, dto.issueId);
 
     // Obtener el rol del usuario (primer rol si tiene múltiples)
     const userRole =
@@ -799,6 +844,7 @@ export class AccIssuesController {
    * GET /acc/projects/:projectId/issues/:issueId/attachments
    */
   @ApiOperation({ summary: 'Enumerar enlaces APS asociados al issue' })
+  @RequireIssuePermission('gestion_bim.incidencias.ver', { issue: 'issueId' })
   @Get('issues/:issueId/attachments')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -845,6 +891,9 @@ export class AccIssuesController {
    * DELETE /acc/projects/:projectId/issues/:issueId/attachments/:attachmentId
    */
   @ApiOperation({ summary: 'Eliminar archivo adjunto en APS Issues' })
+  @RequireIssuePermission('gestion_bim.incidencias.eliminar_adjuntos', {
+    issue: 'issueId',
+  })
   @Delete('issues/:issueId/attachments/:attachmentId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -887,6 +936,10 @@ export class AccIssuesController {
     summary: 'Delegar persona responsable Autodesk',
     description: 'Operación combinada auditoría cliente + PATCH APS.',
   })
+  @RequireIssuePermission([
+    'gestion_bim.incidencias.asignar',
+    'gestion_bim.incidencias.desasignar',
+  ])
   @Post('issues/assign')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -917,6 +970,15 @@ export class AccIssuesController {
     if (isNaN(userIdNumero) || userIdNumero <= 0) {
       throw new BadRequestException('User ID inválido');
     }
+    const unassign = Array.isArray(dto.userIds)
+      ? dto.userIds.length === 0
+      : dto.userId === null;
+    await this.issues.require(
+      userIdNumero,
+      unassign ? 'desasignar' : 'asignar',
+      projectId,
+      dto.issueId,
+    );
 
     // Obtener el rol del usuario (primer rol si tiene múltiples)
     const userRole =
@@ -944,6 +1006,7 @@ export class AccIssuesController {
     summary: 'Autosuggest personas internas al asignar',
     description: 'Utiliza filtros busqueda/limit desde query para combos UI.',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.ver')
   @Get('users/available')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -974,6 +1037,7 @@ export class AccIssuesController {
     summary: 'Generar archivo descargable con issues filtrados',
     description: 'Respuesta binaria con disposition attachment.',
   })
+  @RequireIssuePermission('gestion_bim.incidencias.exportar')
   @Post('issues/export')
   @UseGuards(JwtAuthGuard)
   async exportarIncidencias(
@@ -995,6 +1059,22 @@ export class AccIssuesController {
     const userIdNumero = parseInt(String(userId), 10);
     if (isNaN(userIdNumero) || userIdNumero <= 0) {
       throw new BadRequestException('User ID inválido');
+    }
+    // Sin alcance «todos» sólo se exportan incidencias asignadas, indicadas una a una.
+    if (
+      !(await this.issues.allowed(userIdNumero, 'exportar', projectId, '*'))
+    ) {
+      const requested = [
+        ...(dto.issueIds ?? []),
+        ...(dto.issueId ? [dto.issueId] : []),
+      ];
+      if (!requested.length)
+        throw new ForbiddenException({
+          message: 'Sólo puedes exportar las incidencias asignadas a ti',
+          code: 'GRANULAR_PERMISSION_DENIED',
+        });
+      for (const issue of requested)
+        await this.issues.require(userIdNumero, 'exportar', projectId, issue);
     }
 
     const resultado = await this.exportarIncidenciasUseCase.execute(

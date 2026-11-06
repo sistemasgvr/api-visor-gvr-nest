@@ -4,6 +4,7 @@ import type {
 } from '../../../../domain/repositories/calendarios.repository.interface';
 import { InvalidInputError } from '../../../errors/application.error';
 import { GuardarSemanaCalendarioUseCase } from './guardar-semana-calendario.use-case';
+import { GuardarFeriadoUseCase } from './guardar-feriado.use-case';
 import { ObtenerDisponibilidadCalendarioUseCase } from './obtener-disponibilidad-calendario.use-case';
 
 const semana = (): GuardarSemanaCalendarioData => ({
@@ -21,13 +22,36 @@ const semana = (): GuardarSemanaCalendarioData => ({
 describe('Reglas de entrada de calendarios', () => {
   const guardarSemana = jest.fn().mockResolvedValue({ minutossemanales: 2400 });
   const disponibilidad = jest.fn().mockResolvedValue({ dias: [] });
+  const guardarFeriado = jest
+    .fn()
+    .mockResolvedValue({ feriado: { revision: 5 } });
   const repository = {
     guardarSemana,
     disponibilidad,
+    guardarFeriado,
   } as unknown as ICalendariosRepository;
   const guardar = new GuardarSemanaCalendarioUseCase(repository);
   const consultar = new ObtenerDisponibilidadCalendarioUseCase(repository);
   beforeEach(() => jest.clearAllMocks());
+
+  it('exige revisión al actualizar un feriado incluso fuera de HTTP', () => {
+    const useCase = new GuardarFeriadoUseCase(repository);
+    const data = {
+      fecha: '2026-10-08',
+      nombre: 'Combate de Angamos',
+      idtipo: 617,
+      minutosefectivos: 0,
+      idcalendarios: [6],
+    };
+    expect(() => useCase.execute(23, data, 10)).toThrow(InvalidInputError);
+    expect(guardarFeriado).not.toHaveBeenCalled();
+    useCase.execute(23, { ...data, revision: 4 }, 10);
+    expect(guardarFeriado).toHaveBeenCalledWith(
+      23,
+      { ...data, revision: 4 },
+      10,
+    );
+  });
 
   it('acepta el patrón ISO completo sin imponer un número fijo de horas semanales', async () => {
     const data = semana();

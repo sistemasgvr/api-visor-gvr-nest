@@ -1,19 +1,20 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class CopiarItemDto {
-  @IsNotEmpty()
-  @IsString()
+  static readonly schema: z.ZodType<CopiarItemDto> =
+    defineZodDto<CopiarItemDto>('CopiarItemDto', {
+      sourceItemId: { schema: z.string().min(1) },
+      sourceVersionId: { schema: z.string().min(1) },
+      targetFolderId: { schema: z.string().min(1) },
+      fileName: { schema: z.string().min(1) },
+    });
+
   sourceItemId: string;
 
-  @IsNotEmpty()
-  @IsString()
   sourceVersionId: string;
 
-  @IsNotEmpty()
-  @IsString()
   targetFolderId: string;
 
-  @IsNotEmpty()
-  @IsString()
   fileName: string;
 }

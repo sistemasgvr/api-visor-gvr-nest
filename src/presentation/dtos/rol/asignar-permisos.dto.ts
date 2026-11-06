@@ -1,9 +1,22 @@
-import { IsArray, IsInt, IsNotEmpty, ArrayMinSize } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class AsignarPermisosDto {
-  @IsNotEmpty({ message: 'Los permisos son requeridos' })
-  @IsArray()
-  @ArrayMinSize(1, { message: 'Debe proporcionar al menos un permiso' })
-  @IsInt({ each: true, message: 'Cada permiso debe ser un número entero' })
+  static readonly schema: z.ZodType<AsignarPermisosDto> =
+    defineZodDto<AsignarPermisosDto>('AsignarPermisosDto', {
+      permisos: {
+        schema: z
+          .array(z.number().int())
+          .min(1)
+          .refine(
+            (value) =>
+              value !== undefined &&
+              value !== null &&
+              (value as unknown) !== '',
+            { message: 'El campo es obligatorio' },
+          ),
+      },
+    });
+
   permisos: number[];
 }

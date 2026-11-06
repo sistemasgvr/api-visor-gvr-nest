@@ -1,32 +1,34 @@
-import {
-  IsEmail,
-  IsString,
-  MinLength,
-  MaxLength,
-  IsOptional,
-  IsInt,
-  IsIn,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../validation/zod-dto';
 
 export class RegisterDto {
-  @IsString()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<RegisterDto> = defineZodDto<RegisterDto>(
+    'RegisterDto',
+    {
+      nombre: { schema: z.string().max(255) },
+      correo: { schema: z.string().email().max(255) },
+      contrasena: { schema: z.string().min(6) },
+      estado: {
+        schema: z
+          .number()
+          .int()
+          .refine((value) => ([0, 1] as readonly unknown[]).includes(value), {
+            message: 'Seleccione una opción válida',
+          })
+          .meta({ enum: [0, 1] }),
+        optional: true,
+      },
+      id: { schema: z.number().int(), optional: true },
+    },
+  );
+
   nombre: string;
 
-  @IsEmail()
-  @MaxLength(255)
   correo: string;
 
-  @IsString()
-  @MinLength(6)
   contrasena: string;
 
-  @IsOptional()
-  @IsInt()
-  @IsIn([0, 1])
   estado?: number;
 
-  @IsOptional()
-  @IsInt()
   id?: number | null;
 }

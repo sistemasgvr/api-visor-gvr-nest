@@ -1,51 +1,46 @@
-import { Transform, Type } from 'class-transformer';
-import {
-  IsBoolean,
-  IsIn,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  ValidateIf,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class CreateNovedadTarjetaDto {
-  @IsNotEmpty({ message: 'El título de la tarjeta es requerido' })
-  @IsString()
-  @MaxLength(255)
+  static readonly schema: z.ZodType<CreateNovedadTarjetaDto> =
+    defineZodDto<CreateNovedadTarjetaDto>('CreateNovedadTarjetaDto', {
+      titulo: { schema: z.string().min(1).max(255) },
+      descripcion: { schema: z.string(), optional: true },
+      orden: { schema: z.number().int(), optional: true, coerce: 'number' },
+      tipoMultimedia: {
+        schema: z
+          .string()
+          .refine(
+            (value) =>
+              (['imagen', 'video'] as readonly unknown[]).includes(value),
+            { message: 'Seleccione una opción válida' },
+          )
+          .meta({ enum: ['imagen', 'video'] }),
+        optional: true,
+        when: (o) => !o.sinMultimedia,
+      },
+      sinMultimedia: {
+        schema: z.boolean(),
+        optional: true,
+        transforms: [({ value }) => value === true || value === 'true'],
+      },
+      idArchivo: { schema: z.number().int(), optional: true, coerce: 'number' },
+      urlMultimedia: { schema: z.string().max(2000), optional: true },
+    });
+
   titulo: string;
 
-  @IsOptional()
-  @IsString()
   descripcion?: string;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
   orden?: number;
 
-  @ValidateIf((o) => !o.sinMultimedia)
-  @IsOptional()
-  @IsString()
-  @IsIn(['imagen', 'video'], {
-    message: 'tipoMultimedia debe ser imagen o video',
-  })
   tipoMultimedia?: string;
 
-  @IsOptional()
-  @Transform(({ value }) => value === true || value === 'true')
-  @IsBoolean()
   sinMultimedia?: boolean;
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
   idArchivo?: number;
 
   /** Solo para video embebido externo (YouTube, etc.) cuando no se sube archivo. */
-  @IsOptional()
-  @IsString()
-  @MaxLength(2000)
+
   urlMultimedia?: string;
 }

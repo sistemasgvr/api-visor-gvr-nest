@@ -1,14 +1,17 @@
+import { PlanificacionAccessService } from '../../services/planificacion-access.service';
 import { ID_ESTADO_ENTREGABLE_CULMINADO } from '../../../domain/constants/estado-entregable.constants';
 import type {
   CrearEntregableProyectoData,
   IProyectoRepository,
 } from '../../../domain/repositories/proyecto.repository.interface';
-import { InvalidInputError } from '../../errors/application.error';
+import {
+  ForbiddenError,
+  InvalidInputError,
+} from '../../errors/application.error';
 import { BroadcastPort } from '../../ports/broadcast.port';
 import { ApplicationLogger, LoggerFactoryPort } from '../../ports/runtime.port';
 import {
-  esRolCoordinador,
-  esRolModeladorColaborador,
+  participaEnProyecto,
   responsablePerteneceAlProyecto,
 } from './entregable-acceso.helper';
 import { emitirEntregableAsignado } from './entregable-notificaciones.helper';
@@ -21,6 +24,7 @@ export class CrearEntregableProyectoUseCase {
     private readonly proyectoRepository: IProyectoRepository,
     private readonly broadcastService: BroadcastPort,
     private readonly loggerFactory: LoggerFactoryPort,
+    private readonly planificacion: PlanificacionAccessService,
   ) {
     this.logger = this.loggerFactory.create(
       CrearEntregableProyectoUseCase.name,
@@ -30,8 +34,13 @@ export class CrearEntregableProyectoUseCase {
   async execute(
     data: CrearEntregableProyectoData,
     idUsuarioCreacion: number,
-    rolesIds: number[] = [],
+    accesoTotal = false,
   ) {
+    const tienePlan = await this.planificacion.editarProyectoConPlan(
+      idUsuarioCreacion,
+      data.idProyecto,
+    );
+
     if (data.idEstado === ID_ESTADO_ENTREGABLE_CULMINADO) {
       throw new InvalidInputError(
         'No se puede crear un entregable como CULMINADO. Márcalo desde una actividad.',
@@ -46,24 +55,29 @@ export class CrearEntregableProyectoUseCase {
         idUsuarioCreacion,
       );
 
-    if (idsResponsables.length === 0) {
-      if (esRolCoordinador(rolesIds)) {
-        throw new InvalidInputError(
-          'El responsable es obligatorio al crear un entregable como coordinador',
-        );
-      }
-      if (esRolModeladorColaborador(rolesIds)) {
-        if (idTrabajadorActor == null) {
-          throw new InvalidInputError(
-            'No se encontró trabajador activo para auto-asignarte como responsable',
-          );
-        }
-        idsResponsables = [idTrabajadorActor];
-      } else {
+    // «asignados»: sólo en proyectos donde participa.
+    if (
+      !accesoTotal &&
+      !(await participaEnProyecto(
+        this.proyectoRepository,
+        data.idProyecto,
+        idUsuarioCreacion,
+      ))
+    ) {
+      throw new ForbiddenError(
+        'No tienes permiso para crear entregables en este proyecto',
+      );
+    }
+
+    // Un entregable del plan es un grupo y puede crearse sin responsables.
+    // El flujo operativo anterior conserva su asignación predeterminada.
+    if (idsResponsables.length === 0 && !tienePlan) {
+      if (idTrabajadorActor == null) {
         throw new InvalidInputError(
           'Debe indicar al menos un trabajador responsable del entregable',
         );
       }
+      idsResponsables = [idTrabajadorActor];
     }
 
     for (const idResponsable of idsResponsables) {

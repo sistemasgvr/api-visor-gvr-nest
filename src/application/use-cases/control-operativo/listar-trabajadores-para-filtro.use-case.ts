@@ -1,3 +1,4 @@
+import type { AuthorizationScope } from '../../ports/authorization.port';
 import type {
   IControlOperativoRepository,
   TrabajadorParaFiltro,
@@ -8,9 +9,14 @@ export class ListarTrabajadoresParaFiltroUseCase {
     private readonly controlOperativoRepository: IControlOperativoRepository,
   ) {}
 
-  async execute(idTrabajador: number): Promise<TrabajadorParaFiltro[]> {
+  /** `alcances`: los concedidos de `control_operativo.jornadas.ver`. */
+  async execute(
+    idUsuario: number,
+    alcances: readonly AuthorizationScope[],
+  ): Promise<TrabajadorParaFiltro[]> {
     return this.controlOperativoRepository.listarTrabajadoresParaFiltro(
-      idTrabajador,
+      idUsuario,
+      alcances,
     );
   }
 }

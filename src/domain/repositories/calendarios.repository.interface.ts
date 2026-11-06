@@ -6,7 +6,24 @@ import type {
   EstadoCalendario,
 } from '../entities/calendario.entity';
 
+import type {
+  FeriadoDetalle,
+  FeriadoListado,
+  FeriadoMutacion,
+} from '../entities/feriado.entity';
+
 export const CALENDARIOS_REPOSITORY = Symbol('CALENDARIOS_REPOSITORY');
+
+export interface GuardarFeriadoData {
+  fecha: string;
+  nombre: string;
+  idtipo: number;
+  minutosefectivos: number;
+  activo?: boolean;
+  /** Selección completa; [] guarda el feriado sin asignaciones. */
+  idcalendarios: number[];
+  revision?: number;
+}
 
 export interface ListarCalendariosParams {
   busqueda?: string;
@@ -39,6 +56,21 @@ export interface GuardarExcepcionCalendarioData {
 }
 
 export interface ICalendariosRepository {
+  listarFeriados(
+    idUsuario: number,
+    params: ListarCalendariosParams,
+  ): Promise<FeriadoListado>;
+  obtenerFeriado(idUsuario: number, idFeriado: number): Promise<FeriadoDetalle>;
+  guardarFeriado(
+    idUsuario: number,
+    data: GuardarFeriadoData,
+    idFeriado?: number,
+  ): Promise<FeriadoMutacion>;
+  eliminarFeriado(
+    idUsuario: number,
+    idFeriado: number,
+    revision: number,
+  ): Promise<FeriadoMutacion>;
   listar(
     idUsuario: number,
     params: ListarCalendariosParams,

@@ -1,56 +1,47 @@
-import {
-  IsString,
-  IsOptional,
-  IsObject,
-  IsBoolean,
-  IsNumber,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class CrearIncidenciaDto {
-  @IsString()
+  static readonly schema: z.ZodType<CrearIncidenciaDto> =
+    defineZodDto<CrearIncidenciaDto>('issues-bim360_CrearIncidenciaDto', {
+      title: { schema: z.string() },
+      description: { schema: z.string(), optional: true },
+      status: { schema: z.string(), optional: true },
+      issueSubtypeId: { schema: z.string(), optional: true },
+      dueDate: { schema: z.string(), optional: true },
+      assignedTo: { schema: z.string(), optional: true },
+      assignedToType: { schema: z.string(), optional: true },
+      rootCauseId: { schema: z.string(), optional: true },
+      startDate: { schema: z.string(), optional: true },
+      locationId: { schema: z.string(), optional: true },
+      locationDetails: { schema: z.string(), optional: true },
+      linkedDocuments: {
+        schema: z.record(z.string(), z.unknown()),
+        optional: true,
+      },
+    });
+
   title: string;
 
-  @IsOptional()
-  @IsString()
   description?: string;
 
-  @IsOptional()
-  @IsString()
   status?: string;
 
-  @IsOptional()
-  @IsString()
   issueSubtypeId?: string;
 
-  @IsOptional()
-  @IsString()
   dueDate?: string;
 
-  @IsOptional()
-  @IsString()
   assignedTo?: string;
 
-  @IsOptional()
-  @IsString()
   assignedToType?: string;
 
-  @IsOptional()
-  @IsString()
   rootCauseId?: string;
 
-  @IsOptional()
-  @IsString()
   startDate?: string;
 
-  @IsOptional()
-  @IsString()
   locationId?: string;
 
-  @IsOptional()
-  @IsString()
   locationDetails?: string;
 
-  @IsOptional()
-  @IsObject()
   linkedDocuments?: any[];
 }

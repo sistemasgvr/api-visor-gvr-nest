@@ -1,32 +1,34 @@
-import {
-  IsIn,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../../validation/zod-dto';
 
 export class CreateNamingStandardFromTemplateDto {
-  @IsString()
-  @IsIn(['iso19650'])
+  static readonly schema: z.ZodType<CreateNamingStandardFromTemplateDto> =
+    defineZodDto<CreateNamingStandardFromTemplateDto>(
+      'CreateNamingStandardFromTemplateDto',
+      {
+        templateCode: {
+          schema: z
+            .string()
+            .refine(
+              (value) => (['iso19650'] as readonly unknown[]).includes(value),
+              { message: 'Seleccione una opción válida' },
+            )
+            .meta({ enum: ['iso19650'] }),
+        },
+        codigo: { schema: z.string().min(1).max(100) },
+        nombre: { schema: z.string().min(1).max(255) },
+        descripcion: { schema: z.string(), optional: true },
+        separador: { schema: z.string().max(10), optional: true },
+      },
+    );
+
   templateCode: 'iso19650';
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
   codigo: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(255)
   nombre: string;
 
-  @IsOptional()
-  @IsString()
   descripcion?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
   separador?: string;
 }

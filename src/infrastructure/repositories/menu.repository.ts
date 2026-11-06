@@ -1,3 +1,7 @@
+import {
+  granularDatabaseFailure,
+  granularScalar,
+} from '../auth/granular-function-result';
 import { Injectable } from '@nestjs/common';
 import { IMenuRepository } from '../../domain/repositories/menu.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
@@ -60,35 +64,40 @@ export class MenuRepository implements IMenuRepository {
     return result;
   }
 
-  async listarMenuRecursivo(idUsuario: number): Promise<any> {
-    // Call genListarMenuRecursivoPorUsuarioV2 function
-    // SELECT * FROM genListarMenuRecursivoPorUsuarioV2(p_idUsuario)
-    const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'gen_ListarMenuRecursivoPorUsuarioV2',
-      [idUsuario],
-    );
-
-    if (!result) {
-      return [];
-    }
-
-    // The function returns a JSON string in the first property (column name = function name, driver may lowercase)
-    const row = result as Record<string, unknown>;
-    const menuData =
-      row.gen_ListarMenuRecursivoPorUsuarioV2 ??
-      row.gen_listarmenurecursivoporusuariov2 ??
-      row.genlistarmenurecursivoporusuariov2 ??
-      row.genListarMenuRecursivoPorUsuarioV2 ??
-      (Object.keys(row).length > 0 ? row[Object.keys(row)[0]] : undefined);
-
-    if (typeof menuData === 'string') {
-      try {
-        return JSON.parse(menuData);
-      } catch (e) {
-        return [];
+  async listarMenuRecursivo(idUsuario: number): Promise<unknown[]> {
+    const name = 'gen_ListarMenuRecursivoPorUsuarioV3';
+    try {
+      const menu = granularScalar(
+        await this.databaseFunctionService.callFunctionSingle<unknown>(name, [
+          idUsuario,
+        ]),
+        name,
+      );
+      if (!Array.isArray(menu)) throw new Error('Árbol granular inválido');
+      const pending: unknown[] = [...menu];
+      const ids = new Set<number>();
+      while (pending.length) {
+        const value = pending.pop();
+        if (!value || typeof value !== 'object' || Array.isArray(value))
+          throw new Error('Nodo de menú inválido');
+        const node = value as Record<string, unknown>;
+        if (
+          !Number.isSafeInteger(node.id) ||
+          (node.id as number) < 1 ||
+          ids.has(node.id as number) ||
+          typeof node.nombre !== 'string' ||
+          typeof node.accesodirecto !== 'boolean' ||
+          !Array.isArray(node.hijos) ||
+          (node.accesodirecto === false && node.url !== null) ||
+          (node.url !== null && typeof node.url !== 'string')
+        )
+          throw new Error('Contrato de menú inválido');
+        ids.add(node.id as number);
+        for (const child of node.hijos) pending.push(child);
       }
+      return menu;
+    } catch (error) {
+      return granularDatabaseFailure(error);
     }
-
-    return menuData || [];
   }
 }

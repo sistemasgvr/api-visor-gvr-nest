@@ -1,31 +1,39 @@
-import { Transform } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Matches, Min } from 'class-validator';
+import { z } from 'zod';
+import { defineZodDto } from '../../validation/zod-dto';
 
 export class UploadVisorElementoFotoDto {
-  @IsString()
-  @IsOptional()
+  static readonly schema: z.ZodType<UploadVisorElementoFotoDto> =
+    defineZodDto<UploadVisorElementoFotoDto>('UploadVisorElementoFotoDto', {
+      idProyectoAcc: { schema: z.string(), optional: true },
+      itemId: { schema: z.string() },
+      identificador: {
+        schema: z.number().int().min(1),
+        transforms: [({ value }) => parseInt(String(value), 10)],
+      },
+      dia: { schema: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) },
+      indiceFoto: {
+        schema: z.number().int().min(1),
+        optional: true,
+        transforms: [
+          ({ value }) => {
+            if (value === undefined || value === null || value === '')
+              return undefined;
+            const n = parseInt(String(value), 10);
+            return Number.isNaN(n) ? undefined : n;
+          },
+        ],
+      },
+    });
+
   idProyectoAcc?: string;
 
-  @IsString()
   itemId: string;
 
   /** id del anclaje en BD, o objectId Forge si aún no existe anclaje */
-  @Transform(({ value }) => parseInt(String(value), 10))
-  @IsInt()
-  @Min(1)
+
   identificador: number;
 
-  @IsString()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
   dia: string;
 
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (value === undefined || value === null || value === '') return undefined;
-    const n = parseInt(String(value), 10);
-    return Number.isNaN(n) ? undefined : n;
-  })
-  @IsInt()
-  @Min(1)
   indiceFoto?: number;
 }

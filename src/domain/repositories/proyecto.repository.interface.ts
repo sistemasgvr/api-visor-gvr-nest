@@ -6,6 +6,8 @@ export interface ListarProyectosParams {
   busqueda?: string;
   limit?: number;
   offset?: number;
+  /** Alcance «asignados»: sólo proyectos con acceso activo del usuario o que coordina. */
+  soloAsignados?: boolean;
 }
 
 export interface ListarProyectosResponse {
@@ -20,6 +22,7 @@ export interface ListarProyectosResponse {
 }
 
 export interface CrearProyectoData {
+  idCalendario?: number | null;
   nombreProyecto: string;
   nroProyecto: string;
   idTipoProyecto: number;
@@ -44,6 +47,8 @@ export interface CrearProyectoData {
 }
 
 export interface EditarProyectoData extends CrearProyectoData {
+  revisionPlan?: number;
+  motivo?: string;
   idProyecto: number;
   idUsuarioModificacion: number;
 }
@@ -118,6 +123,10 @@ export interface EntregableSelectOption {
 }
 
 export interface CrearEntregableProyectoData {
+  revisionPlan?: number;
+  motivo?: string;
+  orden?: number;
+  color?: string;
   idProyecto: number;
   nombre: string;
   descripcion?: string;
@@ -134,6 +143,10 @@ export interface CrearEntregableProyectoData {
 }
 
 export interface ActualizarEntregableProyectoData {
+  color?: string | null;
+  revisionPlan?: number;
+  motivo?: string;
+  orden?: number;
   nombre: string;
   descripcion?: string;
   idEstado?: number | null;
@@ -237,6 +250,8 @@ export interface IProyectoRepository {
   eliminarEntregableProyecto(
     idEntregable: number,
     idUsuarioModificacion: number,
+    revisionPlan?: number,
+    motivo?: string,
   ): Promise<{ success: boolean; message: string }>;
   listarCoordinadoresProyecto(
     idProyecto: number,

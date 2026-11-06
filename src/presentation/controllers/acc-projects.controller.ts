@@ -14,10 +14,20 @@ import {
   UploadedFile,
   BadRequestException,
   Inject,
+  ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import {
+  RequireGranularPermission,
+  RequireProjectPermission,
+  RequireScopedPermission,
+} from '../../infrastructure/auth/granular-permission.guard';
+import { DocumentAccessService } from '../../application/services/document-access.service';
+import { AuthorizationService } from '../../application/services/authorization.service';
+import { GranularPermissionsService } from '../../application/services/granular-permissions.service';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { RequestInfoHelper } from '../http/request-info.helper';
 import { getAccProjectImageUploadMaxBytes } from '../../config/acc-project-image.config';
@@ -57,7 +67,17 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 @ApiBearerAuth('access-token')
 @Controller('acc/projects')
 export class AccProjectsController {
+  private documentActor(request: Request): number {
+    const id = request.user?.sub;
+    if (!Number.isSafeInteger(id) || (id as number) < 1)
+      throw new UnauthorizedException('Sesión inválida');
+    return id as number;
+  }
+
   constructor(
+    private readonly documentAccess: DocumentAccessService,
+    private readonly authorization: AuthorizationService,
+    private readonly permissions: GranularPermissionsService,
     private readonly getProyectosUseCase: GetProyectosUseCase,
     private readonly getProyectoPorIdUseCase: GetProyectoPorIdUseCase,
     private readonly getPlantillasUseCase: GetPlantillasUseCase,
@@ -82,6 +102,10 @@ export class AccProjectsController {
   @Get(':accountId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission(
+    'gestion_bim.proyectos.ver',
+    'gestion_bim.documentos.acceso_total',
+  )
   async getProyectos(
     @Param('accountId') accountId: string,
     @Query() dto: GetProyectosDto,
@@ -106,16 +130,28 @@ export class AccProjectsController {
       }
     }
 
-    const userRole =
-      user?.roles && Array.isArray(user.roles) && user.roles.length > 0
-        ? user.roles[0]?.nombre || user.roles[0]?.name || undefined
-        : undefined;
+    // gestion_bim.proyectos.ver: «todos» lista la cuenta; «asignados», sólo sus proyectos.
+    const actor = numericUserId ?? 0;
+    const verTodos =
+      (await this.documentAccess.hasFullAccess(actor)) ||
+      (await this.authorization.can(actor, 'gestion_bim.proyectos.ver', {
+        type: 'acc_project',
+        id: '*',
+      }));
+    const scopes = (await this.permissions.current(actor)).grants
+      .filter((grant) => grant.code === 'gestion_bim.proyectos.ver')
+      .flatMap((grant) => [...grant.scopes]);
+    if (!verTodos && !scopes.includes('asignados'))
+      throw new ForbiddenException({
+        message: 'No tienes permiso para ver proyectos BIM',
+        code: 'GRANULAR_PERMISSION_DENIED',
+      });
 
     const resultado = await this.getProyectosUseCase.execute(
       accountId,
       dto,
       numericUserId,
-      userRole,
+      verTodos,
     );
 
     return ApiResponseDto.success(
@@ -129,6 +165,7 @@ export class AccProjectsController {
    * GET /acc/projects/proyecto/:projectId
    */
   @ApiOperation({ summary: 'Obtener proyecto ACC por ID' })
+  @RequireProjectPermission('gestion_bim.proyectos.ver')
   @Get('proyecto/:projectId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -153,6 +190,10 @@ export class AccProjectsController {
    * GET /acc/projects/:accountId/templates
    */
   @ApiOperation({ summary: 'Listar plantillas de proyecto disponibles' })
+  @RequireGranularPermission(
+    'gestion_bim.proyectos.crear',
+    'gestion_bim.proyectos.clonar',
+  )
   @Get(':accountId/templates')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -180,10 +221,13 @@ export class AccProjectsController {
   @Post(':accountId/por-tipo')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async getProyectosPorTipo(
+    @Req() request: Request,
     @Param('accountId') accountId: string,
     @Body() dto: GetProyectosPorTipoDto,
   ) {
+    await this.documentAccess.assertFullAccess(this.documentActor(request));
     if (!accountId) {
       throw new BadRequestException('El ID de la cuenta es requerido');
     }
@@ -207,10 +251,13 @@ export class AccProjectsController {
   @Get(':accountId/activos')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async getProyectosActivos(
+    @Req() request: Request,
     @Param('accountId') accountId: string,
     @Query() dto: GetProyectosActivosDto,
   ) {
+    await this.documentAccess.assertFullAccess(this.documentActor(request));
     if (!accountId) {
       throw new BadRequestException('El ID de la cuenta es requerido');
     }
@@ -234,6 +281,7 @@ export class AccProjectsController {
     summary: 'Crear proyecto vacío desde cero',
     description: 'Operación asíncrona típica (202).',
   })
+  @RequireGranularPermission('gestion_bim.proyectos.crear')
   @Post(':accountId/crear')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.ACCEPTED)
@@ -275,6 +323,7 @@ export class AccProjectsController {
     summary: 'Clonar proyecto desde plantilla',
     description: 'Operación asíncrona típica (202).',
   })
+  @RequireGranularPermission('gestion_bim.proyectos.clonar')
   @Post(':accountId/clonar')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.ACCEPTED)
@@ -316,6 +365,7 @@ export class AccProjectsController {
    * PATCH /acc/projects/:accountId/:projectId/actualizar
    */
   @ApiOperation({ summary: 'Actualizar proyecto existente en ACC' })
+  @RequireProjectPermission('gestion_bim.proyectos.editar')
   @Patch(':accountId/:projectId/actualizar')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -359,6 +409,7 @@ export class AccProjectsController {
    * POST /acc/projects/:accountId/:projectId/imagen
    */
   @ApiOperation({ summary: 'Subir imagen o portada del proyecto' })
+  @RequireProjectPermission('gestion_bim.proyectos.editar_imagen')
   @Post(':accountId/:projectId/imagen')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
@@ -415,6 +466,7 @@ export class AccProjectsController {
     summary: 'Activar un producto ACC en el proyecto',
     description: 'Ejemplo: Autodesk Docs, Cost, Build, etc.',
   })
+  @RequireProjectPermission('gestion_bim.proyectos.gestionar_servicios')
   @Post(':projectId/activar-servicio')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -457,6 +509,7 @@ export class AccProjectsController {
   @ApiOperation({
     summary: 'Desactivar producto ACC para el usuario por email',
   })
+  @RequireProjectPermission('gestion_bim.proyectos.gestionar_servicios')
   @Post(':projectId/desactivar-servicio')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -506,6 +559,7 @@ export class AccProjectsController {
     description:
       'Usa token 3-legged del usuario contra APS y miembros del proyecto.',
   })
+  @RequireProjectPermission('gestion_bim.proyectos.ver')
   @Get(':projectId/mis-servicios')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)

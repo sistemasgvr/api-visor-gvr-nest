@@ -25,6 +25,10 @@ import {
   ID_LISTA_PUESTO_TRABAJO,
   ID_LISTAS_CATALOGOS_TRABAJADOR_BASE,
 } from '../../domain/constants/gen-listado.constants';
+import {
+  RequireGranularPermission,
+  AuthenticatedAccess,
+} from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('general')
 @ApiBearerAuth('access-token')
@@ -47,6 +51,9 @@ export class GeneralController {
   @ApiOperation({ summary: 'Listar opciones de menú (planas)' })
   @Get('menu-opciones')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Estructura del menú; la visibilidad se resuelve por permisos en el menú V3',
+  )
   async listarMenuOpciones() {
     const menuOpciones = await this.listarMenuOpcionesUseCase.execute();
 
@@ -63,6 +70,9 @@ export class GeneralController {
   @ApiOperation({ summary: 'Obtener una opción de menú por id' })
   @Get('menu-opcion')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Estructura del menú; la visibilidad se resuelve por permisos en el menú V3',
+  )
   async obtenerMenuOpcion(
     @Query('id', new ParseIntPipe({ optional: false })) id: number,
   ) {
@@ -84,6 +94,9 @@ export class GeneralController {
   })
   @Get('catalogos-trabajador')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Datos de referencia (listas de opciones) que usan todos los formularios',
+  )
   async obtenerCatalogosTrabajador(@Query('idListas') idListas?: string) {
     const ids = idListas
       ? idListas
@@ -102,6 +115,9 @@ export class GeneralController {
   @ApiOperation({ summary: 'Opciones de una lista genérica por idLista' })
   @Get('listado-opciones')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Datos de referencia (listas de opciones) que usan todos los formularios',
+  )
   async obtenerOpcionesPorLista(
     @Query('idLista', new ParseIntPipe({ optional: false })) idLista: number,
   ) {
@@ -124,6 +140,7 @@ export class GeneralController {
   })
   @Post('listado-opciones')
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('configuracion.catalogos.crear_opciones')
   async crearOpcionLista(
     @Body('idLista', new ParseIntPipe({ optional: false })) idLista: number,
     @Body('nombre') nombre: string,

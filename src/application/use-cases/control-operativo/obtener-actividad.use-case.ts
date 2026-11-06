@@ -1,23 +1,21 @@
-import type { IAuthRepository } from '../../../domain/repositories/auth.repository.interface';
 import type {
   ActividadDetalle,
   IControlOperativoRepository,
 } from '../../../domain/repositories/control-operativo.repository.interface';
 import { UnauthenticatedError } from '../../errors/application.error';
-import { esAccesoTotalValidacionActividades } from './validacion-acceso.util';
 
 export interface ObtenerActividadInput {
   idActividad: number;
   /** Si true, solo devuelve la actividad si el usuario puede validarla (pestaña Validación). */
   contextoValidacion?: boolean;
   idUsuario?: number;
+  /** `control_operativo.validacion.ver` con alcance «todos». */
+  accesoTotalValidacion?: boolean;
 }
 
 export class ObtenerActividadUseCase {
   constructor(
     private readonly controlOperativoRepository: IControlOperativoRepository,
-
-    private readonly authRepository: IAuthRepository,
   ) {}
 
   async execute(
@@ -32,14 +30,8 @@ export class ObtenerActividadUseCase {
       if (idUsuario == null) {
         throw new UnauthenticatedError('Usuario no identificado');
       }
-      const perfil = await this.authRepository.obtenerPerfilUsuario(idUsuario);
-      if (!perfil?.roles || !Array.isArray(perfil.roles)) {
-        throw new UnauthenticatedError('Usuario no identificado');
-      }
-      const rolesIds = (perfil.roles as { id?: number }[])
-        .map((r) => r?.id)
-        .filter((id): id is number => id != null);
-      const esAdminTotal = esAccesoTotalValidacionActividades(rolesIds);
+      const esAdminTotal =
+        typeof input === 'object' && input.accesoTotalValidacion === true;
       const idRevisor =
         await this.controlOperativoRepository.obtenerIdTrabajadorPorIdUsuario(
           idUsuario,

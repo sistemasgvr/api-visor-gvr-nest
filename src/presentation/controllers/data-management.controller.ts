@@ -21,6 +21,10 @@ import { ObtenerProyectosDto } from '../dtos/data-management/obtener-proyectos.d
 import { ObtenerItemsDto } from '../dtos/data-management/obtener-items.dto';
 import { ApiResponseDto } from '../dtos/common/api-response.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  RequireGranularPermission,
+  RequireScopedPermission,
+} from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('acc-data')
 @ApiBearerAuth('access-token')
@@ -45,6 +49,11 @@ export class DataManagementController {
   })
   @Get('hubs')
   @HttpCode(HttpStatus.OK)
+  @RequireScopedPermission(
+    'gestion_bim.cuentas.ver',
+    'gestion_bim.proyectos.ver',
+    'gestion_bim.documentos.acceso_total',
+  )
   async obtenerHubs(@Req() request: Request, @Query() dto: ObtenerHubsDto) {
     const user = request.user!;
     const resultado = await this.obtenerHubsUseCase.execute(user.sub, dto);
@@ -62,6 +71,7 @@ export class DataManagementController {
   @ApiOperation({ summary: 'Proyectos contenidos en un hub' })
   @Get('hubs/:hubId/projects')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async obtenerProyectos(
     @Req() request: Request,
     @Param('hubId') hubId: string,
@@ -87,6 +97,7 @@ export class DataManagementController {
   @ApiOperation({ summary: 'Detalle de proyecto dentro del hub' })
   @Get('hubs/:hubId/projects/:projectId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async obtenerProyectoPorId(
     @Req() request: Request,
     @Param('hubId') hubId: string,
@@ -114,6 +125,7 @@ export class DataManagementController {
   })
   @Get('projects/:projectId/items')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async obtenerItems(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -139,6 +151,7 @@ export class DataManagementController {
   @ApiOperation({ summary: 'Obtener item (archivo/carpeta) por ID' })
   @Get('projects/:projectId/items/:itemId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async obtenerItemPorId(
     @Req() request: Request,
     @Param('projectId') projectId: string,
@@ -161,6 +174,7 @@ export class DataManagementController {
   @ApiOperation({ summary: 'Historial de versiones de un item' })
   @Get('projects/:projectId/items/:itemId/versions')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.documentos.acceso_total')
   async obtenerVersionesItem(
     @Req() request: Request,
     @Param('projectId') projectId: string,

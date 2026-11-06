@@ -31,6 +31,7 @@ import {
   ObtenerRecursosHijosDto,
 } from '../dtos/acc-recursos';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { RequireGranularPermission } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('acc')
 @ApiBearerAuth('access-token')
@@ -56,6 +57,7 @@ export class AccRecursosController {
   })
   @Get('usuario/:id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc_legacy.ver')
   async obtenerRecursosUsuario(
     @Param('id') id: string,
     @Query() dto: ObtenerRecursosUsuarioDto,
@@ -84,6 +86,7 @@ export class AccRecursosController {
   @ApiOperation({ summary: 'Listar recursos ACC por proyecto' })
   @Get('proyecto/:projectId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc_legacy.ver')
   async obtenerRecursosPorProyecto(
     @Param('projectId') projectId: string,
     @Query() dto: ObtenerRecursosProyectoDto,
@@ -111,6 +114,7 @@ export class AccRecursosController {
   @ApiOperation({ summary: 'Obtener recursos hijos bajo un padre ACC' })
   @Get('hijos/:parentId')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc_legacy.ver')
   async obtenerRecursosHijos(
     @Param('parentId') parentId: string,
     @Query() dto: ObtenerRecursosHijosDto,
@@ -136,6 +140,7 @@ export class AccRecursosController {
   @ApiOperation({ summary: 'Guardar recurso ACC y mapearlo al usuario' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequireGranularPermission('gestion_bim.recursos_acc_legacy.crear')
   async guardarRecurso(
     @Req() request: Request,
     @Body() dto: GuardarRecursoDto,
@@ -165,6 +170,7 @@ export class AccRecursosController {
   @ApiOperation({ summary: 'Obtener recurso ACC por tipo e ID' })
   @Get(':tipo/:id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc_legacy.ver')
   async obtenerRecurso(@Param('tipo') tipo: string, @Param('id') id: string) {
     if (!tipo || !id) {
       throw new BadRequestException('Tipo e ID son requeridos');
@@ -184,6 +190,7 @@ export class AccRecursosController {
   })
   @Put(':tipo/:id')
   @HttpCode(HttpStatus.OK)
+  @RequireGranularPermission('gestion_bim.recursos_acc_legacy.editar')
   async actualizarRecurso(
     @Req() request: Request,
     @Param('tipo') tipo: string,

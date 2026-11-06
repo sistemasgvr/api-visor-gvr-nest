@@ -14,6 +14,7 @@ import { ListarPaisesUseCase } from '../../application/use-cases/ubicacion/lista
 import { ListarDepartamentosUseCase } from '../../application/use-cases/ubicacion/listar-departamentos.use-case';
 import { ListarProvinciasUseCase } from '../../application/use-cases/ubicacion/listar-provincias.use-case';
 import { ListarDistritosUseCase } from '../../application/use-cases/ubicacion/listar-distritos.use-case';
+import { AuthenticatedAccess } from '../../infrastructure/auth/granular-permission.guard';
 
 @ApiTags('ubicacion')
 @ApiBearerAuth('access-token')
@@ -30,6 +31,9 @@ export class UbicacionController {
   @ApiOperation({ summary: 'Listar países' })
   @Get('paises')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Datos de referencia (listas de opciones) que usan todos los formularios',
+  )
   async listarPaises() {
     const data = await this.listarPaisesUseCase.execute();
     return ApiResponseDto.success(data || [], 'Países obtenidos exitosamente');
@@ -41,6 +45,9 @@ export class UbicacionController {
   })
   @Get('departamentos')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Datos de referencia (listas de opciones) que usan todos los formularios',
+  )
   async listarDepartamentos(
     @Query('idPais', new ParseIntPipe({ optional: true })) idPais?: number,
   ) {
@@ -57,6 +64,9 @@ export class UbicacionController {
   })
   @Get('provincias')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Datos de referencia (listas de opciones) que usan todos los formularios',
+  )
   async listarProvincias(
     @Query('idDepartamento', new ParseIntPipe({ optional: true }))
     idDepartamento?: number,
@@ -74,6 +84,9 @@ export class UbicacionController {
   })
   @Get('distritos')
   @HttpCode(HttpStatus.OK)
+  @AuthenticatedAccess(
+    'Datos de referencia (listas de opciones) que usan todos los formularios',
+  )
   async listarDistritos(
     @Query('idProvincia', new ParseIntPipe({ optional: true }))
     idProvincia?: number,
