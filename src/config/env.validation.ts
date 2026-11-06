@@ -25,6 +25,10 @@ export const environmentSchema = z.looseObject({
   DB_USERNAME: z.string().optional(),
   DB_PASSWORD: z.string().optional(),
   DB_DATABASE: z.string().optional(),
+  DB_POOL_MAX: z.preprocess(
+    numberFromEnvironment,
+    z.number().int().positive().default(5),
+  ),
   DB_SYNCHRONIZE: z.preprocess(
     booleanFromEnvironment,
     z.boolean().default(false),

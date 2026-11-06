@@ -5,6 +5,8 @@ export const getDatabaseConfig = (
   configService: ConfigService,
 ): TypeOrmModuleOptions => {
   const databaseUrl = configService.get<string>('DATABASE_URL');
+  // Límite por instancia del backend; evita multiplicar conexiones al escalar.
+  const poolSize = Number(configService.get<number>('DB_POOL_MAX') ?? 5);
   const enabled = (key: string) => {
     const value = configService.get<string | boolean>(key);
     return value === true || value === 'true';
@@ -23,6 +25,7 @@ export const getDatabaseConfig = (
       synchronize: enabled('DB_SYNCHRONIZE'),
       logging: enabled('DB_LOGGING'),
       ssl,
+      poolSize,
       extra: {
         connectionTimeoutMillis: 10000,
         /** Fechas CURRENT_* y casts timestamp en funciones SQL alineadas a Perú. */
@@ -45,6 +48,7 @@ export const getDatabaseConfig = (
     synchronize: enabled('DB_SYNCHRONIZE'),
     logging: enabled('DB_LOGGING'),
     ssl,
+    poolSize,
     extra: {
       connectionTimeoutMillis: 10000,
       family: 4,

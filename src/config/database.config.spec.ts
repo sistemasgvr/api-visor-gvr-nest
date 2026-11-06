@@ -19,6 +19,7 @@ describe('Conexión de base de datos por entorno', () => {
     );
     expect(options).toMatchObject({
       ssl: false,
+      poolSize: 5,
       synchronize: false,
       logging: false,
     });
@@ -46,6 +47,7 @@ describe('Conexión de base de datos por entorno', () => {
         DB_SSL: false,
         DB_SYNCHRONIZE: false,
         DB_LOGGING: true,
+        DB_POOL_MAX: 3,
       }),
     );
     expect(options).toMatchObject({
@@ -54,6 +56,7 @@ describe('Conexión de base de datos por entorno', () => {
       ssl: false,
       synchronize: false,
       logging: true,
+      poolSize: 3,
     });
   });
 });

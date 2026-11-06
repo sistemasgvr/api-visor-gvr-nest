@@ -63,4 +63,14 @@ describe('Configuración del proceso validada con Zod', () => {
       /LOG_PRETTY/,
     );
   });
+
+  it('exige un máximo de conexiones entero positivo', () => {
+    expect(validate({ ...required, DB_POOL_MAX: '3' }).DB_POOL_MAX).toBe(3);
+    expect(validate(required).DB_POOL_MAX).toBe(5);
+    for (const value of ['0', '-1', '1.5', 'texto']) {
+      expect(() => validate({ ...required, DB_POOL_MAX: value })).toThrow(
+        /DB_POOL_MAX/,
+      );
+    }
+  });
 });
