@@ -8573,6 +8573,269 @@
       "source": "src/presentation/controllers/planificacion-colaborador.controller.ts",
       "summary": "mis Ampliaciones"
     },
+    "StorageController_presignGet": {
+      "controller": "StorageController",
+      "method": "presignGet",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string"
+              },
+              "expiresInSeconds": {
+                "type": "number"
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "URL generada"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Query",
+          "name": "key",
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "source": "@Query('key') key: string"
+        },
+        {
+          "kind": "Query",
+          "name": "expires",
+          "schema": {
+            "type": "string"
+          },
+          "required": false,
+          "source": "@Query('expires') expiresRaw?: string"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireGranularPermission",
+          "codes": "gestion_bim.documentos.acceso_total"
+        }
+      ],
+      "source": "src/presentation/controllers/storage.controller.ts",
+      "summary": "URL firmada de lectura (GET)",
+      "description": "Útil si el bucket es privado: devuelve una URL temporal para descargar el objeto por su clave."
+    },
+    "StorageController_uploadEvidencia": {
+      "controller": "StorageController",
+      "method": "uploadEvidencia",
+      "verb": "post",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UploadedObjectMeta"
+          },
+          "message": {
+            "type": "string",
+            "example": "Archivo subido correctamente"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Query",
+          "name": "actividadId",
+          "schema": {
+            "type": "number"
+          },
+          "required": true,
+          "source": "@Query('actividadId', ParseIntPipe) actividadIdAutorizada: number"
+        }
+      ],
+      "body": {
+        "$ref": "#/components/schemas/UploadEvidenciaDto"
+      },
+      "file": true,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireResourcePermission",
+          "codes": "control_operativo.actividades.adjuntar_evidencias"
+        }
+      ],
+      "source": "src/presentation/controllers/storage.controller.ts",
+      "summary": "Subir evidencia (MinIO)",
+      "description": "Guarda en `evidencias-actividades-gvr/{usuario}/2026-04-27/{idActividad}-…-archivo` (una carpeta por fecha `YYYY-MM-DD`; el id de actividad inicia el nombre del archivo)."
+    },
+    "StorageController_uploadVisorElementoFoto": {
+      "controller": "StorageController",
+      "method": "uploadVisorElementoFoto",
+      "verb": "post",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "bucket": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "publicUrl": {
+                "type": "string",
+                "description": "URL pública si `MINIO_PUBLIC_BASE_URL` o el endpoint permiten lectura anónima."
+              },
+              "contentType": {
+                "type": "string"
+              },
+              "size": {
+                "type": "number"
+              },
+              "viewUrl": {
+                "type": "string"
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Imagen subida correctamente"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [],
+      "body": {
+        "$ref": "#/components/schemas/UploadVisorElementoFotoDto"
+      },
+      "file": true,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [],
+      "source": "src/presentation/controllers/storage.controller.ts",
+      "summary": "Subir foto de avance de obra (MinIO)",
+      "description": "Guarda en `visor-elemento-fotos-gvr/{proyecto}/{item}/{YYYY-MM-DD}/{id}-Avance Obra (n).{ext}`."
+    },
+    "StorageController_uploadPrefixed": {
+      "controller": "StorageController",
+      "method": "uploadPrefixed",
+      "verb": "post",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "bucket": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "publicUrl": {
+                "type": "string",
+                "description": "URL pública si `MINIO_PUBLIC_BASE_URL` o el endpoint permiten lectura anónima."
+              },
+              "contentType": {
+                "type": "string"
+              },
+              "size": {
+                "type": "number"
+              },
+              "viewUrl": {
+                "type": "string"
+              }
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Archivo subido correctamente"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [],
+      "body": {
+        "$ref": "#/components/schemas/UploadPrefixedDto"
+      },
+      "file": true,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireGranularPermission",
+          "codes": "empresas.empresas.subir_logo"
+        }
+      ],
+      "source": "src/presentation/controllers/storage.controller.ts",
+      "summary": "Subir archivo con prefijo libre",
+      "description": "Subida genérica bajo un prefijo (carpetas virtuales S3). Útil para otros módulos."
+    },
     "CalendariosController_listarFeriados": {
       "controller": "CalendariosController",
       "method": "listarFeriados",
@@ -9607,269 +9870,6 @@
       "permission": [],
       "source": "src/presentation/controllers/document-access.controller.ts",
       "summary": "Nivel efectivo de la sesión en un proyecto o carpeta (sólo para presentar acciones; cada operación se valida de nuevo)"
-    },
-    "StorageController_presignGet": {
-      "controller": "StorageController",
-      "method": "presignGet",
-      "verb": "get",
-      "status": 200,
-      "response": {
-        "type": "object",
-        "required": [
-          "data",
-          "message",
-          "status"
-        ],
-        "properties": {
-          "data": {
-            "type": "object",
-            "properties": {
-              "url": {
-                "type": "string"
-              },
-              "expiresInSeconds": {
-                "type": "number"
-              }
-            }
-          },
-          "message": {
-            "type": "string",
-            "example": "URL generada"
-          },
-          "status": {
-            "type": "integer",
-            "enum": [
-              200
-            ],
-            "example": 200
-          }
-        }
-      },
-      "params": [
-        {
-          "kind": "Query",
-          "name": "key",
-          "schema": {
-            "type": "string"
-          },
-          "required": true,
-          "source": "@Query('key') key: string"
-        },
-        {
-          "kind": "Query",
-          "name": "expires",
-          "schema": {
-            "type": "string"
-          },
-          "required": false,
-          "source": "@Query('expires') expiresRaw?: string"
-        }
-      ],
-      "file": false,
-      "fileField": "file",
-      "filesMultiple": false,
-      "auth": true,
-      "contextual": false,
-      "permission": [
-        {
-          "mode": "RequireGranularPermission",
-          "codes": "gestion_bim.documentos.acceso_total"
-        }
-      ],
-      "source": "src/presentation/controllers/storage.controller.ts",
-      "summary": "URL firmada de lectura (GET)",
-      "description": "Útil si el bucket es privado: devuelve una URL temporal para descargar el objeto por su clave."
-    },
-    "StorageController_uploadEvidencia": {
-      "controller": "StorageController",
-      "method": "uploadEvidencia",
-      "verb": "post",
-      "status": 200,
-      "response": {
-        "type": "object",
-        "required": [
-          "data",
-          "message",
-          "status"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/UploadedObjectMeta"
-          },
-          "message": {
-            "type": "string",
-            "example": "Archivo subido correctamente"
-          },
-          "status": {
-            "type": "integer",
-            "enum": [
-              200
-            ],
-            "example": 200
-          }
-        }
-      },
-      "params": [
-        {
-          "kind": "Query",
-          "name": "actividadId",
-          "schema": {
-            "type": "number"
-          },
-          "required": true,
-          "source": "@Query('actividadId', ParseIntPipe) actividadIdAutorizada: number"
-        }
-      ],
-      "body": {
-        "$ref": "#/components/schemas/UploadEvidenciaDto"
-      },
-      "file": true,
-      "fileField": "file",
-      "filesMultiple": false,
-      "auth": true,
-      "contextual": false,
-      "permission": [
-        {
-          "mode": "RequireResourcePermission",
-          "codes": "control_operativo.actividades.adjuntar_evidencias"
-        }
-      ],
-      "source": "src/presentation/controllers/storage.controller.ts",
-      "summary": "Subir evidencia (MinIO)",
-      "description": "Guarda en `evidencias-actividades-gvr/{usuario}/2026-04-27/{idActividad}-…-archivo` (una carpeta por fecha `YYYY-MM-DD`; el id de actividad inicia el nombre del archivo)."
-    },
-    "StorageController_uploadVisorElementoFoto": {
-      "controller": "StorageController",
-      "method": "uploadVisorElementoFoto",
-      "verb": "post",
-      "status": 200,
-      "response": {
-        "type": "object",
-        "required": [
-          "data",
-          "message",
-          "status"
-        ],
-        "properties": {
-          "data": {
-            "type": "object",
-            "properties": {
-              "bucket": {
-                "type": "string"
-              },
-              "key": {
-                "type": "string"
-              },
-              "publicUrl": {
-                "type": "string",
-                "description": "URL pública si `MINIO_PUBLIC_BASE_URL` o el endpoint permiten lectura anónima."
-              },
-              "contentType": {
-                "type": "string"
-              },
-              "size": {
-                "type": "number"
-              },
-              "viewUrl": {
-                "type": "string"
-              }
-            }
-          },
-          "message": {
-            "type": "string",
-            "example": "Imagen subida correctamente"
-          },
-          "status": {
-            "type": "integer",
-            "enum": [
-              200
-            ],
-            "example": 200
-          }
-        }
-      },
-      "params": [],
-      "body": {
-        "$ref": "#/components/schemas/UploadVisorElementoFotoDto"
-      },
-      "file": true,
-      "fileField": "file",
-      "filesMultiple": false,
-      "auth": true,
-      "contextual": false,
-      "permission": [],
-      "source": "src/presentation/controllers/storage.controller.ts",
-      "summary": "Subir foto de avance de obra (MinIO)",
-      "description": "Guarda en `visor-elemento-fotos-gvr/{proyecto}/{item}/{YYYY-MM-DD}/{id}-Avance Obra (n).{ext}`."
-    },
-    "StorageController_uploadPrefixed": {
-      "controller": "StorageController",
-      "method": "uploadPrefixed",
-      "verb": "post",
-      "status": 200,
-      "response": {
-        "type": "object",
-        "required": [
-          "data",
-          "message",
-          "status"
-        ],
-        "properties": {
-          "data": {
-            "type": "object",
-            "properties": {
-              "bucket": {
-                "type": "string"
-              },
-              "key": {
-                "type": "string"
-              },
-              "publicUrl": {
-                "type": "string",
-                "description": "URL pública si `MINIO_PUBLIC_BASE_URL` o el endpoint permiten lectura anónima."
-              },
-              "contentType": {
-                "type": "string"
-              },
-              "size": {
-                "type": "number"
-              },
-              "viewUrl": {
-                "type": "string"
-              }
-            }
-          },
-          "message": {
-            "type": "string",
-            "example": "Archivo subido correctamente"
-          },
-          "status": {
-            "type": "integer",
-            "enum": [
-              200
-            ],
-            "example": 200
-          }
-        }
-      },
-      "params": [],
-      "body": {
-        "$ref": "#/components/schemas/UploadPrefixedDto"
-      },
-      "file": true,
-      "fileField": "file",
-      "filesMultiple": false,
-      "auth": true,
-      "contextual": false,
-      "permission": [
-        {
-          "mode": "RequireGranularPermission",
-          "codes": "empresas.empresas.subir_logo"
-        }
-      ],
-      "source": "src/presentation/controllers/storage.controller.ts",
-      "summary": "Subir archivo con prefijo libre",
-      "description": "Subida genérica bajo un prefijo (carpetas virtuales S3). Útil para otros módulos."
     },
     "AuthController_register": {
       "controller": "AuthController",
@@ -46688,6 +46688,51 @@
           "type": "number",
           "description": "Minutos registrados por todas sus partes (solo en la lectura del cronograma)."
         },
+        "seguimiento": {
+          "type": "object",
+          "properties": {
+            "minutosregistrados": {
+              "type": "number"
+            },
+            "minutosaprobados": {
+              "type": "number"
+            },
+            "registrossinresolver": {
+              "type": "number"
+            },
+            "partesactivas": {
+              "type": "number"
+            },
+            "partesporentregar": {
+              "type": "number"
+            },
+            "partessinaprobacion": {
+              "type": "number"
+            },
+            "ampliacionespendientes": {
+              "type": "number"
+            },
+            "inicioejecucion": {
+              "type": "string",
+              "nullable": true
+            },
+            "finejecucion": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          "required": [
+            "minutosregistrados",
+            "minutosaprobados",
+            "registrossinresolver",
+            "partesactivas",
+            "partesporentregar",
+            "partessinaprobacion",
+            "ampliacionespendientes",
+            "inicioejecucion",
+            "finejecucion"
+          ]
+        },
         "orden": {
           "type": "number"
         },
@@ -47969,6 +48014,34 @@
         "idestadoactividad"
       ]
     },
+    "UploadedObjectMeta": {
+      "type": "object",
+      "properties": {
+        "bucket": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "publicUrl": {
+          "type": "string",
+          "description": "URL pública si `MINIO_PUBLIC_BASE_URL` o el endpoint permiten lectura anónima."
+        },
+        "contentType": {
+          "type": "string"
+        },
+        "size": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "bucket",
+        "key",
+        "publicUrl",
+        "contentType",
+        "size"
+      ]
+    },
     "FeriadoListado": {
       "type": "object",
       "properties": {
@@ -48831,34 +48904,6 @@
     "Record_DocumentCapability_boolean_": {
       "type": "object",
       "properties": {}
-    },
-    "UploadedObjectMeta": {
-      "type": "object",
-      "properties": {
-        "bucket": {
-          "type": "string"
-        },
-        "key": {
-          "type": "string"
-        },
-        "publicUrl": {
-          "type": "string",
-          "description": "URL pública si `MINIO_PUBLIC_BASE_URL` o el endpoint permiten lectura anónima."
-        },
-        "contentType": {
-          "type": "string"
-        },
-        "size": {
-          "type": "number"
-        }
-      },
-      "required": [
-        "bucket",
-        "key",
-        "publicUrl",
-        "contentType",
-        "size"
-      ]
     },
     "_id_number_nombre_string_correo_string_estado_number_fechacreacion_Date_fechamodifica_6252b811b1": {
       "type": "object",

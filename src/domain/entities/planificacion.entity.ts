@@ -83,6 +83,17 @@ export interface ActividadPlan {
   idestadoactividad: number;
   /** Minutos registrados por todas sus partes (solo en la lectura del cronograma). */
   minutosconsumidos?: number;
+  seguimiento?: {
+    minutosregistrados: number;
+    minutosaprobados: number;
+    registrossinresolver: number;
+    partesactivas: number;
+    partesporentregar: number;
+    partessinaprobacion: number;
+    ampliacionespendientes: number;
+    inicioejecucion: string | null;
+    finejecucion: string | null;
+  };
 }
 export interface SaldoAsignacion {
   minutosautorizados: number;

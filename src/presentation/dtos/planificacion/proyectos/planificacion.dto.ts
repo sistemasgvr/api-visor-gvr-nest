@@ -1058,6 +1058,10 @@ export class EstadoActividadPlanDto extends MotivoPlanDto {
             )
             .meta({ enum: [703, 704, 705, 706] }),
         },
+        partesAReabrir: {
+          schema: z.array(z.number().int().min(1).max(2147483647)),
+          when: (_o, value) => value !== undefined,
+        },
       },
       () => mappedDto(MotivoPlanDto.schema),
     );
@@ -1065,6 +1069,8 @@ export class EstadoActividadPlanDto extends MotivoPlanDto {
   revision!: number;
 
   idEstadoDestino!: number;
+
+  partesAReabrir?: number[];
 }
 export class EstadoPlanDto extends MotivoPlanDto {
   static readonly schema: z.ZodType<EstadoPlanDto> =

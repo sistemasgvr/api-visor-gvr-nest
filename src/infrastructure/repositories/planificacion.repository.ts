@@ -281,13 +281,14 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     ctx: Input.ContextoPlan,
     data: Input.EstadoActividadPlanInput,
   ) {
-    return this.call<CambioEstadoActividadPlan>('pla_CambiarEstadoActividad', [
+    return this.call<CambioEstadoActividadPlan>('pla_CambiarEstadoActividadV2', [
       actor,
       ctx.idActividad,
       data.revisionPlan,
       data.revision,
       data.idEstadoDestino,
       data.motivo,
+      data.partesAReabrir ?? [],
     ]);
   }
   estadoPlan(

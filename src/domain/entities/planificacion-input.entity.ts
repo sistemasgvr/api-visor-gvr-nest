@@ -115,6 +115,7 @@ export interface ReprogramarPlanInput extends RevisionActividadInput {
 export interface EstadoActividadPlanInput extends RevisionActividadInput {
   motivo: string;
   idEstadoDestino: number;
+  partesAReabrir?: number[];
 }
 export interface EstadoPlanInput extends MotivoPlanInput {
   idEstadoDestino: number;
