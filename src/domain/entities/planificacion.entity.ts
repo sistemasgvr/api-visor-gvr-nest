@@ -154,6 +154,7 @@ export interface CronogramaProyecto {
 }
 
 export interface RecursosPlan {
+  fueradelplan?: { fecha: string; minutos: number }[];
   inicio: string;
   fin: string;
   errorplanificacion: string | null;

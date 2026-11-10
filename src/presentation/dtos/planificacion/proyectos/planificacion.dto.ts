@@ -1153,6 +1153,7 @@ export class HistorialPlanDto extends PaginacionPlanDto {
               z.literal('movimientos'),
               z.literal('lineasbase'),
               z.literal('detallelineabase'),
+              z.literal('curvalineabase'),
             ])
             .refine(
               (value) =>
@@ -1162,6 +1163,7 @@ export class HistorialPlanDto extends PaginacionPlanDto {
                     'movimientos',
                     'lineasbase',
                     'detallelineabase',
+                    'curvalineabase',
                   ] as readonly unknown[]
                 ).includes(value),
               { message: 'Seleccione una opción válida' },
@@ -1172,6 +1174,7 @@ export class HistorialPlanDto extends PaginacionPlanDto {
                 'movimientos',
                 'lineasbase',
                 'detallelineabase',
+                'curvalineabase',
               ],
             }),
         },
@@ -1185,7 +1188,7 @@ export class HistorialPlanDto extends PaginacionPlanDto {
       () => mappedDto(PaginacionPlanDto.schema),
     );
 
-  tipo!: 'cambios' | 'movimientos' | 'lineasbase' | 'detallelineabase';
+  tipo!: 'cambios' | 'movimientos' | 'lineasbase' | 'detallelineabase' | 'curvalineabase';
 
   idLineaBase?: number;
 }

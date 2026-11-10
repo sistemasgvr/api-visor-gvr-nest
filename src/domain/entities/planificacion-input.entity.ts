@@ -130,7 +130,7 @@ export interface BandejaAmpliacionesInput extends PaginacionPlanInput {
   idActividad?: number;
 }
 export interface HistorialPlanInput extends PaginacionPlanInput {
-  tipo: 'cambios' | 'movimientos' | 'lineasbase' | 'detallelineabase';
+  tipo: 'cambios' | 'movimientos' | 'lineasbase' | 'detallelineabase' | 'curvalineabase';
   idLineaBase?: number;
 }
 export interface ResolverAmpliacionInput {
