@@ -164,6 +164,22 @@ export class PlanificacionController {
       await this.obtenerCronogramaUseCase.execute(actor, params),
     );
   }
+  @Get(':idPlan/recursos')
+  @HttpCode(200)
+  @RequireResourcePermission(
+    'proyectos.planificacion.ver',
+    GVR_PROJECT_RESOURCE,
+    'id',
+  )
+  async obtenerRecursos(
+    @ActorId() actor: number,
+    @Param() params: Dto.PlanParamsDto,
+    @Query() data: Dto.RecursosQueryDto,
+  ) {
+    return ApiResponseDto.success(
+      await this.obtenerCronogramaUseCase.recursos(actor, params, data.inicio, data.fin),
+    );
+  }
   @Put(':idPlan/reglas')
   @HttpCode(200)
   @RequireResourcePermission(

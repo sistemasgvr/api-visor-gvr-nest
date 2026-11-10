@@ -994,6 +994,66 @@
       "source": "src/presentation/controllers/planificacion.controller.ts",
       "summary": "obtener Cronograma"
     },
+    "PlanificacionController_obtenerRecursos": {
+      "controller": "PlanificacionController",
+      "method": "obtenerRecursos",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RecursosPlan"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/PlanParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: Dto.PlanParamsDto"
+        },
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/RecursosQueryDto"
+          },
+          "required": true,
+          "source": "@Query() data: Dto.RecursosQueryDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [
+        {
+          "mode": "RequireResourcePermission",
+          "codes": "proyectos.planificacion.ver"
+        }
+      ],
+      "source": "src/presentation/controllers/planificacion.controller.ts",
+      "summary": "obtener Recursos"
+    },
     "PlanificacionController_actualizarReglas": {
       "controller": "PlanificacionController",
       "method": "actualizarReglas",
@@ -47066,6 +47126,149 @@
         "inicio",
         "fin",
         "idversioncalendario"
+      ]
+    },
+    "RecursosPlan": {
+      "type": "object",
+      "properties": {
+        "inicio": {
+          "type": "string"
+        },
+        "fin": {
+          "type": "string"
+        },
+        "errorplanificacion": {
+          "type": "string",
+          "nullable": true
+        },
+        "historialsindistribucion": {
+          "type": "boolean"
+        },
+        "resumenpersonal": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "idtrabajador": {
+                "type": "number"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "actividades": {
+                "type": "number"
+              },
+              "minutosasignados": {
+                "type": "number"
+              },
+              "minutosregistrados": {
+                "type": "number"
+              },
+              "minutospendientes": {
+                "type": "number"
+              },
+              "inicio": {
+                "type": "string",
+                "nullable": true
+              },
+              "fin": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "idtrabajador",
+              "nombre",
+              "actividades",
+              "minutosasignados",
+              "minutosregistrados",
+              "minutospendientes",
+              "inicio",
+              "fin"
+            ]
+          }
+        },
+        "sobreasignaciones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "idtrabajador": {
+                "type": "number"
+              },
+              "fecha": {
+                "type": "string"
+              },
+              "minutosplanificados": {
+                "type": "number"
+              },
+              "minutoscapacidad": {
+                "type": "number"
+              },
+              "actividades": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "required": [
+              "idtrabajador",
+              "fecha",
+              "minutosplanificados",
+              "minutoscapacidad",
+              "actividades"
+            ]
+          }
+        },
+        "recursos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "idtrabajador": {
+                "type": "number"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "dias": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "fecha": {
+                      "type": "string"
+                    },
+                    "minutosplanificados": {
+                      "type": "number"
+                    },
+                    "minutosregistrados": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "fecha",
+                    "minutosplanificados",
+                    "minutosregistrados"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "idtrabajador",
+              "nombre",
+              "dias"
+            ]
+          }
+        }
+      },
+      "required": [
+        "inicio",
+        "fin",
+        "errorplanificacion",
+        "historialsindistribucion",
+        "recursos"
       ]
     },
     "ActividadPlanDetalle": {

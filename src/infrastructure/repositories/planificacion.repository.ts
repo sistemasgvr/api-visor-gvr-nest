@@ -17,6 +17,7 @@ import type {
   AmpliacionPlan,
   BandejaAmpliaciones,
   CronogramaProyecto,
+  RecursosPlan,
   PlanProyecto,
   PlanProyectoDetalle,
   PrevisualizacionCronograma,
@@ -104,6 +105,15 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     return this.call<CronogramaProyecto>('pla_ObtenerCronogramaProyecto', [
       actor,
       ctx.idPlan,
+    ]);
+  }
+  obtenerRecursos(actor: number, ctx: Input.ContextoPlan, inicio: string, fin?: string) {
+    if (fin !== undefined)
+      return this.call<RecursosPlan>('pla_ObtenerRecursosRango', [actor, ctx.idPlan, inicio, fin]);
+    return this.call<RecursosPlan>('pla_ObtenerRecursosSemana', [
+      actor,
+      ctx.idPlan,
+      inicio,
     ]);
   }
   actualizarReglas(
@@ -541,6 +551,8 @@ export class PlanificacionRepository implements IPlanificacionRepository {
           'fechas',
         ],
         pla_ObtenerActividadPlan: ['actividad', 'asignaciones', 'dependencias'],
+        pla_ObtenerRecursosSemana: ['inicio', 'fin', 'recursos', 'historialsindistribucion'],
+        pla_ObtenerRecursosRango: ['inicio', 'fin', 'recursos', 'historialsindistribucion'],
         pla_AnalizarEliminacionActividad: [
           'revision',
           'revisionplan',

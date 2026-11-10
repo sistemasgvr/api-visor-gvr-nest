@@ -152,6 +152,39 @@ export interface CronogramaProyecto {
   dependencias: DependenciaActividadPlan[];
   fechas: FechaActividadPlan[];
 }
+
+export interface RecursosPlan {
+  inicio: string;
+  fin: string;
+  errorplanificacion: string | null;
+  historialsindistribucion: boolean;
+  resumenpersonal?: {
+    idtrabajador: number;
+    nombre: string;
+    actividades: number;
+    minutosasignados: number;
+    minutosregistrados: number;
+    minutospendientes: number;
+    inicio: string | null;
+    fin: string | null;
+  }[];
+  sobreasignaciones?: {
+    idtrabajador: number;
+    fecha: string;
+    minutosplanificados: number;
+    minutoscapacidad: number;
+    actividades: number[];
+  }[];
+  recursos: {
+    idtrabajador: number;
+    nombre: string;
+    dias: {
+      fecha: string;
+      minutosplanificados: number;
+      minutosregistrados: number;
+    }[];
+  }[];
+}
 export interface ActividadPlanDetalle {
   actividad: ActividadPlan;
   asignaciones: AsignacionPlan[];

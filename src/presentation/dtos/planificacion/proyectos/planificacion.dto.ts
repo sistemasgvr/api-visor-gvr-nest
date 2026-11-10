@@ -3,6 +3,34 @@ import { defineZodDto, mappedDto, isoDate } from '../../../validation/zod-dto';
 
 const trim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() : value;
+const fechaRecursos = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((fecha) => isoDate(fecha, true), 'Indique una fecha válida en formato YYYY-MM-DD')
+  .meta({ format: 'date' });
+
+export class RecursosQueryDto {
+  static readonly schema: z.ZodType<RecursosQueryDto> =
+    defineZodDto<RecursosQueryDto>('RecursosQueryDto', {
+      inicio: {
+        schema: fechaRecursos,
+        checks: [{
+          validate: (fecha, object) => object['fin'] !== undefined ||
+            new Date(String(fecha) + 'T00:00:00Z').getUTCDay() === 1,
+          message: 'Para consultar una semana sin fecha final, indique su lunes',
+        }],
+      },
+      fin: {
+        schema: fechaRecursos,
+        when: (_o, valor) => valor !== undefined,
+        checks: [{
+          validate: (fecha, object) => String(fecha) >= String(object['inicio']),
+          message: 'La fecha final debe ser mayor o igual a la inicial',
+        }],
+      },
+    });
+
+  inicio!: string;
+  fin?: string;
+}
 
 export class BandejaAmpliacionesDto {
   static readonly schema: z.ZodType<BandejaAmpliacionesDto> =
