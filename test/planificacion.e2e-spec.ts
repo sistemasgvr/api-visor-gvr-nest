@@ -104,6 +104,54 @@ describe('Planificación HTTP con JWT y políticas reales', () => {
   const calendarioPlan = base + '/2/calendario';
   const revisionAmpliaciones = base + '/2/revision-ampliaciones';
   const previsualizarAmpliacion = base + '/2/ampliaciones/7/previsualizar';
+  it('conserva la restricción de fin nula en la simulación y confirma con su huella', async () => {
+    const huella = 'a'.repeat(32);
+    const cambios = {
+      idactividad: 7,
+      fechanoiniciarantes: '2026-11-04',
+      fechanofinalizarantes: null,
+    };
+    database.callFunctionSingle.mockResolvedValueOnce({
+      pla_PrevisualizarCambioCronograma: {
+        huella,
+        revisionplan: 3,
+        antes: [],
+        despues: [],
+        afectadas: [],
+        afectacapacidadotrosproyectos: false,
+      },
+    });
+    await request(app.getHttpServer() as Server)
+      .post(base + '/2/previsualizar')
+      .auth(token, { type: 'bearer' })
+      .send({ cambios })
+      .expect(200);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_PrevisualizarCambioCronograma',
+      [23, 2, JSON.stringify(cambios)],
+    );
+
+    grant('proyectos.planificacion.reprogramar');
+    database.callFunctionSingle.mockResolvedValueOnce({
+      pla_ConfirmarReprogramacionActividad: [],
+    });
+    await request(app.getHttpServer() as Server)
+      .post(base + '/2/actividades/7/reprogramar')
+      .auth(token, { type: 'bearer' })
+      .send({
+        revisionPlan: 3,
+        revision: 2,
+        motivo: 'Incidencia',
+        fechaNoIniciarAntes: '2026-11-04',
+        fechaNoFinalizarAntes: null,
+        huella,
+      })
+      .expect(200);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'pla_ConfirmarReprogramacionActividad',
+      [23, 7, 3, 2, '2026-11-04', null, 'Incidencia', huella],
+    );
+  });
   it('previsualización de reanudación exige JWT y alcance de planificación', async () => {
     await request(app.getHttpServer() as Server)
       .post(previsualizarAmpliacion)

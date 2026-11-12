@@ -1022,6 +1022,10 @@ export class ReprogramarPlanDto extends MotivoPlanDto {
     defineZodDto<ReprogramarPlanDto>(
       'ReprogramarPlanDto',
       {
+        huella: {
+          schema: z.string().regex(/^[a-f0-9]{32}$/),
+          when: (_o, v) => v !== undefined,
+        },
         revision: {
           schema: z.number().int().max(2147483647).min(1),
           coerce: 'number',
@@ -1064,6 +1068,8 @@ export class ReprogramarPlanDto extends MotivoPlanDto {
   fechaNoIniciarAntes?: string | null;
 
   fechaNoFinalizarAntes?: string | null;
+
+  huella?: string;
 }
 export class EstadoActividadPlanDto extends MotivoPlanDto {
   static readonly schema: z.ZodType<EstadoActividadPlanDto> =

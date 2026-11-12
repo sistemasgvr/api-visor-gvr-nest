@@ -47131,6 +47131,42 @@
     "RecursosPlan": {
       "type": "object",
       "properties": {
+        "avanceporactividad": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "idactividad": {
+                "type": "number"
+              },
+              "minutosprevistos": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "idactividad",
+              "minutosprevistos"
+            ]
+          }
+        },
+        "fueradelplan": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fecha": {
+                "type": "string"
+              },
+              "minutos": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "fecha",
+              "minutos"
+            ]
+          }
+        },
         "inicio": {
           "type": "string"
         },
@@ -47512,6 +47548,9 @@
     "PrevisualizacionCronograma": {
       "type": "object",
       "properties": {
+        "huella": {
+          "type": "string"
+        },
         "revisionplan": {
           "type": "number"
         },
@@ -47538,6 +47577,7 @@
         }
       },
       "required": [
+        "huella",
         "revisionplan",
         "antes",
         "despues",

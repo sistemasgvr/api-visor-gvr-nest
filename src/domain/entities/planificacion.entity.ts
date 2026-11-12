@@ -154,6 +154,7 @@ export interface CronogramaProyecto {
 }
 
 export interface RecursosPlan {
+  avanceporactividad?: { idactividad: number; minutosprevistos: number }[];
   fueradelplan?: { fecha: string; minutos: number }[];
   inicio: string;
   fin: string;
@@ -192,6 +193,7 @@ export interface ActividadPlanDetalle {
   dependencias: DependenciaActividadPlan[];
 }
 export interface PrevisualizacionCronograma {
+  huella: string;
   revisionplan: number;
   antes: FechaActividadPlan[];
   despues: FechaActividadPlan[];

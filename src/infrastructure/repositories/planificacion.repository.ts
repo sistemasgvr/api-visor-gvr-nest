@@ -276,7 +276,7 @@ export class PlanificacionRepository implements IPlanificacionRepository {
     ctx: Input.ContextoPlan,
     data: Input.ReprogramarPlanInput,
   ) {
-    return this.call<FechaActividadPlan[]>('pla_ReprogramarActividad', [
+    return this.call<FechaActividadPlan[]>('pla_ConfirmarReprogramacionActividad', [
       actor,
       ctx.idActividad,
       data.revisionPlan,
@@ -284,6 +284,7 @@ export class PlanificacionRepository implements IPlanificacionRepository {
       data.fechaNoIniciarAntes ?? null,
       data.fechaNoFinalizarAntes ?? null,
       data.motivo,
+      data.huella ?? null,
     ]);
   }
   estadoActividad(
@@ -513,7 +514,7 @@ export class PlanificacionRepository implements IPlanificacionRepository {
       'pla_ListarEstadoPlanes',
       'pla_GuardarAsignacionesActividad',
       'pla_GuardarDependenciasActividad',
-      'pla_ReprogramarActividad',
+      'pla_ConfirmarReprogramacionActividad',
       'pla_ListarAmpliaciones',
     ];
     const booleanos = [
