@@ -83,6 +83,8 @@ export interface DashboardCantidadJornadasCompletasSemana {
 export interface DashboardTopTrabajadoresHorasMes {
   tipo: string;
   posicion: number;
+  /** Id del trabajador; permite enlazar al tab Registro filtrando sin usar el nombre. */
+  idTrabajador: number;
   nombreTrabajador: string;
   horasRegistradas: number;
 }

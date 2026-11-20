@@ -12,15 +12,23 @@ export class ObtenerProyectoUseCase {
       throw new NotFoundError('Proyecto no encontrado');
     }
 
-    const [documentos, usuarios] = await Promise.all([
+    const [documentos, usuarios, actividades] = await Promise.all([
       this.proyectoRepository.listarDocumentosProyecto(idProyecto),
       this.proyectoRepository.listarUsuariosProyecto(idProyecto),
+      this.proyectoRepository.obtenerRangoActividadesProyecto(idProyecto),
     ]);
 
     return {
       ...proyecto,
       documentos: documentos ?? [],
       usuarios: usuarios ?? [],
+      // Rango de actividad real registrada (control operativo).
+      actividades: actividades ?? {
+        primeraActividad: null,
+        ultimaActividad: null,
+        diasTranscurridos: null,
+        totalActividades: 0,
+      },
     };
   }
 }

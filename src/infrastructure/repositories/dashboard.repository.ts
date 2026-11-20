@@ -139,13 +139,14 @@ export class DashboardRepository implements IDashboardRepository {
     rango?: DashboardRangoFechas,
   ): Promise<DashboardTopTrabajadoresHorasMes[]> {
     const result = await this.databaseFunctionService.callFunction<any>(
-      'dash_TopTrabajadoresHorasMes',
+      'dash_TopTrabajadoresHorasMesV2',
       parametrosRango(rango),
     );
     if (!Array.isArray(result)) return [];
     return result.map((row) => ({
       tipo: row.tipo,
       posicion: Number(row.posicion),
+      idTrabajador: Number(row.idTrabajador),
       nombreTrabajador: row.nombreTrabajador,
       horasRegistradas: Number(row.horasRegistradas),
     }));

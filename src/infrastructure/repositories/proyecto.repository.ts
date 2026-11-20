@@ -16,6 +16,7 @@ import type {
   EntregableSelectOption,
   CrearEntregableProyectoData,
   ActualizarEntregableProyectoData,
+  RangoActividadesProyecto,
 } from '../../domain/repositories/proyecto.repository.interface';
 import { DatabaseFunctionService } from '../database/database-function.service';
 import { ID_ESTADO_ENTREGABLE_PROCESO } from '../../domain/constants/estado-entregable.constants';
@@ -190,6 +191,33 @@ export class ProyectoRepository implements IProyectoRepository {
       );
     }
     return result;
+  }
+
+  /**
+   * Rango de actividad real registrada en el proyecto (control operativo).
+   * El SP siempre devuelve una fila: si no hay actividades, viene con los
+   * agregados en null, que aqui se normalizan a un total de 0.
+   */
+  async obtenerRangoActividadesProyecto(
+    idProyecto: number,
+  ): Promise<RangoActividadesProyecto> {
+    const result = await this.callPlanSingle<any>(
+      'pro_ObtenerRangoActividadesProyecto',
+      [idProyecto],
+    );
+
+    const total = Number(result?.totalactividades ?? 0);
+
+    return {
+      primeraActividad: result?.primeraactividad ?? null,
+      ultimaActividad: result?.ultimaactividad ?? null,
+      diasTranscurridos:
+        result?.diastranscurridos === null ||
+        result?.diastranscurridos === undefined
+          ? null
+          : Number(result.diastranscurridos),
+      totalActividades: Number.isFinite(total) ? total : 0,
+    };
   }
 
   async crearProyecto(data: CrearProyectoData): Promise<any> {

@@ -184,12 +184,32 @@ export interface ProyectoPorEstadoItem {
   cantidad: number;
 }
 
+/**
+ * Rango de actividad real registrada en un proyecto (control operativo).
+ * Un proyecto sin actividades devuelve las fechas en null, diasTranscurridos
+ * en null y totalActividades en 0.
+ */
+export interface RangoActividadesProyecto {
+  /** Momento de la primera actividad: fecha de jornada + hora de inicio. */
+  primeraActividad: string | null;
+  /** Momento de la ultima actividad: fecha de jornada + hora de fin. */
+  ultimaActividad: string | null;
+  /** Dias calendario entre la primera y la ultima jornada con trabajo. */
+  diasTranscurridos: number | null;
+  /** Cantidad de actividades consideradas en el rango. */
+  totalActividades: number;
+}
+
 export interface IProyectoRepository {
   listarProyectos(
     params: ListarProyectosParams,
   ): Promise<ListarProyectosResponse>;
   contarProyectosPorEstado(): Promise<ProyectoPorEstadoItem[]>;
   obtenerProyectoPorId(idProyecto: number): Promise<any>;
+  /** Rango de actividad real registrada, para el detalle del proyecto. */
+  obtenerRangoActividadesProyecto(
+    idProyecto: number,
+  ): Promise<RangoActividadesProyecto>;
   crearProyecto(data: CrearProyectoData): Promise<any>;
   editarProyecto(data: EditarProyectoData): Promise<any>;
   eliminarProyecto(

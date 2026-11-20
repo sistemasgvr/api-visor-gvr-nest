@@ -16268,6 +16268,9 @@
                   "description": "Contenido JSON de estructura variable definido por el proveedor o la consulta de esta operación.",
                   "x-dynamic-json": true
                 }
+              },
+              "actividades": {
+                "$ref": "#/components/schemas/RangoActividadesProyecto"
               }
             }
           },
@@ -50014,6 +50017,36 @@
         "idtrabajador",
         "nombrecoordinador",
         "miembrosEquipo"
+      ]
+    },
+    "RangoActividadesProyecto": {
+      "type": "object",
+      "properties": {
+        "primeraActividad": {
+          "type": "string",
+          "nullable": true,
+          "description": "Momento de la primera actividad: fecha de jornada + hora de inicio."
+        },
+        "ultimaActividad": {
+          "type": "string",
+          "nullable": true,
+          "description": "Momento de la ultima actividad: fecha de jornada + hora de fin."
+        },
+        "diasTranscurridos": {
+          "type": "number",
+          "nullable": true,
+          "description": "Dias calendario entre la primera y la ultima jornada con trabajo."
+        },
+        "totalActividades": {
+          "type": "number",
+          "description": "Cantidad de actividades consideradas en el rango."
+        }
+      },
+      "required": [
+        "primeraActividad",
+        "ultimaActividad",
+        "diasTranscurridos",
+        "totalActividades"
       ]
     },
     "ChannelAuthRequest": {
