@@ -1,3 +1,4 @@
+import { formatLimaDate } from "../../domain/utils/lima-date.util";
 import type { ExportacionRevisionesPdfPort } from '../../application/ports/exportacion-revisiones-pdf.port';
 import { Inject, Injectable } from '@nestjs/common';
 import {
@@ -16,13 +17,13 @@ type RevisionRow = Record<string, unknown>;
 function formatDateEs(iso: string | null | undefined): string {
   if (!iso) return '—';
   try {
-    return new Intl.DateTimeFormat('es-PE', {
+    return formatLimaDate(iso, 'es-PE', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date(iso));
+    });
   } catch {
     return String(iso);
   }

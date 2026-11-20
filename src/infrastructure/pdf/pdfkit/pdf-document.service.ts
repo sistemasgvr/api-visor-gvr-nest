@@ -1,3 +1,4 @@
+import { formatLimaDate } from '../../../domain/utils/lima-date.util';
 import PDFDocument = require('pdfkit');
 import { PdfLayoutConfig } from './layout/pdf-layout.config';
 import { PdfFontsConfig } from './fonts/pdf-fonts.config';
@@ -172,40 +173,9 @@ export class PdfDocumentService {
   }
 
   private formatearFecha(fecha: Date, incluirHora: boolean = false): string {
-    const dia = fecha.getDate();
-    const meses = [
-      'ene',
-      'feb',
-      'mar',
-      'abr',
-      'may',
-      'jun',
-      'jul',
-      'ago',
-      'sep',
-      'oct',
-      'nov',
-      'dic',
-    ];
-    const mes = meses[fecha.getMonth()];
-    const año = fecha.getFullYear();
-
-    let fechaFormateada = `${dia} de ${mes}. de ${año}`;
-
-    if (incluirHora) {
-      const hora = fecha.getHours().toString().padStart(2, '0');
-      const minutos = fecha.getMinutes().toString().padStart(2, '0');
-
-      const timeZoneOffset = -fecha.getTimezoneOffset() / 60;
-      const timeZoneSign = timeZoneOffset >= 0 ? '+' : '-';
-      const timeZoneHours = Math.abs(timeZoneOffset)
-        .toString()
-        .padStart(2, '0');
-      const timeZone = `UTC${timeZoneSign}${timeZoneHours}:00`;
-
-      fechaFormateada += `, ${hora}:${minutos} ${timeZone}`;
-    }
-
-    return fechaFormateada;
+    return formatLimaDate(fecha, 'es-PE', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      ...(incluirHora ? { hour: '2-digit', minute: '2-digit', timeZoneName: 'shortOffset' } : {}),
+    });
   }
 }

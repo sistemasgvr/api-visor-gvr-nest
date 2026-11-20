@@ -1,3 +1,4 @@
+import { formatLimaDate } from "../../domain/utils/lima-date.util";
 import type {
   ActividadInformeServicioLinea,
   DatosReporteActividadesRow,
@@ -70,12 +71,12 @@ function formatFechaLargaEsPe(ymd: string): string {
     .map((x) => parseInt(x, 10));
   if (p.length !== 3 || p.some((n) => !Number.isFinite(n))) return ymd;
   const [y, m, d] = p;
-  const dt = new Date(y, m - 1, d);
-  return new Intl.DateTimeFormat('es-PE', {
+  const dt = ymd;
+  return formatLimaDate(dt, 'es-PE', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  }).format(dt);
+  });
 }
 
 /** Iguala espacios y guiones para detectar líneas repetidas (“Desarrollo Web - …” duplicadas). */
@@ -154,17 +155,17 @@ function formatoEncabezadoDiaInforme(raw: string | null | undefined): string {
   const parts = ymd.split('-').map((x) => parseInt(x, 10));
   if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return ymd;
   const [y, mo, d] = parts;
-  const dt = new Date(y, mo - 1, d);
-  const weekday = new Intl.DateTimeFormat('es-PE', {
+  const dt = ymd;
+  const weekday = formatLimaDate(dt, 'es-PE', {
     weekday: 'long',
-  }).format(dt);
+  });
   const weekdayCap =
     weekday.length > 0
       ? weekday.charAt(0).toUpperCase() + weekday.slice(1)
       : weekday;
-  const monthName = new Intl.DateTimeFormat('es-PE', {
+  const monthName = formatLimaDate(dt, 'es-PE', {
     month: 'long',
-  }).format(dt);
+  });
   return `${weekdayCap} ${d} de ${monthName} de ${y}`;
 }
 

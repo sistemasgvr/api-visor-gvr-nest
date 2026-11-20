@@ -1,3 +1,4 @@
+import { formatLimaDate } from '../../../domain/utils/lima-date.util';
 import { UnprocessableError } from '../../errors/application.error';
 import {
   ApplicationLogger,
@@ -91,7 +92,7 @@ export class ExportarActividadesJornadasWordMasivoUseCase {
 
     if (errores.length > 0) {
       const texto =
-        `Exportación masiva — ${new Date().toISOString()}\n` +
+        `Exportación masiva — ${formatLimaDate(new Date(), "es-PE", { dateStyle: "short", timeStyle: "medium" })}\n` +
         `Periodo: ${fi} a ${ff}\n` +
         `Generados: ${ok.length} de ${ids.length}\n\n` +
         errores.map((l) => `- ${l}`).join('\n') +

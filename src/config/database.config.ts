@@ -1,5 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import './lima-timezone';
 
 export const getDatabaseConfig = (
   configService: ConfigService,

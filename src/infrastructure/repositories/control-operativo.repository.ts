@@ -1,3 +1,4 @@
+import { AppTemporal, APP_TIME_ZONE } from '../../domain/utils/lima-date.util';
 import { ejecutarPlanificacion } from './planificacion-errors';
 import { Injectable, Inject } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -919,19 +920,12 @@ export class ControlOperativoRepository implements IControlOperativoRepository {
   }
 
   private getInicioSemanaActual(): string {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - (day === 0 ? 6 : day - 1);
-    const lunes = new Date(now.getFullYear(), now.getMonth(), diff);
-    return lunes.toISOString().split('T')[0];
+    const hoy = AppTemporal.Now.plainDateISO(APP_TIME_ZONE);
+    return hoy.subtract({ days: hoy.dayOfWeek - 1 }).toString();
   }
 
   private getFinSemanaActual(): string {
-    const inicio = this.getInicioSemanaActual();
-    const lunes = new Date(inicio);
-    const domingo = new Date(lunes);
-    domingo.setDate(domingo.getDate() + 6);
-    return domingo.toISOString().split('T')[0];
+    return AppTemporal.PlainDate.from(this.getInicioSemanaActual()).add({ days: 6 }).toString();
   }
 
   async ejecutarCronCierreJornadas(

@@ -1,3 +1,4 @@
+import { formatLimaDate } from "../../../domain/utils/lima-date.util";
 import type { IHtmlPdfGenerator } from '../../ports/html-pdf-generator.interface';
 
 export interface GenerarPdfDemoInput {
@@ -21,7 +22,7 @@ export class GenerarPdfDemoUseCase {
     return this.htmlPdfGenerator.renderPdfFromTemplate('sample-report', {
       titulo,
       subtitulo: 'Ejemplo de exportación PDF desde plantilla',
-      generatedAt: new Date().toLocaleString('es-ES', {
+      generatedAt: formatLimaDate(new Date(), 'es-ES', {
         dateStyle: 'short',
         timeStyle: 'short',
       }),

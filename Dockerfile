@@ -23,6 +23,7 @@ FROM node:20-bookworm-slim
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
+ENV TZ=America/Lima
 
 # Chromium y dependencias mínimas para headless PDF (Puppeteer en Docker)
 RUN apt-get update && apt-get install -y --no-install-recommends \

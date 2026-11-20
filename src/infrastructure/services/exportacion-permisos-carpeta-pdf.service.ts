@@ -1,3 +1,4 @@
+import { formatLimaDate } from "../../domain/utils/lima-date.util";
 import type { ExportacionPermisosCarpetaPdfPort } from '../../application/ports/exportacion-permisos-carpeta-pdf.port';
 import {
   BadRequestException,
@@ -34,13 +35,13 @@ type Fila = {
 function fmtFecha(iso: string | null | undefined): string {
   if (!iso) return '—';
   try {
-    return new Intl.DateTimeFormat('es-PE', {
+    return formatLimaDate(iso, 'es-PE', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date(iso));
+    });
   } catch {
     return String(iso);
   }
