@@ -20,6 +20,8 @@ import { AccDocumentConfigRepository } from '../../infrastructure/repositories/a
 import { AccDocumentConfigController } from '../../presentation/controllers/acc-document-config.controller';
 import { applicationProvider } from '../application.providers';
 
+import { applicationProvider } from '../application.providers';
+
 @Module({
   controllers: [AccDocumentConfigController],
   providers: [

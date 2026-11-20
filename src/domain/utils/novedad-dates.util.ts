@@ -1,11 +1,8 @@
+import { limaDateOnly } from './lima-date.util';
 /** Normaliza fechas de novedades: publicación inicio del día, vigencia fin del día. */
 
 function extractDatePart(value: string): string | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const normalized = trimmed.replace(' ', 'T');
-  const datePart = normalized.split('T')[0]?.slice(0, 10) ?? '';
-  return /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? datePart : null;
+  return limaDateOnly(value) || null;
 }
 
 export function normalizarFechaPublicacionNovedad(
@@ -14,7 +11,7 @@ export function normalizarFechaPublicacionNovedad(
   if (value == null) return null;
   const datePart =
     value instanceof Date
-      ? value.toISOString().slice(0, 10)
+      ? limaDateOnly(value)
       : extractDatePart(String(value));
   return datePart ? `${datePart}T00:00:00` : null;
 }
@@ -25,7 +22,7 @@ export function normalizarFechaVigenciaNovedad(
   if (value == null) return null;
   const datePart =
     value instanceof Date
-      ? value.toISOString().slice(0, 10)
+      ? limaDateOnly(value)
       : extractDatePart(String(value));
   return datePart ? `${datePart}T23:59:59` : null;
 }

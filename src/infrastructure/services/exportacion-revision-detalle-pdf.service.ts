@@ -1,3 +1,4 @@
+import { formatLimaDate } from "../../domain/utils/lima-date.util";
 import type { ExportacionRevisionDetallePdfPort } from '../../application/ports/exportacion-revision-detalle-pdf.port';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
@@ -11,14 +12,13 @@ import { ObtenerReferenciasRevisionUseCase } from '../../application/use-cases/a
 function formatDateEs(iso: string | Date | null | undefined): string {
   if (!iso) return '—';
   try {
-    const d = iso instanceof Date ? iso : new Date(String(iso));
-    return new Intl.DateTimeFormat('es-PE', {
+    return formatLimaDate(iso, 'es-PE', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(d);
+    });
   } catch {
     return String(iso);
   }

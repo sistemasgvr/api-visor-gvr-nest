@@ -15,6 +15,8 @@ import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.s
 import { AccAccountUsersController } from '../../presentation/controllers/acc-account-users.controller';
 import { applicationProvider } from '../application.providers';
 
+import { applicationProvider } from '../application.providers';
+
 @Module({
   controllers: [AccAccountUsersController],
   providers: [

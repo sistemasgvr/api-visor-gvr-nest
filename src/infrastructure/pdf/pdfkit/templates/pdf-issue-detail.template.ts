@@ -1,3 +1,4 @@
+import { formatLimaDate, parseLimaDate } from '../../../../domain/utils/lima-date.util';
 import PDFDocument = require('pdfkit');
 import { PdfLayoutConfig } from '../layout/pdf-layout.config';
 import { PdfFontsConfig } from '../fonts/pdf-fonts.config';
@@ -418,7 +419,7 @@ export class PdfIssueDetailTemplate {
 
       // Fecha
       const fechaAdjunto = fotos[i].createdAt
-        ? this.formatearFecha(new Date(fotos[i].createdAt), true)
+        ? this.formatearFecha(parseLimaDate(fotos[i].createdAt), true)
         : '';
 
       if (fechaAdjunto) {
@@ -487,7 +488,7 @@ export class PdfIssueDetailTemplate {
         usuarioCreador;
 
       const fechaComentario = comentario.createdAt
-        ? this.formatearFecha(new Date(comentario.createdAt), true)
+        ? this.formatearFecha(parseLimaDate(comentario.createdAt), true)
         : '';
 
       // Configuración del avatar
@@ -741,7 +742,7 @@ export class PdfIssueDetailTemplate {
 
     // Creado el
     const creadoEl = incidencia.createdAt
-      ? this.formatearFecha(new Date(incidencia.createdAt), false)
+      ? this.formatearFecha(parseLimaDate(incidencia.createdAt), false)
       : '—';
     campos.push({ label: 'Creado el', value: creadoEl });
 
@@ -756,7 +757,7 @@ export class PdfIssueDetailTemplate {
 
     // Vencimiento
     if (incidencia.dueDate) {
-      const fechaVencimiento = new Date(incidencia.dueDate);
+      const fechaVencimiento = parseLimaDate(incidencia.dueDate);
       const diasTarde = Math.floor(
         (new Date().getTime() - fechaVencimiento.getTime()) /
           (1000 * 60 * 60 * 24),
@@ -771,7 +772,7 @@ export class PdfIssueDetailTemplate {
 
     // Fecha de inicio
     const fechaInicio = incidencia.startDate
-      ? this.formatearFecha(new Date(incidencia.startDate), false)
+      ? this.formatearFecha(parseLimaDate(incidencia.startDate), false)
       : '—';
     campos.push({ label: 'Fecha de inicio', value: fechaInicio });
 
@@ -807,41 +808,10 @@ export class PdfIssueDetailTemplate {
     fecha: Date,
     incluirHora: boolean = false,
   ): string {
-    const dia = fecha.getDate();
-    const meses = [
-      'ene',
-      'feb',
-      'mar',
-      'abr',
-      'may',
-      'jun',
-      'jul',
-      'ago',
-      'sep',
-      'oct',
-      'nov',
-      'dic',
-    ];
-    const mes = meses[fecha.getMonth()];
-    const año = fecha.getFullYear();
-
-    let fechaFormateada = `${dia} de ${mes}. de ${año}`;
-
-    if (incluirHora) {
-      const hora = fecha.getHours().toString().padStart(2, '0');
-      const minutos = fecha.getMinutes().toString().padStart(2, '0');
-
-      const timeZoneOffset = -fecha.getTimezoneOffset() / 60;
-      const timeZoneSign = timeZoneOffset >= 0 ? '+' : '-';
-      const timeZoneHours = Math.abs(timeZoneOffset)
-        .toString()
-        .padStart(2, '0');
-      const timeZone = `UTC${timeZoneSign}${timeZoneHours}:00`;
-
-      fechaFormateada += `, ${hora}:${minutos} ${timeZone}`;
-    }
-
-    return fechaFormateada;
+    return formatLimaDate(fecha, 'es-PE', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      ...(incluirHora ? { hour: '2-digit', minute: '2-digit', timeZoneName: 'shortOffset' } : {}),
+    });
   }
 
   private static dibujarInformacionGeneralPlano(
@@ -873,7 +843,7 @@ export class PdfIssueDetailTemplate {
       if (linkedDoc.createdAt) {
         campos.push({
           label: 'Fecha de creación',
-          value: this.formatearFecha(new Date(linkedDoc.createdAt), true),
+          value: this.formatearFecha(parseLimaDate(linkedDoc.createdAt), true),
         });
       }
       if (linkedDoc.createdBy) {
@@ -986,7 +956,7 @@ export class PdfIssueDetailTemplate {
       if (linkedDoc.createdAt) {
         campos.push({
           label: 'Fecha de creación',
-          value: this.formatearFecha(new Date(linkedDoc.createdAt), true),
+          value: this.formatearFecha(parseLimaDate(linkedDoc.createdAt), true),
         });
       }
       if (linkedDoc.createdBy)

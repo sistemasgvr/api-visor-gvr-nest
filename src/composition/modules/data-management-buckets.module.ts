@@ -13,6 +13,8 @@ import { DataManagementBucketsController } from '../../presentation/controllers/
 import { DatabaseModule } from './platform/database.module';
 import { applicationProvider } from '../application.providers';
 
+import { applicationProvider } from '../application.providers';
+
 @Module({
   imports: [DatabaseModule],
   controllers: [DataManagementBucketsController],

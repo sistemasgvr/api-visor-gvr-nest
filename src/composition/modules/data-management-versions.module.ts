@@ -19,6 +19,8 @@ import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.s
 import { DataManagementVersionsController } from '../../presentation/controllers/data-management-versions.controller';
 import { applicationProvider } from '../application.providers';
 
+import { applicationProvider } from '../application.providers';
+
 @Module({
   controllers: [DataManagementVersionsController],
   providers: [

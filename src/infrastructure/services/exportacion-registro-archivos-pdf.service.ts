@@ -1,3 +1,4 @@
+import { formatLimaDate } from "../../domain/utils/lima-date.util";
 import type { ExportacionRegistroArchivosPdfPort } from '../../application/ports/exportacion-registro-archivos-pdf.port';
 import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import {
@@ -28,13 +29,13 @@ type Fila = {
 function fmtFecha(iso: string | null | undefined): string {
   if (!iso) return '—';
   try {
-    return new Intl.DateTimeFormat('es-PE', {
+    return formatLimaDate(iso, 'es-PE', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date(iso));
+    });
   } catch {
     return String(iso);
   }

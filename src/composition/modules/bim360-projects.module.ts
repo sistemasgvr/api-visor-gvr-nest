@@ -14,6 +14,8 @@ import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.s
 import { Bim360ProjectsController } from '../../presentation/controllers/bim360-projects.controller';
 import { applicationProvider } from '../application.providers';
 
+import { applicationProvider } from '../application.providers';
+
 @Module({
   controllers: [Bim360ProjectsController],
   providers: [

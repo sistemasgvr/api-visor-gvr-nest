@@ -1,3 +1,4 @@
+import './config/lima-timezone';
 import { webcrypto } from 'crypto';
 
 // Polyfill para crypto.randomUUID() - debe estar ANTES de cualquier otra importación de NestJS

@@ -1,3 +1,4 @@
+import { formatLimaDate, parseLimaDate } from '../../../domain/utils/lima-date.util';
 import { PdfRenderOptions } from '../../../application/ports/html-pdf-generator.interface';
 import { ExportarIncidenciasDto } from '../../../application/inputs/acc/issues/exportar-incidencias.dto';
 
@@ -280,13 +281,13 @@ export class IssueReportMapper {
     const creadoPor = `${inc.createdByReal || usuarioCreador} (${emailCreador})`;
 
     const creadoEl = inc.createdAt
-      ? IssueReportMapper.formatDate(new Date(inc.createdAt), false)
+      ? IssueReportMapper.formatDate(parseLimaDate(inc.createdAt), false)
       : '—';
 
     let vencimiento = '—';
     let isVencido = false;
     if (inc.dueDate) {
-      const due = new Date(inc.dueDate);
+      const due = parseLimaDate(inc.dueDate);
       const dias = Math.floor((Date.now() - due.getTime()) / 86400000);
       const fecha = IssueReportMapper.formatDate(due, false);
       isVencido = dias > 0;
@@ -294,7 +295,7 @@ export class IssueReportMapper {
     }
 
     const fechaInicio = inc.startDate
-      ? IssueReportMapper.formatDate(new Date(inc.startDate), false)
+      ? IssueReportMapper.formatDate(parseLimaDate(inc.startDate), false)
       : '—';
 
     const posicion =
@@ -335,7 +336,7 @@ export class IssueReportMapper {
     if (ld.createdAt)
       campos.push({
         label: 'Fecha de creación',
-        value: IssueReportMapper.formatDate(new Date(ld.createdAt), true),
+        value: IssueReportMapper.formatDate(parseLimaDate(ld.createdAt), true),
       });
     if (ld.createdBy) campos.push({ label: 'Creado por', value: ld.createdBy });
     return campos;
@@ -367,7 +368,7 @@ export class IssueReportMapper {
       if (ld.createdAt)
         campos.push({
           label: 'Fecha de creación',
-          value: IssueReportMapper.formatDate(new Date(ld.createdAt), true),
+          value: IssueReportMapper.formatDate(parseLimaDate(ld.createdAt), true),
         });
       if (ld.createdBy)
         campos.push({ label: 'Creado por', value: ld.createdBy });
@@ -426,7 +427,7 @@ export class IssueReportMapper {
         const nombre =
           adj.displayName || adj.fileName || adj.name || 'Thumbnail';
         const creadoEl = adj.createdAt
-          ? IssueReportMapper.formatDate(new Date(adj.createdAt), true)
+          ? IssueReportMapper.formatDate(parseLimaDate(adj.createdAt), true)
           : '';
         const creadoPor =
           adj.createdByReal || adj.createdBy || input.usuarioCreador;
@@ -479,7 +480,7 @@ export class IssueReportMapper {
         c.createdBy ||
         usuarioCreador;
       const fecha = c.createdAt
-        ? IssueReportMapper.formatDate(new Date(c.createdAt), true)
+        ? IssueReportMapper.formatDate(parseLimaDate(c.createdAt), true)
         : '';
 
       let avatarBase64: string | null = null;
@@ -550,29 +551,10 @@ export class IssueReportMapper {
   // ── Helpers ───────────────────────────────────────────────────
 
   private static formatDate(date: Date, withTime: boolean): string {
-    const meses = [
-      'ene',
-      'feb',
-      'mar',
-      'abr',
-      'may',
-      'jun',
-      'jul',
-      'ago',
-      'sep',
-      'oct',
-      'nov',
-      'dic',
-    ];
-    let s = `${date.getDate()} de ${meses[date.getMonth()]}. de ${date.getFullYear()}`;
-    if (withTime) {
-      const hh = String(date.getHours()).padStart(2, '0');
-      const mm = String(date.getMinutes()).padStart(2, '0');
-      const off = -date.getTimezoneOffset() / 60;
-      const tz = `UTC${off >= 0 ? '+' : ''}${Math.abs(off).toString().padStart(2, '0')}:00`;
-      s += `, ${hh}:${mm} ${tz}`;
-    }
-    return s;
+    return formatLimaDate(date, 'es-PE', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      ...(withTime ? { hour: '2-digit', minute: '2-digit', timeZoneName: 'shortOffset' } : {}),
+    });
   }
 
   private static getStatusLabel(status: string): string {
