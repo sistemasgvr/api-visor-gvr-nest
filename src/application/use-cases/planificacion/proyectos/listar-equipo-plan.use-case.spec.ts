@@ -1,6 +1,7 @@
 import { ListarEquipoPlanUseCase } from './listar-equipo-plan.use-case';
 import type { IPlanificacionRepository } from '../../../../domain/repositories/planificacion.repository.interface';
 import { NotFoundError } from '../../../errors/application.error';
+import type { MinioStoragePort } from '../../../ports/minio-storage.port';
 describe('O2 equipo del proyecto', () => {
   const repository = {
     comprobarPertenencia: jest.fn(),
@@ -8,6 +9,7 @@ describe('O2 equipo del proyecto', () => {
   };
   const useCase = new ListarEquipoPlanUseCase(
     repository as unknown as IPlanificacionRepository,
+    {} as MinioStoragePort,
   );
   beforeEach(() => jest.resetAllMocks());
   it('propaga actor y proyecto sin requerir que ya exista un plan', async () => {

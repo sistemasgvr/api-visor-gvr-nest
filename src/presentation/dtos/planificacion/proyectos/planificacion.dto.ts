@@ -3,6 +3,34 @@ import { defineZodDto, mappedDto, isoDate } from '../../../validation/zod-dto';
 
 const trim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() : value;
+const fechaRecursos = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((fecha) => isoDate(fecha, true), 'Indique una fecha válida en formato YYYY-MM-DD')
+  .meta({ format: 'date' });
+
+export class RecursosQueryDto {
+  static readonly schema: z.ZodType<RecursosQueryDto> =
+    defineZodDto<RecursosQueryDto>('RecursosQueryDto', {
+      inicio: {
+        schema: fechaRecursos,
+        checks: [{
+          validate: (fecha, object) => object['fin'] !== undefined ||
+            new Date(String(fecha) + 'T00:00:00Z').getUTCDay() === 1,
+          message: 'Para consultar una semana sin fecha final, indique su lunes',
+        }],
+      },
+      fin: {
+        schema: fechaRecursos,
+        when: (_o, valor) => valor !== undefined,
+        checks: [{
+          validate: (fecha, object) => String(fecha) >= String(object['inicio']),
+          message: 'La fecha final debe ser mayor o igual a la inicial',
+        }],
+      },
+    });
+
+  inicio!: string;
+  fin?: string;
+}
 
 export class BandejaAmpliacionesDto {
   static readonly schema: z.ZodType<BandejaAmpliacionesDto> =
@@ -994,6 +1022,10 @@ export class ReprogramarPlanDto extends MotivoPlanDto {
     defineZodDto<ReprogramarPlanDto>(
       'ReprogramarPlanDto',
       {
+        huella: {
+          schema: z.string().regex(/^[a-f0-9]{32}$/),
+          when: (_o, v) => v !== undefined,
+        },
         revision: {
           schema: z.number().int().max(2147483647).min(1),
           coerce: 'number',
@@ -1036,6 +1068,8 @@ export class ReprogramarPlanDto extends MotivoPlanDto {
   fechaNoIniciarAntes?: string | null;
 
   fechaNoFinalizarAntes?: string | null;
+
+  huella?: string;
 }
 export class EstadoActividadPlanDto extends MotivoPlanDto {
   static readonly schema: z.ZodType<EstadoActividadPlanDto> =
@@ -1058,6 +1092,10 @@ export class EstadoActividadPlanDto extends MotivoPlanDto {
             )
             .meta({ enum: [703, 704, 705, 706] }),
         },
+        partesAReabrir: {
+          schema: z.array(z.number().int().min(1).max(2147483647)),
+          when: (_o, value) => value !== undefined,
+        },
       },
       () => mappedDto(MotivoPlanDto.schema),
     );
@@ -1065,6 +1103,8 @@ export class EstadoActividadPlanDto extends MotivoPlanDto {
   revision!: number;
 
   idEstadoDestino!: number;
+
+  partesAReabrir?: number[];
 }
 export class EstadoPlanDto extends MotivoPlanDto {
   static readonly schema: z.ZodType<EstadoPlanDto> =
@@ -1119,6 +1159,7 @@ export class HistorialPlanDto extends PaginacionPlanDto {
               z.literal('movimientos'),
               z.literal('lineasbase'),
               z.literal('detallelineabase'),
+              z.literal('curvalineabase'),
             ])
             .refine(
               (value) =>
@@ -1128,6 +1169,7 @@ export class HistorialPlanDto extends PaginacionPlanDto {
                     'movimientos',
                     'lineasbase',
                     'detallelineabase',
+                    'curvalineabase',
                   ] as readonly unknown[]
                 ).includes(value),
               { message: 'Seleccione una opción válida' },
@@ -1138,6 +1180,7 @@ export class HistorialPlanDto extends PaginacionPlanDto {
                 'movimientos',
                 'lineasbase',
                 'detallelineabase',
+                'curvalineabase',
               ],
             }),
         },
@@ -1151,7 +1194,7 @@ export class HistorialPlanDto extends PaginacionPlanDto {
       () => mappedDto(PaginacionPlanDto.schema),
     );
 
-  tipo!: 'cambios' | 'movimientos' | 'lineasbase' | 'detallelineabase';
+  tipo!: 'cambios' | 'movimientos' | 'lineasbase' | 'detallelineabase' | 'curvalineabase';
 
   idLineaBase?: number;
 }

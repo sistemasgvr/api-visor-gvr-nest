@@ -11,6 +11,7 @@ import { PlanificacionAccessService } from '../../application/services/planifica
 import { PlanificacionController } from '../../presentation/controllers/planificacion.controller';
 import { PlanificacionColaboradorController } from '../../presentation/controllers/planificacion-colaborador.controller';
 import { DatabaseModule } from './platform/database.module';
+import { StorageModule } from './platform/storage.module';
 import { AuthenticationModule } from './platform/authentication.module';
 import { applicationProvider } from '../application.providers';
 import { ObtenerPlanUseCase } from '../../application/use-cases/planificacion/proyectos/obtener-plan.use-case';
@@ -38,7 +39,12 @@ import { EstadoParteUseCase } from '../../application/use-cases/planificacion/pr
 import { SolicitarAmpliacionUseCase } from '../../application/use-cases/planificacion/proyectos/solicitar-ampliacion.use-case';
 import { MisAmpliacionesUseCase } from '../../application/use-cases/planificacion/proyectos/mis-ampliaciones.use-case';
 @Module({
-  imports: [DatabaseModule, AuthenticationModule, AuthorizationModule],
+  imports: [
+    DatabaseModule,
+    AuthenticationModule,
+    AuthorizationModule,
+    StorageModule,
+  ],
   controllers: [
     PlanificacionEstadosController,
     PlanificacionController,

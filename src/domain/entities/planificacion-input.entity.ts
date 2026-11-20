@@ -109,12 +109,14 @@ export interface LineaBaseInput extends MotivoPlanInput {
 }
 export interface ReprogramarPlanInput extends RevisionActividadInput {
   motivo: string;
+  huella?: string;
   fechaNoIniciarAntes?: string | null;
   fechaNoFinalizarAntes?: string | null;
 }
 export interface EstadoActividadPlanInput extends RevisionActividadInput {
   motivo: string;
   idEstadoDestino: number;
+  partesAReabrir?: number[];
 }
 export interface EstadoPlanInput extends MotivoPlanInput {
   idEstadoDestino: number;
@@ -129,7 +131,7 @@ export interface BandejaAmpliacionesInput extends PaginacionPlanInput {
   idActividad?: number;
 }
 export interface HistorialPlanInput extends PaginacionPlanInput {
-  tipo: 'cambios' | 'movimientos' | 'lineasbase' | 'detallelineabase';
+  tipo: 'cambios' | 'movimientos' | 'lineasbase' | 'detallelineabase' | 'curvalineabase';
   idLineaBase?: number;
 }
 export interface ResolverAmpliacionInput {

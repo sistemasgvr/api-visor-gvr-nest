@@ -83,6 +83,17 @@ export interface ActividadPlan {
   idestadoactividad: number;
   /** Minutos registrados por todas sus partes (solo en la lectura del cronograma). */
   minutosconsumidos?: number;
+  seguimiento?: {
+    minutosregistrados: number;
+    minutosaprobados: number;
+    registrossinresolver: number;
+    partesactivas: number;
+    partesporentregar: number;
+    partessinaprobacion: number;
+    ampliacionespendientes: number;
+    inicioejecucion: string | null;
+    finejecucion: string | null;
+  };
 }
 export interface SaldoAsignacion {
   minutosautorizados: number;
@@ -141,12 +152,48 @@ export interface CronogramaProyecto {
   dependencias: DependenciaActividadPlan[];
   fechas: FechaActividadPlan[];
 }
+
+export interface RecursosPlan {
+  avanceporactividad?: { idactividad: number; minutosprevistos: number }[];
+  fueradelplan?: { fecha: string; minutos: number }[];
+  inicio: string;
+  fin: string;
+  errorplanificacion: string | null;
+  historialsindistribucion: boolean;
+  resumenpersonal?: {
+    idtrabajador: number;
+    nombre: string;
+    actividades: number;
+    minutosasignados: number;
+    minutosregistrados: number;
+    minutospendientes: number;
+    inicio: string | null;
+    fin: string | null;
+  }[];
+  sobreasignaciones?: {
+    idtrabajador: number;
+    fecha: string;
+    minutosplanificados: number;
+    minutoscapacidad: number;
+    actividades: number[];
+  }[];
+  recursos: {
+    idtrabajador: number;
+    nombre: string;
+    dias: {
+      fecha: string;
+      minutosplanificados: number;
+      minutosregistrados: number;
+    }[];
+  }[];
+}
 export interface ActividadPlanDetalle {
   actividad: ActividadPlan;
   asignaciones: AsignacionPlan[];
   dependencias: DependenciaActividadPlan[];
 }
 export interface PrevisualizacionCronograma {
+  huella: string;
   revisionplan: number;
   antes: FechaActividadPlan[];
   despues: FechaActividadPlan[];

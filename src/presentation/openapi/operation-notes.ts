@@ -37,7 +37,7 @@ export const operationNotes: Record<string, string> = {
   PlanificacionController_estadoPlan:
     'Solo permite 701→702 (cerrar) y 702→701 (reabrir). El cierre exige actividades culminadas y ausencia de ampliaciones pendientes. La reapertura conserva las líneas base.',
   PlanificacionController_historial:
-    '`tipo`: cambios, movimientos, lineasbase o detallelineabase. Para detallelineabase, `idLineaBase` es obligatorio y debe pertenecer al plan. La paginación empieza en offset 0 y limita a 50 filas por defecto, hasta 200.',
+    '`tipo`: cambios, movimientos, lineasbase, detallelineabase o curvalineabase. Para detallelineabase, `idLineaBase` es obligatorio y debe pertenecer al plan. La paginación empieza en offset 0 y limita a 50 filas por defecto, hasta 200.',
   PlanificacionController_ampliaciones:
     'El aprobador actual consulta todas las solicitudes del plan; los demás usuarios ven las suyas. offset=0 y limite=50 por defecto; máximo 200.',
   PlanificacionController_resolverAmpliacion:

@@ -6,4 +6,9 @@ export class ObtenerCronogramaUseCase {
     await this.repository.comprobarPertenencia(ctx);
     return this.repository.obtenerCronograma(actor, ctx);
   }
+
+  async recursos(actor: number, ctx: Input.ContextoPlan, inicio: string, fin?: string) {
+    await this.repository.comprobarPertenencia(ctx);
+    return this.repository.obtenerRecursos(actor, ctx, inicio, fin);
+  }
 }

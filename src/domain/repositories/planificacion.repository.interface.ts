@@ -14,6 +14,7 @@ import type {
   ActividadPlanDetalle,
   AmpliacionPlan,
   CronogramaProyecto,
+  RecursosPlan,
   PlanProyecto,
   PlanProyectoDetalle,
   PrevisualizacionCronograma,
@@ -70,6 +71,12 @@ export interface IPlanificacionRepository {
     actor: number,
     ctx: Input.ContextoPlan,
   ): Promise<CronogramaProyecto>;
+  obtenerRecursos(
+    actor: number,
+    ctx: Input.ContextoPlan,
+    inicio: string,
+    fin?: string,
+  ): Promise<RecursosPlan>;
   actualizarReglas(
     actor: number,
     ctx: Input.ContextoPlan,
