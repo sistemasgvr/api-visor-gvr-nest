@@ -52663,6 +52663,10 @@
         "posicion": {
           "type": "number"
         },
+        "idTrabajador": {
+          "type": "number",
+          "description": "Id del trabajador; permite enlazar al tab Registro filtrando sin usar el nombre."
+        },
         "nombreTrabajador": {
           "type": "string"
         },
@@ -52673,6 +52677,7 @@
       "required": [
         "tipo",
         "posicion",
+        "idTrabajador",
         "nombreTrabajador",
         "horasRegistradas"
       ]

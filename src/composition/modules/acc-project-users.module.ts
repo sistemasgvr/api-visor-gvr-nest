@@ -13,7 +13,6 @@ import { HttpClientService } from '../../infrastructure/http/http-client.service
 import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.service';
 import { AccProjectUsersController } from '../../presentation/controllers/acc-project-users.controller';
 
-import { applicationProvider } from '../application.providers';
 
 @Module({
   controllers: [AccProjectUsersController],

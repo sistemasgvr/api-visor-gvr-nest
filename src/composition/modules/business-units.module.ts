@@ -12,7 +12,6 @@ import { AutodeskApiService } from '../../infrastructure/services/autodesk-api.s
 import { BusinessUnitsController } from '../../presentation/controllers/business-units.controller';
 import { applicationProvider } from '../application.providers';
 
-import { applicationProvider } from '../application.providers';
 
 @Module({
   controllers: [BusinessUnitsController],
