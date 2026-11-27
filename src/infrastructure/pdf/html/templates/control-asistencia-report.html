@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>{{titulo}} · {{periodo}}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 7.5pt; color: #101828; }
+    .encabezado { text-align: center; margin-bottom: 8px; }
+    .encabezado h1 { font-size: 12pt; letter-spacing: 0.02em; }
+    .encabezado p { font-size: 7.5pt; color: #344054; margin-top: 2px; }
+    table { width: 100%; border-collapse: collapse; }
+    .datos { margin-bottom: 8px; }
+    .datos td { padding: 3px 5px; border: 1px solid #d0d5dd; vertical-align: top; }
+    .datos .etiqueta { font-weight: 700; background: #f2f4f7; white-space: nowrap; width: 1%; }
+    .registro th { border: 1px solid #98a2b3; padding: 3px 4px; font-size: 6.8pt; text-align: center; vertical-align: middle; }
+    .registro .grupo th { background: #1d2939; color: #fff; font-size: 7pt; }
+    .registro .columnas th { background: #e4e7ec; }
+    .registro td { border: 1px solid #98a2b3; padding: 3px 4px; text-align: center; vertical-align: middle; font-variant-numeric: tabular-nums; }
+    .registro td.obs { text-align: left; font-size: 6.8pt; }
+    .registro tr.resaltar td { background: #fef3f2; }
+    .registro tr.total td { background: #f2f4f7; font-weight: 700; }
+    .registro tr.total td.texto { text-align: right; }
+    .registro tr { page-break-inside: avoid; }
+    .registro thead { display: table-header-group; }
+    .notas { margin-top: 6px; font-size: 6.8pt; color: #475467; font-style: italic; }
+    .notas p + p { margin-top: 2px; }
+    .firmas { display: flex; justify-content: space-around; margin-top: 46px; page-break-inside: avoid; }
+    .firma { width: 34%; border-top: 1px solid #101828; padding-top: 4px; text-align: center; font-weight: 700; font-size: 7.5pt; }
+    .vacio { padding: 16px; text-align: center; color: #667085; }
+  </style>
+</head>
+<body>
+  <div class="encabezado">
+    <h1>{{titulo}}</h1>
+    <p>BASE LEGAL: DECRETO SUPREMO N° 004-2006-TR Y MODIFICATORIAS (D.S. N° 011-2006-TR)</p>
+    <p>PERIODO: {{periodo}} | JORNADA: SEGÚN CALENDARIO ASIGNADO (EXCLUYE DÍAS NO LABORABLES Y FERIADOS)</p>
+  </div>
+
+  <table class="datos">
+    <tr>
+      <td class="etiqueta">RAZÓN SOCIAL:</td><td>{{razonSocial}}</td>
+      <td class="etiqueta">RUC:</td><td>{{ruc}}</td>
+    </tr>
+    <tr>
+      <td class="etiqueta">DOMICILIO FISCAL:</td><td>{{domicilio}}</td>
+      <td class="etiqueta">MES / AÑO:</td><td>{{mesAnio}}</td>
+    </tr>
+    <tr>
+      <td class="etiqueta">TRABAJADOR(A):</td><td>{{trabajador}}</td>
+      <td class="etiqueta">{{etiquetaDocumento}}:</td><td>{{documento}}</td>
+    </tr>
+    <tr>
+      <td class="etiqueta">CARGO / ÁREA:</td><td>{{cargoArea}}</td>
+      <td class="etiqueta">HORARIO BASE:</td><td>{{horarioBase}}</td>
+    </tr>
+  </table>
+
+  <table class="registro">
+    <thead>
+      <tr class="grupo">
+        <th colspan="3">IDENTIFICACIÓN DE LA FECHA</th>
+        <th colspan="4">REGISTRO DE JORNADA ORDINARIA Y REFRIGERIO (HH:MM)</th>
+        <th colspan="3">CÁLCULO DE HORAS</th>
+        <th colspan="2">CONFORMIDAD Y OBSERVACIONES</th>
+      </tr>
+      <tr class="columnas">
+        <th style="width:3%">N°</th>
+        <th style="width:8%">FECHA<br />(DD/MM/AAAA)</th>
+        <th style="width:8%">DÍA DE LA<br />SEMANA</th>
+        <th style="width:7%">HORA INGRESO<br />JORNADA</th>
+        <th style="width:7%">SALIDA A<br />REFRIGERIO</th>
+        <th style="width:7%">RETORNO DE<br />REFRIGERIO</th>
+        <th style="width:7%">HORA SALIDA<br />JORNADA</th>
+        <th style="width:7%">TOTAL HORAS<br />LABORADAS</th>
+        <th style="width:7%">HORAS EXTRAS<br />AUTORIZADAS</th>
+        <th style="width:6%">MINUTOS<br />TARDANZA</th>
+        <th style="width:11%">FIRMA DEL<br />TRABAJADOR</th>
+        <th>OBSERVACIONES / MOTIVO<br />DE PERMANENCIA</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each filas}}
+      <tr{{#if resaltar}} class="resaltar"{{/if}}>
+        <td>{{numero}}</td>
+        <td>{{fecha}}</td>
+        <td>{{dia}}</td>
+        <td>{{ingreso}}</td>
+        <td>{{salidaRefrigerio}}</td>
+        <td>{{retornoRefrigerio}}</td>
+        <td>{{salida}}</td>
+        <td>{{horasLaboradas}}</td>
+        <td>{{horasExtras}}</td>
+        <td>{{tardanza}}</td>
+        <td></td>
+        <td class="obs">{{observaciones}}</td>
+      </tr>
+      {{/each}}
+      {{#if sinFilas}}
+      <tr><td colspan="12" class="vacio">No hay días laborables en este periodo.</td></tr>
+      {{/if}}
+      <tr class="total">
+        <td colspan="7" class="texto">{{totalTexto}}</td>
+        <td>{{totalHoras}}</td>
+        <td>{{totalExtras}}</td>
+        <td>{{totalTardanza}}</td>
+        <td colspan="2"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="notas">
+    <p>Feriados excluidos en {{periodo}}: {{feriados}}.</p>
+    {{#if hayAjustes}}
+    <p>* Salida ajustada al fin de la jornada: sin horas extras autorizadas o registrada después con motivo.</p>
+    {{/if}}
+    <p>Generado el {{generado}} (hora de Lima).</p>
+  </div>
+
+  <div class="firmas">
+    <div class="firma">FIRMA DEL TRABAJADOR(A)</div>
+    <div class="firma">V°B° EMPLEADOR / REPRESENTANTE LEGAL</div>
+  </div>
+</body>
+</html>

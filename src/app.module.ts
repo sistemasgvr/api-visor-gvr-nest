@@ -50,6 +50,7 @@ import { HealthModule } from './composition/modules/health.module';
 import { OfficeDocumentModule } from './composition/modules/office-document.module';
 import { CollaboraModule } from './composition/modules/collabora.module';
 import { ControlOperativoModule } from './composition/modules/control-operativo.module';
+import { ControlAsistenciaModule } from './composition/modules/control-asistencia.module';
 
 // MODULO - DASHBOARD
 import { DashboardModule } from './composition/modules/dashboard.module';
@@ -131,6 +132,7 @@ import { StorageModule } from './composition/modules/platform/storage.module';
     OfficeDocumentModule,
     CollaboraModule,
     ControlOperativoModule,
+    ControlAsistenciaModule,
 
     // Módulo de dashboard
     DashboardModule,

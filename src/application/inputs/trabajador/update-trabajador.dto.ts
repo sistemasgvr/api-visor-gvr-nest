@@ -39,5 +39,7 @@ export class UpdateTrabajadorDto {
   idModalidad?: number;
   idCalendario?: number | null;
   idPuestoTrabajo?: number;
+  idArea?: number | null;
+  registraAsistencia?: boolean;
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

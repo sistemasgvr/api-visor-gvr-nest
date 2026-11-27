@@ -83,6 +83,8 @@ export function controlWorkerPolicies(
     ...['ver', 'crear', 'exportar_word', 'cambiar_estado'].map(
       (action) => [`control_operativo.jornadas.${action}`, worker] as const,
     ),
+    // Ver la asistencia de otra persona: propietario, equipo o todos, resuelto en servidor.
+    ['control_operativo.asistencia.ver', worker] as const,
     // Registrar una actividad es una acción sobre la jornada donde se registra.
     ['control_operativo.actividades.crear', jornadaActividad] as const,
     ...[

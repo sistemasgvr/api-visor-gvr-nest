@@ -85,12 +85,12 @@ export class GeneralController {
   }
 
   /**
-   * Catálogos para formulario de trabajador (grado, carrera, banco, tipo/duración contrato, puesto de trabajo, etc.).
-   * GET /catalogos-trabajador o con idListas=<7 listas base>; el puesto siempre usa idLista puesto.
+   * Catálogos para formulario de trabajador (grado, carrera, banco, tipo/duración contrato, área, puesto de trabajo, etc.).
+   * GET /catalogos-trabajador o con idListas=<8 listas base>; el puesto siempre usa idLista puesto.
    */
   @ApiOperation({
     summary: 'Catálogos para formulario de trabajador',
-    description: `Incluye grado, carrera, banco, tipo y duración de contrato, adjuntos, parentesco y puesto de trabajo (lista fija idLista=${ID_LISTA_PUESTO_TRABAJO}). Opcional: idListas con 7 IDs (solo sustituye las 7 listas base: ${ID_LISTAS_CATALOGOS_TRABAJADOR_BASE.join(',')}) o 8+ (se usan los 7 primeros como base y el puesto sigue siendo ${ID_LISTA_PUESTO_TRABAJO}).`,
+    description: `Incluye grado, carrera, banco, tipo y duración de contrato, adjuntos, parentesco, área del trabajador y puesto de trabajo (lista fija idLista=${ID_LISTA_PUESTO_TRABAJO}). Opcional: idListas con 8 IDs (solo sustituye las 8 listas base: ${ID_LISTAS_CATALOGOS_TRABAJADOR_BASE.join(',')}) o 9+ (se usan los 8 primeros como base y el puesto sigue siendo ${ID_LISTA_PUESTO_TRABAJO}).`,
   })
   @Get('catalogos-trabajador')
   @HttpCode(HttpStatus.OK)

@@ -57,6 +57,12 @@ import { EliminarExcepcionCalendarioUseCase } from '../application/use-cases/pla
 import { PublicarVersionCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/publicar-version-calendario.use-case';
 import { CambiarEstadoCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/cambiar-estado-calendario.use-case';
 import { ObtenerDisponibilidadCalendarioUseCase } from '../application/use-cases/planificacion/calendarios/obtener-disponibilidad-calendario.use-case';
+import { CONTROL_ASISTENCIA_REPOSITORY } from '../domain/repositories/control-asistencia.repository.interface';
+import { ObtenerEstadoAsistenciaUseCase } from '../application/use-cases/control-asistencia/obtener-estado-asistencia.use-case';
+import { MarcarAsistenciaUseCase } from '../application/use-cases/control-asistencia/marcar-asistencia.use-case';
+import { ListarAsistenciaMesUseCase } from '../application/use-cases/control-asistencia/listar-asistencia-mes.use-case';
+import { ExportarAsistenciaPdfUseCase } from '../application/use-cases/control-asistencia/exportar-asistencia-pdf.use-case';
+import { REPORTE_ASISTENCIA_PDF } from '../application/ports/reporte-asistencia-pdf.port';
 import type { FactoryProvider, InjectionToken, Type } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -590,6 +596,13 @@ const dependencies = new Map<Type<any>, InjectionToken[]>([
   [
     DocumentAccessService,
     [DOCUMENT_ACCESS_READER, DOCUMENT_HIERARCHY, AuthorizationService],
+  ],
+  [ObtenerEstadoAsistenciaUseCase, [CONTROL_ASISTENCIA_REPOSITORY]],
+  [MarcarAsistenciaUseCase, [CONTROL_ASISTENCIA_REPOSITORY]],
+  [ListarAsistenciaMesUseCase, [CONTROL_ASISTENCIA_REPOSITORY]],
+  [
+    ExportarAsistenciaPdfUseCase,
+    [CONTROL_ASISTENCIA_REPOSITORY, REPORTE_ASISTENCIA_PDF],
   ],
   [ListarFeriadosUseCase, [CALENDARIOS_REPOSITORY]],
   [ObtenerFeriadoUseCase, [CALENDARIOS_REPOSITORY]],

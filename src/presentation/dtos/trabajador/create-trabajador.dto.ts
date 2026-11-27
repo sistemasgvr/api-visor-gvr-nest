@@ -100,6 +100,16 @@ export class CreateTrabajadorDto {
       idModalidad: { schema: z.number().int().min(1) },
       idCalendario: { schema: z.number().int().min(1), coerce: 'number' },
       idPuestoTrabajo: { schema: z.number().int(), optional: true },
+      idArea: {
+        schema: z.number().int().min(1).max(2147483647),
+        optional: true,
+        coerce: 'number',
+      },
+      registraAsistencia: {
+        schema: z.boolean(),
+        optional: true,
+        coerce: 'boolean',
+      },
       adjuntos: { schema: z.array(z.unknown()), optional: true },
     });
 
@@ -143,5 +153,9 @@ export class CreateTrabajadorDto {
   idModalidad: number;
   idCalendario: number;
   idPuestoTrabajo?: number;
+  /** Área del trabajador (lista AREA_TRABAJADOR). */
+  idArea?: number | null;
+  /** Si el colaborador marca asistencia. Por defecto false. */
+  registraAsistencia?: boolean;
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

@@ -39,5 +39,7 @@ export class CreateTrabajadorDto {
   idModalidad: number;
   idCalendario: number;
   idPuestoTrabajo?: number;
+  idArea?: number | null;
+  registraAsistencia?: boolean;
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

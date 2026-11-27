@@ -12,7 +12,10 @@ const CLAVES_CATALOGOS_TRABAJADOR_BASE = [
   'duracionContrato',
   'tipoAdjunto',
   'parentesco',
+  'areaTrabajador',
 ] as const;
+
+const CANTIDAD_LISTAS_BASE = CLAVES_CATALOGOS_TRABAJADOR_BASE.length;
 
 const CLAVES_CATALOGOS_TRABAJADOR: readonly string[] = [
   ...CLAVES_CATALOGOS_TRABAJADOR_BASE,
@@ -27,6 +30,7 @@ export interface CatalogosTrabajador {
   duracionContrato: any[];
   tipoAdjunto: any[];
   parentesco: any[];
+  areaTrabajador: any[];
   puestoTrabajo: any[];
 }
 
@@ -34,15 +38,18 @@ export class ObtenerCatalogosTrabajadorUseCase {
   constructor(private readonly menuRepository: IMenuRepository) {}
 
   /**
-   * Catálogos del formulario trabajador. La octava lista es siempre puesto de trabajo.
-   * Opcional idListas: 7 IDs (base) o 8+ (se toman los 7 primeros como base y el puesto sigue fijo).
+   * Catálogos del formulario trabajador. La última lista es siempre puesto de trabajo.
+   * Opcional idListas: 8 IDs (base) o 9+ (se toman los 8 primeros como base y el puesto sigue fijo).
    */
   async execute(idListas?: number[]): Promise<CatalogosTrabajador> {
     let ids: number[];
     if (idListas != null && idListas.length > 0) {
-      if (idListas.length >= 8) {
-        ids = [...idListas.slice(0, 7), ID_LISTA_PUESTO_TRABAJO];
-      } else if (idListas.length === 7) {
+      if (idListas.length > CANTIDAD_LISTAS_BASE) {
+        ids = [
+          ...idListas.slice(0, CANTIDAD_LISTAS_BASE),
+          ID_LISTA_PUESTO_TRABAJO,
+        ];
+      } else if (idListas.length === CANTIDAD_LISTAS_BASE) {
         ids = [...idListas, ID_LISTA_PUESTO_TRABAJO];
       } else {
         ids = [...ID_LISTAS_CATALOGOS_TRABAJADOR_BASE, ID_LISTA_PUESTO_TRABAJO];
@@ -63,6 +70,7 @@ export class ObtenerCatalogosTrabajadorUseCase {
       duracionContrato: [],
       tipoAdjunto: [],
       parentesco: [],
+      areaTrabajador: [],
       puestoTrabajo: [],
     };
 

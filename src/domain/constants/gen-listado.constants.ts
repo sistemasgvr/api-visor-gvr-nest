@@ -103,9 +103,12 @@ export const ID_LISTA_ESTADO_ENTREGABLE = 46;
 export const ID_LISTA_ESTADO_VERSION_CALENDARIO = 47;
 export const ID_LISTA_TIPO_EXCEPCION_CALENDARIO = 48;
 
+/** Área del trabajador (AREA_TRABAJADOR); se guarda en tratrabajador.idarea. */
+export const ID_LISTA_AREA_TRABAJADOR = 53;
+
 /**
- * Las 7 listas base del formulario trabajador.
- * El use case añade siempre el puesto (`ID_LISTA_PUESTO_TRABAJO`).
+ * Las 8 listas base del formulario trabajador, en este orden.
+ * El use case añade siempre el puesto (`ID_LISTA_PUESTO_TRABAJO`) al final.
  */
 export const ID_LISTAS_CATALOGOS_TRABAJADOR_BASE: readonly number[] = [
   ID_LISTA_GRADO_INSTRUCCION,
@@ -115,6 +118,7 @@ export const ID_LISTAS_CATALOGOS_TRABAJADOR_BASE: readonly number[] = [
   ID_LISTA_DURACION_CONTRATO,
   ID_LISTA_TIPO_ADJUNTO,
   ID_LISTA_PARENTESCO,
+  ID_LISTA_AREA_TRABAJADOR,
 ] as const;
 
 export const ID_LISTA_ESTADO_PLAN = 49;

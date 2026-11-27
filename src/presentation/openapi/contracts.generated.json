@@ -13737,216 +13737,18 @@
                 ]
               },
               {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "number"
-                  },
-                  "nombres": {
-                    "type": "string"
-                  },
-                  "apellidos": {
-                    "type": "string"
-                  },
-                  "nombrecompleto": {
-                    "type": "string"
-                  },
-                  "idtipodocumento": {
-                    "type": "number"
-                  },
-                  "tipodocumento": {
-                    "type": "string"
-                  },
-                  "nrodocumento": {
-                    "type": "string"
-                  },
-                  "correo": {
-                    "type": "string"
-                  },
-                  "fechanacimiento": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "celular": {
-                    "type": "string"
-                  },
-                  "telefonoemergencia": {
-                    "type": "string"
-                  },
-                  "contactoemergencianombre": {
-                    "type": "string"
-                  },
-                  "idcontactoemergenciaparentesco": {
-                    "type": "number"
-                  },
-                  "contactoemergenciaparentesco": {
-                    "type": "string"
-                  },
-                  "direcciondomiciliaria": {
-                    "type": "string"
-                  },
-                  "observaciones": {
-                    "type": "string"
-                  },
-                  "idpais": {
-                    "type": "number"
-                  },
-                  "iddepartamento": {
-                    "type": "number"
-                  },
-                  "idprovincia": {
-                    "type": "number"
-                  },
-                  "iddistrito": {
-                    "type": "number"
-                  },
-                  "nombrepais": {
-                    "type": "string"
-                  },
-                  "nombredepartamento": {
-                    "type": "string"
-                  },
-                  "nombreprovincia": {
-                    "type": "string"
-                  },
-                  "nombredistrito": {
-                    "type": "string"
-                  },
-                  "nroruc": {
-                    "type": "string"
-                  },
-                  "idgradoinstruccion": {
-                    "type": "number"
-                  },
-                  "idcarrera": {
-                    "type": "number"
-                  },
-                  "identidadbancaria": {
-                    "type": "number"
-                  },
-                  "idtipocontrato": {
-                    "type": "number"
-                  },
-                  "idduracioncontrato": {
-                    "type": "number"
-                  },
-                  "nombregradoinstruccion": {
-                    "type": "string"
-                  },
-                  "nombrecarrera": {
-                    "type": "string"
-                  },
-                  "nombreentidadbancaria": {
-                    "type": "string"
-                  },
-                  "nombretipocontrato": {
-                    "type": "string"
-                  },
-                  "nombreduracioncontrato": {
-                    "type": "string"
-                  },
-                  "nrocuentacorriente": {
-                    "type": "string"
-                  },
-                  "nrocci": {
-                    "type": "string"
-                  },
-                  "remuneracion": {
-                    "type": "number"
-                  },
-                  "fechainiciolabores": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "fechainiciocontrato": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "fechafincontrato": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "idpuestotrabajo": {
-                    "type": "number"
-                  },
-                  "nombrepuestotrabajo": {
-                    "type": "string"
-                  },
-                  "idempresa": {
-                    "type": "number"
-                  },
-                  "nombreempresa": {
-                    "type": "string"
-                  },
-                  "razonsocialempresa": {
-                    "type": "string"
-                  },
-                  "idusuario": {
-                    "type": "number"
-                  },
-                  "estadousuario": {
-                    "type": "number"
-                  },
-                  "idresponsable": {
-                    "type": "number"
-                  },
-                  "nombreresponsable": {
-                    "type": "string"
-                  },
-                  "idmodalidad": {
-                    "type": "number"
-                  },
-                  "modalidad": {
-                    "type": "string"
-                  },
-                  "roles": {
+                "anyOf": [
+                  {
                     "description": "Contenido JSON de estructura variable definido por el proveedor o la consulta de esta operación.",
                     "x-dynamic-json": true
                   },
-                  "estado": {
-                    "type": "number"
-                  },
-                  "fechacreacion": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "fechamodificacion": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "idusuariocreacion": {
-                    "type": "number"
-                  },
-                  "nombreusuariocreacion": {
-                    "type": "string"
-                  },
-                  "idusuariomodificacion": {
-                    "type": "number"
-                  },
-                  "nombreusuariomodificacion": {
-                    "type": "string"
-                  },
-                  "adjuntos": {
-                    "description": "Contenido JSON de estructura variable definido por el proveedor o la consulta de esta operación.",
-                    "x-dynamic-json": true
-                  },
-                  "contratos": {
-                    "description": "Contenido JSON de estructura variable definido por el proveedor o la consulta de esta operación.",
-                    "x-dynamic-json": true
-                  },
-                  "idcalendario": {
-                    "type": "number"
-                  },
-                  "nombrecalendario": {
-                    "type": "string"
-                  },
-                  "idversioncalendario": {
-                    "type": "number"
-                  },
-                  "numeroversioncalendario": {
-                    "type": "number"
+                  {
+                    "nullable": true,
+                    "enum": [
+                      null
+                    ]
                   }
-                }
+                ]
               }
             ]
           },
@@ -14213,13 +14015,16 @@
             "type": "object",
             "properties": {
               "message": {
-                "type": "string"
+                "description": "Contenido JSON de estructura variable definido por el proveedor o la consulta de esta operación.",
+                "x-dynamic-json": true
               },
               "id_trabajador": {
-                "type": "number"
+                "description": "Contenido JSON de estructura variable definido por el proveedor o la consulta de esta operación.",
+                "x-dynamic-json": true
               },
               "id_usuario": {
-                "type": "number"
+                "description": "Contenido JSON de estructura variable definido por el proveedor o la consulta de esta operación.",
+                "x-dynamic-json": true
               }
             }
           },
@@ -14272,7 +14077,8 @@
             "type": "object",
             "properties": {
               "message": {
-                "type": "string"
+                "description": "Contenido JSON de estructura variable definido por el proveedor o la consulta de esta operación.",
+                "x-dynamic-json": true
               }
             }
           },
@@ -41174,6 +40980,252 @@
       "summary": "Eliminar actividad",
       "description": "Solo si está en estado \"Por aprobar\"."
     },
+    "ControlAsistenciaController_obtenerEstado": {
+      "controller": "ControlAsistenciaController",
+      "method": "obtenerEstado",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/EstadoAsistencia"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [],
+      "source": "src/presentation/controllers/control-asistencia.controller.ts",
+      "summary": "Estado de asistencia propio: día que se registra, horario y siguiente marca"
+    },
+    "ControlAsistenciaController_marcar": {
+      "controller": "ControlAsistenciaController",
+      "method": "marcar",
+      "verb": "post",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/EstadoAsistencia"
+          },
+          "message": {
+            "type": "string",
+            "example": "Marca registrada"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [],
+      "body": {
+        "$ref": "#/components/schemas/MarcarAsistenciaDto"
+      },
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [],
+      "source": "src/presentation/controllers/control-asistencia.controller.ts",
+      "summary": "Registrar una marca propia con la hora del servidor"
+    },
+    "ControlAsistenciaController_listarMesPropio": {
+      "controller": "ControlAsistenciaController",
+      "method": "listarMesPropio",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AsistenciaMes"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/AsistenciaMesQueryDto"
+          },
+          "required": true,
+          "source": "@Query() query: AsistenciaMesQueryDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [],
+      "source": "src/presentation/controllers/control-asistencia.controller.ts",
+      "summary": "Asistencia mensual propia con totales"
+    },
+    "ControlAsistenciaController_listarMesTrabajador": {
+      "controller": "ControlAsistenciaController",
+      "method": "listarMesTrabajador",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "object",
+        "required": [
+          "data",
+          "message",
+          "status"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AsistenciaMes"
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              200
+            ],
+            "example": 200
+          }
+        }
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/AsistenciaTrabajadorParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: AsistenciaTrabajadorParamsDto"
+        },
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/AsistenciaMesQueryDto"
+          },
+          "required": true,
+          "source": "@Query() query: AsistenciaMesQueryDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [],
+      "source": "src/presentation/controllers/control-asistencia.controller.ts",
+      "summary": "Asistencia mensual de un colaborador con totales"
+    },
+    "ControlAsistenciaController_exportarPdfPropio": {
+      "controller": "ControlAsistenciaController",
+      "method": "exportarPdfPropio",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "string",
+        "format": "binary"
+      },
+      "params": [
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/AsistenciaMesQueryDto"
+          },
+          "required": true,
+          "source": "@Query() query: AsistenciaMesQueryDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [],
+      "source": "src/presentation/controllers/control-asistencia.controller.ts",
+      "summary": "Registro mensual propio en PDF (D.S. 004-2006-TR)"
+    },
+    "ControlAsistenciaController_exportarPdfTrabajador": {
+      "controller": "ControlAsistenciaController",
+      "method": "exportarPdfTrabajador",
+      "verb": "get",
+      "status": 200,
+      "response": {
+        "type": "string",
+        "format": "binary"
+      },
+      "params": [
+        {
+          "kind": "Param",
+          "schema": {
+            "$ref": "#/components/schemas/AsistenciaTrabajadorParamsDto"
+          },
+          "required": true,
+          "source": "@Param() params: AsistenciaTrabajadorParamsDto"
+        },
+        {
+          "kind": "Query",
+          "schema": {
+            "$ref": "#/components/schemas/AsistenciaMesQueryDto"
+          },
+          "required": true,
+          "source": "@Query() query: AsistenciaMesQueryDto"
+        }
+      ],
+      "file": false,
+      "fileField": "file",
+      "filesMultiple": false,
+      "auth": true,
+      "contextual": false,
+      "permission": [],
+      "source": "src/presentation/controllers/control-asistencia.controller.ts",
+      "summary": "Registro mensual de un colaborador en PDF (D.S. 004-2006-TR)"
+    },
     "DashboardController_obtenerCantidadProyectosVigentes": {
       "controller": "DashboardController",
       "method": "obtenerCantidadProyectosVigentes",
@@ -49674,6 +49726,13 @@
             "x-dynamic-json": true
           }
         },
+        "areaTrabajador": {
+          "type": "array",
+          "items": {
+            "description": "Contenido JSON de estructura variable definido por el proveedor o la consulta de esta operación.",
+            "x-dynamic-json": true
+          }
+        },
         "puestoTrabajo": {
           "type": "array",
           "items": {
@@ -49690,6 +49749,7 @@
         "duracionContrato",
         "tipoAdjunto",
         "parentesco",
+        "areaTrabajador",
         "puestoTrabajo"
       ]
     },
@@ -52557,6 +52617,459 @@
         "horasesperadas",
         "fechacreacion",
         "fechamodificacion"
+      ]
+    },
+    "EstadoAsistencia": {
+      "type": "object",
+      "properties": {
+        "habilitado": {
+          "type": "boolean"
+        },
+        "servidor": {
+          "type": "object",
+          "properties": {
+            "fecha": {
+              "type": "string"
+            },
+            "hora": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "fecha",
+            "hora"
+          ]
+        },
+        "trabajador": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "nombrecompleto": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "nombrecompleto"
+          ]
+        },
+        "bloqueohoy": {
+          "type": "boolean"
+        },
+        "dia": {
+          "type": "object",
+          "properties": {
+            "fecha": {
+              "type": "string"
+            },
+            "eshoy": {
+              "type": "boolean"
+            },
+            "diaanterior": {
+              "type": "boolean"
+            },
+            "tienecalendario": {
+              "type": "boolean"
+            },
+            "laborable": {
+              "type": "boolean"
+            },
+            "esferiado": {
+              "type": "boolean"
+            },
+            "nombreferiado": {
+              "type": "string",
+              "nullable": true
+            },
+            "horario": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/HorarioAsistencia"
+                }
+              ],
+              "nullable": true
+            },
+            "marcas": {
+              "$ref": "#/components/schemas/MarcasAsistencia"
+            },
+            "opciones": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "ingreso",
+                  "salida_refrigerio",
+                  "retorno_refrigerio",
+                  "salida"
+                ]
+              }
+            },
+            "ingresodisponibledesde": {
+              "type": "string",
+              "nullable": true
+            },
+            "requieremotivo": {
+              "type": "boolean"
+            },
+            "horasextrasautorizadas": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "fecha",
+            "eshoy",
+            "diaanterior",
+            "tienecalendario",
+            "laborable",
+            "esferiado",
+            "nombreferiado",
+            "horario",
+            "marcas",
+            "opciones",
+            "ingresodisponibledesde",
+            "requieremotivo",
+            "horasextrasautorizadas"
+          ]
+        }
+      },
+      "required": [
+        "habilitado",
+        "servidor",
+        "trabajador",
+        "bloqueohoy",
+        "dia"
+      ]
+    },
+    "HorarioAsistencia": {
+      "type": "object",
+      "properties": {
+        "entrada": {
+          "type": "string",
+          "nullable": true
+        },
+        "salida": {
+          "type": "string",
+          "nullable": true
+        },
+        "minutosrefrigerio": {
+          "type": "number"
+        },
+        "minutosefectivos": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "entrada",
+        "salida",
+        "minutosrefrigerio",
+        "minutosefectivos"
+      ]
+    },
+    "MarcasAsistencia": {
+      "type": "object",
+      "properties": {
+        "ingreso": {
+          "type": "string",
+          "nullable": true
+        },
+        "salidarefrigerio": {
+          "type": "string",
+          "nullable": true
+        },
+        "retornorefrigerio": {
+          "type": "string",
+          "nullable": true
+        },
+        "salida": {
+          "type": "string",
+          "nullable": true
+        },
+        "salidamarcada": {
+          "type": "string",
+          "nullable": true
+        },
+        "salidacalculada": {
+          "type": "boolean"
+        },
+        "motivoregistro": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": [
+        "ingreso",
+        "salidarefrigerio",
+        "retornorefrigerio",
+        "salida",
+        "salidamarcada",
+        "salidacalculada",
+        "motivoregistro"
+      ]
+    },
+    "AsistenciaMes": {
+      "type": "object",
+      "properties": {
+        "trabajador": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "nombres": {
+              "type": "string"
+            },
+            "apellidos": {
+              "type": "string"
+            },
+            "nombrecompleto": {
+              "type": "string"
+            },
+            "tipodocumento": {
+              "type": "string",
+              "nullable": true
+            },
+            "nrodocumento": {
+              "type": "string"
+            },
+            "idarea": {
+              "type": "number",
+              "nullable": true
+            },
+            "area": {
+              "type": "string",
+              "nullable": true
+            },
+            "cargo": {
+              "type": "string",
+              "nullable": true
+            },
+            "registraasistencia": {
+              "type": "boolean"
+            },
+            "empresa": {
+              "type": "object",
+              "properties": {
+                "razonsocial": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "ruc": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "direccion": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "razonsocial",
+                "ruc",
+                "direccion"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "nombres",
+            "apellidos",
+            "nombrecompleto",
+            "tipodocumento",
+            "nrodocumento",
+            "idarea",
+            "area",
+            "cargo",
+            "registraasistencia",
+            "empresa"
+          ]
+        },
+        "periodo": {
+          "type": "object",
+          "properties": {
+            "anio": {
+              "type": "number"
+            },
+            "mes": {
+              "type": "number"
+            },
+            "desde": {
+              "type": "string"
+            },
+            "hasta": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "anio",
+            "mes",
+            "desde",
+            "hasta"
+          ]
+        },
+        "dias": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/DiaAsistencia"
+          }
+        },
+        "totales": {
+          "type": "object",
+          "properties": {
+            "diaslaborables": {
+              "type": "number"
+            },
+            "diaslaborados": {
+              "type": "number"
+            },
+            "diassinsalida": {
+              "type": "number"
+            },
+            "minutoslaborados": {
+              "type": "number"
+            },
+            "minutosextras": {
+              "type": "number"
+            },
+            "minutostardanza": {
+              "type": "number"
+            },
+            "diastardanza": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "diaslaborables",
+            "diaslaborados",
+            "diassinsalida",
+            "minutoslaborados",
+            "minutosextras",
+            "minutostardanza",
+            "diastardanza"
+          ]
+        }
+      },
+      "required": [
+        "trabajador",
+        "periodo",
+        "dias",
+        "totales"
+      ]
+    },
+    "DiaAsistencia": {
+      "type": "object",
+      "properties": {
+        "fecha": {
+          "type": "string"
+        },
+        "diasemana": {
+          "type": "number"
+        },
+        "laborable": {
+          "type": "boolean"
+        },
+        "esferiado": {
+          "type": "boolean"
+        },
+        "nombreferiado": {
+          "type": "string",
+          "nullable": true
+        },
+        "programado": {
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/HorarioAsistencia"
+            }
+          ],
+          "nullable": true
+        },
+        "observaciones": {
+          "type": "string",
+          "nullable": true
+        },
+        "horasextrasautorizadas": {
+          "type": "boolean"
+        },
+        "minutoslaborados": {
+          "type": "number"
+        },
+        "minutosrefrigerio": {
+          "type": "number",
+          "nullable": true
+        },
+        "refrigerioexcedido": {
+          "type": "boolean"
+        },
+        "minutostardanza": {
+          "type": "number"
+        },
+        "minutosextras": {
+          "type": "number"
+        },
+        "estado": {
+          "type": "string",
+          "enum": [
+            "no_laborable",
+            "futuro",
+            "pendiente",
+            "sin_registro",
+            "sin_salida",
+            "en_curso",
+            "tardanza",
+            "completo"
+          ]
+        },
+        "ingreso": {
+          "type": "string",
+          "nullable": true
+        },
+        "salidarefrigerio": {
+          "type": "string",
+          "nullable": true
+        },
+        "retornorefrigerio": {
+          "type": "string",
+          "nullable": true
+        },
+        "salida": {
+          "type": "string",
+          "nullable": true
+        },
+        "salidamarcada": {
+          "type": "string",
+          "nullable": true
+        },
+        "salidacalculada": {
+          "type": "boolean"
+        },
+        "motivoregistro": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": [
+        "fecha",
+        "diasemana",
+        "laborable",
+        "esferiado",
+        "nombreferiado",
+        "programado",
+        "observaciones",
+        "horasextrasautorizadas",
+        "minutoslaborados",
+        "minutosrefrigerio",
+        "refrigerioexcedido",
+        "minutostardanza",
+        "minutosextras",
+        "estado",
+        "ingreso",
+        "salidarefrigerio",
+        "retornorefrigerio",
+        "salida",
+        "salidamarcada",
+        "salidacalculada",
+        "motivoregistro"
       ]
     },
     "DashboardCantidadProyectosVigentes": {

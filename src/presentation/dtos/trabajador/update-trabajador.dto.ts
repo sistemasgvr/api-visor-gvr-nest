@@ -112,6 +112,16 @@ export class UpdateTrabajadorDto {
         optional: true,
         coerce: 'number',
       },
+      idArea: {
+        schema: z.number().int().min(1).max(2147483647),
+        optional: true,
+        coerce: 'number',
+      },
+      registraAsistencia: {
+        schema: z.boolean(),
+        optional: true,
+        coerce: 'boolean',
+      },
       adjuntos: { schema: z.array(z.unknown()), optional: true },
     });
 
@@ -155,5 +165,9 @@ export class UpdateTrabajadorDto {
   idModalidad?: number;
   idCalendario?: number | null;
   idPuestoTrabajo?: number;
+  /** Área del trabajador; null la quita y omitirla la conserva. */
+  idArea?: number | null;
+  /** Si el colaborador marca asistencia; omitirlo conserva el valor actual. */
+  registraAsistencia?: boolean;
   adjuntos?: { idTipoAdjunto: number; ruta: string }[];
 }

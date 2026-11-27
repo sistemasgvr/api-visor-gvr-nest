@@ -130,9 +130,9 @@
   "src/presentation/dtos/storage/upload-prefixed.dto.ts": "aa79827edc56dd7e0768202c2a35dfa6366bc68732a393102c0e99d1866586f1",
   "src/presentation/dtos/storage/upload-visor-elemento-foto.dto.ts": "e88b96a80900210e3d8d9ecba66eee0899094a22df15b474580377893e6290d0",
   "src/presentation/dtos/trabajador/create-contrato-trabajador.dto.ts": "972b4871c5ef99f3be1391d3d955a6dffafb3b45535065dee1626e450b41d750",
-  "src/presentation/dtos/trabajador/create-trabajador.dto.ts": "1b089b2139ee59015f9d11fb5ba6e897a839d937c73776ad21f4a03ad9040291",
+  "src/presentation/dtos/trabajador/create-trabajador.dto.ts": "a1e9075b815f0399d22f9cde458fda11a8bb8efecd7f90c52464c7bd2a5fde40",
   "src/presentation/dtos/trabajador/update-contrato-trabajador.dto.ts": "3bd50fc9f99fd924e9dd9fc2a9a3686d4423c383b46c709b7ce566014e5b4323",
-  "src/presentation/dtos/trabajador/update-trabajador.dto.ts": "db80cfad30078adceb8062196ab5de549ae42d4c5ef62e412d954da65941a733",
+  "src/presentation/dtos/trabajador/update-trabajador.dto.ts": "4863b90d5c3bc268c43d5e419b286e5c802b70b0cfa9773dfe5d4564c14ebbcd",
   "src/presentation/controllers/dashboard.controller.ts": "cbe11670b4762582e78415bf3e7e1c5c3a760277fce2e13085f8cff4f4fed90a",
   "src/presentation/dtos/acc/account-users/actualizar-usuario.dto.ts": "7492f9bddfe8766a253cb279214c73c389b79957fd71d58fd42a5da61821db80",
   "src/presentation/dtos/acc/account-users/buscar-usuarios.dto.ts": "74f4c722367e3b4e78044335d9f966300e4c936bdcf250a1e8b51f72741a810b",
@@ -303,5 +303,8 @@
   "src/presentation/controllers/planificacion-estados.controller.ts": "c5020c2e894ca4fd86993a43a78ac267bbe04a58e3bc1266bf62c2eff4735564",
   "src/presentation/dtos/planificacion/proyectos/estados-planes-query.dto.ts": "deb582733105075bbfe8d7262a33722ed7b2b60c69a8c30f23302b4c061eafb2",
   "src/presentation/dtos/planificacion/proyectos/calendario-plan-query.dto.ts": "3b31972e11e994b2a127aab8cdb099db8e3c32fc44f6ac47ce57c79ebf3bbbc0",
-  "src/presentation/dtos/trabajador/asignar-calendario-trabajador.dto.ts": "53cc2feed360f3b6ed365c05c66430eac51effd6c616ca3c4416e7c361f42edd"
+  "src/presentation/dtos/trabajador/asignar-calendario-trabajador.dto.ts": "53cc2feed360f3b6ed365c05c66430eac51effd6c616ca3c4416e7c361f42edd",
+  "src/presentation/controllers/control-asistencia.controller.ts": "9768035617a00034537d781081f9fd2ebdfe57385b7b5e090abb1094c5ef9e4c",
+  "src/presentation/dtos/control-asistencia/marcar-asistencia.dto.ts": "e70d12bbeeafec247bc39ae1b4b362163aa6230a920e54a69baa3dcd6ed07523",
+  "src/presentation/dtos/control-asistencia/asistencia-mes.dto.ts": "3609fa4da1f54527723791d197f09616e87394ae0b334e1836c361b548650828"
 }

@@ -287,7 +287,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
   async obtenerTrabajadorPorId(idTrabajador: number): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'tra_ObtenerTrabajadorPorIdV2',
+      'tra_ObtenerTrabajadorPorIdV3',
       [idTrabajador],
     );
 
@@ -382,7 +382,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
   async crearTrabajador(data: CrearTrabajadorData): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'tra_CrearTrabajadorV2',
+      'tra_CrearTrabajadorV3',
       [
         data.nombres,
         data.apellidos,
@@ -419,6 +419,8 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         data.idModalidad ?? null,
         data.idPuestoTrabajo ?? null,
         data.idCalendario ?? null,
+        data.idArea ?? null,
+        data.registraAsistencia ?? false,
       ],
     );
 
@@ -427,7 +429,7 @@ export class TrabajadorRepository implements ITrabajadorRepository {
 
   async editarTrabajador(data: EditarTrabajadorData): Promise<any> {
     const result = await this.databaseFunctionService.callFunctionSingle<any>(
-      'tra_EditarTrabajadorV2',
+      'tra_EditarTrabajadorV3',
       [
         data.idTrabajador,
         data.nombres,
@@ -466,6 +468,9 @@ export class TrabajadorRepository implements ITrabajadorRepository {
         data.idPuestoTrabajo ?? null,
         data.idCalendario ?? null,
         data.idCalendario !== undefined,
+        data.idArea ?? null,
+        data.idArea !== undefined,
+        data.registraAsistencia ?? null,
       ],
     );
 

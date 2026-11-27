@@ -106,6 +106,8 @@ import '../dtos/bim360/projects/crear-proyecto.dto';
 import '../dtos/bim360/projects/obtener-proyectos-legacy.dto';
 import '../dtos/bim360/projects/obtener-proyectos-new.dto';
 import '../dtos/common/pagination.dto';
+import '../dtos/control-asistencia/asistencia-mes.dto';
+import '../dtos/control-asistencia/marcar-asistencia.dto';
 import '../dtos/control-operativo/actualizar-estado-jornada.dto';
 import '../dtos/control-operativo/agregar-evidencias-actividad.dto';
 import '../dtos/control-operativo/exportar-actividades-word-masivo.dto';
