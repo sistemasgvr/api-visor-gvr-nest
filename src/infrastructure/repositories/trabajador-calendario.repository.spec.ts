@@ -36,16 +36,44 @@ describe('Calendario del colaborador', () => {
     async (calendar, update) => {
       await repository.editarTrabajador({ ...base, idCalendario: calendar });
       const [name, args] = database.callFunctionSingle.mock.calls[0];
-      expect(name).toBe('tra_EditarTrabajadorV2');
-      expect(args.slice(-2)).toEqual([calendar ?? null, update]);
+      expect(name).toBe('tra_EditarTrabajadorV3');
+      // Calendario y su indicador; después área, su indicador y registra asistencia.
+      expect(args.slice(-5, -3)).toEqual([calendar ?? null, update]);
     },
   );
 
-  it('crear sin calendario envía null y usa V2', async () => {
+  it.each([
+    [undefined, null, false],
+    [null, null, true],
+    [3, 3, true],
+  ])(
+    'envía área %s sin confundir omisión con eliminación',
+    async (area, enviado, actualizar) => {
+      await repository.editarTrabajador({ ...base, idArea: area });
+      const [, args] = database.callFunctionSingle.mock.calls[0];
+      expect(args.slice(-3)).toEqual([enviado, actualizar, null]);
+    },
+  );
+
+  it('editar conserva registra asistencia si no se envía y lo cambia si se envía', async () => {
+    await repository.editarTrabajador({ ...base, registraAsistencia: true });
+    expect(database.callFunctionSingle.mock.calls[0][1].at(-1)).toBe(true);
+  });
+
+  it('crear sin calendario ni área envía null, registra asistencia en false y usa V3', async () => {
     await repository.crearTrabajador({ ...base, idUsuarioCreacion: 1 });
     const [name, args] = database.callFunctionSingle.mock.calls[0];
-    expect(name).toBe('tra_CrearTrabajadorV2');
-    expect(args.at(-1)).toBeNull();
+    expect(name).toBe('tra_CrearTrabajadorV3');
+    expect(args.slice(-3)).toEqual([null, null, false]);
+  });
+
+  it('obtiene el detalle con área mediante la V3', async () => {
+    database.callFunctionSingle.mockResolvedValueOnce({ id: 1, idarea: 3 });
+    await repository.obtenerTrabajadorPorId(1);
+    expect(database.callFunctionSingle).toHaveBeenCalledWith(
+      'tra_ObtenerTrabajadorPorIdV3',
+      [1],
+    );
   });
 
   it('obtiene el catálogo publicado mediante la función específica', async () => {
